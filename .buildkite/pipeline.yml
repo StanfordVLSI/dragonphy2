@@ -1,10 +1,12 @@
 steps:
-  - command: |2
-      pwd
-      ls
-      hostname
-      time
-      ls
-      ls
-      date
+  - command: |
+pwd
+ls
+hostname
+echo "hello"
+time
+ls
+ls
+date
+date
     label: "test"
