@@ -1,3 +1,3 @@
 # dragonphy
 
-[![Build status](https://badge.buildkite.com/8899f5b8fb2d33e44487f04074f080877430b1241e1dc421e5.svg)](https://buildkite.com/stanford-aha/dragonphy)
+[![Build status](https://badge.buildkite.com/df233a0a276c870f908484cdf1e94db22868edd69514c7a977.svg)](https://buildkite.com/stanford-aha/dragonphy)
