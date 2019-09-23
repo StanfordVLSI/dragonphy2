@@ -1,0 +1,10 @@
+steps:
+  - command: |2
+      pwd
+      ls
+      hostname
+      time
+      ls
+      ls
+      date
+    label: "test"
