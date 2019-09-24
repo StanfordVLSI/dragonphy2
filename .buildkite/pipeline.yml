@@ -1,12 +1,11 @@
 steps:
   - command: |
-      pwd
-      ls
-      hostname
-      echo "hello"
-      time
-      ls
-      ls
-      date
-      date
+      source /cad/modules/tcl/init/bash
+      module load base
+      module load xcelium
+      conda create -p ./conda_env -y pip python=3.7
+      export PATH=$PWD/conda_env/bin:$PATH
+      pip install -e .
+      pip install pytest
+      pytest tests
     label: "test"
