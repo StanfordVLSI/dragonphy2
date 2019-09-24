@@ -2,12 +2,22 @@
 
 [![Build status](https://badge.buildkite.com/df233a0a276c870f908484cdf1e94db22868edd69514c7a977.svg?branch=master)](https://buildkite.com/stanford-aha/dragonphy)
 
-DragonPHY is the second design in the Open Source PHY project at Stanford.  
+DragonPHY is the second design in the Open Source PHY project at Stanford.
 
 ## Installation
 
 1. Clone the repository.
-2. Install the Python package associated with this project.
+```shell
+> git clone https://github.com/StanfordVLSI/dragonphy.git
+```
+2. Go into the top-level folder
+```shell
+> cd dragonphy
+```
+3. Install the Python package associated with this project.
+```shell
+> pip install -e .
+```
 
 ## Upgrading
 
