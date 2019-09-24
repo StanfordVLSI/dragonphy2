@@ -33,7 +33,7 @@ To upgrade to the latest version of DragonPHY:
 
 ## Running tests
 
-1. To run the tests used first make sure that **pytest** is installed:
+1. First install **pytest** if it is not already installed:
 ```shell
 > pip install pytest
 ```
