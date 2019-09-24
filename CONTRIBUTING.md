@@ -100,5 +100,3 @@ Notes:
 7. Test scripts that should be automatically run upon git pushes/pull-requests are stored in the **dragonphy/tests** directory.  In this case, there are block-level tests for the FFE and for the channel model.
 8. A behavioral model for the channel, intended for CPU simulation, is stored in the **dragonphy/verif/chan/beh/chan.sv** folder.  Note that this goes in the **verif** folder since it is not part of the design that is going to be taped out (i.e., the channel is outside of the RX chip).
 9. A synthesizable model for the channel, intended for FPGA emulation, is stored in **dragonphy/verif/chan/fpga/chan.sv**.  This will likely be generated through a framework like **msdsl**.
-
-
