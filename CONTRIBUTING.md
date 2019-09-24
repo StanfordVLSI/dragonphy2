@@ -45,19 +45,6 @@ We use pull requests (PRs) to manage updates to the code base, and block merging
 
 ## Block-level directories
 1. Each directory in **dragonphy/src** and **dragonphy/verif** represents the source code for a particular block, such as an RX sampler, feedforward equalizer, or a lossy channel model.  However, there will likely be multiple views for each block; each view should go in its own subdirectory, with the name of the subdirectory indicating its purpose.  For example, 
-```shell
-src
-├── chan
-│   └── beh
-│       └── chan.sv
-│   └── beh
-│       └── chan.sv
-├── ffe
-│   └── syn
-│       └── chan.sv
-│   └── struct
-│       └── chan.sv
-```
 2. Here is a list of the standard subdirectory names.
   1. **struct**: Structural Verilog.  Does not need to be synthesized prior to PnR.  Could be either hand-written or automatically generated as a synthesis product.  If it's automatically generated, please do not check it into the repository.
   2. **syn**: Synthesizable Verilog.  Needs to be synthesized prior to PnR.
@@ -69,5 +56,35 @@ src
 ## Other guidelines
 1. Please do not commit any process-specific designs or information.  This is very important!
 2. Also, please do not commit outputs from generators.  This clutters the repository and makes it harder to figure out what are the actual design sources vs. intermediate results.
+3. Please make sure that tests added to the **tests** folder do not take an excessive amount of time.  We want to make sure that pull requests can be verified in a reasonable amount of time.
 
-## Example
+## Example file layout
+```shell
+dragonphy
+├── __init__.py
+├── common.py
+scripts
+├── gen_ffe.py
+src
+├── ffe
+│   └── syn
+│       └── chan.sv
+│   └── struct
+│       └── chan.sv
+├── pi
+│   └── struct
+│       └── pi.sv
+│   └── beh
+│       └── pi.sv
+│   └── fpga
+│       └── pi.sv
+tests
+├── test_ffe.py
+├── test_chan.py
+verif
+├── chan
+│   └── beh
+│       └── chan.sv
+│   └── fpga
+│       └── chan.sv
+```
