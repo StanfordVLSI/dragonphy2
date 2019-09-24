@@ -59,6 +59,11 @@ We use pull requests (PRs) to manage updates to the code base, and block merging
 3. Please make sure that tests added to the **tests** folder do not take an excessive amount of time.  We want to make sure that pull requests can be verified in a reasonable amount of time.
 
 ## Example file layout
+
+Consider the sample file layout below as an example of the guidelines above.  Notes:
+1. Common Python files are stored in **dragonphy/dragonphy/common.py**.  These functions can then be imported from user code via a statement like `from dragonphy.common import NAME_OF_FUNC`.
+2. A script to generate the **syn** view of the **ffe** block is stored in **dragonphy/scripts/gen_ffe.py**.  Note that since **src/ffe/syn/chan.sv** is generated.
+
 ```shell
 dragonphy
 ├── __init__.py
