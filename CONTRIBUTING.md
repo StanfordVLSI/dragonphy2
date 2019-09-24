@@ -37,14 +37,37 @@ We use pull requests (PRs) to manage updates to the code base, and block merging
 > git pull origin master
 ```
 
-## File structure
-1. Common Python code should be placed in the **dragonphy/dragonphy** subdirectory.  Code placed here will be accessible to other scripts by importing the **dragonphy** module.
+## Top-level directories
+1. Common Python code should be placed in the **dragonphy/dragonphy** subdirectory.  Code placed here will be accessible to other scripts by importing the **dragonphy** module.  Scripts intended to be run directly should be placed in the **dragonphy/scripts** directory.
 2. The receiver design should go in the **dragonphy/src** subdirectory.  This will mostly consist of Verilog code.
 3. Verification sources should go in the **dragonphy/verif** subdirectory.  This includes things like TX stimulus, channel model, and various testbenches.
-4. Generators for various blocks should go in the **dragonphy/gen** subdirectory.
+4. Tests that should be automatically run on GitHub commits should be placed in the **dragonphy/tests** directory.  Since **pytest** is used to run the tests, each script name should start with **test_**, and the scripts should define one or more functions whose names start with **test_** (each such function will be run as a separate test by **pytest**).
 
-## Example
+## Block-level directories
+1. Each directory in **dragonphy/src** and **dragonphy/verif** represents the source code for a particular block, such as an RX sampler, feedforward equalizer, or a lossy channel model.  However, there will likely be multiple views for each block; each view should go in its own subdirectory, with the name of the subdirectory indicating its purpose.  For example, 
+```shell
+src
+├── chan
+│   └── beh
+│       └── chan.sv
+│   └── beh
+│       └── chan.sv
+├── ffe
+│   └── syn
+│       └── chan.sv
+│   └── struct
+│       └── chan.sv
+```
+2. Here is a list of the standard subdirectory names.
+  1. **struct**: Structural Verilog.  Does not need to be synthesized prior to PnR.  Could be either hand-written or automatically generated as a synthesis product.  If it's automatically generated, please do not check it into the repository.
+  2. **syn**: Synthesizable Verilog.  Needs to be synthesized prior to PnR.
+  3. **beh**: Behavioral model for CPU simulation.  Not intended to be synthesized.
+  4. **fpga**: Synthesizable model for FPGA emulation.
+  5. **spice**: Spice netlist.  Could be either hand-written or automatically generated.  If it's automatically generated, please do not check it into the repository.
+  6. **layout**: Analog layout for a cell.
 
 ## Other guidelines
 1. Please do not commit any process-specific designs or information.  This is very important!
 2. Also, please do not commit outputs from generators.  This clutters the repository and makes it harder to figure out what are the actual design sources vs. intermediate results.
+
+## Example
