@@ -39,12 +39,11 @@ We use pull requests (PRs) to manage updates to the code base, and block merging
 
 ## Top-level directories
 1. Common Python code should be placed in the **dragonphy/dragonphy** subdirectory.  Code placed here will be accessible to other scripts by importing the **dragonphy** module.  Scripts intended to be run directly should be placed in the **dragonphy/scripts** directory.
-2. The receiver design should go in the **dragonphy/src** subdirectory.  This will mostly consist of Verilog code.
-3. Verification sources should go in the **dragonphy/verif** subdirectory.  This includes things like TX stimulus, channel model, and various testbenches.
+2. The design and verification sources should go in the **dragonphy/src** subdirectory.  This will mostly consist of Verilog code.
 4. Tests that should be automatically run on GitHub commits should be placed in the **dragonphy/tests** directory.  Since **pytest** is used to run the tests, each script name should start with **test_**, and the scripts should define one or more functions whose names start with **test_** (each such function will be run as a separate test by **pytest**).
 
 ## Block-level directories
-1. Each directory in **dragonphy/src** and **dragonphy/verif** represents the source code for a particular block, such as an RX sampler, feedforward equalizer, or a lossy channel model.  However, there will likely be multiple views for each block; each view should go in its own subdirectory, with the name of the subdirectory indicating its purpose.  For example, 
+1. Each directory in **dragonphy/src** represents the source code for a particular block, such as an RX sampler, feedforward equalizer, or a lossy channel model.  However, there will likely be multiple views for each block; each view should go in its own subdirectory, with the name of the subdirectory indicating its purpose.  For example, 
 2. Here is a list of the standard subdirectory names (feel free to add to it):
     1. **struct**: Structural Verilog.  Does not need to be synthesized prior to PnR.  Could be either hand-written or automatically generated as a synthesis product.  If it's automatically generated, please do not check it into the repository.
     2. **syn**: Synthesizable Verilog.  Needs to be synthesized prior to PnR.
@@ -68,6 +67,11 @@ dragonphy
 scripts
 ├── gen_ffe.py
 src
+├── chan
+│   └── beh
+│       └── chan.sv
+│   └── fpga
+│       └── chan.sv
 ├── ffe
 │   └── syn
 │       └── ffe.sv
@@ -81,14 +85,8 @@ src
 │   └── fpga
 │       └── pi.sv
 tests
-├── test_ffe.py
-├── test_chan.py
-verif
-├── chan
-│   └── beh
-│       └── chan.sv
-│   └── fpga
-│       └── chan.sv
+├── test\_ffe.py
+├── test\_chan.py
 ```
 Notes:
 1. Common Python files are stored in **dragonphy/dragonphy/common.py**.  These functions can then be imported from user code via a statement like `from dragonphy.common import NAME_OF_FUNC`.
@@ -98,5 +96,5 @@ Notes:
 5. A behavioral model for the phase interpolator, intended for CPU simulation, is located in **dragonphy/src/pi/beh/pi.sv**.  This may be hand-written or generated (perhaps using **DaVE**).
 6. A synthesizable behavioral model for the phase interpolator, intended for FPGA emulation, is located in **dragonphy/src/pi/fpga/pi.sv**.  This may be hand-written or generated (perhaps using **msdsl**).
 7. Test scripts that should be automatically run upon git pushes/pull-requests are stored in the **dragonphy/tests** directory.  In this case, there are block-level tests for the FFE and for the channel model.
-8. A behavioral model for the channel, intended for CPU simulation, is stored in the **dragonphy/verif/chan/beh/chan.sv** folder.  Note that this goes in the **verif** folder since it is not part of the design that is going to be taped out (i.e., the channel is outside of the RX chip).
+8. A behavioral model for the channel, intended for CPU simulation, is stored in the **dragonphy/vsrc/chan/beh/chan.sv** folder.
 9. A synthesizable model for the channel, intended for FPGA emulation, is stored in **dragonphy/verif/chan/fpga/chan.sv**.  This will likely be generated through a framework like **msdsl**.
