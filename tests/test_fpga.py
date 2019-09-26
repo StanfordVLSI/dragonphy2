@@ -10,10 +10,11 @@ def test_loopback():
     libs = []
     libs.append('src/loopback/fpga/loopback.sv')
     libs.append('src/tx/fpga/tx.sv')
-    libs.append('src/vio/beh/tx.sv')
+    libs.append('src/vio/beh/vio.sv')
     libs.append('src/mmcm/beh/mmcm.sv')
     libs.append('src/time_manager/fpga/time_manager.sv')
     libs.append('src/clk_gen/fpga/clk_gen.sv')
+    libs.append('src/clk_drv/fpga/clk_drv.sv')
     libs.append('src/prbs21/fpga/prbs21.sv')
     libs.append('src/chan/fpga/chan.sv')
     libs.append('src/tb/syn/tb.sv')
