@@ -1,11 +1,14 @@
 module tx (
     input wire logic data_i,
     input wire logic clk_i,
-    output var logic data_o
+    interface data_ana_o
 );
 
+    real value;
+    assign data_ana_o.value = value;
+    
     always @(posedge clk_i) begin
-        data_o <= data_i;
+        value <= (data_i ? +1.0 : -1.0);
     end
 
 endmodule

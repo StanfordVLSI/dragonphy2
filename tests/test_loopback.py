@@ -11,6 +11,8 @@ def test_loopback():
     libs.append('verif/tx/beh/tx.sv')
     libs.append('verif/chan/beh/chan.sv')
     libs.append('src/rx/beh/rx.sv')
+    libs.append('src/rx_clk/beh/rx_clk.sv')
+    libs.append('src/rx_cmp/beh/rx_cmp.sv')
 
     # resolve paths
     tb = Path(tb).resolve()
