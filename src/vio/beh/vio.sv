@@ -5,7 +5,6 @@ module vio (
 );
 
     // generate emu reset
-    logic emu_rst;
     initial begin
         emu_rst = 1;
         #(100ns);

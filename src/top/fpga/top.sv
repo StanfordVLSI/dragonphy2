@@ -24,7 +24,7 @@ assign emu_clk_val = ~clk_drv_i.unbuf;
 `DECL_DT(emu_dt);
 time_manager tm_i (
     .rx_dt(tb_i.rx_i.rx_clk_i.dt_req),
-    .tx_dt(tb_i.tx_clk_i.dt_req)
+    .tx_dt(tb_i.tx_clk_i.dt_req),
     .emu_dt(emu_dt)
 );
 
