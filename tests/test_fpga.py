@@ -3,19 +3,20 @@ from pathlib import Path
 
 def test_loopback():
     # testbench location
-    signals = 'src/signals/beh/signals.sv'
-    top = 'src/top/beh/top.sv'
+    signals = 'src/signals/fpga/signals.sv'
+    top = 'src/top/fpga/top.sv'
 
     # library locations
     libs = []
-    libs.append('src/loopback/beh/loopback.sv')
-    libs.append('src/tx/beh/tx.sv')
-    libs.append('src/clk_gen/beh/clk_gen.sv')
-    libs.append('src/prbs21/beh/prbs21.sv')
-    libs.append('src/chan/beh/chan.sv')
+    libs.append('src/loopback/fpga/loopback.sv')
+    libs.append('src/tx/fpga/tx.sv')
+    libs.append('src/clk_gen/fpga/clk_gen.sv')
+    libs.append('src/prbs21/fpga/prbs21.sv')
+    libs.append('src/chan/fpga/chan.sv')
     libs.append('src/tb/syn/tb.sv')
     libs.append('src/rx/syn/rx.sv')
-    libs.append('src/rx_cmp/beh/rx_cmp.sv')
+    libs.append('src/rx_cmp/fpga/rx_cmp.sv')
+    libs.append('src/BUFG/beh/BUFG.sv')
 
     # resolve paths
     signals = Path(signals).resolve()
@@ -25,6 +26,8 @@ def test_loopback():
     # construct the command
     args = []
     args += ['xrun']
+    args += ['-top', 'top']
+    args += ['+define+FPGA_VERIF']
     args += ['-timescale', '1s/1fs']
     args += [f'{signals}']
     args += [f'{top}']
@@ -32,7 +35,7 @@ def test_loopback():
         args += ['-v', f'{lib}']
 
     # set up build dir     
-    cwd = Path('tests/build_loopback')
+    cwd = Path('tests/build_fpga')
     cwd.mkdir(exist_ok=True)
 
     # run the simulation
