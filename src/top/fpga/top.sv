@@ -5,21 +5,20 @@ module top(
 // instantiate the test bench
 tb tb_i ();
 
-
-// generate emu clk 2x
+// generate emu_clk_2x
 logic emu_clk_2x;
 mmcm mmcm_i (
+    .ext_clk(ext_clk),
     .emu_clk_2x(emu_clk_2x)
 );
 
-// generate emu clk
-logic emu_clk_val, emu_clk_unbuf, emu_clk;
-assign emu_clk_val = ~emu_clk_unbuf;
-mk_emu_clk mk_emu_clk_i (
+// generate emu clk by halving emu_clk_2x
+logic emu_clk_val;
+clk_drv clk_drv_i (
     .in(emu_clk_val),
-    .unbuf(emu_clk_unbuf),
     .out(emu_clk)
 );
+assign emu_clk_val = ~clk_drv_i.unbuf;
 
 // generate EMU_DT
 `DECL_DT(emu_dt);

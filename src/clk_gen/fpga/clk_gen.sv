@@ -6,29 +6,24 @@ module clk_gen #(
 
     // logic to determine next time step
     `DECL_DT(dt_req);
-    logic clk_val_int;
+    logic clk_val;
     always @(posedge `EMU_CLK) begin
         if (`EMU_RST == 1'b1) begin
-            clk_val_int <= 0;
+            clk_val <= 0;
             dt_req <= t_per / 2;
         end else if (dt_req - `EMU_DT == 0) begin
-            clk_val_int <= ~clk_val_int;
+            clk_val <= ~clk_val;
             dt_req <= t_per / 2;
         end else begin
-            clk_val_int <= clk_val_int;
+            clk_val <= clk_val;
             dt_req <= dt_req - `EMU_DT;
         end
     end
 
     // circuitry to drive clock
-    logic clk_int;
-    always @(posedge `EMU_CLK_2X) begin
-        if (`EMU_RST == 1'b1) begin
-            clk_int <= `EMU_CLK_VAL;
-        end else begin
-            clk_int <= clk_val_int;
-        end
-    end
-    BUFG BUFG_i (.O(clk_o), .I(clk_int));
+    clk_drv clk_drv_i (
+        .in(`EMU_RST ? `EMU_CLK_VAL : clk_val),
+        .out(clk_o)
+    );
 
 endmodule
