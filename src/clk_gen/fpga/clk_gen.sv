@@ -1,31 +1,37 @@
 `include "signals.sv"
 
 module clk_gen #(
-    parameter integer t_per=2
+    parameter integer t_hi=1,
+    parameter integer t_lo=1
 ) (
     output wire logic clk_o
 );
 
-    // logic to determine next time step
-    `DECL_DT(dt_req);
-    logic clk_val;
-    always @(posedge `EMU_CLK) begin
-        if (`EMU_RST == 1'b1) begin
-            clk_val <= 0;
-            dt_req <= t_per / 2;
-        end else if (dt_req - `EMU_DT == 0) begin
-            clk_val <= ~clk_val;
-            dt_req <= t_per / 2;
+    // signals wired up at top level
+    (* dont_touch = "true" *) logic clk_int;
+    (* dont_touch = "true" *) `DECL_DT(dt_req);
+    
+    // drive output clock
+    assign clk_o = clk_int;
+    
+    // logic to control the clock
+    (* dont_touch = "true" *) logic clk_val;
+    always @(posedge `EMU.clk) begin
+        if (`EMU.rst == 1'b1) begin
+            clk_val <= 1'b0;
+            dt_req <= t_lo;
+        end else if (dt_req == `EMU.dt) begin
+            if (clk_val == 1'b0) begin
+                clk_val <= 1'b1;
+                dt_req <= t_hi;
+            end else begin
+                clk_val <= 1'b0;
+                dt_req <= t_lo;
+            end
         end else begin
             clk_val <= clk_val;
-            dt_req <= dt_req - `EMU_DT;
+            dt_req <= dt_req - `EMU.dt;
         end
     end
-
-    // circuitry to drive clock
-    clk_drv clk_drv_i (
-        .in(`EMU_RST ? `EMU_CLK_VAL : clk_val),
-        .out(clk_o)
-    );
 
 endmodule

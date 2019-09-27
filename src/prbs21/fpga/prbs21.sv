@@ -3,20 +3,19 @@
 `include "signals.sv"
 
 module prbs21 (
+    output wire logic out_o,
     input wire logic clk_i,
-    output wire logic out_o
+    input wire logic rst_i
 );
 
-    reg [20:0] sr;
-    
-    always @(posedge clk_i or posedge `EMU_RST) begin
-        if (`EMU_RST == 1'b1) begin
-            sr <= '1;
+    logic [20:0] data;    
+    always @(posedge clk_i) begin
+        if (rst_i == 1'b1) begin
+            data <= '1; // i.e., assign to all ones
         end else begin
-            sr <= {sr[19:0], sr[20] ^ sr[1]};
+            data <= {data[19:0], data[20] ^ data[1]};
         end
-    end
-    
-    assign out_o = sr[6];
+    end    
+    assign out_o = data[6];
 
 endmodule
