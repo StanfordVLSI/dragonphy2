@@ -1,23 +1,26 @@
 `ifndef __SIGNALS_SV__
 `define __SIGNALS_SV__
 
+typedef logic [31:0] dt_t;
+
 interface analog_if ();
     logic signed [31:0] value;
+    modport in (input value);
+    modport out (output value);
 endinterface
 
-typedef logic signed [31:0] dt_t;
+interface emu_if ();
+    dt_t dt;
+    logic clk;
+    logic rst;
+endinterface
 
-`define ANALOG_INPUT interface
-`define ANALOG_OUTPUT interface
+`define ANALOG_INPUT analog_if.in
+`define ANALOG_OUTPUT analog_if.out
 
 `define DECL_ANALOG(x) analog_if x ()
 `define DECL_DT(x) dt_t x
 
-// need to define these values
-`define EMU_CLK top.emu_clk
-`define EMU_RST top.emu_rst
-`define EMU_DT top.emu_dt
-`define EMU_CLK_VAL top.emu_clk_val
-`define EMU_CLK_2X top.emu_clk_2x
+`define EMU top.emu
 
 `endif // `ifndef __SIGNALS_SV__
