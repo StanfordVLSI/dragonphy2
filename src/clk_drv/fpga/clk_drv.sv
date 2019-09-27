@@ -1,3 +1,5 @@
+`include "signals.sv"
+
 module clk_drv #(
     parameter init = 0
 ) (
@@ -9,6 +11,6 @@ module clk_drv #(
     always @(posedge `EMU_CLK_2X) begin
         unbuf <= in;
     end
-    BUFG BUFG_i (.O(out), .I(unbuf));
+    (* dont_touch="true" *) BUFG BUFG_i (.O(out), .I(unbuf));
 
 endmodule

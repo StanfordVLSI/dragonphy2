@@ -1,5 +1,7 @@
 // modified from: https://github.com/StanfordVLSI/DaVE/blob/master/mLingua/samples/misc/prbs21.v
 
+`include "signals.sv"
+
 module prbs21 (
     input wire logic clk_i,
     output wire logic out_o

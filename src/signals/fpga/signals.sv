@@ -1,8 +1,11 @@
+`ifndef __SIGNALS_SV__
+`define __SIGNALS_SV__
+
 interface analog_if ();
     logic signed [31:0] value;
 endinterface
 
- typedef logic signed [31:0] dt_t;
+typedef logic signed [31:0] dt_t;
 
 `define ANALOG_INPUT interface
 `define ANALOG_OUTPUT interface
@@ -16,3 +19,5 @@ endinterface
 `define EMU_DT top.emu_dt
 `define EMU_CLK_VAL top.emu_clk_val
 `define EMU_CLK_2X top.emu_clk_2x
+
+`endif // `ifndef __SIGNALS_SV__

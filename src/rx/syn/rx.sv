@@ -1,3 +1,5 @@
+`include "signals.sv"
+
 module rx #(
     parameter integer n_del=3
 ) (

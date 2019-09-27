@@ -1,3 +1,5 @@
+`include "signals.sv"
+
 module loopback #(
     parameter integer n_addr=5
 ) (
