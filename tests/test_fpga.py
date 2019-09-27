@@ -3,7 +3,7 @@ from pathlib import Path
 
 def test_loopback():
     # testbench location
-    signals = 'src/signals/fpga/signals.sv'
+    signals = 'src/signals/fpga'
     top = 'src/top/fpga/top.sv'
 
     # library locations
@@ -30,11 +30,10 @@ def test_loopback():
     # construct the command
     args = []
     args += ['xrun']
-    args += ['-top', 'top']
-    args += ['+define+FPGA_VERIF']
     args += ['-timescale', '1s/1fs']
-    args += [f'{signals}']
     args += [f'{top}']
+    args += ['-top', 'top']
+    args += [f'+incdir+{signals}']
     for lib in libs:
         args += ['-v', f'{lib}']
 

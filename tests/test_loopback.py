@@ -3,7 +3,7 @@ from pathlib import Path
 
 def test_loopback():
     # testbench location
-    signals = 'src/signals/beh/signals.sv'
+    signals = 'src/signals/beh'
     top = 'src/top/beh/top.sv'
 
     # library locations
@@ -26,8 +26,9 @@ def test_loopback():
     args = []
     args += ['xrun']
     args += ['-timescale', '1s/1fs']
-    args += [f'{signals}']
     args += [f'{top}']
+    args += ['-top', 'top']
+    args += [f'+incdir+{signals}']
     for lib in libs:
         args += ['-v', f'{lib}']
 

@@ -1,3 +1,5 @@
+`include "signals.sv"
+
 module top(
     input wire logic ext_clk
 );
