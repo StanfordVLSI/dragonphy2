@@ -1,3 +1,5 @@
+`include "signals.sv"
+
 module tb;
 
     `DECL_ANALOG(data_tx_o);

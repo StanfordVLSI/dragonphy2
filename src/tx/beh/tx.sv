@@ -1,3 +1,5 @@
+`include "signals.sv"
+
 module tx (
     input wire logic data_i,
     input wire logic clk_i,
