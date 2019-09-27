@@ -1,3 +1,5 @@
+`include "signals.sv"
+
 module clk_gen #(
     parameter integer t_per=2
 ) (

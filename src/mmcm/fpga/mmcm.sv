@@ -3,7 +3,15 @@ module mmcm (
     output var logic emu_clk_2x
 );
 
-    // instantiate clock wizard here...
+    logic locked;
+    logic dbg_clk;
+    clk_wiz_0 wiz_i (
+        .clk_out1(emu_clk_2x),
+        .clk_out2(dbg_clk),
+        .reset(0),
+        .locked(locked),
+        .clk_in1(ext_clk)
+    );
 
 endmodule
 
