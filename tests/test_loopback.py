@@ -7,14 +7,14 @@ def test_loopback():
     ]
 
     libs = [
-        'verif/loopback/loopback.sv',
-        'verif/tx/tx.sv',
+        'verif/loopback/all/loopback.sv',
+        'verif/tx/all/tx.sv',
         'verif/clk_gen/beh/clk_gen.sv',
-        'verif/prbs21/prbs21.sv',
-        'verif/chan/chan.sv',
-        'verif/tb/tb.sv',
-        'src/rx/rx.sv',
-        'src/rx_cmp/rx_cmp.sv'
+        'verif/prbs21/all/prbs21.sv',
+        'verif/chan/all/chan.sv',
+        'verif/tb/all/tb.sv',
+        'src/rx/all/rx.sv',
+        'src/rx_cmp/all/rx_cmp.sv'
     ]
 
     run_sim(srcs=srcs, libs=libs, cwd='tests/build_loopback',
