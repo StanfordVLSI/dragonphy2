@@ -1,52 +1,32 @@
-import subprocess
-from pathlib import Path
+from dragonphy import run_sim
 
-def test_loopback():
-    # testbench location
-    signals = 'src/signals/fpga/signals.sv'
-    stim = 'stim/fpga_stim.sv'
+def test_fpga():
+    srcs = [
+        'src/signals/fpga/signals.sv',
+        'stim/fpga_stim.sv'
+    ] 
 
-    # library locations
-    libs = []
-    libs.append('verif/BUFG/BUFG.sv')
-    libs.append('verif/loopback/loopback.sv')
-    libs.append('verif/tx/tx.sv')
-    libs.append('verif/clk_gen/fpga/clk_gen.sv')
-    libs.append('verif/prbs21/prbs21.sv')
-    libs.append('verif/chan/chan.sv')
-    libs.append('verif/gen_emu_clks/gen_emu_clks.sv')
-    libs.append('verif/mmcm/beh/mmcm.sv')
-    libs.append('verif/time_manager/time_manager.sv')
-    libs.append('verif/vio/vio.sv')
-    libs.append('src/rx_cmp/rx_cmp.sv')
-    libs.append('src/rx/rx.sv')
-    libs.append('verif/tb/tb.sv')
-    libs.append('verif/fpga_top/fpga_top.sv')
+    libs = [
+        'verif/BUFG/BUFG.sv',
+        'verif/loopback/loopback.sv',
+        'verif/tx/tx.sv',
+        'verif/clk_gen/fpga/clk_gen.sv',
+        'verif/prbs21/prbs21.sv',
+        'verif/chan/chan.sv',
+        'verif/gen_emu_clks/gen_emu_clks.sv',
+        'verif/mmcm/beh/mmcm.sv',
+        'verif/time_manager/time_manager.sv',
+        'verif/vio/vio.sv',
+        'src/rx_cmp/rx_cmp.sv',
+        'src/rx/rx.sv',
+        'verif/tb/tb.sv',
+        'verif/fpga_top/fpga_top.sv'
+    ]
 
-    # resolve paths
-    signals = Path(signals).resolve()
-    stim = Path(stim).resolve()
-    libs = [Path(lib).resolve() for lib in libs]
 
-    # construct the command
-    args = []
-    args += ['xrun']
-    args += ['-timescale', '1s/1fs']
-    args += ['-top', 'stim']
-    args += [f'+incdir+{signals.parent}']
-    args += [f'+define+FPGA_VERIF']
-
-    srcs = [signals] + libs + [stim]
-    srcs = [f'{src}' for src in srcs]
-    args += srcs
-
-    # set up build dir     
-    cwd = Path('tests/build_fpga')
-    cwd.mkdir(exist_ok=True)
-
-    # run the simulation
-    result = subprocess.run(args, cwd=cwd)
-    assert result.returncode == 0
+    run_sim(srcs=srcs, libs=libs, cwd='tests/build_fpga',
+            top='stim', inc_dirs=['src/signals/fpga'], 
+            defs=['FPGA_VERIF'])
 
 if __name__ == '__main__':
-    test_loopback()
+    test_fpga()
