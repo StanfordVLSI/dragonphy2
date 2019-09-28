@@ -37,7 +37,7 @@ def run_sim(srcs=None, libs=None, timescale='1s/1fs',
 
     # set up build dir     
     if cwd is not None:
-        cwd = Path('tests/build_loopback')
+        cwd = Path(cwd)
         cwd.mkdir(exist_ok=True)
 
     # run the simulation

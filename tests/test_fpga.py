@@ -7,20 +7,20 @@ def test_fpga():
     ] 
 
     libs = [
-        'verif/BUFG/BUFG.sv',
-        'verif/loopback/loopback.sv',
-        'verif/tx/tx.sv',
+        'verif/BUFG/all/BUFG.sv',
+        'verif/loopback/all/loopback.sv',
+        'verif/tx/all/tx.sv',
         'verif/clk_gen/fpga/clk_gen.sv',
-        'verif/prbs21/prbs21.sv',
-        'verif/chan/chan.sv',
-        'verif/gen_emu_clks/gen_emu_clks.sv',
+        'verif/prbs21/all/prbs21.sv',
+        'verif/chan/all/chan.sv',
+        'verif/gen_emu_clks/all/gen_emu_clks.sv',
         'verif/mmcm/beh/mmcm.sv',
-        'verif/time_manager/time_manager.sv',
-        'verif/vio/vio.sv',
-        'src/rx_cmp/rx_cmp.sv',
-        'src/rx/rx.sv',
-        'verif/tb/tb.sv',
-        'verif/fpga_top/fpga_top.sv'
+        'verif/time_manager/all/time_manager.sv',
+        'verif/vio/all/vio.sv',
+        'src/rx_cmp/all/rx_cmp.sv',
+        'src/rx/all/rx.sv',
+        'verif/tb/all/tb.sv',
+        'verif/fpga_top/all/fpga_top.sv'
     ]
 
 
