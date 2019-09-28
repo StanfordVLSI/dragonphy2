@@ -51,6 +51,7 @@ We use pull requests (PRs) to manage updates to the code base, and block merging
     4. **fpga**: Synthesizable model for FPGA emulation.
     5. **spice**: Spice netlist.  Could be either hand-written or automatically generated.  If it's automatically generated, please do not check it into the repository.
     6. **layout**: Analog layout for a cell.
+    7. **all**: File may be used for all purposes.  (Most likely used when there is only one file in the directory)
 
 ## Other guidelines
 1. Please do not commit any process-specific designs or information.  This is very important!
