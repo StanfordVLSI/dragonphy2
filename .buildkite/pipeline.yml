@@ -4,8 +4,21 @@ steps:
       module load base
       module load xcelium
       conda create -p ./conda_env -m -y pip python=3.7.4
-      export PATH=$PWD/conda_env/bin:$PATH
+      export PATH="${PWD}/conda_env/bin:${PATH}"
       pip install -e .
       pip install pytest
       pytest tests
-    label: "test"
+    label: "sim-test"
+
+  - command: |
+      export PATH="/home/steven/miniconda3/bin/conda:${PATH}"
+      conda create -p ./conda_env -m -y pip python=3.7.4
+      export PATH="${PWD}/conda_env/bin:${PATH}"
+      pip install -e .
+      pip install pytest
+      cd emu
+      ./build.sh
+      pytest
+    label: "fpga-test"
+    agents:
+      fpga-test: "true"
