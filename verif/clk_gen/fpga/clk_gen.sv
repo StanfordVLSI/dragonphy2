@@ -7,14 +7,18 @@ module clk_gen #(
     output wire logic clk_o
 );
 
-    // signals wired up at top level
-    (* dont_touch = "true" *) logic clk_int;
+    // Pass through "clk_i" to "clk_o"
+    // "dont_touch" is used because clk_i
+    // is written hierarchically, even though
+    // it does not appear as a module input
+    (* dont_touch = "true" *) logic clk_i;
+    assign clk_o = clk_i;
+
+    // Main control logic.  "dont_touch" is used
+    // because the dt_req and clk_val signals are
+    // read hierarchically, even though they are
+    // not outputs of the module
     (* dont_touch = "true" *) `DECL_DT(dt_req);
-    
-    // drive output clock
-    assign clk_o = clk_int;
-    
-    // logic to control the clock
     (* dont_touch = "true" *) logic clk_val;
     always @(posedge `EMU.clk) begin
         if (`EMU.rst == 1'b1) begin

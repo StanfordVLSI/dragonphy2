@@ -3,39 +3,42 @@ from pathlib import Path
 
 def test_loopback():
     # testbench location
-    signals = 'src/signals/fpga'
-    top = 'src/top/fpga/top.sv'
+    signals = 'src/signals/fpga/signals.sv'
+    stim = 'stim/fpga_stim.sv'
 
     # library locations
     libs = []
-    libs.append('src/loopback/fpga/loopback.sv')
-    libs.append('src/tx/fpga/tx.sv')
-    libs.append('src/vio/beh/vio.sv')
-    libs.append('src/mmcm/beh/mmcm.sv')
-    libs.append('src/time_manager/fpga/time_manager.sv')
-    libs.append('src/clk_gen/fpga/clk_gen.sv')
-    libs.append('src/clk_drv/fpga/clk_drv.sv')
-    libs.append('src/prbs21/fpga/prbs21.sv')
-    libs.append('src/chan/fpga/chan.sv')
-    libs.append('src/tb/syn/tb.sv')
-    libs.append('src/rx/syn/rx.sv')
-    libs.append('src/rx_cmp/fpga/rx_cmp.sv')
-    libs.append('src/BUFG/beh/BUFG.sv')
+    libs.append('verif/BUFG/BUFG.sv')
+    libs.append('verif/loopback/loopback.sv')
+    libs.append('verif/tx/tx.sv')
+    libs.append('verif/clk_gen/fpga/clk_gen.sv')
+    libs.append('verif/prbs21/prbs21.sv')
+    libs.append('verif/chan/chan.sv')
+    libs.append('verif/gen_emu_clks/gen_emu_clks.sv')
+    libs.append('verif/mmcm/beh/mmcm.sv')
+    libs.append('verif/time_manager/time_manager.sv')
+    libs.append('verif/vio/vio.sv')
+    libs.append('src/rx_cmp/rx_cmp.sv')
+    libs.append('src/rx/rx.sv')
+    libs.append('verif/tb/tb.sv')
+    libs.append('verif/fpga_top/fpga_top.sv')
 
     # resolve paths
     signals = Path(signals).resolve()
-    top = Path(top).resolve()
+    stim = Path(stim).resolve()
     libs = [Path(lib).resolve() for lib in libs]
 
     # construct the command
     args = []
     args += ['xrun']
     args += ['-timescale', '1s/1fs']
-    args += [f'{top}']
-    args += ['-top', 'top']
-    args += [f'+incdir+{signals}']
-    for lib in libs:
-        args += ['-v', f'{lib}']
+    args += ['-top', 'stim']
+    args += [f'+incdir+{signals.parent}']
+    args += [f'+define+FPGA_VERIF']
+
+    srcs = [signals] + libs + [stim]
+    srcs = [f'{src}' for src in srcs]
+    args += srcs
 
     # set up build dir     
     cwd = Path('tests/build_fpga')

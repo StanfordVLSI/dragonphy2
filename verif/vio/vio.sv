@@ -5,7 +5,7 @@ module vio (
     input wire logic clk
 );
 
-    // instantiate vio here...
+`ifndef FPGA_VERIF
 
     vio_0 vio_0_i (
         .clk(clk),
@@ -13,5 +13,7 @@ module vio (
         .probe_out0(emu_rst),
         .probe_out1(rst_user)
     );
+
+`endif // `ifndef FPGA_VERIF
 
 endmodule

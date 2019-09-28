@@ -21,6 +21,10 @@ endinterface
 `define DECL_ANALOG(x) analog_if x ()
 `define DECL_DT(x) dt_t x
 
-`define EMU top.emu
+`ifdef FPGA_VERIF
+    `define EMU stim.fpga_top_i.emu
+`else
+    `define EMU fpga_top.emu
+`endif
 
 `endif // `ifndef __SIGNALS_SV__
