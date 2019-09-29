@@ -4,17 +4,18 @@ steps:
       module load base
       module load xcelium
       conda create -p ./conda_env -m -y pip python=3.7.4
-      export PATH="${PWD}/conda_env/bin:${PATH}"
+      export PATH=$PWD/conda_env/bin:$PATH
       pip install -e .
       pip install pytest
       pytest tests
     label: "sim-test"
 
   - command: |
-      export PATH="/tools/Xilinx/Vivado/2018.3/bin:/tools/Xilinx/SDK/2018.3/bin:${PATH}"
+      export PATH=/tools/Xilinx/Vivado/2018.3/bin:/tools/Xilinx/SDK/2018.3/bin:$PATH
       echo $PATH
       python3.7 -m venv venv
       source venv/bin/activate
+      echo $PATH
       pip install -e .
       pip install pytest
       cd emu
