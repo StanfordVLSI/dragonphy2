@@ -11,14 +11,14 @@ steps:
     label: "sim-test"
 
   - command: |
-      export PATH="/home/steven/miniconda3/bin:${PATH}"
-      conda create -p ./conda_env -m -y pip python=3.7.4
-      export PATH="${PWD}/conda_env/bin:${PATH}"
+      python3.7 -m venv venv
+      source venv/bin/activate
       pip install -e .
       pip install pytest
       cd emu
       ./build.sh
       pytest
+      deactivate
     label: "fpga-test"
     agents:
       fpga-test: "true"
