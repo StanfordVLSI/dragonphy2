@@ -11,7 +11,7 @@ steps:
     label: "sim-test"
 
   - command: |
-      export PATH=/tools/Xilinx/Vivado/2018.3/bin:/tools/Xilinx/SDK/2018.3/bin:$PATH
+      export PATH=/tools/Xilinx/Vivado/2018.3/bin:/tools/Xilinx/SDK/2018.3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/usr/lib/jvm/java-12-oracle/bin:/usr/lib/jvm/java-12-oracle/db/bin
       echo $PATH
       python3.7 -m venv venv
       source venv/bin/activate
