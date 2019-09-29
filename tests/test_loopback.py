@@ -1,24 +1,23 @@
-from dragonphy import run_sim
+from dragonphy import *
 
 def test_loopback():
-    srcs = [
-        'src/signals/beh/signals.sv',
-        'stim/loopback_stim.sv'
-    ]
+    srcs = []
+    srcs += get_views(signals='beh')
+    srcs += get_files('stim/loopback_stim.sv')
 
-    libs = [
-        'verif/loopback/all/loopback.sv',
-        'verif/tx/all/tx.sv',
-        'verif/clk_gen/beh/clk_gen.sv',
-        'verif/prbs21/all/prbs21.sv',
-        'verif/chan/all/chan.sv',
-        'verif/tb/all/tb.sv',
-        'src/rx/all/rx.sv',
-        'src/rx_cmp/all/rx_cmp.sv'
-    ]
+    libs = get_views(
+        loopback='all',
+        tx='all',
+        clk_gen='beh',
+        prbs21='all',
+        chan='all',
+        tb='all',
+        rx='all',
+        rx_cmp='all'
+    )
 
-    run_sim(srcs=srcs, libs=libs, cwd='tests/build_loopback',
-            top='stim', inc_dirs=['src/signals/beh/'])
+    run_sim(srcs=srcs, libs=libs, cwd=get_dir('tests/build_loopback'),
+            top='stim', inc_dirs=get_dirs('src/signals/beh/'))
 
 if __name__ == '__main__':
     test_loopback()

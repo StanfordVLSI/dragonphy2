@@ -1,17 +1,13 @@
-import dragonphy
-from pathlib import Path
+from dragonphy import *
 
 def test_struct():
-    top = Path(dragonphy.__file__).parent.parent
-    subdirs = [top / 'src', top / 'verif']
-
     # make sure no verilog directly in the subdirectories
-    for d in subdirs:
+    for d in VIEW_DIRS:
         assert len(list(d.glob('*.*v'))) == 0, f'Please do not place Verilog code directly in the {d} folder.'
 
     # get a flat list of directories to look at
     look_at = []
-    for x in subdirs:
+    for x in VIEW_DIRS:
         for y in x.iterdir():
             if y.is_dir:
                 look_at.append(y)
@@ -24,12 +20,11 @@ def test_struct():
         names.add(d.stem)
 
     # check names of the directories for each module
-    allowed = {'beh', 'fpga', 'syn', 'spice', 'layout', 'struct', 'all'}
     for d in look_at:
         for x in d.iterdir():
-            if x.is_dir and x.stem not in allowed:
+            if x.is_dir and x.stem not in VIEW_NAMES:
                 print(f'The folder name {x} is invalid.')
-                print(f'Permitted module types are: {allowed}.')
+                print(f'Permitted module types are: {VIEW_NAMES}.')
                 raise Exception('Invalid folder name.')
 
     # make sure that source files are named correctly
