@@ -1,14 +1,14 @@
-from pathlib import Path
-from dragonphy import VivadoTCL
 from time import sleep
+from dragonphy import *
+
 
 def test_emu_prog(emu_rate=5e6, sleep_time=1):
-    tcl = VivadoTCL()
+    # start TCL interpreter
+    tcl = VivadoTCL(cwd=get_dir('emu'))
 
     # program FPGA
     print('Programming FPGA.')
-    this_dir = Path(__file__).parent
-    tcl.source(Path(this_dir, 'program.tcl'))
+    tcl.source(get_file('emu/program.tcl'))
 
     # go through reset sequence
     print('Going through the reset sequence.')
@@ -32,4 +32,4 @@ def test_emu_prog(emu_rate=5e6, sleep_time=1):
     assert number >= expect, f'Expected at least {expect} correct bits, got {number}.'
 
 if __name__ == '__main__':
-    test_emu_program()
+    test_emu_prog()

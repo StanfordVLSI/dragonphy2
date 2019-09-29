@@ -1,42 +1,59 @@
 # modified from https://github.com/sgherbst/hslink-emu/blob/master/msemu/server.py
 import sys
 from pathlib import Path
+from .console_print import cprint_block
 
 SERVER_PORT = 57937
 
 class VivadoTCL:
-    def __init__(self, prompt='Vivado% '):
-        import pexpect
+    def __init__(self, cwd=None, prompt='Vivado% ', debug=False):
+        # save settings
+        self.cwd = cwd
         self.prompt = prompt
+        self.debug = debug
+
+        # start the interpreter
+        from pexpect import spawnu
         print('Starting Vivado TCL interpreter... ', end='')
         sys.stdout.flush()
-        self.proc = pexpect.spawnu('vivado -nolog -nojournal -notrace -mode tcl')
-        self.expect_prompt()
+        cmd = 'vivado -nolog -nojournal -notrace -mode tcl'
+        self.proc = spawnu(command=cmd, cwd=cwd)
+
+        # wait for the prompt
+        self.expect_prompt(timeout=30)
         print('done.')
 
-    def expect_prompt(self):
-        self.proc.expect(self.prompt)
+    def expect_prompt(self, timeout=-1):
+        self.proc.expect(self.prompt, timeout=timeout)
 
-    def sendline(self, line):
+    def sendline(self, line, timeout=-1):
+        if self.debug:
+            cprint_block(line, title='SEND', color='magenta')
+
         self.proc.sendline(line)
-        self.expect_prompt()
-        return self.proc.before
+        self.expect_prompt(timeout=timeout)
+        before = self.proc.before
 
-    def source(self, script):
+        if self.debug:
+            cprint_block(before.splitlines()[1:], title='RECV', color='cyan')
+
+        return before
+
+    def source(self, script, timeout=-1):
         script = Path(script).resolve()
-        self.sendline(f'source {script}')
+        self.sendline(f'source {script}', timeout=timeout)
     
-    def refresh_hw_vio(self, name):
-        self.sendline(f'refresh_hw_vio {name}')
+    def refresh_hw_vio(self, name, timeout=30):
+        self.sendline(f'refresh_hw_vio {name}', timeout=timeout)
 
-    def get_vio(self, name):
-        before = self.sendline(f'get_property INPUT_VALUE {name}')
+    def get_vio(self, name, timeout=30):
+        before = self.sendline(f'get_property INPUT_VALUE {name}', timeout=timeout)
         before = before.splitlines()[-1] # get last line
         before = before.strip() # strip off whitespace
         return before
 
-    def set_vio(self, name, value):
-        self.sendline(f'set_property OUTPUT_VALUE {value} {name}')
+    def set_vio(self, name, value, timeout=30):
+        self.sendline(f'set_property OUTPUT_VALUE {value} {name}', timeout=timeout)
         self.sendline(f'commit_hw_vio {name}')
 
     def __del__(self):

@@ -1,5 +1,5 @@
-import subprocess
 from pathlib import Path
+from .deluxe_run import deluxe_run
 
 def run_sim(srcs=None, libs=None, timescale='1s/1fs',
             inc_dirs=None, top=None, cwd=None, defs=None):
@@ -35,13 +35,6 @@ def run_sim(srcs=None, libs=None, timescale='1s/1fs',
         else:
             args += [f'+define+{def_}']
 
-    # set up build dir     
-    if cwd is not None:
-        cwd = Path(cwd)
-        cwd.mkdir(exist_ok=True)
-
     # run the simulation
-    result = subprocess.run(args, cwd=cwd)
-
-    # check the result
-    assert result.returncode == 0
+    err_str = ['ERROR', 'FATAL']
+    deluxe_run(args, cwd=cwd, err_str=err_str)
