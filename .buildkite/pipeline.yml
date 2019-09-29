@@ -11,6 +11,8 @@ steps:
     label: "sim-test"
 
   - command: |
+      export PATH="/tools/Xilinx/Vivado/2018.3/bin:/tools/Xilinx/SDK/2018.3/bin:${PATH}"
+      echo $PATH
       python3.7 -m venv venv
       source venv/bin/activate
       pip install -e .
