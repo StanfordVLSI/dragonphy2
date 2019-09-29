@@ -1,13 +1,15 @@
 from dragonphy import *
 
 def test_struct():
+    view_dir_paths = get_dirs(*VIEW_DIRS)
+
     # make sure no verilog directly in the subdirectories
-    for d in VIEW_DIRS:
+    for d in view_dir_paths:
         assert len(list(d.glob('*.*v'))) == 0, f'Please do not place Verilog code directly in the {d} folder.'
 
     # get a flat list of directories to look at
     look_at = []
-    for x in VIEW_DIRS:
+    for x in view_dir_paths:
         for y in x.iterdir():
             if y.is_dir:
                 look_at.append(y)
