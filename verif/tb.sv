@@ -1,3 +1,5 @@
+// dragon uses tx chan rx clk_gen prbs21 loopback
+
 `include "signals.sv"
 
 module tb;

@@ -1,3 +1,7 @@
+// dragon uses tb mmcm gen_emu_clks time_manager vio
+
+`include "signals.sv"
+
 module fpga_top(
     input wire logic ext_clk
 );

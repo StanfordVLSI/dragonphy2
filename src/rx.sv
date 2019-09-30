@@ -1,3 +1,5 @@
+// dragon uses rx_cmp
+
 `include "signals.sv"
 
 module rx #(
