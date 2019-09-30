@@ -20,14 +20,10 @@ def print_lines(fd, name, color='magenta'):
 
     return text
 
-def deluxe_run(args, cwd, err_str=None):
+def deluxe_run(args, cwd, err_strs=None):
     # set defaults
-    if err_str is None:
-        err_str = []
-
-    # handle single error string or list of error strings
-    if not isinstance(err_str, list):
-        err_str = list(err_str)
+    if err_strs is None:
+        err_strs = []
 
     # make build directory if needed
     if cwd is not None:
@@ -53,7 +49,7 @@ def deluxe_run(args, cwd, err_str=None):
         assert returncode == 0
 
         # look for known error strings
-        for e in err_str:
+        for e in err_strs:
             assert e not in stdout, f'Found "{e}" in STDOUT.'
             assert e not in stderr, f'Found "{e}" in STDERR.'
 

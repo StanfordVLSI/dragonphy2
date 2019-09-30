@@ -128,7 +128,7 @@ def get_deps(cell, view_order=None, override=None, retval=None):
     if retval is None:
         retval = {}
 
-    # convert src to a CellView if needed
+    # convert cell to a CellView if needed
     if not isinstance(cell, CellView):
         cell = CellView(cell)
 
