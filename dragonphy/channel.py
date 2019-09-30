@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt 
 
 class Filter:
 	def __init__(self, sampl_rate=1):
@@ -43,9 +44,46 @@ class Channel(Filter):
 	def calculate_time(self):
 		return (np.array(range(self.length()))-self.cursor_pos)*1.0/self.sampl_rate
 
-	def perfect_channel(self, **kwargs):
-		return np.identity(self.resp_depth)[self.cursor_pos]
+	def perfect_channel(self, resp_depth=10, **kwargs):
+		return np.identity(resp_depth)[self.cursor_pos]
 
+	# From: The Physics of Transmission Lines at High and Very High Frequencies
+	# Continuous Model: h(t) = 1/(pi*k) * 1/(1+(t/k)^2)
+	def dielectric2_channel(self, resp_depth=10, normal='area', **kwargs):
+		try:
+			tau = kwargs['tau']
+		except KeyError as e:
+			print("Dielectric Effect Channel: {} not specified, defaulting to {}=2".format('tau','tau'))
+			tau = 2
+		
+		sample_per = 1.0/self.sampl_rate
+		
+		func_scale = 1.0/(np.pi*tau)
+		nT_over_tau = np.divide(range(-self.cursor_pos, resp_depth-self.cursor_pos), np.repeat(sample_per/tau, resp_depth))
+		
+		unscaled_array = 1.0/(1.0 + nT_over_tau**2)
+		return self.normal_select[normal](self, unscaled_array)
+
+	# From: Ken Boesch Thesis
+	# Continuous Model: h(t) = 1/(pi*k) * (1+t/k)/(1+(t/k)^2)
+	def dielectric1_channel(self, resp_depth=10, normal='area', **kwargs):
+		try:
+			tau = kwargs['tau']
+		except KeyError as e:
+			print("Dielectric Effect Channel: {} not specified, defaulting to {}=2".format('tau','tau'))
+			tau = 2
+		
+		sample_per = 1.0/self.sampl_rate
+		
+		func_scale = 1.0/(np.pi*tau)
+		nT_over_tau = np.divide(range(-self.cursor_pos, resp_depth-self.cursor_pos), np.repeat(sample_per/tau, resp_depth))
+		
+		unscaled_array = np.clip((1.0 + nT_over_tau)/(1.0 + nT_over_tau**2), 0, None)
+		return self.normal_select[normal](self, unscaled_array)
+
+	# From: The Physics of Transmission Lines at High and Very High Frequencies
+	# Continuous Model:     h(t) = sqrt(tau)/(2*t*sqrt(pi*t)) * e^(-tau/4t)
+	# Discrete Model:       h(n) = sqrt(beta/pi) * e^(-beta/n)/n^(3/2)
 	def skineffect_channel(self, resp_depth=10, normal='area', **kwargs):
 		try: 
 			tau = kwargs['tau']
@@ -53,22 +91,18 @@ class Channel(Filter):
 			print("Skin Effect Channel: {} not specified, defaulting to {}=2".format('tau','tau'))
 			tau = 2
 
-        # From: The Physics of Transmission Lines at High and Very High Frequencies
-        # Continuous Model:     h(t) = sqrt(tau)/(2*t*sqrt(pi*t)) * e^(-tau/4t)
-        # Discrete Model:       h(n) = sqrt(beta/pi) * e^(-beta/n)/n^(3/2)
-
 		sampl_per = 1.0/self.sampl_rate
-
         # Let beta be tau/(4*T)
 		beta = tau/(4*sampl_per)
-		eps  = 1E-3
 
         # func_scale = np.sqrt(beta/np.pi)
 		expon_val = np.repeat(np.exp(-beta), resp_depth-1)
 		one_over_n = np.divide(np.ones((resp_depth-1,)), range(1,resp_depth))
 		expon_arr = np.power(expon_val, one_over_n)
 		n_to_3_o_2 = np.power(range(1,resp_depth), 3.0/2.0)
-		unscaled_array = np.pad(np.divide(expon_arr,n_to_3_o_2),(self.cursor_pos,0),'constant', constant_values=(0,0))
+
+		# Shift is equivalent to convolving with a delayed impulse response. Delay by 1 more for n=0 (cannot divide by 0).
+		unscaled_array = np.pad(np.divide(expon_arr,n_to_3_o_2),(self.cursor_pos,0),'constant', constant_values=(0,0))[0:resp_depth]
 		return self.normal_select[normal](self, unscaled_array)
 
 	def exponential_channel(self, resp_depth=10, normal='area', **kwargs):
@@ -100,5 +134,24 @@ class Channel(Filter):
 		return np.sum(self.impulse_response)*1.0/self.sampl_rate
 
 
-	channel_generator = { 'perfect' : perfect_channel, 'exponent' : exponential_channel, 'skineffect' : skineffect_channel}
+	channel_generator = { 'perfect' : perfect_channel, 'exponent' : exponential_channel, 'skineffect' : skineffect_channel, 'dielectric2' : dielectric2_channel, \
+						 'dielectric1' : dielectric1_channel}
 	normal_select     = { 'area' : normalize_area, 'energy' : normalize_energy, 'none': normalize_none}
+
+# Used for testing 
+if __name__ == "__main__":
+	c1 = Channel(channel_type='skineffect', sampl_rate=5, resp_depth=10)
+	c2 = Channel(channel_type='dielectric1', sampl_rate=5, resp_depth=125)
+	c3 = Channel(channel_type='dielectric2', sampl_rate=5, resp_depth=125)
+
+	print(c1.impulse_response)
+	plt.plot(c1.impulse_response)
+	plt.show()
+
+	print(c2.impulse_response)	
+	plt.plot(c2.impulse_response)
+	plt.show()
+
+	print(c3.impulse_response)	
+	plt.plot(c3.impulse_response)
+	plt.show()
