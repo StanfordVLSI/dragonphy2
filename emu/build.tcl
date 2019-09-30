@@ -2,23 +2,8 @@
 create_project -force project project -part "xc7z020clg400-1"
 
 # Add source files
-add_files [list \
-	"../src/signals/fpga/signals.sv" \
-	"../verif/loopback/all/loopback.sv" \
-	"../verif/tx/all/tx.sv" \
-	"../verif/clk_gen/fpga/clk_gen.sv" \
-	"../verif/prbs21/all/prbs21.sv" \
-	"../verif/chan/all/chan.sv" \
-	"../verif/gen_emu_clks/all/gen_emu_clks.sv" \
-	"../verif/mmcm/fpga/mmcm.sv" \
-	"../verif/time_manager/all/time_manager.sv" \
-	"../verif/vio/all/vio.sv" \
-	"../src/rx_cmp/all/rx_cmp.sv" \
-	"../src/rx/all/rx.sv" \
-	"../verif/tb/all/tb.sv" \
-	"../verif/fpga_top/all/fpga_top.sv" \
-]
-set_property file_type "Verilog Header" [get_files "../src/signals/fpga/signals.sv"]
+add_files $file_list
+set_property file_type "Verilog Header" [get_files "../inc/signals/fpga/signals.sv"]
 
 # Add clock constraints
 add_files -fileset constrs_1 [glob "../emu/constr.xdc"]
