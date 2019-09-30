@@ -38,20 +38,26 @@ We use pull requests (PRs) to manage updates to the code base, and block merging
 ```
 
 ## Top-level directories
-1. Common Python code should be placed in the **dragonphy/dragonphy** subdirectory.  Code placed here will be accessible to other scripts by importing the **dragonphy** module.  Scripts intended to be run directly should be placed in the **dragonphy/scripts** directory.
-2. The design and verification sources should go in the **dragonphy/src** subdirectory.  This will mostly consist of Verilog code.
-4. Tests that should be automatically run on GitHub commits should be placed in the **dragonphy/tests** directory.  Since **pytest** is used to run the tests, each script name should start with **test_**, and the scripts should define one or more functions whose names start with **test_** (each such function will be run as a separate test by **pytest**).
+1. Common Python code should be placed in the **dragonphy/dragonphy** subdirectory.  Code placed here will be accessible to other scripts by importing the **dragonphy** module.
+2. Scripts intended to be run directly should be placed in the **dragonphy/scripts** directory.
+3. The design sources should go in the **dragonphy/src** subdirectory.  This will mostly consist of Verilog code.
+4. The verification sources should go in the **dragonphy/verif** subdirectory.  This will mostly consist of Verilog code.
+5. Header files should go in the **dragonphy/inc** subdirectory.
+6. Stimulus files should go in the **dragonphy/stim** subdirectory.
+7. Code related to building and running emulations should go in the **dragonphy/emu** directory.
+8. Tests that should be automatically run on GitHub commits should be placed in the **dragonphy/tests** directory.  Since **pytest** is used to run the tests, each script name should start with **test_**, and the scripts should define one or more functions whose names start with **test_** (each such function will be run as a separate test by **pytest**).
 
 ## Block-level directories
-1. Each directory in **dragonphy/src** represents the source code for a particular block, such as an RX sampler, feedforward equalizer, or a lossy channel model.  However, there will likely be multiple views for each block; each view should go in its own subdirectory, with the name of the subdirectory indicating its purpose.  For example, 
-2. Here is a list of the standard subdirectory names (feel free to add to it):
+1. Each subdirectory in **dragonphy/src** or **dragonphy/verif** represents the source code for a particular block, such as an RX sampler, feedforward equalizer, or a lossy channel model.  However, there will likely be multiple views for each block; each view should go in its own subsubdirectory, with the name of the subsubdirectory indicating its purpose.
+2. Here is a list of the standard subsubdirectory names (feel free to add to it):
     1. **struct**: Structural Verilog.  Does not need to be synthesized prior to PnR.  Could be either hand-written or automatically generated as a synthesis product.  If it's automatically generated, please do not check it into the repository.
     2. **syn**: Synthesizable Verilog.  Needs to be synthesized prior to PnR.
     3. **beh**: Behavioral model for CPU simulation.  Not intended to be synthesized.
     4. **fpga**: Synthesizable model for FPGA emulation.
-    5. **spice**: Spice netlist.  Could be either hand-written or automatically generated.  If it's automatically generated, please do not check it into the repository.
-    6. **layout**: Analog layout for a cell.
-    7. **all**: File may be used for all purposes.  (Most likely used when there is only one file in the directory)
+    5. **fpga_verif**: Model that is only needed for CPU simulation of an FPGA emulator.  For example, there is a **BUFG** model in **dragonphy/verif/BUFG/fpga_verif**.
+6. **spice**: Spice netlist.  Could be either hand-written or automatically generated.  If it's automatically generated, please do not check it into the repository.
+    7. **layout**: Analog layout for a cell.
+7. It is OK to place a Verilog file directly in **dragonphy/src** or **dragonphy/verif** or directly in one their subdirectories.  This is interpreted as meaning that there is only one view for the block.
 
 ## Other guidelines
 1. Please do not commit any process-specific designs or information.  This is very important!
