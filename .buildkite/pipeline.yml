@@ -2,6 +2,7 @@ steps:
   - command: |
       source /cad/modules/tcl/init/bash
       module load base
+      module load xcelium
       conda create -p ./conda_env -m -y pip python=3.7.4
       export PATH=$PWD/conda_env/bin:$PATH
       pip install -e .
