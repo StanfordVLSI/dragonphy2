@@ -1,3 +1,5 @@
+// dragon uses BUFG
+
 module gen_emu_clks #(
     parameter integer n=2
 ) (

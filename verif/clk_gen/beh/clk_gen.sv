@@ -1,5 +1,6 @@
 module clk_gen #(
-    parameter real t_per=2e-9
+    parameter real t_lo=1,
+    parameter real t_hi=1
 ) (
     output var logic clk_o
 );
@@ -7,9 +8,9 @@ module clk_gen #(
     initial begin
         forever begin
 	        clk_o = 1'b0;
-            #(0.5*t_per*1s);
+            #(t_lo*1ns);
 	        clk_o = 1'b1;
-	        #(0.5*t_per*1s);
+	        #(t_hi*1ns);
         end
     end
     

@@ -3,6 +3,7 @@ from .deluxe_run import deluxe_run
 
 def run_sim(srcs=None, libs=None, timescale='1s/1fs',
             inc_dirs=None, top=None, cwd=None, defs=None):
+    # set defaults
     if srcs is None:
         srcs = []
     if libs is None:
@@ -11,6 +12,16 @@ def run_sim(srcs=None, libs=None, timescale='1s/1fs',
         inc_dirs = []
     if defs is None:
         defs = []
+
+    # convert to lists if needed
+    if not isinstance(srcs, list):
+        srcs = list(srcs)
+    if not isinstance(libs, list):
+        libs = list(libs)
+    if not isinstance(inc_dirs, list):
+        inc_dirs = list(inc_dirs)
+    if not isinstance(defs, list):
+        defs = list(defs)
 
     srcs = [Path(src).resolve() for src in srcs]
     libs = [Path(lib).resolve() for lib in libs]

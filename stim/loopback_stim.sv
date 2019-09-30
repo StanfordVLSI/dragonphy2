@@ -1,3 +1,5 @@
+// dragon uses tb
+
 module stim;
 
     tb tb_i();

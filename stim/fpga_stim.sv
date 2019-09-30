@@ -1,3 +1,5 @@
+// dragon uses fpga_top
+
 module stim;
     logic ext_clk;
 
