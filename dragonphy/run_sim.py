@@ -13,16 +13,6 @@ def run_sim(srcs=None, libs=None, timescale='1s/1fs',
     if defs is None:
         defs = []
 
-    # convert to lists if needed
-    if not isinstance(srcs, list):
-        srcs = list(srcs)
-    if not isinstance(libs, list):
-        libs = list(libs)
-    if not isinstance(inc_dirs, list):
-        inc_dirs = list(inc_dirs)
-    if not isinstance(defs, list):
-        defs = list(defs)
-
     srcs = [Path(src).resolve() for src in srcs]
     libs = [Path(lib).resolve() for lib in libs]
     inc_dirs = [Path(d).resolve() for d in inc_dirs]
@@ -47,5 +37,5 @@ def run_sim(srcs=None, libs=None, timescale='1s/1fs',
             args += [f'+define+{def_}']
 
     # run the simulation
-    err_str = ['ERROR', 'FATAL']
-    deluxe_run(args, cwd=cwd, err_str=err_str)
+    err_strs = ['ERROR', 'FATAL']
+    deluxe_run(args, cwd=cwd, err_strs=err_strs)

@@ -16,4 +16,4 @@ def vivado_batch(script=None, cwd=None):
 
     err_str = ['CRITICAL WARNING', 'ERROR', 'FATAL']
 
-    deluxe_run(args, cwd=cwd, err_str=err_str)
+    deluxe_run(args, cwd=cwd, err_strs=err_str)
