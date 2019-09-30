@@ -1,45 +1,72 @@
 # modified from https://github.com/sgherbst/hslink-emu/blob/master/msemu/server.py
 import sys
+import time
+from numbers import Number
 from pathlib import Path
-from .console_print import cprint_block
+from .console_print import cprint_block, cprint_block_start, cprint_block_end
 
 SERVER_PORT = 57937
 
 class VivadoTCL:
-    def __init__(self, cwd=None, prompt='Vivado% ', debug=False):
+    def __init__(self, cwd=None, prompt='Vivado% ', err_strs=None, debug=False):
+        # set defaults
+        if err_strs is None:
+            err_strs = ['ERROR', 'CRITICAL WARNING', 'FATAL']
+
         # save settings
         self.cwd = cwd
         self.prompt = prompt
         self.debug = debug
+        self.err_strs = err_strs
 
         # start the interpreter
         from pexpect import spawnu
-        print('Starting Vivado TCL interpreter... ', end='')
+        print('Starting Vivado TCL interpreter.')
         sys.stdout.flush()
         cmd = 'vivado -nolog -nojournal -notrace -mode tcl'
         self.proc = spawnu(command=cmd, cwd=cwd)
 
         # wait for the prompt
         self.expect_prompt(timeout=30)
-        print('done.')
 
-    def expect_prompt(self, timeout=-1):
-        self.proc.expect(self.prompt, timeout=timeout)
+    def expect_prompt(self, timeout=float('inf')):
+        before = ''
+        start_time = time.time()
+        lines_recv = 0
+        while (time.time() - start_time) < timeout:
+            remaining = timeout - (time.time() - start_time)
+            if remaining == float('inf'):
+                remaining = None
+            index = self.proc.expect(['\n', self.prompt], timeout=remaining)
+            if index == 0:
+                before += self.proc.before + '\n'
+                lines_recv += 1
+                if self.debug:
+                    if lines_recv == 2:
+                        cprint_block_start('RECV', 'cyan')
+                    if lines_recv >= 2:
+                        print(self.proc.before)
+            else:
+                break
+        if self.debug and lines_recv >= 2:
+            cprint_block_end('RECV', 'cyan')
+        return before
 
-    def sendline(self, line, timeout=-1):
+    def sendline(self, line, timeout=float('inf')):
         if self.debug:
-            cprint_block(line, title='SEND', color='magenta')
+            cprint_block([line], title='SEND', color='magenta')
 
         self.proc.sendline(line)
-        self.expect_prompt(timeout=timeout)
-        before = self.proc.before
+        before = self.expect_prompt(timeout=timeout)
 
-        if self.debug:
-            cprint_block(before.splitlines()[1:], title='RECV', color='cyan')
+        # make sure that there were no errors
+        for err_str in self.err_strs:
+            if err_str in before:
+                raise Exception(f'Found {err_str} in output from Vivado.')
 
         return before
 
-    def source(self, script, timeout=-1):
+    def source(self, script, timeout=float('inf')):
         script = Path(script).resolve()
         self.sendline(f'source {script}', timeout=timeout)
     
@@ -55,6 +82,22 @@ class VivadoTCL:
     def set_vio(self, name, value, timeout=30):
         self.sendline(f'set_property OUTPUT_VALUE {value} {name}', timeout=timeout)
         self.sendline(f'commit_hw_vio {name}')
+
+    def set_var(self, name, value):
+        self.sendline(f'set {name} {self.tcl_val(value)}')
+
+    @classmethod
+    def tcl_val(cls, value):
+        if isinstance(value, (list, tuple)):
+            return '[list ' + ' '.join(cls.tcl_val(elem) for elem in value) + ']'
+        elif isinstance(value, str):
+            return '"' + value + '"'
+        elif isinstance(value, Path):
+            return cls.tcl_val(str(value))
+        elif isinstance(value, Number):
+            return str(value)
+        else:
+            raise Exception(f"Don't know how to convert to a TCL literal: {value}.")
 
     def __del__(self):
         print('Sending "exit" to Vivado TCL interpreter... ', end='')

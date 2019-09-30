@@ -41,13 +41,11 @@ def cprint_block_end(title, color=None, bold=None):
     cprint(f'</{title}>', color=color, bold=bold)
 
 def cprint_block(str_list, title, color=None, bold=None):
-    # handle single string argument
-    if not isinstance(str_list, list):
-        str_list = list(str_list)
-
-    # don't
+    # don't print out anything if the string list has zero length
     if len(str_list) == 0:
         return
+
+    # otherwise print out the text with the start and end indicated
     cprint_block_start(title, color=color, bold=bold)
     for s in str_list:
         print(str(s).rstrip())
