@@ -1,5 +1,9 @@
 steps:
   - command: |
+      export PATH=$$PATH:/usr/local/miniconda/bin:/usr/local/bin
+      export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:/usr/local/lib
+      echo $$PATH
+      echo $$LD_LIBRARY_PATH
       source /cad/modules/tcl/init/bash
       module load base
       module load xcelium
@@ -13,8 +17,6 @@ steps:
     agents:
       butterphy: "true"
   - command: |
-      echo $$PATH
-      source /etc/environment
       echo $$PATH
       python3.7 -m venv venv
       source venv/bin/activate
