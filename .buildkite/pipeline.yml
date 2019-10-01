@@ -4,7 +4,7 @@ steps:
       module load base
       module load xcelium
       conda create -p ./conda_env -m -y pip python=3.7.4
-      export PATH=$PWD/conda_env/bin:$PATH
+      export PATH=$$PWD/conda_env/bin:$$PATH
       pip install -e .
       pip install pytest
       pytest tests
@@ -13,9 +13,11 @@ steps:
     agents:
       butterphy: "true"
   - command: |
+      echo $$PATH
+      echo $$XILINXD_LICENSE_FILE
       source /etc/environment
-      echo $PATH
-      echo $XILINXD_LICENSE_FILE
+      echo $$PATH
+      echo $$XILINXD_LICENSE_FILE
       python3.7 -m venv venv
       source venv/bin/activate
       pip install pytest
