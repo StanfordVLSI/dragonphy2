@@ -1,6 +1,3 @@
-steps:
-  - *butterphy
-
 - &butterphy command: |
       export PATH=$$PATH:/usr/local/miniconda/bin:/usr/local/bin
       echo $$PATH
@@ -32,3 +29,8 @@ steps:
     timeout_in_minutes: 60
     agents:
         fpga_verif: "true"
+
+steps:
+  - *butterphy
+
+
