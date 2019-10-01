@@ -14,6 +14,7 @@ steps:
       butterphy: "true"
   - command: |
       echo $PATH
+      echo $XILINXD_LICENSE_FILE
       python3.7 -m venv venv
       source venv/bin/activate
       pip install pytest
