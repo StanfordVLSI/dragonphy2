@@ -9,7 +9,7 @@ def test_emu_build():
     file_list = [fpga_top] + deps + [get_file('inc/signals/fpga/signals.sv')]
 
     # start TCL interpreter
-    tcl = VivadoTCL(cwd=get_dir('emu'))
+    tcl = VivadoTCL(cwd=get_dir('emu'), debug=True)
     tcl.set_var('file_list', file_list)
     tcl.source(get_file('emu/build.tcl'))
 

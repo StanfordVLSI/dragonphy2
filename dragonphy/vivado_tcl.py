@@ -100,11 +100,8 @@ class VivadoTCL:
             raise Exception(f"Don't know how to convert to a TCL literal: {value}.")
 
     def __del__(self):
-        print('Sending "exit" to Vivado TCL interpreter... ', end='')
-        sys.stdout.flush()
+        print('Sending "exit" to Vivado TCL interpreter.')
         self.proc.sendline('exit')
-        self.proc.wait()
-        print('done.')
 
 def get_vivado_tcl_client():
     import xmlrpc.client

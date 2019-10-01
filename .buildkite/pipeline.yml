@@ -9,3 +9,15 @@ steps:
       pip install pytest
       pytest tests
     label: "test"
+    agents:
+      butterphy: "true"
+  - command: |
+      python3.7 -m venv venv
+      source venv/bin/activate
+      pip install pytest
+      pip install -e .
+      pytest emu/test_emu_build.py
+      deactivate
+    label: "test_emu"
+    agents:
+        fpga_verif: "true"

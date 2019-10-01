@@ -4,7 +4,7 @@ from dragonphy import *
 
 def test_emu_prog(emu_rate=5e6, sleep_time=1):
     # start TCL interpreter
-    tcl = VivadoTCL(cwd=get_dir('emu'))
+    tcl = VivadoTCL(cwd=get_dir('emu'), debug=True)
 
     # program FPGA
     print('Programming FPGA.')
