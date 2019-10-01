@@ -1,4 +1,5 @@
-- &butterphy command: |
+steps:
+  - command: |
       export PATH=$$PATH:/usr/local/miniconda/bin:/usr/local/bin
       echo $$PATH
       export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:/usr/local/lib
@@ -15,22 +16,5 @@
     timeout_in_minutes: 60
     agents:
       butterphy: "true"
-
-- &emulation command : |
-      source /etc/environment
-      echo $$PATH
-      python3.7 -m venv venv
-      source venv/bin/activate
-      pip install pytest
-      pip install -e .
-      pytest emu/test_emu_build.py
-      deactivate
-    label: "test_emu"
-    timeout_in_minutes: 60
-    agents:
-        fpga_verif: "true"
-
-steps:
-  - *butterphy
 
 
