@@ -1,11 +1,20 @@
 steps:
   - command: |
+      export PATH=$$PATH:/usr/local/miniconda/bin:/usr/local/bin
+      echo $$PATH
+      export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:/usr/local/lib
+      echo $$LD_LIBRARY_PATH
       source /cad/modules/tcl/init/bash
       module load base
       module load xcelium
       conda create -p ./conda_env -m -y pip python=3.7.4
-      export PATH=$PWD/conda_env/bin:$PATH
+      export PATH=$$PWD/conda_env/bin:$$PATH
       pip install -e .
       pip install pytest
       pytest tests
     label: "test"
+    timeout_in_minutes: 60
+    agents:
+      butterphy: "true"
+
+
