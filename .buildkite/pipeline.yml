@@ -13,6 +13,7 @@ steps:
     agents:
       butterphy: "true"
   - command: |
+      source /etc/environment
       echo $PATH
       echo $XILINXD_LICENSE_FILE
       python3.7 -m venv venv
