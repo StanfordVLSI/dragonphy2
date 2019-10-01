@@ -1,3 +1,9 @@
+*.idea
 *.egg-info
+.Xil
+fpga_prj
 build_*
 __pycache__
+*.log
+*.jou
+*.str
