@@ -1,5 +1,7 @@
 steps:
-  - command: |
+  - *butterphy
+
+- &butterphy command: |
       export PATH=$$PATH:/usr/local/miniconda/bin:/usr/local/bin
       echo $$PATH
       export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:/usr/local/lib
@@ -16,7 +18,8 @@ steps:
     timeout_in_minutes: 60
     agents:
       butterphy: "true"
-  - command: |
+
+- &emulation command : |
       source /etc/environment
       echo $$PATH
       python3.7 -m venv venv
