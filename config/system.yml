@@ -1,0 +1,9 @@
+generic:
+  channel: &channel_width 16
+  code_precision : &code_size 8
+  ffe:
+    length : 5
+    width  : *channel_width
+    input_precision : *code_size
+    output_precision: 8
+    operand_precision: 5
