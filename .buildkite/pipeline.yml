@@ -1,8 +1,8 @@
 steps:
   - command: |
       export PATH=$$PATH:/usr/local/miniconda/bin:/usr/local/bin
-      export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:/usr/local/lib
       echo $$PATH
+      export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:/usr/local/lib
       echo $$LD_LIBRARY_PATH
       source /cad/modules/tcl/init/bash
       module load base
@@ -17,6 +17,7 @@ steps:
     agents:
       butterphy: "true"
   - command: |
+      source /etc/environment
       echo $$PATH
       python3.7 -m venv venv
       source venv/bin/activate
