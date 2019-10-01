@@ -9,9 +9,11 @@ steps:
       pip install pytest
       pytest tests
     label: "test"
+    timeout_in_minutes: 60
     agents:
       butterphy: "true"
   - command: |
+      echo $PATH
       python3.7 -m venv venv
       source venv/bin/activate
       pip install pytest
@@ -19,5 +21,6 @@ steps:
       pytest emu/test_emu_build.py
       deactivate
     label: "test_emu"
+    timeout_in_minutes: 60
     agents:
         fpga_verif: "true"
