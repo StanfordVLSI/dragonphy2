@@ -1,4 +1,5 @@
 *.egg-info
 build_*
 *.swp
+*.txt
 __pycache__
