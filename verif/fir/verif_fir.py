@@ -19,22 +19,28 @@ def plot_adapt_input(codes, chan_out, n, plt_mode='normal'):
 		plt.plot(chan_out[:n], 'o-')
 	plt.show()
 
+def deconvolve(weights, chan):
+	plt.plot(chan(weights))
+	plt.show()
+
 # Used for testing 
 if __name__ == "__main__":
 
 	# Number of iterations of Wiener Steepest Descent
-	iterations  = 1000
+	iterations  = 200000
 	# Number of taps for FIR
-	M = 10
+	M = 11
 	# mu: step size
 	u = .1
 
-	ideal_codes = np.random.randint(2, size=iterations)
+	ideal_codes = np.random.randint(2, size=iterations)*2 - 1
 	print(f'Ideal Code Sequence: {ideal_codes}')
 
-	chan = Channel(channel_type='skineffect', sampl_rate=1)
+	chan = Channel(channel_type='skineffect', normal='area', tau=2, sampl_rate=5, cursor_pos=1, resp_depth=125)
+	#chan = Channel(channel_type='skineffect', sampl_rate=1)
 	
-	chan_out = np.convolve(chan.impulse_response, ideal_codes, mode='same')
+	chan_out = chan(ideal_codes)
+	#chan_out = np.convolve(chan.impulse_response, ideal_codes, mode='same')
 	print(f'Channel output: {chan_out}')
 
 	plot_adapt_input(ideal_codes, chan_out, 100)
@@ -42,11 +48,25 @@ if __name__ == "__main__":
 	adapt = Wiener(step_size = u, num_taps = M)
 	print(f'------------------------------------------')
 	for i in range(iterations):
+		adapt.find_weights_pulse(ideal_codes[i], chan_out[i])	
+	
+	pulse_weights = adapt.weights	
+	for i in range(iterations):
 		adapt.find_weights_error(ideal_codes[i], chan_out[i])	
-		
-	adapt.plot_total_error()
+	
+	pulse2_weights = adapt.find_weights_pulse2()
+
+	print(pulse_weights)
+	print(adapt.weights)
+	print(pulse2_weights[-1])
+	
+	plt.plot(adapt.weights)
+	plt.show()
 
 	print(f'------------------------------------------')
 	print(f'Filter input: {adapt.filter_in}')
 	print(f'Weights: {adapt.weights}')
 	write_file([iterations, M, u], ideal_codes, adapt.weights)	
+	
+	deconvolve(adapt.weights, chan)
+	
