@@ -9,13 +9,17 @@ def get_configs():
 	system_info = yaml.load(f)
 	return system_info["generic"]["ffe"]
  
-def write_file(parameters, codes, weights):
-	f = open("adapt_params.txt", "w+")
-	f.write('code_len\n' + str(parameters[0]) + '\n')
-	f.write('num_taps\n' + str(parameters[1]) + '\n')
-	f.write('mu\n' + str(parameters[2]) + '\n')
-	f.write('codes\n' + ",".join([str(c) for c in codes]) + '\n')
-	f.write('weights\n' + ",".join([str(w) for w in weights]) + '\n')
+def write_files(parameters, codes, weights):
+	with open("adapt_coeff.txt", "w+") as f:
+		f.write('num_taps: ' + str(parameters[1]) + '\n')
+		f.write('weights:\n' + "\n".join([str(w) for w in weights]) + '\n')
+	with open("adapt_codes.txt", "w+") as f:
+		f.write('code_len: ' + str(parameters[0]) + '\n')
+		f.write('codes:\n' + "\n".join([str(c) for c in codes]) + '\n')
+
+	#f.write('mu: ' + str(parameters[2]) + '\n')
+
+	#This is the most compatible way of writing for verilog - given its a fairly low level language
 
 def deconvolve(weights, chan):
 	plt.plot(chan(weights))
@@ -51,7 +55,7 @@ def perform_wiener(ideal_input, chan, chan_out, M = 11, u = 0.1):
 
 	print(f'Filter input: {adapt.filter_in}')
 	print(f'Weights: {adapt.weights}')
-	write_file([iterations, M, u], ideal_codes, adapt.weights)	
+	write_files([iterations, M, u], chan_out, adapt.weights)	
 	
 	deconvolve(adapt.weights, chan)
 
