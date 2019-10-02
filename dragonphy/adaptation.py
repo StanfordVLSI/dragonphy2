@@ -3,15 +3,16 @@ import matplotlib.pyplot as plt
 from .channel import Channel
 
 class Wiener():
-    def __init__(self, step_size=2, num_taps=5, debug=False):
+    def __init__(self, step_size=2, num_taps=5, debug=False, cursor_pos=1):
         self.step_size      = step_size
         self.num_taps       = num_taps
         self.filter_in      = np.zeros(num_taps)
         self.weights        = np.random.randn(num_taps)
-        self.weights[2]     = 1
+        self.weights[cursor_pos]     = 1
         self.error          = np.inf
         self.total_error    = []
         self.debug          = debug
+        self.cursor_pos     = cursor_pos
 
     def update_initial_weights(self, new_weights):
         self.weights = new_weights
@@ -41,8 +42,7 @@ class Wiener():
 
     def find_weights_error(self, ideal_in, curr_filter_in):
         # update filter inputs
-        append_in = np.append(self.filter_in, curr_filter_in)
-        self.filter_in = append_in[1:self.num_taps + 1] 
+        self.filter_in  = np.insert(self.filter_in[0:-1], 0, curr_filter_in)
         if self.debug:
             print(f'Input: {self.filter_in}')   
 
@@ -59,10 +59,9 @@ class Wiener():
 
         return next_weights
     
-    def find_weights_pulse(self, ideal_in, curr_filter_in, cursor_pos=0):
+    def find_weights_pulse(self, ideal_in, curr_filter_in):
 
-        append_in = np.append(self.filter_in, curr_filter_in)
-        self.filter_in = append_in[1:self.num_taps + 1] 
+        self.filter_in  = np.insert(self.filter_in[0:-1], 0, curr_filter_in)
         est_input  = np.dot(self.weights, self.filter_in)
         self.error = ideal_in - est_input
         self.total_error.append(self.error)
@@ -85,7 +84,7 @@ class Wiener():
         N_taps = 11
         mew0    = 0.1
 
-        ch = Channel(channel_type='skineffect', normal='area', tau=2, sampl_rate=5, cursor_pos=1, resp_depth=125)
+        ch = Channel(channel_type='skineffect', normal='area', tau=2, sampl_rate=5, resp_depth=125)
 
         inp_data = 2*np.random.randint(0, 2, size=(N_iter,))-1 
         out_data = ch(inp_data)
@@ -100,7 +99,7 @@ class Wiener():
         ave_J_e2 = np.ones((N_iter,1))*10
 
         ww_lms[0] = np.random.randn(N_taps)
-        ww_lms[0][1] = 1
+        ww_lms[0][self.cursor_pos] = 1
 
         curr_samples = np.zeros((N_taps,))
 

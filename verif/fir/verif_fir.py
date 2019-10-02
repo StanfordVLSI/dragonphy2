@@ -36,7 +36,7 @@ if __name__ == "__main__":
 	ideal_codes = np.random.randint(2, size=iterations)*2 - 1
 	print(f'Ideal Code Sequence: {ideal_codes}')
 
-	chan = Channel(channel_type='skineffect', normal='area', tau=2, sampl_rate=5, cursor_pos=1, resp_depth=125)
+	chan = Channel(channel_type='skineffect', normal='area', tau=2, sampl_rate=5, cursor_pos=2, resp_depth=125)
 	#chan = Channel(channel_type='skineffect', sampl_rate=1)
 	
 	chan_out = chan(ideal_codes)
@@ -45,14 +45,14 @@ if __name__ == "__main__":
 
 	plot_adapt_input(ideal_codes, chan_out, 100)
 	
-	adapt = Wiener(step_size = u, num_taps = M)
+	adapt = Wiener(step_size = u, num_taps = M, cursor_pos=1)
 	print(f'------------------------------------------')
-	for i in range(iterations):
-		adapt.find_weights_pulse(ideal_codes[i], chan_out[i])	
+	for i in range(iterations-2):
+		adapt.find_weights_pulse(ideal_codes[i-2], chan_out[i])	
 	
 	pulse_weights = adapt.weights	
-	for i in range(iterations):
-		adapt.find_weights_error(ideal_codes[i], chan_out[i])	
+	for i in range(iterations-2):
+		adapt.find_weights_error(ideal_codes[i-2], chan_out[i])	
 	
 	pulse2_weights = adapt.find_weights_pulse2()
 
@@ -69,4 +69,7 @@ if __name__ == "__main__":
 	write_file([iterations, M, u], ideal_codes, adapt.weights)	
 	
 	deconvolve(adapt.weights, chan)
+	plt.plot(chan(np.reshape(pulse_weights, len(pulse_weights))))
+	plt.plot(chan(pulse2_weights[-1]))
+	plt.show()
 	
