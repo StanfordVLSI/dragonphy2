@@ -4,30 +4,50 @@ import math
 # Assuming Binary Fixed Point Representation 
 class Quantizer():
 	def __init__(self, width=4, full_scale=1.0, signed=False, **kwargs):
-		self.pos_only = pos_only
+		self.signed = signed
 		self.full_scale = full_scale
 		self.width = width
 	
 	# Performs quantization of the given fixed point size given in the constructor 
 	def quantize(self, ideal_signal):
 	
-		lsb = full_scale/(2**self.width)
+		lsb = self.full_scale/(2**self.width)
 		quantized_signal = np.array([round(x / lsb)*lsb for x in ideal_signal])
 		
-		if signed:
-			return np.clip(quantized_signal, -full_scale, full_scale)
+		if self.signed:
+			return np.clip(quantized_signal, -self.full_scale, self.full_scale)
 		else:
-			return np.clip(quantized_signal, 0, full_scale)
+			return np.clip(quantized_signal, 0, self.full_scale)
 
 	def quantize_int(self, ideal_signal):
 	
-		lsb = full_scale/(2**self.width)
+		lsb = self.full_scale/(2**self.width)
 		quantized_signal = np.array([round(x / lsb) for x in ideal_signal])
 		
-		if signed:
-			return np.clip(quantized_signal, -full_scale, full_scale)
+		if self.signed:
+			return np.clip(quantized_signal, -self.full_scale*2**self.width, self.full_scale)
 		else:
-			return np.clip(quantized_signal, 0, full_scale)
+			return np.clip(quantized_signal, 0, self.full_scale)
+
+	def quantize_2s_comp(self, ideal_signal):
+		# Assume width is the size of N-bits 2's complement. E.g. width == 2 --> [-4, 3]
+
+		# self.signed must be true
+		assert(self.signed)
+
+		# Set the maximum magnitude ideal signal value to correspond to -127 or
+		# 128 depending on if it is signed.
+		max_idx = np.argmax(np.absolute(ideal_signal))
+		if ideal_signal[max_idx] < 0:
+			lsb = -ideal_signal[max_idx] / 2**(self.width-1)
+		else:
+			lsb = ideal_signal[max_idx] / 2**(self.width-1)-1	
+
+		quantized_signal = np.array([round(x / lsb) for x in ideal_signal])
+	
+		return np.clip(quantized_signal, -1 * 2**(self.width-1), 2**(self.width-1)-1)
+		
+		
 
 # Used for testing
 if __name__ == "__main__":
