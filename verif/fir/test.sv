@@ -11,7 +11,7 @@ module test ();
    logic signed [7:0] data 	  [dataWidth-1:0];
    wire logic signed [7:0] out  	  [dataWidth-1:0];
 
-   ffe_weight_scales #(
+   ffe #(
    		.maxWeightLength(13),
 	 		.numChannels(dataWidth),
 	 		.codeBitwidth(8),
