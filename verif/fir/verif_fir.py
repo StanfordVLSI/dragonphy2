@@ -1,11 +1,40 @@
 from dragonphy import *
-
+from pathlib import Path
+import subprocess
 import numpy as np
 import matplotlib.pyplot as plt
 import yaml
 
+def test_ffe():
+    # testbench location
+    tb = 'verif/fir/test.sv'
+
+    # library locations
+    libs = []
+    #libs.append('verif/chan/beh/chan.sv')
+    libs.append('src/fir/syn/ffe.sv')
+
+    # resolve paths
+    tb = Path(tb).resolve()
+    libs = [Path(lib).resolve() for lib in libs]
+
+    # construct the command
+    args = []
+    args += ['xrun']
+    args += [f'{tb}']
+    for lib in libs:
+        args += ['-v', f'{lib}']
+
+    # set up build dir     
+    cwd = Path('verif/fir/build_fir')
+    cwd.mkdir(exist_ok=True)
+
+    # run the simulation
+    result = subprocess.run(args, cwd=cwd)
+    assert result.returncode == 0
+
 def get_configs():
-	f = open("../../config/system.yml", "r")
+	f = open("config/system.yml", "r")
 	system_info = yaml.load(f)
 	return system_info["generic"]["ffe"]
  
@@ -92,4 +121,5 @@ if __name__ == "__main__":
 	else: 
 		print(f'Do Nothing')
 	
+	test_ffe()
 	
