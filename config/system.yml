@@ -2,20 +2,29 @@ parameter_list:
   - &channel_width 16
   - &code_precision 8
   - &ffe_length 5
+  - &ffe_weight_precision 8
 
 generic:
   parameters:
     channel_width: *channel_width
     code_precision : *code_precision
-    ffe_length: *ffe_length 
+    ffe_length: *ffe_length
+    ffe_weight_precision: *ffe_weight_precision
   ffe:
     parameters:
       length : *ffe_length
       width  : *channel_width
       input_precision : *code_precision
-      output_precision: 8
-      operand_precision: 5
+      output_precision: *code_precision
+      weight_precision: *ffe_weight_precision
     adaptation:
       type: 'wiener'
       args: { mu : 0.1 }
+
+test:
+  parameters:
+    num_of_codes: 100
+    ideal_code_filename: 'ideal_codes.txt'
+    adapt_code_filename: 'adapt_codes.txt'
+    adapt_coef_filename: 'adapt_coeff.txt'
 

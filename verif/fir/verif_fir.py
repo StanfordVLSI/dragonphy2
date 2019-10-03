@@ -31,7 +31,7 @@ def plot_adapt_input(codes, chan_out, n, plt_mode='normal'):
 		plt.plot(chan_out[:n], 'o-')
 	plt.show()
 
-def perform_wiener(ideal_input, chan, chan_out, M = 11, u = 0.1):
+def perform_wiener(ideal_input, chan, chan_out, M = 11, u = 0.1, build_dir='.'):
 
 	adapt = Wiener(step_size = u, num_taps = M, cursor_pos=pos)
 	for i in range(iterations-2):
@@ -51,7 +51,7 @@ def perform_wiener(ideal_input, chan, chan_out, M = 11, u = 0.1):
 
 	#print(f'Filter input: {adapt.filter_in}')
 	print(f'Adapted Weights: {adapt.weights}')
-	write_files([iterations, M, u], chan_out, adapt.weights, 'verif/fir')	
+	write_files([iterations, M, u], chan_out, adapt.weights, 'verif/fir/build_fir')	
 	
 	#deconvolve(adapt.weights, chan)
 
@@ -62,10 +62,25 @@ def perform_wiener(ideal_input, chan, chan_out, M = 11, u = 0.1):
 
 # Used for testing 
 if __name__ == "__main__":
+
+	build_dir = 'verif/fir/build_fir'
+	pack_dir  = 'verif/fir/pack'
+
+	system_config = Configuration('system')
+	test_config   = system_config['test']
+
+	#Associate the correct build directory to the python collateral
+	test_config['parameters']['ideal_code_filename'] = build_dir + '/' + test_config['parameters']['ideal_code_filename'] 
+	test_config['parameters']['adapt_code_filename'] = build_dir + '/' + test_config['parameters']['adapt_code_filename']
+	test_config['parameters']['adapt_coef_filename'] = build_dir + '/' + test_config['parameters']['adapt_coef_filename'] 
+
 	# Get config parameters from system.yml file
-	ffe_configs = Configuration('system')['generic']['ffe']
+	ffe_config = system_config['generic']['ffe']
+
 	# Number of iterations of Wiener Steepest Descent
 	iterations  = 200000
+	system_config['test']['parameters']['num_of_codes'] = iterations
+
 	# Cursor position with the most energy 
 	pos = 2
 
@@ -76,25 +91,29 @@ if __name__ == "__main__":
 
 	#plot_adapt_input(ideal_codes, chan_out, 100)
 
-	if ffe_configs["adaptation"]["type"] == "wiener":
-		perform_wiener(ideal_codes, chan, chan_out, ffe_configs['parameters']["length"], \
-			ffe_configs["adaptation"]["args"]["mu"])
+	if ffe_config["adaptation"]["type"] == "wiener":
+		perform_wiener(ideal_codes, chan, chan_out, ffe_config['parameters']["length"], \
+			ffe_config["adaptation"]["args"]["mu"], build_dir=build_dir)
 	else: 
 		print(f'Do Nothing')
 	
 	#Create Package Generator Object 
-	packager = Packager(parameter_dict=Configuration('system')['generic']['parameters'], path='verif/fir/pack')
-	
+	generic_packager   = Packager(package_name='constant', parameter_dict=system_config['generic']['parameters'], path=pack_dir)
+	testbench_packager = Packager(package_name='test',     parameter_dict=test_config['parameters'], path=pack_dir)
+	ffe_packager	   = Packager(package_name='ffe',      parameter_dict=ffe_config['parameters'], path=pack_dir)
+
 	#Create package file from parameters specified in system.yaml under generic
-	packager.create_package()
+	generic_packager.create_package()
+	testbench_packager.create_package()
+	ffe_packager.create_package()
 
 	#Create TestBench Object
 	tester   = Tester(
 						testbench = 'verif/fir/test.sv',
 						libraries = ['src/fir/syn/ffe.sv'],
-						packages  = [packager.path],
+						packages  = [generic_packager.path, testbench_packager.path, ffe_packager.path],
 						flags 	  = ['-sv'],
-						build_dir = 'verif/fir/build_fir',
+						build_dir = build_dir,
 						overload_seed=True
 					)
 
