@@ -44,8 +44,12 @@ class Packager():
 
 	def design_param_definition(self, parameter_name, parameter_default):
 		if isinstance(parameter_default, str):
+			parameter_type    = 'string'
 			parameter_default = "\"" + parameter_default + "\""
-		return "localparam integer {} = {};".format(parameter_name, parameter_default)
+		elif isinstance(parameter_default, int):
+			parameter_type    = 'integer'
+
+		return "localparam {} {} = {};".format(parameter_type, parameter_name, parameter_default)
 
 	def generate_package(self):
 		self.package = self.package_wrapper(self.generate_parameter_list())

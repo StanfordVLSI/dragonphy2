@@ -40,8 +40,10 @@ class Tester:
 			self.args += ['-seed', f'{self.seed}']
 		for flag in self.flags:
 			self.args += [f'{flag}']
+		self.args += ['-top', f'test']
 		for package in self.packages:
 			self.args += [f'{package}']
+		self.args += [f'{self.testbench}']
 		for library in self.libraries:
 			self.args += ['-v', f'{library}']
 
