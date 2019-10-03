@@ -16,6 +16,6 @@ generic:
       output_precision: 8
       operand_precision: 5
     adaptation:
-      type: 'weiner'
+      type: 'wiener'
       args: { mu : 0.1 }
 
