@@ -1,26 +1,28 @@
 module test(); 
    
-   import constant_pack::*;
+   import constant_gpack::*;
    
-   import test_pack;
-   import ffe_pack;
+   import test_gpack;
+   import ffe_gpack;
 
+   parameter integer data_depth = $int(test_gpack::num_of_codes/ffe_gpack::width);
+   
    logic clk;
    logic rstb;
 
-   logic signed [code_precision-1:0] dataStream       [channel_width-1:0][test_pack::num_of_codes-1:0];
+   logic signed [code_precision-1:0] dataStream       [channel_width-1:0][test_gpack::num_of_codes-1:0];
 
-
-   logic signed [ffe_pack::weight_precision-1:0] weights         [ffe_pack::width-1:0][ffe_pack::length-1:0];
-   logic signed [ffe_pack:input_precision-1:0]   data            [ffe_pack::width-1:0];
-   logic signed [ffe_pack:output_precision-1:0]  out  	        [ffe_pack::width-1:0];
+   logic signed [ffe_gpack::weight_precision-1:0] read_weights    [ffe_gpack::length-1:0];
+   logic signed [ffe_gpack::weight_precision-1:0] weights         [ffe_gpack::width-1:0][ffe_gpack::length-1:0];
+   logic signed [ffe_gpack:input_precision-1:0]   data            [ffe_gpack::width-1:0];
+   logic signed [ffe_gpack:output_precision-1:0]  out  	        [ffe_gpack::width-1:0];
 
    ffe #(
-   		.maxWeightLength(ffe_pack::length),
-	 		.numChannels(ffe_pack::width),
-	 		.codeBitwidth(ffe_pack::input_precision),
-	 		.weightBitwidth(ffe_pack::weight_precision),
-	 		.resultBitwidth(ffe_pack::output_precision)
+   		.maxWeightLength(ffe_gpack::length),
+	 		.numChannels(ffe_gpack::width),
+	 		.codeBitwidth(ffe_gpack::input_precision),
+	 		.weightBitwidth(ffe_gpack::weight_precision),
+	 		.resultBitwidth(ffe_gpack::output_precision)
 	    ) 
    ffe_inst1
    		(
@@ -32,36 +34,44 @@ module test();
    		);
 
    	integer ii,jj, pos;
+      integer fid;
 
    	initial begin
          clk        <= 0;
          pos        <= 0;
 
-         for(jj=0;jj<ffe_pack::width;jj=jj+1) begin
+         for(jj=0;jj<ffe_gpack::width;jj=jj+1) begin
             data[jj] <=0;
          end
 
+         fid = %fopen(test_gpack::adapt_coef_filename, "r");
+         for(ii=0; ii<ffe_gpack::length; ii=ii+1) begin
+            $fscanf(fid, "%d", read_weights[ii]);
+            for(jj=0; jj<ffe_gpack::width; jj=jj+1) begin
+               weights[jj][ii] = read_weights[ii];
+            end
+         end
+         repeat(ffe_gpack::width) toggle_clk();
 
-         repeat(5) toggle_clk();
-
-   		for(ii=0;ii<test_pack::num_of_codes;ii=ii+1) begin
-            for(jj=0;jj<dataWidth;jj=jj+1) begin
-               //Do fscanf here
-   			   dataStream[jj][ii] <= (jj + ii*dataWidth) >> ($clog2(test_pack::num_of_codes*dataWidth) - 7); //$random();
+         fid = $fopen(test_gpack::adapt_codes_filename, "r");
+   		for(ii=0;ii< data_depth;ii=ii+1) begin
+            for(jj=0;jj<ffe_gpack::width;jj=jj+1) begin
+               $fscanf(fid, "%d", dataStream[jj][ii]);
+   			   //dataStream[jj][ii] <= (jj + ii*dataWidth) >> ($clog2(test_gpack::num_of_codes*dataWidth) - 7); //$random();
             end
    		end
 
-   		repeat(150) toggle_clk();
+   		repeat(data_depth) toggle_clk();
    	end
 
    	always @(posedge clk) begin
-   		if(pos < test_pack::num_of_codes) begin 
-            for(jj=0;jj<ffe_pack::width;jj=jj+1) begin
+   		if(pos < data_depth) begin 
+            for(jj=0;jj<ffe_gpack::width;jj=jj+1) begin
      			    data[jj]  = dataStream[jj][pos];
             end
    			pos   = pos + 1;
    		end else begin
-            for(jj=0;jj<ffe_pack::width;jj=jj+1) begin
+            for(jj=0;jj<ffe_gpack::width;jj=jj+1) begin
                 data[jj]  = 0;
             end
          end
