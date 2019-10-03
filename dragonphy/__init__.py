@@ -1,6 +1,7 @@
 # Some Quality Of Life Libraries
-from .config 		import CustomConfig
 from .cmd 			import CmdLineParser
+from .packager      import Packager
+from .config 		import Configuration
 # Some Python Verification Libraries
 from .channel   	import Channel, Filter
 from .adaptation 	import Wiener

@@ -3,3 +3,5 @@ build_*
 *.swp
 *.txt
 __pycache__
+xcelium.d
+xrun.*

@@ -1,4 +1,4 @@
-module test ();
+module test import constant_pack::*; (); 
    
    parameter integer N_test = 100;
    parameter integer dataWidth = 5;
@@ -6,15 +6,15 @@ module test ();
    logic clk;
    logic rstb;
 
-   logic signed [7:0] weights    [dataWidth-1:0][12:0];
-   logic signed [7:0] dataStream [dataWidth-1:0][N_test-1:0];
-   logic signed [7:0] data 	  [dataWidth-1:0];
-   wire logic signed [7:0] out  	  [dataWidth-1:0];
+   logic signed [7:0] weights    [channel_width-1:0][ffe_length-1:0];
+   logic signed [7:0] dataStream [channel_width-1:0][N_test-1:0];
+   logic signed [7:0] data 	  [channel_width-1:0];
+   wire logic signed [7:0] out  	  [channel_width-1:0];
 
    ffe #(
-   		.maxWeightLength(13),
-	 		.numChannels(dataWidth),
-	 		.codeBitwidth(8),
+   		.maxWeightLength(ffe_length),
+	 		.numChannels(channel_width),
+	 		.codeBitwidth(code_precision),
 	 		.weightBitwidth(8),
 	 		.resultBitwidth(8)
 	    ) 
@@ -37,11 +37,6 @@ module test ();
             data[jj] <=0;
          end
 
-   		weights[0] <= '{1,-1,1,0,0,0,0,-1,1,0,0,0,0};
-   		weights[1] <= '{-1,1,1,0,0,0,0,-1,1,0,0,0,0};
-         weights[2] <= '{-1,1,0,0,0,0,0,-1,1,0,0,0,0};
-         weights[3] <= '{1,-1,1,0,0,0,0,-1,1,0,0,0,0};
-         weights[4] <= '{-1,1,1,0,0,0,0,-1,1,0,0,0,0};
 
          repeat(5) toggle_clk();
 
