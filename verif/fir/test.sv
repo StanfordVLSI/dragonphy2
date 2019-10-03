@@ -2,7 +2,7 @@ module test();
    
    import constant_gpack::*;
 
-   parameter integer data_depth = int'(test_gpack::num_of_codes/ffe_gpack::width);
+   parameter integer data_depth = int'((test_gpack::num_of_codes - ffe_gpack::length+1)/ffe_gpack::width);
 
    logic clk;
    logic rstb;
