@@ -1,13 +1,14 @@
 from pathlib import Path
-
+from copy import deepcopy
 class Packager():
 	def __init__(self, package_name='constant', parameter_dict={}, path="."):
 		self.name = package_name + '_pack'
-		self.parameters = parameter_dict
+		self.parameters = parameter_dict#deepcopy(parameter_dict)
 		self.package = []
 		self.filename = "{}.sv".format(self.name)
 		self.path_head = path
-	def create_package(self, new_parameters={}, path_head=""):
+
+	def create_package(self, new_parameters={}):
 		self.add_parameters(new_parameters)
 		self.generate_package()
 		self.save_package()
@@ -31,7 +32,10 @@ class Packager():
 		return new_lines
 
 	def generate_parameter_list(self,lines=[]):
-		new_lines = lines
+		new_lines = []
+		new_lines += lines
+
+		#new_lines = line creates a pointer across all objects! XD
 
 		for parameter in self.parameters:
 			new_lines += [self.design_param_definition(parameter, self.parameters[parameter])]
@@ -39,6 +43,8 @@ class Packager():
 		return new_lines
 
 	def design_param_definition(self, parameter_name, parameter_default):
+		if isinstance(parameter_default, str):
+			parameter_default = "\"" + parameter_default + "\""
 		return "localparam integer {} = {};".format(parameter_name, parameter_default)
 
 	def generate_package(self):
