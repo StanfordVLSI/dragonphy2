@@ -1,14 +1,15 @@
 parameter_list:
   - &channel_width 16
   - &code_precision 8
+  - &ffe_length 5
 
 generic:
   parameters:
     channel_width: *channel_width
     code_precision : *code_precision
-    ffe_length: &ffe_size 5 
+    ffe_length: *ffe_length 
   ffe:
-    length : *ffe_size
+    length : *ffe_length
     width  : *channel_width
     input_precision : *code_precision
     output_precision: 8

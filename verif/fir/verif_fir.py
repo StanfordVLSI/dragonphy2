@@ -1,5 +1,6 @@
 from dragonphy import *
 from pathlib import Path
+
 import subprocess
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,17 +12,24 @@ def test_ffe():
 
     # library locations
     libs = []
-    #libs.append('verif/chan/beh/chan.sv')
     libs.append('src/fir/syn/ffe.sv')
+
+    # package locations
+    packs = []
+    packs.append('verif/fir/pack/constant_pack.sv')
 
     # resolve paths
     tb = Path(tb).resolve()
+    packs = [Path(pack).resolve() for pack in packs]
     libs = [Path(lib).resolve() for lib in libs]
+
 
     # construct the command
     args = []
     args += ['xrun']
     args += [f'{tb}']
+    for pack in packs:
+    	args += [f'{pack}']
     for lib in libs:
         args += ['-v', f'{lib}']
 
@@ -38,11 +46,11 @@ def get_configs():
 	system_info = yaml.load(f)
 	return system_info["generic"]["ffe"]
  
-def write_files(parameters, codes, weights):
-	with open("adapt_coeff.txt", "w+") as f:
+def write_files(parameters, codes, weights, path="."):
+	with open(path + '/' + "adapt_coeff.txt", "w+") as f:
 		f.write('num_taps: ' + str(parameters[1]) + '\n')
 		f.write('weights:\n' + "\n".join([str(w) for w in weights]) + '\n')
-	with open("adapt_codes.txt", "w+") as f:
+	with open(path + '/' +  "adapt_codes.txt", "w+") as f:
 		f.write('code_len: ' + str(parameters[0]) + '\n')
 		f.write('codes:\n' + "\n".join([str(c) for c in codes]) + '\n')
 
@@ -79,18 +87,18 @@ def perform_wiener(ideal_input, chan, chan_out, M = 11, u = 0.1):
 	print(adapt.weights)
 	print(pulse2_weights[-1])
 	
-	plt.plot(adapt.weights)
-	plt.show()
+	#plt.plot(adapt.weights)
+	#plt.show()
 
 	print(f'Filter input: {adapt.filter_in}')
 	print(f'Weights: {adapt.weights}')
-	write_files([iterations, M, u], chan_out, adapt.weights)	
+	write_files([iterations, M, u], chan_out, adapt.weights, 'verif/fir')	
 	
-	deconvolve(adapt.weights, chan)
+	#deconvolve(adapt.weights, chan)
 
-	plt.plot(chan(np.reshape(pulse_weights, len(pulse_weights))))
-	plt.plot(chan(pulse2_weights[-1]))
-	plt.show()
+	#plt.plot(chan(np.reshape(pulse_weights, len(pulse_weights))))
+	#plt.plot(chan(pulse2_weights[-1]))
+	#plt.show()
 
 
 # Used for testing 
@@ -111,7 +119,7 @@ if __name__ == "__main__":
 	chan_out = chan(ideal_codes)
 	print(f'Channel output: {chan_out}')
 
-	plot_adapt_input(ideal_codes, chan_out, 100)
+	#plot_adapt_input(ideal_codes, chan_out, 100)
 
 	print(ffe_configs)
 
@@ -121,5 +129,6 @@ if __name__ == "__main__":
 	else: 
 		print(f'Do Nothing')
 	
+	Packager(parameter_dict=Configuration('system')['generic']['parameters'], path='verif/fir/pack').create_package()
 	test_ffe()
 	

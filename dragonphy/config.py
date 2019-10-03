@@ -1,18 +1,11 @@
-class CustomConfig:
-    def __init__(self, fname='custom.f'):
-        self.fname = fname
-        self.clear()
+import yaml
+from pathlib import Path
 
-    def clear(self):
-        with open(self.fname, 'w') as f:
-            f.write('')
+class Configuration:
+    def __init__(self, config_name, path_head = 'config'):
+        self.config_name = config_name
+        with open(Path(path_head + '/' + config_name + '.yml').resolve(), 'r') as f:
+            self.config_dict = yaml.load(f,Loader=yaml.FullLoader)
 
-    def write(self, value):
-        with open(self.fname, 'a') as f:
-            f.write(value)
-
-    def write_line(self, value, line_ending='\n'):
-        self.write(value + line_ending)
-
-    def define(self, name, value):
-        self.write_line(f'-define {name}={value}')
+    def __getitem__(self, name):
+        return self.config_dict[name].copy()
