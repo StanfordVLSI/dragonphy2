@@ -65,7 +65,7 @@ if __name__ == "__main__":
 	pack_dir  = 'verif/fir/pack'
 
 	system_config = Configuration('system')
-	test_config   = system_config['test']
+	test_config   = Configuration('test_verif_fir', 'verif/fir')
 
 	#Associate the correct build directory to the python collateral
 	test_config['parameters']['ideal_code_filename'] = build_dir + '/' + test_config['parameters']['ideal_code_filename'] 
@@ -77,7 +77,7 @@ if __name__ == "__main__":
 
 	# Number of iterations of Wiener Steepest Descent
 	iterations  = 200000
-	system_config['test']['parameters']['num_of_codes'] = iterations
+	test_config['parameters']['num_of_codes'] = iterations
 
 	# Cursor position with the most energy 
 	pos = 2
