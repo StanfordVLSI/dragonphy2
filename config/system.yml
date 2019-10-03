@@ -9,12 +9,13 @@ generic:
     code_precision : *code_precision
     ffe_length: *ffe_length 
   ffe:
-    length : *ffe_length
-    width  : *channel_width
-    input_precision : *code_precision
-    output_precision: 8
-    operand_precision: 5
+    parameters:
+      length : *ffe_length
+      width  : *channel_width
+      input_precision : *code_precision
+      output_precision: 8
+      operand_precision: 5
     adaptation:
-      type: 'wiener'
+      type: 'weiner'
       args: { mu : 0.1 }
 
