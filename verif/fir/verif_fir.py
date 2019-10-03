@@ -6,46 +6,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import yaml
 
-def test_ffe():
-    # testbench location
-    tb = 'verif/fir/test.sv'
-
-    # library locations
-    libs = []
-    libs.append('src/fir/syn/ffe.sv')
-
-    # package locations
-    packs = []
-    packs.append('verif/fir/pack/constant_pack.sv')
-
-    # resolve paths
-    tb = Path(tb).resolve()
-    packs = [Path(pack).resolve() for pack in packs]
-    libs = [Path(lib).resolve() for lib in libs]
-
-
-    # construct the command
-    args = []
-    args += ['xrun']
-    args += [f'{tb}']
-    for pack in packs:
-    	args += [f'{pack}']
-    for lib in libs:
-        args += ['-v', f'{lib}']
-
-    # set up build dir     
-    cwd = Path('verif/fir/build_fir')
-    cwd.mkdir(exist_ok=True)
-
-    # run the simulation
-    result = subprocess.run(args, cwd=cwd)
-    assert result.returncode == 0
-
-def get_configs():
-	f = open("config/system.yml", "r")
-	system_info = yaml.load(f)
-	return system_info["generic"]["ffe"]
- 
 def write_files(parameters, codes, weights, path="."):
 	with open(path + '/' + "adapt_coeff.txt", "w+") as f:
 		f.write('num_taps: ' + str(parameters[1]) + '\n')
@@ -77,21 +37,20 @@ def perform_wiener(ideal_input, chan, chan_out, M = 11, u = 0.1):
 	for i in range(iterations-2):
 		adapt.find_weights_pulse(ideal_codes[i-pos], chan_out[i])	
 	
-	pulse_weights = adapt.weights	
-	for i in range(iterations-2):
-		adapt.find_weights_error(ideal_codes[i-pos], chan_out[i])	
-	
-	pulse2_weights = adapt.find_weights_pulse2()
+#	pulse_weights = adapt.weights	
+#	for i in range(iterations-2):
+#		adapt.find_weights_error(ideal_codes[i-pos], chan_out[i])	
+#	
+#	pulse2_weights = adapt.find_weights_pulse2()
 
-	print(pulse_weights)
-	print(adapt.weights)
-	print(pulse2_weights[-1])
+#	print(pulse_weights)
+#	print(adapt.weights)
 	
 	#plt.plot(adapt.weights)
 	#plt.show()
 
-	print(f'Filter input: {adapt.filter_in}')
-	print(f'Weights: {adapt.weights}')
+	#print(f'Filter input: {adapt.filter_in}')
+	print(f'Adapted Weights: {adapt.weights}')
 	write_files([iterations, M, u], chan_out, adapt.weights, 'verif/fir')	
 	
 	#deconvolve(adapt.weights, chan)
@@ -104,31 +63,41 @@ def perform_wiener(ideal_input, chan, chan_out, M = 11, u = 0.1):
 # Used for testing 
 if __name__ == "__main__":
 	# Get config parameters from system.yml file
-	ffe_configs = get_configs() 
-
+	ffe_configs = Configuration('system')['generic']['ffe']
 	# Number of iterations of Wiener Steepest Descent
 	iterations  = 200000
 	# Cursor position with the most energy 
 	pos = 2
 
 	ideal_codes = np.random.randint(2, size=iterations)*2 - 1
-	print(f'Ideal Code Sequence: {ideal_codes}')
-
-	chan = Channel(channel_type='skineffect', normal='area', tau=2, sampl_rate=5, cursor_pos=pos, resp_depth=125)
 	
+	chan = Channel(channel_type='skineffect', normal='area', tau=2, sampl_rate=5, cursor_pos=pos, resp_depth=125)
 	chan_out = chan(ideal_codes)
-	print(f'Channel output: {chan_out}')
 
 	#plot_adapt_input(ideal_codes, chan_out, 100)
 
-	print(ffe_configs)
-
 	if ffe_configs["adaptation"]["type"] == "wiener":
-		perform_wiener(ideal_codes, chan, chan_out, ffe_configs["length"], \
+		perform_wiener(ideal_codes, chan, chan_out, ffe_configs['parameters']["length"], \
 			ffe_configs["adaptation"]["args"]["mu"])
 	else: 
 		print(f'Do Nothing')
 	
-	Packager(parameter_dict=Configuration('system')['generic']['parameters'], path='verif/fir/pack').create_package()
-	test_ffe()
+	#Create Package Generator Object 
+	packager = Packager(parameter_dict=Configuration('system')['generic']['parameters'], path='verif/fir/pack')
+	
+	#Create package file from parameters specified in system.yaml under generic
+	packager.create_package()
+
+	#Create TestBench Object
+	tester   = Tester(
+						testbench = 'verif/fir/test.sv',
+						libraries = ['src/fir/syn/ffe.sv'],
+						packages  = [packager.path],
+						flags 	  = ['-sv'],
+						build_dir = 'verif/fir/build_fir',
+						overload_seed=True
+					)
+
+	#Execute TestBench Object
+	tester.run()
 	

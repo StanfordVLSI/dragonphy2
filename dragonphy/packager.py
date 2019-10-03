@@ -12,6 +12,10 @@ class Packager():
 		self.generate_package()
 		self.save_package()
 
+	@property
+	def path(self):
+		return str(Path(self.path_head + '/' + self.name + '.sv'))
+
 	def add_parameters(self, new_parameters={}):
 		self.parameters.update(new_parameters)
 
@@ -30,7 +34,7 @@ class Packager():
 		new_lines = lines
 
 		for parameter in self.parameters:
-			new_lines += [self.design_param_definition(parameter, self.parameters[parameter])]\
+			new_lines += [self.design_param_definition(parameter, self.parameters[parameter])]
 
 		return new_lines
 
