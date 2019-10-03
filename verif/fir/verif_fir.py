@@ -1,18 +1,15 @@
 from dragonphy import *
 from pathlib import Path
 
-import subprocess
 import numpy as np
 import matplotlib.pyplot as plt
 import yaml
 
 def write_files(parameters, codes, weights, path="."):
 	with open(path + '/' + "adapt_coeff.txt", "w+") as f:
-		f.write('num_taps: ' + str(parameters[1]) + '\n')
-		f.write('weights:\n' + "\n".join([str(w) for w in weights]) + '\n')
+		f.write("\n".join([str(w) for w in weights]) + '\n')
 	with open(path + '/' +  "adapt_codes.txt", "w+") as f:
-		f.write('code_len: ' + str(parameters[0]) + '\n')
-		f.write('codes:\n' + "\n".join([str(c) for c in codes]) + '\n')
+		f.write("\n".join([str(c) for c in codes]) + '\n')
 
 	#f.write('mu: ' + str(parameters[2]) + '\n')
 
@@ -32,9 +29,8 @@ def plot_adapt_input(codes, chan_out, n, plt_mode='normal'):
 	plt.show()
 
 def perform_wiener(ideal_input, chan, chan_out, M = 11, u = 0.1, build_dir='.'):
-
 	adapt = Wiener(step_size = u, num_taps = M, cursor_pos=pos)
-	for i in range(iterations-2):
+	for i in range(iterations-pos):
 		adapt.find_weights_pulse(ideal_codes[i-pos], chan_out[i])	
 	
 #	pulse_weights = adapt.weights	
@@ -51,6 +47,8 @@ def perform_wiener(ideal_input, chan, chan_out, M = 11, u = 0.1, build_dir='.'):
 
 	#print(f'Filter input: {adapt.filter_in}')
 	print(f'Adapted Weights: {adapt.weights}')
+
+	chan_out = chan_out[2:iterations+2]
 	write_files([iterations, M, u], chan_out, adapt.weights, 'verif/fir/build_fir')	
 	
 	#deconvolve(adapt.weights, chan)
@@ -112,7 +110,7 @@ if __name__ == "__main__":
 						testbench = 'verif/fir/test.sv',
 						libraries = ['src/fir/syn/ffe.sv'],
 						packages  = [generic_packager.path, testbench_packager.path, ffe_packager.path],
-						flags 	  = ['-sv'],
+						flags 	  = ['-sv', '-64bit', '+libext+.v', '+libext+.sv', '+libext+.vp'],
 						build_dir = build_dir,
 						overload_seed=True
 					)
