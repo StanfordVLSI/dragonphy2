@@ -5,3 +5,4 @@ build_*
 __pycache__
 xcelium.d
 xrun.*
+*_gpack.sv
