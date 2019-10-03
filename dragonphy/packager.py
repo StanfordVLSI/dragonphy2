@@ -2,7 +2,7 @@ from pathlib import Path
 from copy import deepcopy
 class Packager():
 	def __init__(self, package_name='constant', parameter_dict={}, path="."):
-		self.name = package_name + '_pack'
+		self.name = package_name + '_gpack'
 		self.parameters = parameter_dict#deepcopy(parameter_dict)
 		self.package = []
 		self.filename = "{}.sv".format(self.name)
