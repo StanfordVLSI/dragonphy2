@@ -3,4 +3,5 @@ parameters:
   ideal_code_filename: 'ideal_codes.txt'
   adapt_code_filename: 'adapt_codes.txt'
   adapt_coef_filename: 'adapt_coeff.txt'
+  output_filename: 'FFE_results.txt'
 

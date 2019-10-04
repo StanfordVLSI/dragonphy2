@@ -70,6 +70,7 @@ if __name__ == "__main__":
     test_config['parameters']['ideal_code_filename'] = str(Path(build_dir + '/' + test_config['parameters']['ideal_code_filename']).resolve())
     test_config['parameters']['adapt_code_filename'] = str(Path(build_dir + '/' + test_config['parameters']['adapt_code_filename']).resolve())
     test_config['parameters']['adapt_coef_filename'] = str(Path(build_dir + '/' + test_config['parameters']['adapt_coef_filename']).resolve())
+    test_config['parameters']['output_filename'] = str(Path(build_dir + '/' + test_config['parameters']['output_filename']).resolve())
 
     # Get config parameters from system.yml file
     ffe_config = system_config['generic']['ffe']
@@ -122,7 +123,7 @@ if __name__ == "__main__":
     tester   = Tester(
                         top 	  = 'test',
                         testbench = ['verif/fir/test.sv'],
-                        libraries = ['src/fir/syn/ffe.sv'],
+                        libraries = ['src/fir/syn/ffe.sv', 'verif/tb/beh/logic_recorder.sv'],
                         packages  = [generic_packager.path, testbench_packager.path, ffe_packager.path],
                         flags     = ['-sv', '-64bit', '+libext+.v', '+libext+.sv', '+libext+.vp'],
                         build_dir = build_dir,
