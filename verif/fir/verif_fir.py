@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 import yaml
+from verif.fir.fir import Fir
 
 def write_files(parameters, codes, weights, path="."):
     with open(path + '/' + "adapt_coeff.txt", "w+") as f:
@@ -106,7 +107,7 @@ if __name__ == "__main__":
     quantized_weights = qw.quantize_2s_comp(weights)
     print(f'Weights: {weights}')
     print(f'Quantized Weights: {quantized_weights}')
-    write_files([depth, ffe_config['parameters']["length"], ffe_config["adaptation"]["args"]["mu"]], quantized_chan_out, weights, 'verif/fir/build_fir')   
+    write_files([depth, ffe_config['parameters']["length"], ffe_config["adaptation"]["args"]["mu"]], quantized_chan_out, quantized_weights, 'verif/fir/build_fir')   
          
     #Create Package Generator Object 
     generic_packager   = Packager(package_name='constant', parameter_dict=system_config['generic']['parameters'], path=pack_dir)
@@ -132,4 +133,10 @@ if __name__ == "__main__":
 
     #Execute TestBench Object
     tester.run()
+
+    #Execute ideal python FIR 
+    f = Fir(ffe_config["parameters"]["width"], quantized_weights)
+    for i in range(depth - len(quantized_weights) + 1):
+        conv_matrix = f.channelized(quantized_chan_out, i)
+
     
