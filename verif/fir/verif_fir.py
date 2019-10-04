@@ -120,12 +120,14 @@ if __name__ == "__main__":
 
     #Create TestBench Object
     tester   = Tester(
-                        testbench = 'verif/fir/test.sv',
+                        top 	  = 'test',
+                        testbench = ['verif/fir/test.sv'],
                         libraries = ['src/fir/syn/ffe.sv'],
                         packages  = [generic_packager.path, testbench_packager.path, ffe_packager.path],
                         flags     = ['-sv', '-64bit', '+libext+.v', '+libext+.sv', '+libext+.vp'],
                         build_dir = build_dir,
-                        overload_seed=True
+                        overload_seed=True,
+                        wave=True
                     )
 
     #Execute TestBench Object
