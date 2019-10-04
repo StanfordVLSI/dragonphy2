@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 import yaml
+from verif.fir.fir import Fir
 
 def write_files(parameters, codes, weights, path="."):
     with open(path + '/' + "adapt_coeff.txt", "w+") as f:
@@ -130,4 +131,10 @@ if __name__ == "__main__":
 
     #Execute TestBench Object
     tester.run()
+
+    #Execute ideal python FIR 
+    f = Fir(ffe_config["parameters"]["width"], quantized_weights)
+    for i in range(depth - len(quantized_weights) + 1):
+        conv_matrix = f.channelized(quantized_chan_out, i)
+
     
