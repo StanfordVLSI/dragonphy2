@@ -135,10 +135,7 @@ if __name__ == "__main__":
 
     #Execute ideal python FIR 
     f = Fir(ffe_config["parameters"]["width"], quantized_weights)
-    print(f(quantized_chan_out)[0:int(1000/16)*16])
     for i in range(depth - len(quantized_weights) + 1):
         conv_matrix = f.channelized(quantized_chan_out, i)
-
-    print(conv_matrix)
 
     

@@ -59,11 +59,9 @@ class Wiener():
         return next_weights
     
     def find_weights_pulse(self, ideal_in, curr_filter_in):
-        scale = { -1 : -128, 1: 127}
-
         self.filter_in  = np.insert(self.filter_in[0:-1], 0, curr_filter_in)
         est_input  = np.dot(self.weights, self.filter_in)
-        self.error = scale[ideal_in] - est_input
+        self.error = ideal_in - est_input
         self.total_error.append(self.error)
 
         ue_prod = np.multiply(self.filter_in, self.error)
