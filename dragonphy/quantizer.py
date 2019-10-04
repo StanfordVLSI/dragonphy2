@@ -41,7 +41,7 @@ class Quantizer():
 		if ideal_signal[max_idx] < 0:
 			lsb = -ideal_signal[max_idx] / 2**(self.width-1)
 		else:
-			lsb = ideal_signal[max_idx] / 2**(self.width-1)-1	
+			lsb = ideal_signal[max_idx] / (2**(self.width-1) - 1)
 
 		quantized_signal = np.array([round(x / lsb) for x in ideal_signal])
 	
