@@ -8,4 +8,4 @@ class Configuration:
             self.config_dict = yaml.load(f,Loader=yaml.FullLoader)
 
     def __getitem__(self, name):
-        return self.config_dict[name].copy()
+        return self.config_dict[name]

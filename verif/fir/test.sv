@@ -7,7 +7,7 @@ module test();
    logic clk;
    logic rstb;
 
-   logic signed [code_precision-1:0] dataStream       [channel_width-1:0][test_gpack::num_of_codes-1:0];
+   logic signed [code_precision-1:0] dataStream       [channel_width-1:0][data_depth-1:0];
 
    logic signed [ffe_gpack::weight_precision-1:0]  read_weights   [ffe_gpack::length-1:0];
    logic signed [ffe_gpack::weight_precision-1:0]  weights        [ffe_gpack::width-1:0][ffe_gpack::length-1:0];
@@ -35,7 +35,7 @@ module test();
 
    	initial begin
          clk        <= 0;
-         pos        <= 0;
+         pos        <= data_depth;
 
          for(jj=0;jj<ffe_gpack::width;jj=jj+1) begin
             data[jj] <=0;
@@ -43,7 +43,7 @@ module test();
 
          fid = $fopen(test_gpack::adapt_coef_filename, "r");
          for(ii=0; ii<ffe_gpack::length; ii=ii+1) begin
-            void'($fscanf(fid, "%d", read_weights[ii]));
+            void'($fscanf(fid, "%d\n", read_weights[ii]));
             for(jj=0; jj<ffe_gpack::width; jj=jj+1) begin
                weights[jj][ii] = read_weights[ii];
             end
@@ -53,10 +53,11 @@ module test();
          fid = $fopen(test_gpack::adapt_code_filename, "r");
    		for(ii=0;ii< data_depth;ii=ii+1) begin
             for(jj=0;jj<ffe_gpack::width;jj=jj+1) begin
-               void'($fscanf(fid, "%d", dataStream[jj][ii]));
+               void'($fscanf(fid, "%d\n", dataStream[jj][ii]));
    			   //dataStream[jj][ii] <= (jj + ii*dataWidth) >> ($clog2(test_gpack::num_of_codes*dataWidth) - 7); //$random();
             end
    		end
+         pos = 0;
    		repeat(data_depth) toggle_clk();
    	end
 

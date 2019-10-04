@@ -8,10 +8,9 @@ from verif.fir.fir import Fir
 
 def write_files(parameters, codes, weights, path="."):
     with open(path + '/' + "adapt_coeff.txt", "w+") as f:
-        f.write("\n".join([str(w) for w in weights]) + '\n')
+        f.write("\n".join([str(int(w)) for w in weights]) + '\n')
     with open(path + '/' +  "adapt_codes.txt", "w+") as f:
-        f.write("\n".join([str(c) for c in codes]) + '\n')
-
+        f.write("\n".join([str(int(c)) for c in codes]) + '\n')
     #f.write('mu: ' + str(parameters[2]) + '\n')
 
     #This is the most compatible way of writing for verilog - given its a fairly low level language
@@ -68,18 +67,18 @@ if __name__ == "__main__":
     test_config   = Configuration('test_verif_fir', 'verif/fir')
 
     #Associate the correct build directory to the python collateral
-    test_config['parameters']['ideal_code_filename'] = build_dir + '/' + test_config['parameters']['ideal_code_filename'] 
-    test_config['parameters']['adapt_code_filename'] = build_dir + '/' + test_config['parameters']['adapt_code_filename']
-    test_config['parameters']['adapt_coef_filename'] = build_dir + '/' + test_config['parameters']['adapt_coef_filename'] 
+    test_config['parameters']['ideal_code_filename'] = str(Path(build_dir + '/' + test_config['parameters']['ideal_code_filename']).resolve())
+    test_config['parameters']['adapt_code_filename'] = str(Path(build_dir + '/' + test_config['parameters']['adapt_code_filename']).resolve())
+    test_config['parameters']['adapt_coef_filename'] = str(Path(build_dir + '/' + test_config['parameters']['adapt_coef_filename']).resolve())
 
     # Get config parameters from system.yml file
     ffe_config = system_config['generic']['ffe']
 
     # Number of iterations of Wiener Steepest Descent
     iterations  = 200000
-    depth = 100
+    depth = 1000
     test_config['parameters']['num_of_codes'] = depth
-
+    print(test_config['parameters'])
     # Cursor position with the most energy 
     pos = 2
     resp_len = 125
@@ -99,7 +98,7 @@ if __name__ == "__main__":
             ffe_config["adaptation"]["args"]["mu"], build_dir=build_dir)
     else: 
         print(f'Do Nothing')
-    
+    print(quantized_chan_out)
     quantized_chan_out = quantized_chan_out[300:300+depth]
     print(f'Quantized Chan: {quantized_chan_out}')
     print(f'Chan: {chan_out}')
@@ -136,7 +135,10 @@ if __name__ == "__main__":
 
     #Execute ideal python FIR 
     f = Fir(ffe_config["parameters"]["width"], quantized_weights)
+    print(f(quantized_chan_out)[0:int(1000/16)*16])
     for i in range(depth - len(quantized_weights) + 1):
         conv_matrix = f.channelized(quantized_chan_out, i)
+
+    print(conv_matrix)
 
     
