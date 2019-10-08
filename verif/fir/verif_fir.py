@@ -4,7 +4,9 @@ from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 import yaml
+import math
 from verif.fir.fir import Fir
+
 
 def write_files(parameters, codes, weights, path="."):
     with open(path + '/' + "adapt_coeff.txt", "w+") as f:
@@ -56,6 +58,54 @@ def perform_wiener(ideal_input, chan, chan_out, M = 11, u = 0.1, build_dir='.'):
     #plt.plot(chan(pulse2_weights[-1]))
     #plt.show()
     return adapt.weights
+
+def execute_fir(ffe_config, quantized_weights, depth, quantized_chan_out):
+    f = Fir(len(quantized_weights), quantized_weights, ffe_config["parameters"]["width"])
+    
+    # Only works when all channel weights are the same
+    single_matrix = []
+    for i in range(0, depth - len(quantized_weights) + 1, ffe_config["parameters"]["width"]):
+        single_matrix.extend(f.single(quantized_chan_out, i).flatten())
+
+    single_matrix = f(quantized_chan_out)
+    # Works when all channel weights are different
+    channel_matrix = f.channelized(quantized_chan_out)
+
+    assert(compare(channel_matrix, single_matrix, length=500))
+    # Format conv_matrix to match SV output
+    return np.divide(np.array(single_matrix), 1024)
+
+def read_svfile(fname):
+    with open(fname, "r") as f:
+        f_lines = f.readlines()
+        return np.array([int(x) for x in f_lines])
+
+def convert_2s_comp(np_arr, width):
+    signed_arr=[]
+    for x in np_arr:
+        if x - (2**(width-1)-1) > 0:
+            x_new = x - (2**width)
+            signed_arr.append(x_new)
+        else:
+            signed_arr.append(x)
+    return signed_arr
+
+def compare(arr1, arr2, arr2_trim=0, length=None, debug=False):
+    equal = True
+    arr2 = arr2[arr2_trim:-1]
+
+    if debug:
+        # Print out outputs
+        print(f'Compare arr1: {arr1[:length]}')
+        print(f'Compare arr2: {arr2[:length]}')
+
+    min_len = min(len(arr1), len(arr2)) 
+    length = min_len if length == None else min(min_len, length)
+
+    for x in range(length):
+        if arr1[x] != arr2[x]:
+            equal = False
+    return equal
 
 # Used for testing 
 if __name__ == "__main__":
@@ -135,8 +185,20 @@ if __name__ == "__main__":
     tester.run()
 
     #Execute ideal python FIR 
-    f = Fir(ffe_config["parameters"]["width"], quantized_weights)
-    for i in range(depth - len(quantized_weights) + 1):
-        conv_matrix = f.channelized(quantized_chan_out, i)
+    py_arr = execute_fir(ffe_config, quantized_weights, depth, quantized_chan_out)
 
-    
+    # Read in the SV results file
+    sv_arr = read_svfile('verif/fir/build_fir/FFE_results.txt')
+
+    sv_arr = convert_2s_comp(sv_arr, ffe_config["parameters"]["output_precision"])
+
+    # Compare
+    sv_trim = ffe_config['parameters']["length"] * ffe_config["parameters"]["width"] - (ffe_config["parameters"]["length"] - 1)
+    comp_len = math.floor((depth - ffe_config["parameters"]["length"] + 1) \
+        /ffe_config["parameters"]["width"]) * ffe_config["parameters"]["width"]
+
+    # Comparison
+    if compare(py_arr, sv_arr, sv_trim, 100, True):
+        print('TEST PASS')
+    else:
+        print('TEST FAIL')
