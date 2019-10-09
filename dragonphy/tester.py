@@ -54,16 +54,17 @@ class Tester:
 	def generate_arguments(self):
 		self.args = []
 
-		self.args += [f'{self.sim}']
+		self.args += [f'{self.sim}', '-clean']
 		if self.seed:
 			self.args += ['-seed', f'{self.seed}']
 		for flag in self.flags:
 			self.args += [f'{flag}']
 		self.args += ['-top', f'{self.top}']
-		for tb in self.testbench:
-			self.args += [f'{tb}']
 		for package in self.packages:
 			self.args += [f'{package}']
+		for tb in self.testbench:
+			self.args += [f'{tb}']
+
 		for library in self.libraries:
 			self.args += ['-v', f'{library}']
 		for file in self.files:

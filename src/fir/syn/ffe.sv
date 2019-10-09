@@ -3,10 +3,12 @@ module ffe #(
 	parameter integer numChannels=16,
 	parameter integer codeBitwidth=8,
 	parameter integer weightBitwidth=8,
-	parameter integer resultBitwidth=8
+	parameter integer resultBitwidth=8,
+	parameter integer shiftBitwidth=5
 )(
 	input wire logic signed [weightBitwidth-1:0]      new_weights [numChannels-1:0][maxWeightLength-1:0],
 	input wire logic signed [codeBitwidth-1:0]  codes   [numChannels-1:0],
+	input wire logic [shiftBitwidth-1:0] new_shift_index,
 
 	input wire logic clk,
 	input wire logic rstb,
@@ -19,10 +21,8 @@ parameter integer numBuffers 	   = int'($ceil(real'(maxWeightLength-1)/real'(num
 // This can be made more efficient by separating the last buffer
 parameter integer sumPipelineDepth = $clog2(maxWeightLength);
 parameter integer numSum 		   = 2**sumPipelineDepth-1 ; 
-parameter integer productBitwidth  = codeBitwidth + weightBitwidth - 1;
+parameter integer productBitwidth  = codeBitwidth + weightBitwidth;
 parameter integer sumBitwidth      = $clog2(maxWeightLength) + productBitwidth;
-parameter integer shift_sr 		   = sumBitwidth-resultBitwidth;
-
 
 wire logic signed [codeBitwidth-1:0] 	 flatBuffer    [numChannels*numBuffers-1:0];
 
@@ -36,6 +36,16 @@ wire logic signed [productBitwidth-1:0]  next_products [numChannels-1:0][maxWeig
 
 logic signed [sumBitwidth-1:0]           sum   	  	   [numChannels-1:0][numSum-1:0];
 wire logic signed [sumBitwidth-1:0]      next_sum	   [numChannels-1:0][numSum-1:0];
+
+logic [shiftBitwidth-1:0] 		 shift_index;
+
+always@(posedge clk, negedge rstb) begin
+	if(!rstb) begin
+		shift_index <= 0;
+	end else begin
+		shift_index <= new_shift_index;
+	end
+end
 
 integer ii,jj;
 genvar gh, gi, gj;
@@ -63,7 +73,7 @@ for(gh = 0; gh < numChannels; gh = gh+1) begin
 	//Generate a tree of adders that will optimally sum the largest possible FIR length
 
 	//assign next_sum[gh][numSum-1] = sum[gh][numSum-2] + sum[gh][numSum-3];
-	assign results[gh] = (next_sum[gh][numSum-1]) >> shift_sr;
+	assign results[gh] = (sum[gh][numSum-1]) >>> shift_index;
 	for(gi=0; gi<sumPipelineDepth-1; gi=gi+1) begin
 		for(gj=0; gj<2**gi; gj=gj+1) begin
 			assign next_sum[gh][numSum-gj-2**gi] = sum[gh][numSum-2**(gi+1)- 2*gj] 
@@ -92,7 +102,7 @@ for(gh = 0; gh < numChannels; gh = gh+1) begin
 
 	//Weight and Value Multiplication - go through weights backward to simplify alignment
 	for(gi=0; gi<maxWeightLength; gi=gi+1) begin
-		assign next_products[gh][gi] = weights[gh][maxWeightLength-gi-1] * flatBuffer[gi + gh];
+		assign next_products[gh][gi] = (weights[gh][maxWeightLength-gi-1] * flatBuffer[gi + gh]);// >>> (codeBitwidth-sumPipelineDepth);
 	end
 
 	//Run the pipeline at the clock rate.

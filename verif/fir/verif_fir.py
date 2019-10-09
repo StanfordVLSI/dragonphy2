@@ -85,7 +85,7 @@ if __name__ == "__main__":
     resp_len = 125
 
     ideal_codes = np.random.randint(2, size=iterations)*2 - 1
-    
+
     chan = Channel(channel_type='skineffect', normal='area', tau=2, sampl_rate=5, cursor_pos=pos, resp_depth=resp_len)
     chan_out = chan(ideal_codes)
 
@@ -105,6 +105,8 @@ if __name__ == "__main__":
     print(f'Chan: {chan_out}')
     qw = Quantizer(width=ffe_config["parameters"]["weight_precision"], signed=True)
     quantized_weights = qw.quantize_2s_comp(weights)
+    print(sum(quantized_weights)/5)
+    print(sum(quantized_chan_out)/len(quantized_chan_out))
     print(f'Weights: {weights}')
     print(f'Quantized Weights: {quantized_weights}')
     write_files([depth, ffe_config['parameters']["length"], ffe_config["adaptation"]["args"]["mu"]], quantized_chan_out, quantized_weights, 'verif/fir/build_fir')   
@@ -123,7 +125,7 @@ if __name__ == "__main__":
     tester   = Tester(
                         top 	  = 'test',
                         testbench = ['verif/fir/test.sv'],
-                        libraries = ['src/fir/syn/ffe.sv', 'verif/tb/beh/logic_recorder.sv'],
+                        libraries = ['src/fir/syn/ffe.sv', 'verif/tb/beh/signed_recorder.sv'],
                         packages  = [generic_packager.path, testbench_packager.path, ffe_packager.path],
                         flags     = ['-sv', '-64bit', '+libext+.v', '+libext+.sv', '+libext+.vp'],
                         build_dir = build_dir,
@@ -136,7 +138,8 @@ if __name__ == "__main__":
 
     #Execute ideal python FIR 
     f = Fir(ffe_config["parameters"]["width"], quantized_weights)
+    print([int(np.floor(val/256)) for val in f(quantized_chan_out)[0:100]])
+    print(quantized_weights)
     for i in range(depth - len(quantized_weights) + 1):
         conv_matrix = f.channelized(quantized_chan_out, i)
-
     
