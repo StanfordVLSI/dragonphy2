@@ -73,7 +73,7 @@ def execute_fir(ffe_config, quantized_weights, depth, quantized_chan_out):
 
     assert(compare(channel_matrix, single_matrix, length=500))
     # Format conv_matrix to match SV output
-    return np.divide(np.array(single_matrix), 1024)
+    return np.divide(np.array(single_matrix), 256)
 
 def read_svfile(fname):
     with open(fname, "r") as f:
@@ -140,7 +140,7 @@ if __name__ == "__main__":
     chan_out = chan(ideal_codes)
 
     #plot_adapt_input(ideal_codes, chan_out, 100)
-    qc = Quantizer(width=ffe_config["parameters"]["output_precision"], signed=True)
+    qc = Quantizer(width=ffe_config["parameters"]["input_precision"], signed=True)
     quantized_chan_out = qc.quantize_2s_comp(chan_out)
 
     weights = []
@@ -188,14 +188,14 @@ if __name__ == "__main__":
 
     #Execute ideal python FIR 
     py_arr = execute_fir(ffe_config, quantized_weights, depth, quantized_chan_out)
-
+    py_arr = [int(np.floor(py_val)) for py_val in py_arr]
     # Read in the SV results file
     sv_arr = read_svfile('verif/fir/build_fir/FFE_results.txt')
 
     sv_arr = convert_2s_comp(sv_arr, ffe_config["parameters"]["output_precision"])
 
     # Compare
-    sv_trim = ffe_config['parameters']["length"] * ffe_config["parameters"]["width"] - (ffe_config["parameters"]["length"] - 1)
+    sv_trim = (1+ffe_config['parameters']["length"]) * ffe_config["parameters"]["width"] - (ffe_config["parameters"]["length"]-1)
     comp_len = math.floor((depth - ffe_config["parameters"]["length"] + 1) \
         /ffe_config["parameters"]["width"]) * ffe_config["parameters"]["width"]
 
