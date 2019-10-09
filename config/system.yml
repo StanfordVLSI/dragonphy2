@@ -1,8 +1,9 @@
 parameter_list:
   - &channel_width 16
   - &code_precision 8
+  - &output_precision 9
   - &ffe_length 5
-  - &ffe_weight_precision 8
+  - &ffe_weight_precision 11
 
 generic:
   parameters:
@@ -15,8 +16,9 @@ generic:
       length : *ffe_length
       width  : *channel_width
       input_precision : *code_precision
-      output_precision: *code_precision
+      output_precision: *output_precision
       weight_precision: *ffe_weight_precision
+      shift_precision: 10
     adaptation:
       type: 'wiener'
       args: { mu : 0.1 }

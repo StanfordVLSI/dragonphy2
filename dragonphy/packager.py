@@ -61,3 +61,4 @@ class Packager():
 		with open(Path(self.path_head + '/' + self.filename).resolve(), 'w') as f:
 			for line in self.package:
 				f.write(line +'\n')
+			f.flush()

@@ -23,16 +23,18 @@ module test();
 	 	.numChannels(ffe_gpack::width),
 	 	.codeBitwidth(ffe_gpack::input_precision),
 	 	.weightBitwidth(ffe_gpack::weight_precision),
-	 	.resultBitwidth(ffe_gpack::output_precision)
+	 	.resultBitwidth(ffe_gpack::output_precision),
+      .shiftBitwidth   (ffe_gpack::shift_precision )
 	) ffe_inst1 (
    	.clk(clk),
    	.rstb       (rstb),
+      .new_shift_index(5'd8),
    	.new_weights(weights),
    	.codes      (data),
    	.results    (out)
    );
 
-   logic_recorder #(
+   signed_recorder #(
       .n(ffe_gpack::output_precision),
       .filename(test_gpack::output_filename)
    ) ffe_recorder (
