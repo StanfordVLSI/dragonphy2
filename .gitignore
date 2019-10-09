@@ -6,3 +6,4 @@ __pycache__
 xcelium.d
 xrun.*
 *_gpack.sv
+.simvision*

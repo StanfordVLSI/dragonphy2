@@ -22,6 +22,7 @@ class Tester:
 		elif overload_seed:
 			self.seed = seed
 
+		self.cwd.mkdir(exist_ok=True)
 
 		if not input_tcl:
 			self.generate_input_tcl()
@@ -29,6 +30,7 @@ class Tester:
 			self.input_tcl = input_tcl
 
 		self.generate_arguments()
+
 
 	def generate_new_seed(self):
 		with open('/dev/urandom', 'rb') as f:

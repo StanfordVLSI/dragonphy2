@@ -110,17 +110,20 @@ def compare(arr1, arr2, arr2_trim=0, length=None, debug=False):
 # Used for testing 
 if __name__ == "__main__":
 
-    build_dir = 'verif/fir/build_fir'
-    pack_dir  = 'verif/fir/pack'
+    build_dir = 'verif/cmp/build_cmp'
+    pack_dir  = 'verif/cmp/pack'
 
     system_config = Configuration('system')
-    test_config   = Configuration('test_verif_fir', 'verif/fir')
+    test_config   = Configuration('test_verif_cmp', 'verif/cmp')
 
     #Associate the correct build directory to the python collateral
     test_config['parameters']['ideal_code_filename'] = str(Path(build_dir + '/' + test_config['parameters']['ideal_code_filename']).resolve())
     test_config['parameters']['adapt_code_filename'] = str(Path(build_dir + '/' + test_config['parameters']['adapt_code_filename']).resolve())
     test_config['parameters']['adapt_coef_filename'] = str(Path(build_dir + '/' + test_config['parameters']['adapt_coef_filename']).resolve())
     test_config['parameters']['output_filename'] = str(Path(build_dir + '/' + test_config['parameters']['output_filename']).resolve())
+
+    #
+    cmp_config = system_config['generic']['comp']
 
     # Get config parameters from system.yml file
     ffe_config = system_config['generic']['ffe']
@@ -129,7 +132,30 @@ if __name__ == "__main__":
     iterations  = 200000
     depth = 1000
     test_config['parameters']['num_of_codes'] = depth
-    print(test_config['parameters'])
+
+    #Create Package Generator Object 
+    generic_packager   = Packager(package_name='constant', parameter_dict=system_config['generic']['parameters'], path=pack_dir)
+    testbench_packager = Packager(package_name='test',     parameter_dict=test_config['parameters'], path=pack_dir)
+    ffe_packager       = Packager(package_name='ffe',      parameter_dict=ffe_config['parameters'], path=pack_dir)
+    cmp_packager       = Packager(package_name='cmp',      parameter_dict=cmp_config['parameters'], path=pack_dir)
+    #Create package file from parameters specified in system.yaml under generic
+    generic_packager.create_package()
+    testbench_packager.create_package()
+    ffe_packager.create_package()
+    cmp_packager.create_package()
+
+    #Create TestBench Object
+    tester   = Tester(
+                        top       = 'test',
+                        testbench = ['verif/cmp/test.sv'],
+                        libraries = ['src/fir/syn/ffe.sv', 'src/dig_comp/syn/comparator.sv' ,'verif/tb/beh/logic_recorder.sv'],
+                        packages  = [generic_packager.path, testbench_packager.path, ffe_packager.path, cmp_packager.path],
+                        flags     = ['-sv', '-64bit', '+libext+.v', '+libext+.sv', '+libext+.vp'],
+                        build_dir = build_dir,
+                        overload_seed=True,
+                        wave=True
+                    )
+
     # Cursor position with the most energy 
     pos = 2
     resp_len = 125
@@ -156,43 +182,19 @@ if __name__ == "__main__":
     quantized_weights = qw.quantize_2s_comp(weights)
     print(f'Weights: {weights}')
     print(f'Quantized Weights: {quantized_weights}')
-    write_files([depth, ffe_config['parameters']["length"], ffe_config["adaptation"]["args"]["mu"]], quantized_chan_out, quantized_weights, 'verif/fir/build_fir')   
+    write_files([depth, ffe_config['parameters']["length"], ffe_config["adaptation"]["args"]["mu"]], quantized_chan_out, quantized_weights, 'verif/cmp/build_cmp')   
          
-    #Create Package Generator Object 
-    generic_packager   = Packager(package_name='constant', parameter_dict=system_config['generic']['parameters'], path=pack_dir)
-    testbench_packager = Packager(package_name='test',     parameter_dict=test_config['parameters'], path=pack_dir)
-    ffe_packager       = Packager(package_name='ffe',      parameter_dict=ffe_config['parameters'], path=pack_dir)
-
-    #Create package file from parameters specified in system.yaml under generic
-    generic_packager.create_package()
-    testbench_packager.create_package()
-    ffe_packager.create_package()
-
-    #Create TestBench Object
-    tester   = Tester(
-                        top 	  = 'test',
-                        testbench = ['verif/fir/test.sv'],
-                        libraries = ['src/fir/syn/ffe.sv', 'verif/tb/beh/signed_recorder.sv'],
-                        packages  = [generic_packager.path, testbench_packager.path, ffe_packager.path],
-                        flags     = ['-sv', '-64bit', '+libext+.v', '+libext+.sv', '+libext+.vp'],
-                        build_dir = build_dir,
-                        overload_seed=True,
-                        wave=True
-                    )
-
     #Execute TestBench Object
     tester.run()
 
+
     #Execute ideal python FIR 
     py_arr = execute_fir(ffe_config, quantized_weights, depth, quantized_chan_out)
-    py_arr = [int(np.floor(py_val)) for py_val in py_arr]
+    py_arr = [1 if int(np.floor(py_val)) >= 0 else 0 for py_val in py_arr]
     # Read in the SV results file
-    sv_arr = read_svfile('verif/fir/build_fir/FFE_results.txt')
-
-    sv_arr = convert_2s_comp(sv_arr, ffe_config["parameters"]["output_precision"])
-
+    sv_arr = read_svfile('verif/cmp/build_cmp/cmp_results.txt')
     # Compare
-    sv_trim = (1+ffe_config['parameters']["length"]) * ffe_config["parameters"]["width"] - (ffe_config["parameters"]["length"]-1)
+    sv_trim = (3+ffe_config['parameters']["length"]) * ffe_config["parameters"]["width"] - (ffe_config["parameters"]["length"]-1)
     # This trim needs to be fixed - I think the current approach is ""hacky""
     comp_len = math.floor((depth - ffe_config["parameters"]["length"] + 1) \
         /ffe_config["parameters"]["width"]) * ffe_config["parameters"]["width"]
