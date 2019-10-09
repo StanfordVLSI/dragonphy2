@@ -149,14 +149,11 @@ if __name__ == "__main__":
             ffe_config["adaptation"]["args"]["mu"], build_dir=build_dir)
     else: 
         print(f'Do Nothing')
-    print(quantized_chan_out)
     quantized_chan_out = quantized_chan_out[300:300+depth]
     print(f'Quantized Chan: {quantized_chan_out}')
     print(f'Chan: {chan_out}')
     qw = Quantizer(width=ffe_config["parameters"]["weight_precision"], signed=True)
     quantized_weights = qw.quantize_2s_comp(weights)
-    print(sum(quantized_weights)/5)
-    print(sum(quantized_chan_out)/len(quantized_chan_out))
     print(f'Weights: {weights}')
     print(f'Quantized Weights: {quantized_weights}')
     write_files([depth, ffe_config['parameters']["length"], ffe_config["adaptation"]["args"]["mu"]], quantized_chan_out, quantized_weights, 'verif/fir/build_fir')   
@@ -196,6 +193,7 @@ if __name__ == "__main__":
 
     # Compare
     sv_trim = (1+ffe_config['parameters']["length"]) * ffe_config["parameters"]["width"] - (ffe_config["parameters"]["length"]-1)
+    # This trim needs to be fixed - I think the current approach is ""hacky""
     comp_len = math.floor((depth - ffe_config["parameters"]["length"] + 1) \
         /ffe_config["parameters"]["width"]) * ffe_config["parameters"]["width"]
 
