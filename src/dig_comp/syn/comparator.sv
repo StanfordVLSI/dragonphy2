@@ -24,26 +24,26 @@ module comparator #(
 	logic signed [inputBitwidth-1:0] 	  compare_codes [numChannels-1:0];
 	logic signed [thresholdBitwidth-1:0]  thresh [numChannels-1:0];
 
-
+	//Given the input is clocked by an external stage, this should probably just let codes be clocked externally
 
 	genvar gc;
 	generate
 		for(gc=0; gc<numChannels; gc=gc+1) begin
+			assign conf_out[gc] 		  =  (inp_minus_thresh[gc] >= 0) ? ((inp_minus_thresh[gc]) >> conf_shift) : ((-inp_minus_thresh[gc]) >> conf_shift);
 			assign comparison_out[gc] 	  =  (inp_minus_thresh[gc] >= 0) ? 1'b1 : 1'b0;
 			assign inp_minus_thresh[gc]   =  ((compare_codes[gc] >>> input_shift) - thresh[gc]);
-			assign conf_out[gc] 		  =  (inp_minus_thresh[gc] >= 0) ? ((inp_minus_thresh[gc]) >> conf_shift) : ((-inp_minus_thresh[gc]) >> conf_shift);
 		
 			always_ff @(posedge clk, negedge rstb) begin
 				if(!rstb) begin
-					thresh[gc] <= 0;
-					bit_out[gc] <= 1'b0;
-					confidence[gc] <= 0;
+					thresh[gc] 		  <= 0;
+					bit_out[gc] 	  <= 1'b0;
+					confidence[gc] 	  <= 0;
 					compare_codes[gc] <= 0;
 				end else begin 
-					bit_out[gc] <= comparison_out[gc];
-					thresh[gc]  <= new_thresh[gc];
+					thresh[gc]  	  <= new_thresh[gc];
+					bit_out[gc] 	  <= comparison_out[gc];
+					confidence[gc] 	  <= conf_out[gc];
 					compare_codes[gc] <= codes[gc];
-					confidence[gc] <= conf_out[gc];
 				end
 			end
 		end
