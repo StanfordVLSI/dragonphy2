@@ -30,14 +30,14 @@ def plot_adapt_input(codes, chan_out, n, plt_mode='normal'):
         plt.plot(chan_out[:n], 'o-')
     plt.show()
 
-def perform_wiener(ideal_input, chan, chan_out, M = 11, u = 0.1, build_dir='.'):
+def perform_wiener(ideal_input, chan, chan_out, M = 11, u = 0.1, pos=2, iterations=200000, build_dir='.'):
     adapt = Wiener(step_size = u, num_taps = M, cursor_pos=pos)
     for i in range(iterations-pos):
-        adapt.find_weights_pulse(ideal_codes[i-pos], chan_out[i])   
+        adapt.find_weights_pulse(ideal_input[i-pos], chan_out[i])   
     
 #   pulse_weights = adapt.weights   
 #   for i in range(iterations-2):
-#       adapt.find_weights_error(ideal_codes[i-pos], chan_out[i])   
+#       adapt.find_weights_error(ideal_input[i-pos], chan_out[i])   
 #   
 #   pulse2_weights = adapt.find_weights_pulse2()
 
@@ -107,9 +107,7 @@ def compare(arr1, arr2, arr2_trim=0, length=None, debug=False):
             equal = False
     return equal
 
-# Used for testing 
-if __name__ == "__main__":
-
+def main():
     build_dir = 'verif/cmp/build_cmp'
     pack_dir  = 'verif/cmp/pack'
 
@@ -172,7 +170,7 @@ if __name__ == "__main__":
     weights = []
     if ffe_config["adaptation"]["type"] == "wiener":
         weights = perform_wiener(ideal_codes, chan, chan_out, ffe_config['parameters']["length"], \
-            ffe_config["adaptation"]["args"]["mu"], build_dir=build_dir)
+            ffe_config["adaptation"]["args"]["mu"], pos, iterations, build_dir=build_dir)
     else: 
         print(f'Do Nothing')
     quantized_chan_out = quantized_chan_out[300:300+depth]
@@ -190,7 +188,7 @@ if __name__ == "__main__":
 
     #Execute ideal python FIR 
     py_arr = execute_fir(ffe_config, quantized_weights, depth, quantized_chan_out)
-    py_arr = [1 if int(np.floor(py_val)) >= 0 else 0 for py_val in py_arr]
+    py_arr = np.array([1 if int(np.floor(py_val)) >= 0 else 0 for py_val in py_arr])
     # Read in the SV results file
     sv_arr = read_svfile('verif/cmp/build_cmp/cmp_results.txt')
     # Compare
@@ -200,4 +198,14 @@ if __name__ == "__main__":
         /ffe_config["parameters"]["width"]) * ffe_config["parameters"]["width"]
 
     # Comparison
-    assert(compare(py_arr, sv_arr, sv_trim, 100, True))
+    result = compare(py_arr, sv_arr, sv_trim, 100, True)
+    if result:
+        print('TEST PASSED')
+    else: 
+        print('TEST FAILED')
+    assert(result)
+
+
+# Used for testing 
+if __name__ == "__main__":
+    main()

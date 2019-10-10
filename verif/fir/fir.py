@@ -32,7 +32,7 @@ class Fir(Filter):
         # weights for each channel where row i corresponds to channel i. 
         n_inputs = self.n_channels + self.n_taps - 1
         weight_matrix = np.array([np.pad(self.impulse_response[i][::-1], (i, n_inputs - self.n_taps - i), 'constant', constant_values=(0,0)) for i in range(self.n_channels)])
-        print(weight_matrix)        
+
         if zero_pad:
             symbols = np.pad(symbols, (self.n_taps - 1, 0), 'constant', constant_values=(0,0))
 
