@@ -26,7 +26,7 @@ generic:
     parameters:
       width : *channel_width
       input_precision : *output_precision
-      conf_precision  : 4
+      conf_precision  : 8
       thresh_precision : *output_precision
     threshold:
       value: 0
