@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import yaml
 import math
 from verif.fir.fir import Fir
+from verif.analysis.histogram import *
 
 
 def write_files(parameters, codes, weights, path="."):
@@ -107,7 +108,7 @@ def compare(arr1, arr2, arr2_trim=0, length=None, debug=False):
             equal = False
     return equal
 
-def main():
+def verif_fir_main():
     build_dir = 'verif/fir/build_fir'
     pack_dir  = 'verif/fir/pack'
 
@@ -184,6 +185,7 @@ def main():
     #Execute ideal python FIR 
     py_arr = execute_fir(ffe_config, quantized_weights, depth, quantized_chan_out)
     py_arr = [int(np.floor(py_val)) for py_val in py_arr]
+
     # Read in the SV results file
     sv_arr = read_svfile('verif/fir/build_fir/FFE_results.txt')
 
@@ -206,4 +208,4 @@ def main():
 
 # Used for testing 
 if __name__ == "__main__":
-    main()
+    verif_fir_main()
