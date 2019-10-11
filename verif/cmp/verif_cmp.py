@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import yaml
 import math
 from verif.fir.fir import Fir
+from verif.analysis.histogram import *
 
 
 def write_files(parameters, codes, weights, path="."):
@@ -63,9 +64,9 @@ def execute_fir(ffe_config, quantized_weights, depth, quantized_chan_out):
     f = Fir(len(quantized_weights), quantized_weights, ffe_config["parameters"]["width"])
     
     # Only works when all channel weights are the same
-    single_matrix = []
-    for i in range(0, depth - len(quantized_weights) + 1, ffe_config["parameters"]["width"]):
-        single_matrix.extend(f.single(quantized_chan_out, i).flatten())
+    #single_matrix = []
+    #for i in range(0, depth - len(quantized_weights) + 1, ffe_config["parameters"]["width"]):
+    #    single_matrix.extend(f.single(quantized_chan_out, i).flatten())
 
     single_matrix = f(quantized_chan_out)
     # Works when all channel weights are different
@@ -173,22 +174,32 @@ def main():
             ffe_config["adaptation"]["args"]["mu"], pos, iterations, build_dir=build_dir)
     else: 
         print(f'Do Nothing')
-    quantized_chan_out = quantized_chan_out[300:300+depth]
+
+    check_bits = 300
+    quantized_chan_out_t = quantized_chan_out[check_bits:check_bits+depth]
+
     print(f'Quantized Chan: {quantized_chan_out}')
     print(f'Chan: {chan_out}')
     qw = Quantizer(width=ffe_config["parameters"]["weight_precision"], signed=True)
     quantized_weights = qw.quantize_2s_comp(weights)
     print(f'Weights: {weights}')
     print(f'Quantized Weights: {quantized_weights}')
-    write_files([depth, ffe_config['parameters']["length"], ffe_config["adaptation"]["args"]["mu"]], quantized_chan_out, quantized_weights, 'verif/cmp/build_cmp')   
+    write_files([depth, ffe_config['parameters']["length"], ffe_config["adaptation"]["args"]["mu"]], quantized_chan_out_t, quantized_weights, 'verif/cmp/build_cmp')   
          
     #Execute TestBench Object
     tester.run()
 
 
     #Execute ideal python FIR 
-    py_arr = execute_fir(ffe_config, quantized_weights, depth, quantized_chan_out)
+    py_arr = execute_fir(ffe_config, quantized_weights, depth, quantized_chan_out_t)
+
+    # Plot a window of the ideal vs ffe output
+    plot_comparison(py_arr, ideal_codes, length=150, scale=50, delay_ffe=pos, delay_ideal=check_bits)
+    # Histogram Plot
+    plot_histogram(py_arr, ideal_codes, delay_ffe=pos, delay_ideal=check_bits, save_dir=build_dir) 
+    
     py_arr = np.array([1 if int(np.floor(py_val)) >= 0 else 0 for py_val in py_arr])
+
     # Read in the SV results file
     sv_arr = read_svfile('verif/cmp/build_cmp/cmp_results.txt')
     # Compare
@@ -197,8 +208,12 @@ def main():
     comp_len = math.floor((depth - ffe_config["parameters"]["length"] + 1) \
         /ffe_config["parameters"]["width"]) * ffe_config["parameters"]["width"]
 
+    # Print ideal codes
+    ideal_in = ideal_codes[pos:pos+check_bits]
+    print(f'Ideal Codes: {ideal_in}')
+
     # Comparison
-    result = compare(py_arr, sv_arr, sv_trim, 100, True)
+    result = compare(py_arr, sv_arr, sv_trim, check_bits, True)
     if result:
         print('TEST PASSED')
     else: 
