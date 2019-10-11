@@ -36,23 +36,27 @@ def plot_multi_hist(ffe_out, ideal_in, delay_ffe=0, delay_ideal=0, bins=50, n_bi
     ideal_in = np.clip(ideal_in[delay_ideal:-1], 0, None)
     ffe_out = ffe_out[delay_ffe:-1]
     arr_len = min(len(ideal_in), len(ffe_out))
-    
+
+    # Different types of weighting for each bit position value
+    #coeffs = 50*np.geomspace(1, 10**(n_bits-1), num=n_bits)
+    #coeffs = np.arange(1, n_bits + 1)
+    coeffs = np.ones(n_bits)    
+
     ideal_in_seq = np.array([np.array2string(ideal_in[i:i+n_bits], separator='')[1:-1] for i in range(arr_len-n_bits+1)])
-    ffe_out_seq = np.array([np.sum(ffe_out[i:i+n_bits]) for i in range(arr_len-n_bits+1)])
+    ffe_out_seq = np.array([np.dot(ffe_out[i:i+n_bits], coeffs) for i in range(arr_len-n_bits+1)])
 
     f, ax = plt.subplots(2, 1) 
     ax[0].set_title('Overlayed Histogram')
 
     bit_patterns = generate_bit_patterns(n_bits) 
-    print(bit_patterns)
-    print(ideal_in_seq)
+
     total = []
     for bp in bit_patterns:
         match_seq = np.array([ffe_out_seq[i] for i in range(len(ideal_in_seq)) if ideal_in_seq[i] == bp])
         total.append(match_seq)
         ax[0].hist(match_seq, bins, alpha=0.5, label=bp)
         
-    ax[1].hist(total, bins, stacked=True, alpha=0.5)
+    ax[1].hist(total, 2**n_bits*bins, stacked=True, alpha=0.5)
     ax[1].set_title('Stacked Histogram') 
 
     f.suptitle('FFE Output Histogram, len = ' + str(n_bits))
@@ -126,8 +130,9 @@ def test_fir():
     f = Fir(len(quantized_weights), quantized_weights, 16)
     single_matrix = f(quantized_chan_out)
 
-    plot_comparison(single_matrix, ideal_codes, delay_ffe=pos, scale=1500)
-    plot_multi_hist(single_matrix, ideal_codes, delay_ffe=pos, n_bits=2) 
+    plot_comparison(quantized_chan_out, ideal_codes, delay_ffe=pos, scale=50)
+    plot_comparison(single_matrix, ideal_codes, delay_ffe=pos, scale=15000)
+    plot_multi_hist(single_matrix, ideal_codes, delay_ffe=pos, n_bits=4) 
     
 
 # Used for testing only
