@@ -32,18 +32,14 @@ def plot_histogram(ffe_out, ideal_in, delay_ffe=0, delay_ideal=0, bins=50, plt_s
     if plt_show:
         plt.show() 
 
-def plot_multi_hist(ffe_out, ideal_in, delay_ffe=0, delay_ideal=0, bins=50, n_bits=1, plt_show=True, save_dir=None):
+def plot_multi_hist(ffe_out, ideal_in, delay_ffe=0, delay_ideal=0, bins=50, n_bits=1, bit_pos=0, plt_show=True, save_dir=None):
     ideal_in = np.clip(ideal_in[delay_ideal:-1], 0, None)
     ffe_out = ffe_out[delay_ffe:-1]
     arr_len = min(len(ideal_in), len(ffe_out))
 
-    # Different types of weighting for each bit position value
-    #coeffs = 50*np.geomspace(1, 10**(n_bits-1), num=n_bits)
-    #coeffs = np.arange(1, n_bits + 1)
-    coeffs = np.ones(n_bits)    
-
+    assert(bit_pos < n_bits)
     ideal_in_seq = np.array([np.array2string(ideal_in[i:i+n_bits], separator='')[1:-1] for i in range(arr_len-n_bits+1)])
-    ffe_out_seq = np.array([np.dot(ffe_out[i:i+n_bits], coeffs) for i in range(arr_len-n_bits+1)])
+    ffe_out_seq = np.array([ffe_out[i:i+n_bits][bit_pos] for i in range(arr_len-n_bits+1)])
 
     f, ax = plt.subplots(2, 1) 
     ax[0].set_title('Overlayed Histogram')
@@ -113,11 +109,12 @@ def test_fir():
     chan = Channel(channel_type='skineffect', normal='area', tau=2, sampl_rate=5, cursor_pos=pos, resp_depth=resp_len)
     chan_out = chan(ideal_codes)
 
+    chan_out = chan_out + np.random.randn(len(chan_out))*0.033
     #plot_histogram(chan_out, ideal_codes[pos:-1])
     
     qc = Quantizer(bitwidth, signed=True)
     quantized_chan_out = qc.quantize_2s_comp(chan_out)
-    adapt = Wiener(step_size = 0.1, num_taps = 5, cursor_pos=pos)
+    adapt = Wiener(step_size = 0.1, num_taps = 4, cursor_pos=pos)
 
     for i in range(iterations-pos):
         adapt.find_weights_pulse(ideal_codes[i-pos], chan_out[i])   
@@ -132,7 +129,7 @@ def test_fir():
 
     plot_comparison(quantized_chan_out, ideal_codes, delay_ffe=pos, scale=50)
     plot_comparison(single_matrix, ideal_codes, delay_ffe=pos, scale=15000)
-    plot_multi_hist(single_matrix, ideal_codes, delay_ffe=pos, n_bits=4) 
+    plot_multi_hist(single_matrix, ideal_codes, delay_ffe=pos, n_bits=4, bit_pos=2) 
     
 
 # Used for testing only
