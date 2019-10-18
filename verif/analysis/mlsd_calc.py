@@ -47,12 +47,17 @@ def err_fn(channel):
     plt.show()
 
     return err
+    
 
-def main(): 
+def calculate_err_fn():
     c = Channel(channel_type='skineffect', normal='area', tau=2, sampl_rate=5, cursor_pos=2, resp_depth=125)
     mlsd_max_bits(c) 
     err_fn(c)
 
+
+def main(): 
+    calculate_err_fn() 
+    
 # Used for testing only
 if __name__ == "__main__":
     main()
