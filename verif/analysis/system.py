@@ -28,7 +28,7 @@ def test_system_cheating():
     print(f'Cursor pos: {chan.cursor_pos}')
 
     # Add noise
-    chan_out = chan_out + np.random.randn(len(chan_out))*0.033
+    chan_out = chan_out + np.random.randn(len(chan_out))*0.02
    
     # Quantize channel output
     qc = Quantizer(bitwidth, signed=True)
@@ -56,9 +56,9 @@ def test_system_cheating():
     plot_multi_hist(ffe_out, ideal_codes, delay_ffe=pos, n_bits=1, bit_pos=0) 
 
     # Make decision based on FFE output
-    compare_out = np.array([1 if int(np.floor(ffe_val)) >= 0 else -1 for ffe_val in ffe_out])
+    comp_out = np.array([1 if int(np.floor(ffe_val)) >= 0 else -1 for ffe_val in ffe_out])
 
-    print(f'FFE Decision Output: {compare_out[:plot_len]}')
+    print(f'FFE Decision Output: {comp_out[:plot_len]}')
 
     # Perform MLSD on FFE output
     m = MLSD(chan, bitwidth=bitwidth, quantizer_lsb=qc.lsb)
@@ -75,31 +75,33 @@ def test_system_cheating():
 
     plt.figure()
     plt.plot(ideal_codes[:plot_len], label="ideal in")
-    plt.plot(compare_out[shift_amt:shift_amt + plot_len], label="ffe out")
+    plt.plot(comp_out[shift_amt:shift_amt + plot_len], label="ffe out")
     plt.legend()
     plt.show()
 
-    ffe_errors = np.inner(compare_out[shift_amt:iterations + shift_amt] - ideal_codes, compare_out[shift_amt:iterations + shift_amt] - ideal_codes)
+    corrected_comp_out = comp_out[shift_amt: iterations + shift_amt]
+
+    ffe_errors = np.inner(corrected_comp_out - ideal_codes, corrected_comp_out - ideal_codes)
     print(f'Number of FFE mismatches: {ffe_errors}')
 
     start_index = chan.resp_depth - chan.cursor_pos - 1
     end_index = iterations - chan.cursor_pos
-    corrected_out = [m.perform_mlsd_single(ideal_codes, ffe_out, quantized_chan_out, i) for i in range(start_index, end_index)] #range(len(compare_out) - m.n_post)]
+    mlsd_out = [m.perform_mlsd_single(corrected_comp_out, ffe_out, quantized_chan_out, i) for i in range(start_index, end_index)] #range(len(comp_out) - m.n_post)]
 
-    print(f'MLSD Output: {corrected_out[:plot_len]}')
+    print(f'MLSD Output: {mlsd_out[:plot_len]}')
 
     plt.figure()
-    plt.plot(corrected_out[:plot_len], label='mlsd')
+    plt.plot(mlsd_out[:plot_len], label='mlsd')
     plt.plot(ideal_codes[start_index:end_index][:plot_len], label='ideal')
     plt.legend()
     plt.show()
 
-    diff = corrected_out - ideal_codes[start_index:end_index]
+    diff = mlsd_out - ideal_codes[start_index:end_index]
     result = np.inner(diff, diff)
+    print(f'Number of MLSD mismatches: {result}')
     if result == 0:
         print(f'TEST PASSED')
     else:   
-        print(f'Number of MLSD mismatches: {result}')
         print(f'TEST FAILED') 
 
 def main():
