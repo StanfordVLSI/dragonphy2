@@ -27,7 +27,7 @@ class VivadoTCL:
         self.proc = spawnu(command=cmd, cwd=cwd)
 
         # wait for the prompt
-        self.expect_prompt(timeout=30)
+        self.expect_prompt(timeout=300)
 
     def expect_prompt(self, timeout=float('inf')):
         before = ''
