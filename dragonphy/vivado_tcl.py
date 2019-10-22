@@ -11,7 +11,7 @@ class VivadoTCL:
     def __init__(self, cwd=None, prompt='Vivado% ', err_strs=None, debug=False):
         # set defaults
         if err_strs is None:
-            err_strs = ['ERROR', 'CRITICAL WARNING', 'FATAL']
+            err_strs = ['ERROR', 'FATAL']
 
         # save settings
         self.cwd = cwd
