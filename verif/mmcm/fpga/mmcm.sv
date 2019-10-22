@@ -11,7 +11,7 @@ module mmcm (
         .clk_out2(dbg_clk),
         .reset(0),
         .locked(locked),
-        .clk_in1_p(ext_clk_p)
+        .clk_in1_p(ext_clk_p),
         .clk_in1_n(ext_clk_n)
     );
 
