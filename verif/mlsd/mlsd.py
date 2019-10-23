@@ -14,7 +14,7 @@ class MLSD:
         self.bw = bitwidth    
         self.lsb = quantizer_lsb
 
-    def perform_mlsd_single(self, recovered_bits, ffe_out, chan_out, index=0):
+    def perform_mlsd_single(self, recovered_bits, chan_out, index=0):
         assert(index >= (self.n_pre + self.n_bits_after))
         assert(len(recovered_bits) > index + self.n_post + self.n_bits_after)  
 
@@ -24,9 +24,7 @@ class MLSD:
         difference_0 = []
         for i in range(-self.n_bits_before, self.n_bits_after + 1):
             # Treat this as our "estimates" of the symbols
-            #chan_out_windowed = chan_out[index + i - self.n_pre: index + i + self.n_post + 1]
             recovered_bits_windowed = recovered_bits[index + i - self.n_pre: index + i + self.n_post + 1]
-            #print(recovered_bits_windowed)
             recovered_1 = np.copy(recovered_bits_windowed)
             recovered_1[self.n_pre] = 1
 
@@ -39,17 +37,14 @@ class MLSD:
 
             se1 = np.dot(chan_resp_modified, recovered_1)
             se0 = np.dot(chan_resp_modified, recovered_0)
-
+            print(se1)
+            print(se0)
+            
             q_se1 = qc.quantize_2s_comp(se1)
             q_se0 = qc.quantize_2s_comp(se0)
         
             difference_1.append(chan_out[index + i + self.chan.cursor_pos] - q_se1)
             difference_0.append(chan_out[index + i + self.chan.cursor_pos] - q_se0) 
-
-        #plt.figure()
-        #plt.plot(difference_1)
-        #plt.plot(difference_0)
-       # plt.show()
 
         difference_1 = np.inner(difference_1, difference_1)
         difference_0 = np.inner(difference_0, difference_0)
@@ -58,9 +53,14 @@ class MLSD:
         bit_decision = -1 if difference_1 > difference_0 else 1
         return bit_decision
 
-        #plt.figure()
-        #plt.plot(12000*recovered_bits[:100])
-        #plt.plot(ffe_out[:100])
-        #plt.plot(500*chan_out[:100])
-        #plt.show()
         
+    def perform_mlsd_update(self, recovered_bits, chan_out):
+        start_index = self.chan.resp_depth - self.chan.cursor_pos - 1
+        end_index = len(recovered_bits) - self.chan.cursor_pos
+
+        result = np.zeros(end_index - start_index)
+        for i in range(start_index, end_index):
+            mlsd_out = self.perform_mlsd_single(recovered_bits, chan_out, i)
+            recovered_bits[i] = mlsd_out 
+            result[i - start_index] = mlsd_out
+        return result

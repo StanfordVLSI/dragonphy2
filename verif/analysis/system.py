@@ -11,12 +11,16 @@ import matplotlib.pyplot as plt
 # MLSD
 def test_system_cheating():
     # Initialize parameters 
-    iterations = 200000
+    iterations = 100
     pos = 2
-    resp_len = 125
+    resp_len = 10
     bitwidth = 8
     plot_len = 100
-
+    tau = 2
+    num_taps = 5
+    noise_amp = 0.02
+    noise_en = False
+    
     # Generate Ideal Codes
     ideal_codes = np.random.randint(2, size=iterations)*2 - 1
    
@@ -28,7 +32,8 @@ def test_system_cheating():
     print(f'Cursor pos: {chan.cursor_pos}')
 
     # Add noise
-    chan_out = chan_out + np.random.randn(len(chan_out))*0.02
+    if noise_en:
+        chan_out = chan_out + np.random.randn(len(chan_out))*0.02
    
     # Quantize channel output
     qc = Quantizer(bitwidth, signed=True)
@@ -36,7 +41,7 @@ def test_system_cheating():
 
 
     # Adapt Wiener filter to quantized channel output
-    adapt = Wiener(step_size = 0.1, num_taps = 3, cursor_pos=pos)
+    adapt = Wiener(step_size = 0.1, num_taps = 5, cursor_pos=pos)
     for i in range(iterations-pos):
         adapt.find_weights_pulse(ideal_codes[i-pos], chan_out[i])   
 
@@ -81,12 +86,16 @@ def test_system_cheating():
 
     corrected_comp_out = comp_out[shift_amt: iterations + shift_amt]
 
-    ffe_errors = np.inner(corrected_comp_out - ideal_codes, corrected_comp_out - ideal_codes)
+    ffe_errors = np.inner(corrected_comp_out - ideal_codes, corrected_comp_out - ideal_codes)/4
     print(f'Number of FFE mismatches: {ffe_errors}')
 
     start_index = chan.resp_depth - chan.cursor_pos - 1
     end_index = iterations - chan.cursor_pos
-    mlsd_out = [m.perform_mlsd_single(corrected_comp_out, ffe_out, quantized_chan_out, i) for i in range(start_index, end_index)] #range(len(comp_out) - m.n_post)]
+
+    # MLSD with no update
+    mlsd_out_no = [m.perform_mlsd_single(corrected_comp_out, quantized_chan_out, i) for i in range(start_index, end_index)] #range(len(comp_out) - m.n_post)]
+    # MLSD with update
+    mlsd_out = m.perform_mlsd_update(corrected_comp_out, quantized_chan_out)
 
     print(f'MLSD Output: {mlsd_out[:plot_len]}')
 
@@ -97,8 +106,11 @@ def test_system_cheating():
     plt.show()
 
     diff = mlsd_out - ideal_codes[start_index:end_index]
-    result = np.inner(diff, diff)
-    print(f'Number of MLSD mismatches: {result}')
+    diff_no = mlsd_out_no - ideal_codes[start_index:end_index]
+    result = np.inner(diff, diff)/4
+    result_no = np.inner(diff_no, diff_no)/4
+    print(f'Number of MLSD mismatches (update): {result}')
+    print(f'Number of MLSD mismatches (no update): {result_no}')
     if result == 0:
         print(f'TEST PASSED')
     else:   
