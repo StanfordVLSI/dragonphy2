@@ -11,11 +11,11 @@ import matplotlib.pyplot as plt
 # MLSD
 def test_system_cheating():
     # Initialize parameters 
-    iterations = 100
-    pos = 2
-    resp_len = 10
+    iterations = 1000
+    pos = 1
+    resp_len = 6
     bitwidth = 8
-    plot_len = 100
+    plot_len = 100 #iterations
     tau = 2
     num_taps = 5
     noise_amp = 0.02
@@ -66,7 +66,7 @@ def test_system_cheating():
     print(f'FFE Decision Output: {comp_out[:plot_len]}')
 
     # Perform MLSD on FFE output
-    m = MLSD(chan, bitwidth=bitwidth, quantizer_lsb=qc.lsb)
+    m = MLSD(chan.cursor_pos, chan.impulse_response, bitwidth=bitwidth, quantizer_lsb=qc.lsb)
 
     print(f'Ideal Codes: {ideal_codes[:plot_len]}')
 
@@ -88,30 +88,32 @@ def test_system_cheating():
 
     ffe_errors = np.inner(corrected_comp_out - ideal_codes, corrected_comp_out - ideal_codes)/4
     print(f'Number of FFE mismatches: {ffe_errors}')
+    err_idx = [i for i in range(len(corrected_comp_out)) if corrected_comp_out[i] != ideal_codes[i]]
+    print(f'Mismatches occur: {err_idx}')
 
     start_index = chan.resp_depth - chan.cursor_pos - 1
     end_index = iterations - chan.cursor_pos
 
-    # MLSD with no update
-    mlsd_out_no = [m.perform_mlsd_single(corrected_comp_out, quantized_chan_out, i) for i in range(start_index, end_index)] #range(len(comp_out) - m.n_post)]
+    ideal_one_err = np.copy(ideal_codes)
+    ideal_one_err[5] = -1 * ideal_one_err[7]
+
     # MLSD with update
-    mlsd_out = m.perform_mlsd_update(corrected_comp_out, quantized_chan_out)
+    mlsd_out = m.perform_mlsd_update_zeros(ideal_codes, quantized_chan_out)
 
     print(f'MLSD Output: {mlsd_out[:plot_len]}')
 
     plt.figure()
     plt.plot(mlsd_out[:plot_len], label='mlsd')
-    plt.plot(ideal_codes[start_index:end_index][:plot_len], label='ideal')
+    plt.plot(ideal_codes[:plot_len], label='ideal')
     plt.legend()
     plt.show()
 
-    diff = mlsd_out - ideal_codes[start_index:end_index]
-    diff_no = mlsd_out_no - ideal_codes[start_index:end_index]
-    result = np.inner(diff, diff)/4
-    result_no = np.inner(diff_no, diff_no)/4
-    print(f'Number of MLSD mismatches (update): {result}')
-    print(f'Number of MLSD mismatches (no update): {result_no}')
-    if result == 0:
+    err_idx = [i for i in range(len(mlsd_out)) if mlsd_out[i] != ideal_codes[i]]
+    print(f'Mismatches occur: {err_idx}')
+    print(f'num mismatch: {len(err_idx)}')
+
+
+    if len(err_idx) == 0:
         print(f'TEST PASSED')
     else:   
         print(f'TEST FAILED') 
