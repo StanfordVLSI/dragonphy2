@@ -11,7 +11,7 @@ class VivadoTCL:
     def __init__(self, cwd=None, prompt='Vivado% ', err_strs=None, debug=False):
         # set defaults
         if err_strs is None:
-            err_strs = ['ERROR', 'CRITICAL WARNING', 'FATAL']
+            err_strs = ['ERROR', 'FATAL']
 
         # save settings
         self.cwd = cwd
@@ -27,7 +27,7 @@ class VivadoTCL:
         self.proc = spawnu(command=cmd, cwd=cwd)
 
         # wait for the prompt
-        self.expect_prompt(timeout=30)
+        self.expect_prompt(timeout=300)
 
     def expect_prompt(self, timeout=float('inf')):
         before = ''

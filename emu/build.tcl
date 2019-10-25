@@ -1,5 +1,7 @@
 # Create the Vivado project
-create_project -force project project -part "xc7z020clg400-1"
+# ZC702: xc7z020clg484-1
+# PYNQ: xc7z020clg400-1
+create_project -force project project -part "xc7z020clg484-1"
 
 # Add source files
 add_files $file_list
@@ -12,9 +14,12 @@ add_files -fileset constrs_1 [glob "../emu/constr.xdc"]
 set_property -name top -value fpga_top -objects [current_fileset]
 
 # Instantiate the clock wizard
+# ZC702: Differential 200 MHz
+# PYNQ: Singled-ended 125 MHz
 create_ip -name clk_wiz -vendor xilinx.com -library ip -module_name clk_wiz_0
 set_property -dict [list \
-    CONFIG.PRIM_IN_FREQ 125.0 \
+    CONFIG.PRIM_SOURCE Differential_clock_capable_pin \
+    CONFIG.PRIM_IN_FREQ 200.0 \
     CONFIG.NUM_OUT_CLKS 2 \
     CONFIG.CLKOUT1_USED true \
     CONFIG.CLKOUT1_REQUESTED_OUT_FREQ 20.0 \
