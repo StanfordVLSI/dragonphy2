@@ -16,6 +16,40 @@ class MLSD:
         self.bw = bitwidth    
         self.lsb = quantizer_lsb
 
+    def calculate_norm(self, recovered_bits, chan_out, index=0, bit=1, debug=False):
+        qc = Quantizer(self.bw, lsb=self.lsb, signed=True)        
+
+        difference = []
+        for i in range(-self.n_bits_before, self.n_bits_after + 1):
+            # Treat this as our "estimates" of the symbols
+            recovered_bits_windowed = recovered_bits[index + i - self.n_pre: index + i + self.n_post + 1]
+            recovered = np.copy(recovered_bits_windowed)
+            recovered[self.n_pre] = bit
+
+            if debug:
+                print(f'{index + i - self.n_pre}, {index + i + self.n_post}')
+                print(f'Recovered win: {recovered_bits_windowed}')
+                print(f'Recovered 1: {recovered}')   
+ 
+            chan_start = self.chan_resp_depth - self.chan_cursor_pos - 1 - self.n_pre
+            chan_end = self.chan_resp_depth + (self.n_post - self.chan_cursor_pos)
+            chan_resp_modified = self.chan_resp[::-1][chan_start:chan_end] 
+
+            se = np.dot(chan_resp_modified, recovered)
+            if debug:
+                print(se)
+            
+            q_se = qc.quantize_2s_comp(se)
+            if debug:
+                print(q_se)
+                print(chan_out[index + i - self.n_pre + self.chan_cursor_pos]) 
+            
+            chan_out_idx = index + i - self.n_pre + self.chan_cursor_pos
+            difference.append(chan_out[chan_out_idx] - q_se)
+
+        difference = np.inner(difference, difference)
+        return difference
+
     def perform_mlsd_single(self, recovered_bits, chan_out, index=0, debug=False):
         #assert(index >= (self.n_pre + self.n_bits_after))
         #assert(len(recovered_bits) > index + self.n_post + self.n_bits_after)  
@@ -67,26 +101,10 @@ class MLSD:
             print(f'Difference assuming 1: {difference_1}')
             print(f'Difference assuming 0: {difference_0}')
 
-
         bit_decision = -1 if difference_1 > difference_0 else 1
         return bit_decision
-
         
-    # This function is broken, do not use
-    def perform_mlsd_update(self, recovered_bits, chan_out, zero_pad=False):
-        start_index = self.chan_resp_depth - self.chan_cursor_pos - 1
-        end_index = len(recovered_bits) - self.chan_cursor_pos
-
-        result = np.zeros(end_index - start_index)
-        for i in range(start_index, end_index):
-            #print(f'=========== Index: {i}')
-            mlsd_out = self.perform_mlsd_single(recovered_bits, chan_out, i)
-            recovered_bits[i] = mlsd_out 
-            result[i - start_index] = mlsd_out
-
-        return result
-
-    def perform_mlsd_update_zeros(self, recovered_bits, chan_out, zero_pad=False):
+    def calc_mlsd_err(self, recovered_bits, chan_out, inv=False, debug=False):
         result = np.zeros(len(recovered_bits))
 
         n_front_zeros = self.chan_resp_depth - self.chan_cursor_pos - 1
@@ -95,14 +113,61 @@ class MLSD:
 
         start_index = self.chan_resp_depth - self.chan_cursor_pos - 1
         end_index = len(r_bits_zero) - self.chan_cursor_pos
-        print(f'Zero pad bits: {r_bits_zero}')
         for i in range(start_index, end_index):
-            #print(f'=========== Index: {i}')
-            mlsd_out = self.perform_mlsd_single(r_bits_zero, chan_out, i)
-            r_bits_zero[i] = mlsd_out 
+            bit = r_bits_zero[i] if not inv else -1 * r_bits_zero[i]
+            mlsd_out = self.calculate_norm(r_bits_zero, chan_out, i, bit, debug)
             result[i - start_index] = mlsd_out
 
         return result
+
+    def plot_ffe_mlsd(self, ffe_out, recovered_bits, chan_out, ideal, plot_range=[0, 100]):
+        f, ax = plt.subplots(2, 1) 
+        ax[0].set_title('FFE Output Error')
+        ax[0].plot(np.abs(ffe_out)[plot_range[0]:plot_range[1]], label="ffe_err")
+        ffe_norm = self.calc_mlsd_err(recovered_bits, chan_out)
+        ffe_norm_inv = self.calc_mlsd_err(recovered_bits, chan_out, inv=True)
+        ax[0].plot(ffe_norm[plot_range[0]:plot_range[1]], label="ffe_norm")
+        ax[0].plot(ffe_norm_inv[plot_range[0]:plot_range[1]], label="ffe_norm")
+
+        ax[1].set_title('FFE Output Bits')
+        ax[1].plot(recovered_bits[plot_range[0]:plot_range[1]], label='ffe_out')
+        ax[1].plot(ideal[plot_range[0]:plot_range[1]], label='ideal')
+        f.legend()
+        plt.show()
+
+    # This function is broken, do not use
+    def perform_mlsd_update(self, recovered_bits, chan_out, zero_pad=False):
+        start_index = self.chan_resp_depth - self.chan_cursor_pos - 1
+        end_index = len(recovered_bits) - self.chan_cursor_pos
+
+        result = np.zeros(end_index - start_index)
+        for i in range(start_index, end_index):
+            mlsd_out = self.perform_mlsd_single(recovered_bits, chan_out, i)
+            recovered_bits[i] = mlsd_out 
+            result[i - start_index] = mlsd_out
+
+        return result
+
+    def perform_mlsd_zeros(self, recovered_bits, chan_out, update=True, debug=False):
+        result = np.zeros(len(recovered_bits))
+
+        n_front_zeros = self.chan_resp_depth - self.chan_cursor_pos - 1
+        n_back_zeros = self.chan_cursor_pos
+        print(recovered_bits)
+        r_bits_zero = np.concatenate((np.zeros(n_front_zeros), recovered_bits, np.zeros(n_back_zeros)))
+
+        start_index = self.chan_resp_depth - self.chan_cursor_pos - 1
+        end_index = len(r_bits_zero) - self.chan_cursor_pos
+        for i in range(start_index, end_index):
+            if debug:
+                print(f'=========== Index: {i - start_index}')
+            mlsd_out = self.perform_mlsd_single(r_bits_zero, chan_out, i, debug)
+            if update:
+                r_bits_zero[i] = mlsd_out 
+            result[i - start_index] = mlsd_out
+
+        return result
+
 
 def main():
     ideal = np.array([-1, -1, 1, -1, -1, 1, 1, 1, -1, -1, -1, -1])
@@ -116,7 +181,7 @@ def main():
 
     chan_out = np.convolve(ideal, chan_resp)
     #chan_out = chan_out[cursor_pos:]
-    q = Quantizer(signed=True)   
+    q = Quantizer(signed=True)
     
     q_chan_out = q.quantize_2s_comp(chan_out)     
 
