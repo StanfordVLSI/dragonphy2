@@ -148,8 +148,11 @@ class MLSD:
 
         return result
 
-    def perform_mlsd_zeros(self, recovered_bits, chan_out, update=True, debug=False):
+    def perform_mlsd_zeros(self, recovered_bits, chan_out, bool_arr = None, update=True, debug=False):
         result = np.zeros(len(recovered_bits))
+
+        if bool_arr is None:
+            bool_arr = np.ones(len(recovered_bits))
 
         n_front_zeros = self.chan_resp_depth - self.chan_cursor_pos - 1
         n_back_zeros = self.chan_cursor_pos
@@ -161,13 +164,24 @@ class MLSD:
         for i in range(start_index, end_index):
             if debug:
                 print(f'=========== Index: {i - start_index}')
-            mlsd_out = self.perform_mlsd_single(r_bits_zero, chan_out, i, debug)
+
+            if bool_arr[i-n_front_zeros]:
+                mlsd_out = self.perform_mlsd_single(r_bits_zero, chan_out, i, debug)
+            else:
+                mlsd_out = r_bits_zero[i]
+
             if update:
                 r_bits_zero[i] = mlsd_out 
+
             result[i - start_index] = mlsd_out
 
         return result
 
+    def perform_mlsd_ffe_err(self, recovered_bits, chan_out, threshold = 0, update=True, debug=False):
+        ffe_norm = self.calc_mlsd_err(recovered_bits, chan_out) > threshold
+        result = self.perform_mlsd_zeros(recovered_bits, chan_out, ffe_norm, update, debug)
+        return result
+         
 
 def main():
     ideal = np.array([-1, -1, 1, -1, -1, 1, 1, 1, -1, -1, -1, -1])
