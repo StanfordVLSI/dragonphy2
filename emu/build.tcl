@@ -5,7 +5,7 @@ create_project -force project project -part "xc7z020clg484-1"
 
 # Add source files
 add_files $file_list
-set_property file_type "Verilog Header" $header_file_list
+set_property file_type "Verilog Header" [get_files $header_file_list]
 
 # Add clock constraints
 add_files -fileset constrs_1 [glob "../emu/constr.xdc"]
