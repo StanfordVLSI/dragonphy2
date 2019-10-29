@@ -6,6 +6,34 @@ from verif.analysis.histogram import *
 import numpy as np
 import matplotlib.pyplot as plt
 
+def plot_parametric_channel():
+    tau = [2, 8, 16, 32, 64]
+    resp_len = [5, 10, 50, 100, 150]
+    pos = 2
+
+    f, ax = plt.subplots(2, 2) 
+
+    ax[0, 0].set_title('Skineffect Channel, tau')
+    ax[1, 0].set_title('Dialectric Channel, tau')
+    # Create all channels
+    for t in tau: 
+        chan_skin = Channel(channel_type='skineffect', normal='area', tau=t, sampl_rate=1, cursor_pos=pos, resp_depth=50)
+        chan_dial = Channel(channel_type='dielectric1', normal='area', tau=t, sampl_rate=1, cursor_pos=pos, resp_depth=50)
+        ax[0, 0].plot(chan_skin.impulse_response, label='tau='+str(t))
+        ax[1, 0].plot(chan_skin.impulse_response, label='tau='+str(t))
+
+    ax[0, 1].set_title('Skineffect Channel, len')
+    ax[1, 1].set_title('Dialectric Channel, len')
+    # Create all channels
+    for r in resp_len: 
+        chan_skin = Channel(channel_type='skineffect', normal='area', tau=16, sampl_rate=1, cursor_pos=pos, resp_depth=r)
+        chan_dial = Channel(channel_type='dielectric1', normal='area', tau=16, sampl_rate=1, cursor_pos=pos, resp_depth=r)
+        ax[0, 1].plot(chan_skin.impulse_response, label='len='+str(r))
+        ax[1, 1].plot(chan_skin.impulse_response, label='len='+str(r))
+    
+    f.legend()
+    plt.show()
+
 # Run the full system in python (w/ cheating).
 # Uses ideal Wiener filter, uniform quantizer, and ideal channel model for
 # MLSD
@@ -13,7 +41,7 @@ def test_system_cheating():
     # Initialize parameters 
     iterations = 1000
     pos = 1
-    resp_len = 6
+    resp_len = 16
     bitwidth = 8
     plot_len = 100 #iterations
     num_taps = 5
@@ -27,7 +55,7 @@ def test_system_cheating():
    
     # Load Ideal Codes
     ideal_codes = np.loadtxt('verif/analysis/ideal_codes.txt', dtype=np.int16)
-    print(ideal_codes)
+    print(f'Ideal codes: {ideal_codes[:plot_len]}')
 
     # Create channel model and channel output
     chan = Channel(channel_type='skineffect', normal='area', tau=tau, sampl_rate=1, cursor_pos=pos, resp_depth=resp_len)
@@ -63,8 +91,6 @@ def test_system_cheating():
     # Plot histogram of FFE results
     plot_comparison(quantized_chan_out, ideal_codes, delay_ffe=pos, scale=50, labels=["quantized chan", "ideal"])
     plot_comparison(ffe_out, ideal_codes, delay_ffe=pos, scale=15000, labels=["ffe out", "ideal"])
-    print(ffe_out)
-    print(ideal_codes)
     plot_multi_hist(ffe_out, ideal_codes, delay_ffe=pos, n_bits=1, bit_pos=0) 
 
     # Make decision based on FFE output
@@ -73,8 +99,6 @@ def test_system_cheating():
 
     # Perform MLSD on FFE output
     m = MLSD(chan.cursor_pos, chan.impulse_response, bitwidth=bitwidth, quantizer_lsb=qc.lsb)
-
-    print(f'Ideal Codes: {ideal_codes[:plot_len]}')
 
     chan_ffe_response = chan(f.impulse_response)
     plt.figure()
@@ -88,6 +112,7 @@ def test_system_cheating():
     plt.plot(ideal_codes[:plot_len], label="ideal in")
     plt.plot(comp_out[shift_amt:shift_amt + plot_len], label="ffe out")
     plt.legend()
+    plt.suptitle("Ideal Codes vs. FFE Decision") 
     plt.show()
 
     corrected_comp_out = comp_out[shift_amt: iterations + shift_amt]
@@ -100,7 +125,18 @@ def test_system_cheating():
 
     
     # Plot FFE Output Statistics
-    ffe_mlsd_err = m.plot_ffe_mlsd(ffe_out, corrected_comp_out, quantized_chan_out, ideal_codes) 
+    ffe_mlsd_err = m.plot_ffe_mlsd(ffe_out, corrected_comp_out, quantized_chan_out, ideal_codes, plot_range=[900,1000]) 
+
+    ffe_norm = m.calc_mlsd_err(corrected_comp_out, quantized_chan_out)
+    print(f'FFE Norm: {ffe_norm[:plot_len]}')
+
+    mlsd_out_ffe_err = m.perform_mlsd_ffe_err(corrected_comp_out, quantized_chan_out, threshold=4000, update=False)
+    print(f'MLSD Output (only on max ffe err): {mlsd_out_ffe_err[:plot_len]}')
+
+    err_idx = [i for i in range(len(mlsd_out_ffe_err)) if mlsd_out_ffe_err[i] != ideal_codes[i]]
+    print(f'Mismatches occur: {err_idx}')
+    print(f'Num mismatch: {len(err_idx)}')
+    
 
     #plt.figure()
     #plt.plot(mlsd_out[:plot_len], label='mlsd')
@@ -135,7 +171,8 @@ def test_system_cheating():
         print(f'TEST FAILED') 
 
 def main():
-    test_system_cheating()
+    #test_system_cheating()
+    plot_parametric_channel()
 
 # Run the digital backend for the RX system in Python
 if __name__ == "__main__":
