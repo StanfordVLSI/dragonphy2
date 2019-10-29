@@ -1,15 +1,31 @@
 steps:
   - command: |
+      # set up environment
       export PATH=$$PATH:/usr/local/miniconda/bin:/usr/local/bin
       echo $$PATH
       export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:/usr/local/lib
       echo $$LD_LIBRARY_PATH
+
+      # tool setup
       source /cad/modules/tcl/init/bash
       module load base
       module load xcelium
+
+      # create conda env
       conda create -p ./conda_env -m -y pip python=3.7.4
       export PATH=$$PWD/conda_env/bin:$$PATH
+
+      # install svreal
+      git clone https://github.com/sgherbst/svreal.git
+      cd svreal
+      git checkout v2
       pip install -e .
+      cd ..
+
+      # install dragonphy
+      pip install -e .
+
+      # run tests
       pip install pytest
       pytest tests
     label: "test"
@@ -17,14 +33,30 @@ steps:
     agents:
       butterphy: "true"
   - command: |
+      # set up environment
       source /etc/environment
       echo $$PATH
+
+      # activate virtual env
       python3.7 -m venv venv
       source venv/bin/activate
-      pip install pytest
+
+      # install svreal
+      git clone https://github.com/sgherbst/svreal.git
+      cd svreal
+      git checkout v2
       pip install -e .
+      cd ..
+
+      # install dragonphy
+      pip install -e .
+
+      # run tests
+      pip install pytest
       pytest emu/test_emu_build.py
       pytest emu/test_emu_prog.py
+
+      # deactivate virtual env
       deactivate
     label: "test_emu"
     timeout_in_minutes: 60
