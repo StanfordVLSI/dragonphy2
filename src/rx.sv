@@ -27,6 +27,6 @@ module rx #(
     always @(posedge clk_o) begin
         delay <= {delay[n_del-2:0], cmp_o};
     end
-    assign data_o = ~delay[n_del-1];
+    assign data_o = delay[n_del-1];
 
 endmodule
