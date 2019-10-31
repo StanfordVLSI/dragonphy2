@@ -11,7 +11,7 @@ module delay_buffer #(
 	output reg [bitwidth-1:0] out [numChannels-1:0]
 );
 
-parameter integer intern_depth = depth-1;
+localparam integer intern_depth = depth-1;
 
 logic [bitwidth-1:0] internal_pipeline [numChannels-1:0][intern_depth-1:0];
 integer ii;
@@ -19,7 +19,7 @@ integer ii;
 genvar gi;
 generate
 	for(gi=0; gi<numChannels;gi=gi+1) begin
-		always_ff @(posedge clk or negedge rstb) begin
+		always @(posedge clk or negedge rstb) begin
 			if(~rstb) begin
 				 out[gi] <= 0;
 				 for(ii=0;ii<intern_depth; ii=ii+1) begin

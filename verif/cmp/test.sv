@@ -26,7 +26,7 @@ module test();
 	 	.codeBitwidth(ffe_gpack::input_precision),
 	 	.weightBitwidth(ffe_gpack::weight_precision),
 	 	.resultBitwidth(ffe_gpack::output_precision),
-      .shiftBitwidth   (ffe_gpack::shift_precision )
+    .shiftBitwidth   (ffe_gpack::shift_precision )
 	) ffe_inst1 (
    	.clk(clk),
    	.rstb       (rstb),
