@@ -7,8 +7,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def plot_parametric_channel():
-    tau = [2, 8, 16, 32, 64]
-    resp_len = [5, 10, 50, 100, 150]
+    tau = [2, 8, 11, 16, 32, 64]
+    resp_len_skin = [int(np.exp(np.sqrt(ta/64.0)-1)*300) for ta in tau]  #[5, 10, 50, 100, 150]
+    resp_len_diel = [int(((1+np.abs(ta/64.0))/2)*20) for ta in tau]  #[5, 10, 50, 100, 150]
     pos = 2
 
     f, ax = plt.subplots(2, 2) 
@@ -20,16 +21,16 @@ def plot_parametric_channel():
         chan_skin = Channel(channel_type='skineffect', normal='area', tau=t, sampl_rate=1, cursor_pos=pos, resp_depth=50)
         chan_dial = Channel(channel_type='dielectric1', normal='area', tau=t, sampl_rate=1, cursor_pos=pos, resp_depth=50)
         ax[0, 0].plot(chan_skin.impulse_response, label='tau='+str(t))
-        ax[1, 0].plot(chan_skin.impulse_response, label='tau='+str(t))
+        ax[1, 0].plot(chan_dial.impulse_response, label='tau='+str(t))
 
     ax[0, 1].set_title('Skineffect Channel, len')
     ax[1, 1].set_title('Dialectric Channel, len')
     # Create all channels
-    for r in resp_len: 
-        chan_skin = Channel(channel_type='skineffect', normal='area', tau=16, sampl_rate=1, cursor_pos=pos, resp_depth=r)
-        chan_dial = Channel(channel_type='dielectric1', normal='area', tau=16, sampl_rate=1, cursor_pos=pos, resp_depth=r)
-        ax[0, 1].plot(chan_skin.impulse_response, label='len='+str(r))
-        ax[1, 1].plot(chan_skin.impulse_response, label='len='+str(r))
+    for r_s, r_d in zip(resp_len_skin, resp_len_diel): 
+        chan_skin = Channel(channel_type='skineffect', normal='area', tau=11, sampl_rate=1, cursor_pos=pos, resp_depth=r_s)
+        chan_dial = Channel(channel_type='dielectric1', normal='area', tau=11, sampl_rate=1, cursor_pos=pos, resp_depth=r_d)
+        ax[0, 1].plot(chan_skin.impulse_response, label='len='+str(r_s))
+        ax[1, 1].plot(chan_dial.impulse_response, label='len='+str(r_d))
     
     f.legend()
     plt.show()
@@ -39,19 +40,19 @@ def plot_parametric_channel():
 # MLSD
 def test_system_cheating():
     # Initialize parameters 
-    iterations = 1000
+    iterations = 500000
     pos = 1
-    resp_len = 16
-    bitwidth = 8
+    resp_len = 130
+    bitwidth = 5
     plot_len = 100 #iterations
-    num_taps = 5
+    num_taps = 3
     noise_amp = 0.02
     noise_en = False
-    tau = 10
+    tau = 11
     
     # Generate Ideal Codes
-    #ideal_codes = np.random.randint(2, size=iterations)*2 - 1
-    #np.savetxt('verif/analysis/ideal_codes.txt', ideal_codes)
+    ideal_codes = np.random.randint(2, size=iterations)*2 - 1
+    np.savetxt('verif/analysis/ideal_codes.txt', ideal_codes)
    
     # Load Ideal Codes
     ideal_codes = np.loadtxt('verif/analysis/ideal_codes.txt', dtype=np.int16)
@@ -91,7 +92,7 @@ def test_system_cheating():
     # Plot histogram of FFE results
     plot_comparison(quantized_chan_out, ideal_codes, delay_ffe=pos, scale=50, labels=["quantized chan", "ideal"])
     plot_comparison(ffe_out, ideal_codes, delay_ffe=pos, scale=15000, labels=["ffe out", "ideal"])
-    plot_multi_hist(ffe_out, ideal_codes, delay_ffe=pos, n_bits=1, bit_pos=0) 
+    plot_multi_hist(ffe_out, ideal_codes, delay_ffe=pos, n_bits=4, bit_pos=1) 
 
     # Make decision based on FFE output
     comp_out = np.array([1 if int(np.floor(ffe_val)) >= 0 else -1 for ffe_val in ffe_out])
@@ -101,10 +102,16 @@ def test_system_cheating():
     m = MLSD(chan.cursor_pos, chan.impulse_response, bitwidth=bitwidth, quantizer_lsb=qc.lsb)
 
     chan_ffe_response = chan(f.impulse_response)
+
+    #cursor_val = max(chan_ffe_response)    
+    #print(sum(np.abs(chan_ffe_response)) - cursor_val)
+
+
     plt.figure()
-    plt.plot(chan_ffe_response)
+    plt.stem(chan_ffe_response)
     plt.suptitle("Channel response * FFE Weights")
     plt.show()
+    
     
     shift_amt = np.argmax(chan_ffe_response)
 
@@ -171,8 +178,8 @@ def test_system_cheating():
         print(f'TEST FAILED') 
 
 def main():
-    #test_system_cheating()
-    plot_parametric_channel()
+    test_system_cheating()
+    #plot_parametric_channel()
 
 # Run the digital backend for the RX system in Python
 if __name__ == "__main__":
