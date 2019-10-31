@@ -27,7 +27,7 @@ steps:
 
       # run tests
       pip install pytest
-      pytest tests
+      pytest tests -s
     label: "test"
     timeout_in_minutes: 60
     agents:
@@ -53,8 +53,8 @@ steps:
 
       # run tests
       pip install pytest
-      pytest emu/test_emu_build.py
-      pytest emu/test_emu_prog.py
+      pytest emu/test_emu_build.py -s
+      pytest emu/test_emu_prog.py -s
 
       # deactivate virtual env
       deactivate
