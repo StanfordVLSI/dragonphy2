@@ -43,7 +43,7 @@ class Tester:
 				f.write(f'database -open waves.shm -into waves.shm -default\n')
 				f.write(f'probe -create {self.top} -depth 9\n')
 				f.write(f'probe -create {self.top} -depth 9 -all -memories\n')
-			f.write(f'run 1us\n')
+			f.write(f'run\n')
 			f.write(f'exit\n')
 		self.input_tcl = input_path
 

@@ -116,8 +116,8 @@ module test();
 
 
 	task toggle_clk;
-		#1ns clk = 1;
-		#1ns clk = 0;
+		#500ps clk = 1;
+		#500ps clk = 0;
 	endtask
 
 endmodule

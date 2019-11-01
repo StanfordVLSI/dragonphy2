@@ -16,7 +16,7 @@ module test();
    logic signed [ffe_gpack::output_precision-1:0]  out  	      [ffe_gpack::width-1:0];
    logic signed [ffe_gpack::output_precision-1:0]  serial_out     [data_depth*ffe_gpack::width-1:0];
    logic signed [ffe_gpack::output_precision-1:0]  record_out;
-
+   logic signed [ffe_gpack::shift_precision-1:0] shift_index = ffe_shift;
 
    ffe #(
    	.maxWeightLength(ffe_gpack::length),
@@ -28,7 +28,7 @@ module test();
 	) ffe_inst1 (
    	.clk(clk),
    	.rstb       (rstb),
-      .new_shift_index(5'd8),
+    .new_shift_index(shift_index),
    	.new_weights(weights),
    	.codes      (data),
    	.results    (out)

@@ -203,7 +203,7 @@ def main():
     # Read in the SV results file
     sv_arr = read_svfile('verif/cmp/build_cmp/cmp_results.txt')
     # Compare
-    sv_trim = (3+ffe_config['parameters']["length"]) * ffe_config["parameters"]["width"] - (ffe_config["parameters"]["length"]-1)
+    sv_trim = (5+ffe_config['parameters']["length"]) * ffe_config["parameters"]["width"] - (ffe_config["parameters"]["length"]-1)
     # This trim needs to be fixed - I think the current approach is ""hacky""
     comp_len = math.floor((depth - ffe_config["parameters"]["length"] + 1) \
         /ffe_config["parameters"]["width"]) * ffe_config["parameters"]["width"]
