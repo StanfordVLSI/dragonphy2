@@ -135,7 +135,7 @@ def verif_fir_main():
 
     ideal_codes = np.random.randint(2, size=iterations)*2 - 1
 
-    chan = Channel(channel_type='skineffect', normal='area', tau=2, sampl_rate=5, cursor_pos=pos, resp_depth=resp_len)
+    chan = Channel(channel_type='dielectric1', normal='area', tau=0.87, sampl_rate=5, cursor_pos=pos, resp_depth=resp_len)
     chan_out = chan(ideal_codes)
 
     #plot_adapt_input(ideal_codes, chan_out, 100)
@@ -192,7 +192,7 @@ def verif_fir_main():
     sv_arr = convert_2s_comp(sv_arr, ffe_config["parameters"]["output_precision"])
 
     # Compare
-    sv_trim = (1+ffe_config['parameters']["length"]) * ffe_config["parameters"]["width"] - (ffe_config["parameters"]["length"]-1)
+    sv_trim = (2+ffe_config['parameters']["length"]) * ffe_config["parameters"]["width"] - (ffe_config["parameters"]["length"]-1)
     # This trim needs to be fixed - I think the current approach is ""hacky""
     comp_len = math.floor((depth - ffe_config["parameters"]["length"] + 1) \
         /ffe_config["parameters"]["width"]) * ffe_config["parameters"]["width"]
