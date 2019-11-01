@@ -192,7 +192,7 @@ def verif_fir_main():
     sv_arr = convert_2s_comp(sv_arr, ffe_config["parameters"]["output_precision"])
 
     # Compare
-    sv_trim = (2+ffe_config['parameters']["length"]) * ffe_config["parameters"]["width"] - (ffe_config["parameters"]["length"]-1)
+    sv_trim = (1+ffe_config['parameters']["length"]) * ffe_config["parameters"]["width"] - (ffe_config["parameters"]["length"]-1)
     # This trim needs to be fixed - I think the current approach is ""hacky""
     comp_len = math.floor((depth - ffe_config["parameters"]["length"] + 1) \
         /ffe_config["parameters"]["width"]) * ffe_config["parameters"]["width"]
