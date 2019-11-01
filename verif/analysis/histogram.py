@@ -94,8 +94,8 @@ def generate_bits(n, bit_list):
 def plot_comparison(ffe_out, ideal, delay_ffe=0, delay_ideal=0, length=100, plt_show=True, save_dir=None, scale=1, labels=None):
     fig = plt.figure()
     if labels is not None:
-        plt.plot(scale*ideal[delay_ideal:delay_ideal + length], label=labels[0])
-        plt.plot(ffe_out[delay_ffe:delay_ffe + length], label=labels[1])
+        plt.plot(scale*ideal[delay_ideal:delay_ideal + length], label=labels[1])
+        plt.plot(ffe_out[delay_ffe:delay_ffe + length], label=labels[0])
         fig.suptitle(labels[0] + " vs. " + labels[1])
         fig.legend(loc='upper right')
     else:
