@@ -8,7 +8,7 @@ class Wiener():
         self.num_taps       		= num_taps
         self.filter_in      		= np.zeros(num_taps)
         self.weights        		= np.random.randn(num_taps)
-        self.weights[1] 	= 1
+        self.weights[1]         	= 1
         self.error          		= np.inf
         self.total_error    		= []
         self.debug          		= debug
