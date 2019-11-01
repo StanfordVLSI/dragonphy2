@@ -1,11 +1,11 @@
 module shiftTestBench();
 
 
-	parameter integer channelWidth = 16;
+	parameter integer channelWidth = 32;
 	parameter integer codeBitwidth = 8;
 	parameter integer estBitwidth  = 8;
 	parameter integer estDepth     = 11;
-	parameter integer seqLength    = 5;
+	parameter integer seqLength    = 10;
 
 	parameter integer numPastBuffers  = $ceil(real'(estDepth-1)*1.0/channelWidth);
 	parameter integer numFutureBuffers = $ceil(real'(seqLength-1)*1.0/channelWidth);
