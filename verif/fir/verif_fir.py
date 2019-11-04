@@ -74,7 +74,7 @@ def execute_fir(ffe_config, quantized_weights, depth, quantized_chan_out):
 
     assert(compare(channel_matrix, single_matrix, length=500))
     # Format conv_matrix to match SV output
-    return np.divide(np.array(single_matrix), 256)
+    return np.divide(np.array(single_matrix),256)
 
 def read_svfile(fname):
     with open(fname, "r") as f:
@@ -148,11 +148,17 @@ def verif_fir_main():
             ffe_config["adaptation"]["args"]["mu"], pos, iterations, build_dir=build_dir)
     else: 
         print(f'Do Nothing')
+
     quantized_chan_out = quantized_chan_out[300:300+depth]
+
     print(f'Quantized Chan: {quantized_chan_out}')
     print(f'Chan: {chan_out}')
     qw = Quantizer(width=ffe_config["parameters"]["weight_precision"], signed=True)
     quantized_weights = qw.quantize_2s_comp(weights)
+
+    chan_ffe_response = chan(Fir(len(quantized_weights), quantized_weights, ffe_config["parameters"]["width"]).impulse_response)
+    print(chan_ffe_response)
+    print(np.sum(np.abs(chan_ffe_response))/32)
     print(f'Weights: {weights}')
     print(f'Quantized Weights: {quantized_weights}')
     write_files([depth, ffe_config['parameters']["length"], ffe_config["adaptation"]["args"]["mu"]], quantized_chan_out, quantized_weights, 'verif/fir/build_fir')   
@@ -171,7 +177,7 @@ def verif_fir_main():
     tester   = Tester(
                         top 	  = 'test',
                         testbench = ['verif/fir/test.sv'],
-                        libraries = ['src/fir/syn/ffe.sv', 'verif/tb/beh/signed_recorder.sv'],
+                        libraries = ['src/flat_buffer/flat_buffer.sv', 'src/fir/syn/comb_ffe.sv', 'src/fir/syn/flat_ffe.sv', 'verif/tb/beh/signed_recorder.sv'],
                         packages  = [generic_packager.path, testbench_packager.path, ffe_packager.path],
                         flags     = ['-sv', '-64bit', '+libext+.v', '+libext+.sv', '+libext+.vp'],
                         build_dir = build_dir,
@@ -192,7 +198,7 @@ def verif_fir_main():
     sv_arr = convert_2s_comp(sv_arr, ffe_config["parameters"]["output_precision"])
 
     # Compare
-    sv_trim = (1+ffe_config['parameters']["length"]) * ffe_config["parameters"]["width"] - (ffe_config["parameters"]["length"]-1)
+    sv_trim = 4 * ffe_config["parameters"]["width"] - (ffe_config["parameters"]["length"]-1)
     # This trim needs to be fixed - I think the current approach is ""hacky""
     comp_len = math.floor((depth - ffe_config["parameters"]["length"] + 1) \
         /ffe_config["parameters"]["width"]) * ffe_config["parameters"]["width"]
