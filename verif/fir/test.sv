@@ -11,15 +11,25 @@ module test();
    logic signed [code_precision-1:0] dataStream       [channel_width-1:0][data_depth-1:0];
 
    logic signed [ffe_gpack::weight_precision-1:0]  read_weights   [ffe_gpack::length-1:0];
-   logic signed [ffe_gpack::weight_precision-1:0]  weights        [ffe_gpack::width-1:0][ffe_gpack::length-1:0];
+   logic signed [ffe_gpack::weight_precision-1:0]  weights        [ffe_gpack::length-1:0][ffe_gpack::width-1:0];
    logic signed [ffe_gpack::input_precision-1:0]   data           [ffe_gpack::width-1:0];
-   logic signed [ffe_gpack::output_precision-1:0]  out  	      [ffe_gpack::width-1:0];
+   logic signed [ffe_gpack::output_precision-1:0]  out  	        [ffe_gpack::width-1:0];
    logic signed [ffe_gpack::output_precision-1:0]  serial_out     [data_depth*ffe_gpack::width-1:0];
    logic signed [ffe_gpack::output_precision-1:0]  record_out;
-   logic signed [ffe_gpack::shift_precision-1:0] shift_index = ffe_shift;
+   logic [ffe_gpack::shift_precision-1:0] shift_default = ffe_shift;
+   logic [ffe_gpack::shift_precision-1:0] shift_index  [ffe_gpack::width-1:0];
 
-   ffe #(
-   	.maxWeightLength(ffe_gpack::length),
+
+  integer ii,jj, pos;
+  integer fid;
+  initial begin
+    for(ii=0; ii<ffe_gpack::width; ii=ii+1) begin
+      shift_index[ii] = shift_default;
+    end
+  end
+
+   flat_ffe #(
+   	.ffeDepth(ffe_gpack::length),
 	 	.numChannels(ffe_gpack::width),
 	 	.codeBitwidth(ffe_gpack::input_precision),
 	 	.weightBitwidth(ffe_gpack::weight_precision),
@@ -44,22 +54,20 @@ module test();
    );
 
 
-	integer ii,jj, pos;
-   integer fid;
 
 	initial begin
-      clk        <= 0;
-      pos        <= data_depth;
-      record     <= 0;
+      clk       = 0;
+      pos        = data_depth;
+      record     = 0;
       for(jj=0;jj<ffe_gpack::width;jj=jj+1) begin
-         data[jj] <=0;
+         data[jj] =0;
       end
 
       fid = $fopen(test_gpack::adapt_coef_filename, "r");
       for(ii=0; ii<ffe_gpack::length; ii=ii+1) begin
          void'($fscanf(fid, "%d\n", read_weights[ii]));
          for(jj=0; jj<ffe_gpack::width; jj=jj+1) begin
-            weights[jj][ii] = read_weights[ii];
+            weights[ii][jj] = read_weights[ii];
          end
       end
       repeat(ffe_gpack::width) toggle_clk(); //Load Data with Extra Cycles to drain the pipeline of X's
