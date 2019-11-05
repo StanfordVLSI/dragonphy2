@@ -32,6 +32,7 @@ logic signed [codeBitwidth-1:0]   flat_codes [numChannels*bufferDepth-1:0];
 
 wire logic signed [resultBitwidth-1:0] next_results [numChannels-1:0];
 
+//hack to get around lack of parameter type support :(
 genvar gi;
 generate
 	for(gi=0; gi<numChannels; gi= gi + 1) begin
