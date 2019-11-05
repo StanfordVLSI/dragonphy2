@@ -31,6 +31,8 @@ generate
 			for(ii=0; ii<ffeDepth; ii=ii+1) begin
 				//The Flat Buffer is ranged from 0 (oldest) to numChannels*ffeDepth (newest)
 				//The weights need to be used in reverse order for the first weight (0) to touch the newest code (cp_offset + ffeDepth)
+
+				//Seperate product and summation for later potential optimizations ;)
 				product[ii][gi] = weights[ffeDepth - ii - 1][gi]*flat_codes[cursor_pos_offset + ii + gi];
 				result[gi] = result[gi] + product[ii][gi];
 			end
