@@ -9,7 +9,7 @@ module comb_eucl_dist #(
 	output reg  [outWidth-1:0] energ
 );
 
-	logic signed [$clog2(seqLength) + inWidth-1:0] next_energ;
+	logic signed [$clog2(seqLength) + 2*inWidth - 1:0] next_energ;
 
 	always_comb begin
 		integer ii;
@@ -17,7 +17,7 @@ module comb_eucl_dist #(
 		for(ii=0; ii<seqLength; ii=ii+1) begin
 			next_energ = next_energ + (code_seq[ii]-est_seq[ii])*(code_seq[ii]-est_seq[ii]);
 		end
-		energ = next_energ >>> seqLength;
+		energ = next_energ >>> $clog2(seqLength);
 	end
 
-endmodule : eucl_dist
+endmodule : comb_eucl_dist

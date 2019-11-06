@@ -28,9 +28,6 @@ generate
 			.est_seq (est_seq[0][gi]),
 			.code_seq(act_seq[gi]),
 
-			.clk     (clk),
-			.rstb    (rstb),
-
 			.energ   (error_energ[0][gi])
 		);
 
@@ -42,9 +39,6 @@ generate
 			.est_seq (est_seq[1][gi]),
 			.code_seq(act_seq[gi]),
 
-			.clk     (clk),
-			.rstb    (rstb),
-
 			.energ   (error_energ[1][gi])
 		);
 
@@ -53,5 +47,5 @@ generate
 endgenerate
 
 
-endmodule : mlsd_decision
+endmodule : comb_mlsd_decision
 

@@ -10,7 +10,7 @@ module comparator #(
 	input wire logic clk,
 	input wire logic rstb,
 
-	output reg bit_out [numChannels-1:0]
+	output reg bit_out [numChannels-1:0],
 	output reg [confidenceBitwidth-1:0] confidence [numChannels-1:0]
 );
 

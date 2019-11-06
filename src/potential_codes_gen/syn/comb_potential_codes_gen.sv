@@ -55,4 +55,4 @@ generate
     
 endgenerate
 
-endmodule : potential_codes_gen
+endmodule : comb_potential_codes_gen
