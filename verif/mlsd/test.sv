@@ -30,8 +30,7 @@ module shiftTestBench();
     logic signed [1:0]               s_bits  	 [channelWidth*testLength-1:0];
     logic signed [codeBitwidth-1:0]  s_codes 	 [channelWidth*testLength-1:0];
 	logic signed [codeBitwidth-1:0]  est_seq_out [1:0][channelWidth-1:0][seqLength-1:0];
-	logic 							 p_bit 		 [channelWidth-1:0];
-	logic signed [1:0] 				 sp_bits 	 [channelWidth*testLength-1:0];
+	logic 							 p_bits 		 [channelWidth-1:0];
 
 	logic signed [codeBitwidth-1:0] prev_mlsd_energy [1:0][channelWidth-1:0];
 
@@ -47,7 +46,7 @@ module shiftTestBench();
 		.estimate_bits(bits),
 		.clk           (clk),
 		.rstb          (rstb),
-		.predict_bits          (p_bit)
+		.predict_bits  (p_bits)
 	);
 
 	integer ii, jj, kk, fid1, fid2, fid3;
@@ -114,7 +113,7 @@ module shiftTestBench();
                 for(ii=0; ii<seqLength; ii=ii+1) begin
                     $fwrite(fid3, "%d ", flat_mlsd_i.est_seq[1][jj][ii]);
                 end
-                $fwrite(fid3, "| %d %d ", p_bit[jj], bitStream[jj][pos-4]);
+                $fwrite(fid3, "| %d %d ", p_bits[jj], bitStream[jj][pos-4]);
                 $fwrite(fid3, "| %d ", $signed(dataStream[jj][pos-4]));
                 $fwrite(fid3, "| %d %d", prev_mlsd_energy[0][jj], prev_mlsd_energy[1][jj]);
                 $fwrite(fid3, "\n");
