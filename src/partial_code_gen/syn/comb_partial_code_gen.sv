@@ -1,7 +1,7 @@
 module comb_partial_code_gen #(
 	parameter integer partial_est_depth=11,
 	parameter integer estBitwidth=10,
-	parameter integer outBitwidth=8,
+	parameter integer outBitwidth=8
 ) (
 	input wire logic bits[partial_est_depth-1:0],
 	input wire logic signed [estBitwidth-1:0] new_channel_est [partial_est_depth-1:0],
@@ -44,4 +44,4 @@ module comb_partial_code_gen #(
 
 
 
-endmodule : partial_code_gen
+endmodule : comb_partial_code_gen

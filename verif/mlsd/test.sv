@@ -1,6 +1,4 @@
 module shiftTestBench();
-
-
 	parameter integer channelWidth = 32;
 	parameter integer codeBitwidth = 8;
 	parameter integer estBitwidth  = 8;
@@ -22,108 +20,35 @@ module shiftTestBench();
 	logic start;
 	integer pos; 
 
-	logic signed [estBitwidth-1:0]  channel_est [channelWidth-1:0][estDepth-1:0];
-	logic signed [codeBitwidth-1:0] dataStream  [channelWidth-1:0][testLength-1:0];
-	logic 							bitStream   [channelWidth-1:0][testLength-1:0];
+	logic signed [estBitwidth-1:0]   channel_est [channelWidth-1:0][estDepth-1:0];
+	logic signed [codeBitwidth-1:0]  dataStream  [channelWidth-1:0][testLength-1:0];
+	logic 							 bitStream   [channelWidth-1:0][testLength-1:0];
 
-	//Connecting Wires
-	logic 		 [codeBitwidth-1:0]  udata 		[channelWidth-1:0];
-	logic 		 [codeBitwidth-1:0]  udata_d_4 		[channelWidth-1:0];
-
-	logic signed [codeBitwidth-1:0]  data 		[channelWidth-1:0];
-	logic 							 bits 		[channelWidth-1:0];	
-
-	wire logic 		  [codeBitwidth-1:0] uflat_codes [channelWidth*bufferDepth-1:0];
-	wire logic 		  [codeBitwidth-1:0] dummy_codes [channelWidth-1:0];
-
-	wire logic signed [codeBitwidth-1:0] flat_codes [channelWidth*bufferDepth-1:0];
-	wire logic 							 flat_bits 	[channelWidth*bufferDepth-1:0];
-	wire logic							 dummy_bits [channelWidth-1:0];
+	logic signed [codeBitwidth-1:0]  data 		 [channelWidth-1:0];
+	logic 							 bits 		 [channelWidth-1:0];	
     
-    logic signed [1:0]              s_bits  	[channelWidth*testLength-1:0];
-    logic signed [codeBitwidth-1:0] s_codes 	[channelWidth*testLength-1:0];
-	logic signed [codeBitwidth-1:0] est_seq_out [1:0][channelWidth-1:0][seqLength-1:0];
-	logic 							p_bit 		[channelWidth-1:0];
-	logic signed [1:0] 				sp_bits 	[channelWidth*testLength-1:0];
+    logic signed [1:0]               s_bits  	 [channelWidth*testLength-1:0];
+    logic signed [codeBitwidth-1:0]  s_codes 	 [channelWidth*testLength-1:0];
+	logic signed [codeBitwidth-1:0]  est_seq_out [1:0][channelWidth-1:0][seqLength-1:0];
+	logic 							 p_bit 		 [channelWidth-1:0];
+	logic signed [1:0] 				 sp_bits 	 [channelWidth*testLength-1:0];
 
 	logic signed [codeBitwidth-1:0] prev_mlsd_energy [1:0][channelWidth-1:0];
 
-	delay_buffer #(
-		.numChannels(channelWidth),
-		.bitwidth(codeBitwidth),
-		.depth(bufferDepth-1)
-	) db_fb_i (
-		.in(udata),
-		.clk(clk),
-		.rstb(rstb),
-		.out(udata_d_4)
-	);
-
-	flat_buffer #(
+	flat_mlsd #(
 		.numChannels (channelWidth),
-		.bitwidth    (codeBitwidth),
-		.depth       (bufferDepth)
-	) code_fb_i (
-		.in      (udata_d_4),
-		.clk     (clk),
-		.rstb    (rstb),
-		.flat_out(uflat_codes),
-		.out(dummy_codes)
-	);
-
-	flat_buffer #(
-		.numChannels (channelWidth),
-		.bitwidth    (1),
-		.depth       (bufferDepth)
-	) bit_fb_i (
-		.in      (bits),
-		.clk     (clk),
-		.rstb    (rstb),
-		.flat_out(flat_bits),
-		.out(dummy_bits)
-	);
-
-	potential_codes_gen #(
-		.seqLength   (seqLength),
-		.estDepth    (estDepth),
+		.codeBitwidth(codeBitwidth),
 		.estBitwidth (estBitwidth),
-		.codeBitwidth(codeBitwidth),
-		.numChannels (channelWidth),
-		.bufferDepth (bufferDepth),
-		.centerBuffer(centerBuffer)
-	) pt_cg_i (
-		.flat_bits  (flat_bits),
-		.channel_est(channel_est),
-		.clk        (clk),
-		.rstb       (rstb),
-		.est_seq_out(est_seq_out)
+		.estDepth    (estDepth),
+		.seqLength   (seqLength)
+	) flat_mlsd_i (
+		.codes         (data),
+		.channel_est   (channel_est),
+		.estimate_bits(bits),
+		.clk           (clk),
+		.rstb          (rstb),
+		.predict_bits          (p_bit)
 	);
-
-	mlsd_decision #(
-		.seqLength(seqLength),
-		.codeBitwidth(codeBitwidth),
-		.numChannels(channelWidth),
-		.bufferDepth (bufferDepth),
-		.centerBuffer(centerBuffer)
-	) mlsd_dec_i (
-		.flat_codes  (flat_codes),
-		.est_seq     (est_seq_out),
-		.clk         (clk),
-		.rstb        (rstb),
-		.predict_bits(p_bit)
-	);
-
-
-	genvar gi;
-	generate
-		for(gi=0; gi<channelWidth; gi=gi+1) begin
-			assign udata[gi] = $unsigned(data[gi]);
-		end
-
-		for(gi=0; gi<channelWidth*bufferDepth; gi=gi+1) begin
-			assign flat_codes[gi] = $signed(uflat_codes[gi]);
-		end
-	endgenerate
 
 	integer ii, jj, kk, fid1, fid2, fid3;
 	initial begin
@@ -183,13 +108,13 @@ module shiftTestBench();
             toggle_clk();
             for(jj=0; jj<channelWidth; jj=jj+1) begin
                 for(ii=0; ii<seqLength; ii=ii+1) begin
-                    $fwrite(fid3, "%d ", est_seq_out[0][jj][ii]);
+                    $fwrite(fid3, "%d ", flat_mlsd_i.est_seq[0][jj][ii]);
                 end
                 $fwrite(fid3, "|");
                 for(ii=0; ii<seqLength; ii=ii+1) begin
-                    $fwrite(fid3, "%d ", est_seq_out[1][jj][ii]);
+                    $fwrite(fid3, "%d ", flat_mlsd_i.est_seq[1][jj][ii]);
                 end
-                $fwrite(fid3, "| %d %d ", p_bit[jj], bitStream[jj][pos-6]);
+                $fwrite(fid3, "| %d %d ", p_bit[jj], bitStream[jj][pos-4]);
                 $fwrite(fid3, "| %d ", $signed(dataStream[jj][pos-4]));
                 $fwrite(fid3, "| %d %d", prev_mlsd_energy[0][jj], prev_mlsd_energy[1][jj]);
                 $fwrite(fid3, "\n");
@@ -214,8 +139,8 @@ module shiftTestBench();
 		end
 
 		for(ii=0; ii<channelWidth; ii=ii+1) begin
-			prev_mlsd_energy[0][ii] = mlsd_dec_i.error_energ[0][ii];
-			prev_mlsd_energy[1][ii] = mlsd_dec_i.error_energ[1][ii];
+			prev_mlsd_energy[0][ii] = flat_mlsd_i.comb_mlsd_dec_i.error_energ[0][ii];
+			prev_mlsd_energy[1][ii] = flat_mlsd_i.comb_mlsd_dec_i.error_energ[1][ii];
 		end
 	end
 
