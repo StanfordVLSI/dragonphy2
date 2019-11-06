@@ -54,26 +54,29 @@ def test_system_cheating():
 
     # Initialize parameters 
     load_codes = False
-    iterations = 100000
+    iterations = 1000
+    training_len = 100000
     pos = 1
     resp_len = 150
     bitwidth = 6
     plot_len = 100 #iterations
     num_taps = 3
-    noise_amp = 0.02
+    noise_amp = 0.02 # with iterations of 1000
+    #noise_amp = 0.003 # with iterations of 1M
     noise_en = True
     tau = 0.87
     
    
+    # Generate weight training codes
     if load_codes:
         # Load Ideal Codes
         ideal_codes = np.loadtxt('verif/analysis/ideal_codes.txt', dtype=np.int16)
         print(f'Ideal codes: {ideal_codes[:plot_len]}')
-        iterations=len(ideal_codes)
+        training_len=len(ideal_codes)
     else:
         # Generate Ideal Codes
-        #ideal_codes = np.tile(np.array([-1, 1]), int(iterations/2))    # Harmonic Codes
-        ideal_codes = np.random.randint(2, size=iterations)*2 - 1       # Random Codes
+        #ideal_codes = np.tile(np.array([-1, 1]), int(training_len/2))    # Harmonic Codes
+        ideal_codes = np.random.randint(2, size=training_len)*2 - 1   # Random Codes
         np.savetxt('verif/analysis/ideal_codes.txt', ideal_codes)
 
 
@@ -100,7 +103,7 @@ def test_system_cheating():
 
     # Adapt Wiener filter to quantized channel output
     adapt = Wiener(step_size = 0.1, num_taps = num_taps, cursor_pos=pos)
-    for i in range(iterations-pos):
+    for i in range(training_len-pos):
         adapt.find_weights_pulse(ideal_codes[i-pos], chan_out[i])   
 
     weights = adapt.weights
@@ -109,6 +112,16 @@ def test_system_cheating():
     qw = Quantizer(11, signed=True)
     quantized_weights = qw.quantize_2s_comp(weights)
     
+    # Generate test codes
+    ideal_codes = np.random.randint(2, size=iterations)*2 - 1   # Random Codes
+    chan_out = chan(ideal_codes)
+    # Add noise
+    if noise_en:
+        chan_out = chan_out + np.random.randn(len(chan_out))*noise_amp
+
+
+    quantized_chan_out = qc.quantize_2s_comp(chan_out)
+
     # Perform FFE with Fir
     f = Fir(len(quantized_weights), quantized_weights, 16)
     ffe_out = f(quantized_chan_out)
@@ -116,7 +129,7 @@ def test_system_cheating():
     # Plot histogram of FFE results
     plot_comparison(quantized_chan_out, ideal_codes, delay_ffe=pos, scale=50, labels=["quantized chan", "ideal"])
     plot_comparison(ffe_out, ideal_codes, delay_ffe=pos, scale=15000, labels=["ffe out", "ideal"])
-    plot_multi_hist(ffe_out, ideal_codes, delay_ffe=pos, n_bits=4, bit_pos=1) 
+    plot_multi_hist(ffe_out, ideal_codes, delay_ffe=pos, n_bits=1, bit_pos=0) 
 
 
     # Make decision based on FFE output
@@ -124,19 +137,15 @@ def test_system_cheating():
 
 
     # Perform MLSD on FFE output
+    m1 = MLSD(chan.cursor_pos, chan.impulse_response, n_future=1, bitwidth=bitwidth, quantizer_lsb=qc.lsb)
     m = MLSD(chan.cursor_pos, chan.impulse_response, bitwidth=bitwidth, quantizer_lsb=qc.lsb)
 
     chan_ffe_response = chan(f.impulse_response)
-
-    #cursor_val = max(chan_ffe_response)    
-    #print(sum(np.abs(chan_ffe_response)) - cursor_val)
-
 
     plt.figure()
     plt.stem(chan_ffe_response)
     plt.suptitle("Channel response * FFE Weights")
     plt.show()
-    
     
     shift_amt = np.argmax(chan_ffe_response)
 
@@ -148,6 +157,7 @@ def test_system_cheating():
     plt.show()
 
     corrected_comp_out = comp_out[shift_amt: iterations + shift_amt]
+    corrected_ffe_out = ffe_out[shift_amt: iterations + shift_amt]
     print(f'FFE Decision Output: {corrected_comp_out[:plot_len]}')
 
     ffe_errors = np.inner(corrected_comp_out - ideal_codes, corrected_comp_out - ideal_codes)/4
@@ -155,47 +165,23 @@ def test_system_cheating():
     err_idx = [i for i in range(len(corrected_comp_out)) if corrected_comp_out[i] != ideal_codes[i]]
     print(f'Mismatches occur: {err_idx}')
 
-    
-    # Plot FFE Output Statistics
-    ffe_mlsd_err = m.plot_ffe_mlsd(ffe_out, corrected_comp_out, quantized_chan_out, ideal_codes, plot_range=[900,1000]) 
+    margin = 1500 
+    # Plot MLSD Statistics
+    print(f'MLSD Output (only on margin < {margin}, no update, look at {m.n_future} bits in the future)')
+    ffe_mlsd_err = m.plot_ffe_mlsd(corrected_ffe_out, corrected_comp_out, quantized_chan_out, ideal_codes, plot_range=[900,1000]) 
+    marginal_bits = ffe_mlsd_err < margin
+    print(f'Marginal indices: {[i for i in range(len(marginal_bits)) if marginal_bits[i]]}')
 
+    mlsd_out_ffe_margin = m.perform_mlsd_zeros(corrected_comp_out, quantized_chan_out, bool_arr = marginal_bits, update=False)
+    err_idx = m.find_err_idx(mlsd_out_ffe_margin, ideal_codes)
+
+    # Plot MLSD statistics
+    print(f'MLSD Output (only on margin < {margin}, no update, look at {m1.n_future} bits in the future)')
+    mlsd_out_ffe_margin = m1.perform_mlsd_zeros(corrected_comp_out, quantized_chan_out, bool_arr = marginal_bits, update=False)
+    err_idx = m1.find_err_idx(mlsd_out_ffe_margin, ideal_codes)
+    
     ffe_norm = m.calc_mlsd_err(corrected_comp_out, quantized_chan_out)
     print(f'FFE Norm: {ffe_norm[:plot_len]}')
-
-    mlsd_out_ffe_err = m.perform_mlsd_ffe_err(corrected_comp_out, quantized_chan_out, threshold=4000, update=False)
-    print(f'MLSD Output (only on max ffe err): {mlsd_out_ffe_err[:plot_len]}')
-
-    err_idx = [i for i in range(len(mlsd_out_ffe_err)) if mlsd_out_ffe_err[i] != ideal_codes[i]]
-    print(f'Mismatches occur: {err_idx}')
-    print(f'Num mismatch: {len(err_idx)} \t BER: {len(err_idx)/iterations}')
-    
-
-    #plt.figure()
-    #plt.plot(mlsd_out[:plot_len], label='mlsd')
-    #plt.plot(ideal_codes[:plot_len], label='ideal')
-    #plt.legend()
-    #plt.show()
-
-    start_index = chan.resp_depth - chan.cursor_pos - 1
-    end_index = iterations - chan.cursor_pos
-
-    # MLSD with no update
-    mlsd_out_no = m.perform_mlsd_zeros(corrected_comp_out, quantized_chan_out, update=False) 
-    print(f'MLSD Output (no update): {mlsd_out_no[:plot_len]}')
-
-    err_idx = [i for i in range(len(mlsd_out_no)) if mlsd_out_no[i] != ideal_codes[i]]
-    print(f'Mismatches occur: {err_idx}')
-    print(f'Num mismatch: {len(err_idx)} \t BER: {len(err_idx)/iterations}')
-
-
-    # MLSD with update
-    mlsd_out = m.perform_mlsd_zeros(corrected_comp_out, quantized_chan_out)
-    print(f'MLSD Output (update): {mlsd_out[:plot_len]}')
-
-    err_idx = [i for i in range(len(mlsd_out)) if mlsd_out[i] != ideal_codes[i]]
-    print(f'Mismatches occur: {err_idx}')
-    print(f'Num mismatch: {len(err_idx)} \t BER: {len(err_idx)/iterations}')
-
 
     if len(err_idx) == 0:
         print(f'TEST PASSED')
