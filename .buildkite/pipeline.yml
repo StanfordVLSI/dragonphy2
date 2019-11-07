@@ -16,5 +16,17 @@ steps:
     timeout_in_minutes: 60
     agents:
       butterphy: "true"
-
-
+  - command: |
+      source /etc/environment
+      echo $$PATH
+      python3.7 -m venv venv
+      source venv/bin/activate
+      pip install pytest
+      pip install -e .
+      pytest emu/test_emu_build.py
+      pytest emu/test_emu_prog.py
+      deactivate
+    label: "test_emu"
+    timeout_in_minutes: 60
+    agents:
+        fpga_verif: "true"

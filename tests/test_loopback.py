@@ -1,35 +1,11 @@
-import subprocess
-from pathlib import Path
+from dragonphy import *
 
 def test_loopback():
-    # testbench location
-    tb = 'verif/tb/beh/tb.sv'
-
-    # library locations
-    libs = []
-    libs.append('verif/loopback/beh/loopback.sv')
-    libs.append('verif/tx/beh/tx.sv')
-    libs.append('verif/chan/beh/chan.sv')
-    libs.append('src/rx/beh/rx.sv')
-
-    # resolve paths
-    tb = Path(tb).resolve()
-    libs = [Path(lib).resolve() for lib in libs]
-
-    # construct the command
-    args = []
-    args += ['xrun']
-    args += [f'{tb}']
-    for lib in libs:
-        args += ['-v', f'{lib}']
-
-    # set up build dir     
-    cwd = Path('tests/build_loopback')
-    cwd.mkdir(exist_ok=True)
-
-    # run the simulation
-    result = subprocess.run(args, cwd=cwd)
-    assert result.returncode == 0
+    src = get_file('stim/loopback_stim.sv')
+    inc = get_file('inc/signals/beh/signals.sv')
+    libs = get_deps(src, view_order=['beh'])
+    run_sim(srcs=[src, inc], libs=libs, cwd=get_dir('tests/build_loopback'),
+            top='stim', inc_dirs=get_dirs('inc/signals/beh'))
 
 if __name__ == '__main__':
     test_loopback()
