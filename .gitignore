@@ -1,4 +1,7 @@
+*.idea
 *.egg-info
+.Xil
+fpga_prj
 build_*
 *.swp
 *.txt
@@ -8,3 +11,6 @@ xrun.*
 wave.*
 *_gpack.sv
 .simvision*
+*.log
+*.jou
+*.str
