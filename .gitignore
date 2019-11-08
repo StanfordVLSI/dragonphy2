@@ -8,6 +8,7 @@ build_*
 __pycache__
 xcelium.d
 xrun.*
+waves.*
 wave.*
 *_gpack.sv
 .simvision*
