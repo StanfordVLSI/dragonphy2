@@ -22,7 +22,9 @@ module flat_mlsd #(
 
 	//Connecting Wires
 	wire logic   [codeBitwidth-1:0]  ucodes		[numChannels-1:0];
+	 logic   [codeBitwidth-1:0]  ucodes_d_1 [numChannels-1:0];
 	wire logic   [codeBitwidth-1:0] uflat_codes [numChannels*bufferDepth-1:0];
+	logic estimate_bits_d_1 [numChannels-1:0];
 
 	wire logic signed [codeBitwidth-1:0] flat_codes [numChannels*bufferDepth-1:0];
 	wire logic 							 flat_bits 	[numChannels*bufferDepth-1:0];
@@ -35,6 +37,13 @@ module flat_mlsd #(
 	generate
 		for(gi=0; gi<numChannels; gi=gi+1) begin
 			assign ucodes[gi] = $unsigned(codes[gi]);
+			always_ff @(posedge clk or negedge rstb) begin : proc_ucodes_d_1
+				if(~rstb) begin
+					estimate_bits_d_1[gi] <= 0;
+				end else begin
+					estimate_bits_d_1[gi] <= estimate_bits[gi];
+				end
+			end
 		end
 
 		for(gi=0; gi<numChannels*bufferDepth; gi=gi+1) begin
@@ -59,7 +68,7 @@ module flat_mlsd #(
 		.bitwidth    (1),
 		.depth       (bufferDepth)
 	) bit_fb_i (
-		.in      (estimate_bits),
+		.in      (estimate_bits_d_1),
 		.clk     (clk),
 		.rstb    (rstb),
 		.flat_out(flat_bits)
