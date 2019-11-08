@@ -26,6 +26,10 @@ endinterface
 
 `define DECL_DT(x) dt_t x
 
-`define EMU fpga_top.emu
+// define location of emulator interface
+// if it has not already been overridden
+`ifndef EMU
+    `define fpga_top.emu
+`endif
 
 `endif // `ifndef __SIGNALS_SV__
