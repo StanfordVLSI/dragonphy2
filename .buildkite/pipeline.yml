@@ -55,6 +55,10 @@ steps:
       pip install pytest
       pytest emu/test_emu_build.py -s
       tree emu
+      cat emu/project/project.runs/clk_wiz_0_synth_1/runme.log
+      cat emu/project/project.runs/vio_0_synth_1/runme.log
+      cat emu/project/project.runs/synth_1/runme.log
+      cat emu/project/project.runs/impl_1/runme.log
       pytest emu/test_emu_prog.py -s
 
       # deactivate virtual env
