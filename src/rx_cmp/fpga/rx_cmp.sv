@@ -5,11 +5,13 @@ module rx_cmp (
     output wire logic out
 );
 
-    // make a constant called zero
-    `DECL_ANALOG(zero);
-    `SVREAL_ASSIGN_CONST(zero, 0);
+    generate
+        // alias analog I/O
+        `SVREAL_ALIAS_INPUT(in.value, in_value);
 
-    // compare to input
-    `SVREAL_GT(in, zero, out);
+        // compare to zero
+        `ANALOG_CONST(zero, 0);
+        `SVREAL_GT(in_value, zero, out);
+    endgenerate
 
 endmodule
