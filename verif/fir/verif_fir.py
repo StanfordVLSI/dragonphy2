@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import yaml
 import math
+import shutil
 from verif.fir.fir import Fir
 from verif.analysis.histogram import *
 
@@ -111,6 +112,7 @@ def compare(arr1, arr2, arr2_trim=0, length=None, debug=False):
 def verif_fir_main():
     build_dir = 'verif/fir/build_fir'
     pack_dir  = 'verif/fir/pack'
+    module_name = 'fir'
 
     system_config = Configuration('system')
     test_config   = Configuration('test_verif_fir', 'verif/fir')
@@ -176,7 +178,7 @@ def verif_fir_main():
     #Create TestBench Object
     tester   = Tester(
                         top 	  = 'test',
-                        testbench = ['verif/fir/test.sv'],
+                        testbench = ['verif/fir/test_fir.sv'],
                         libraries = ['src/flat_buffer/flat_buffer.sv', 'src/fir/syn/comb_ffe.sv', 'src/fir/syn/flat_ffe.sv', 'verif/tb/beh/signed_recorder.sv'],
                         packages  = [generic_packager.path, testbench_packager.path, ffe_packager.path],
                         flags     = ['-sv', '-64bit', '+libext+.v', '+libext+.sv', '+libext+.vp'],
@@ -187,6 +189,8 @@ def verif_fir_main():
 
     #Execute TestBench Object
     tester.run()
+
+    Packager.delete_pack_dir(path=pack_dir)
 
     #Execute ideal python FIR 
     py_arr = execute_fir(ffe_config, quantized_weights, depth, quantized_chan_out)
