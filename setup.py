@@ -9,7 +9,8 @@ setup(
         'dragonphy'
     ],
     install_requires=[
-        'pexpect', 'pyyaml'
+        'pexpect', 
+        'yyaml', 'numpy', 'matplotlib', 
     ],
     license='Apache License 2.0',
     url='https://github.com/StanfordVLSI/dragonphy',
