@@ -1,8 +1,8 @@
 parameter_list:
-  - &channel_width 4
+  - &channel_width 32
   - &code_precision 8
-  - &output_precision 12
-  - &ffe_length 9
+  - &output_precision 16
+  - &ffe_length 15
   - &ffe_weight_precision 11
 
 generic:

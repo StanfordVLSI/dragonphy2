@@ -114,7 +114,7 @@ module shiftTestBench();
                     $fwrite(fid3, "%d ", flat_mlsd_i.est_seq[1][jj][ii]);
                 end
                 $fwrite(fid3, "| %d %d ", p_bits[jj], bitStream[jj][pos-4]);
-                $fwrite(fid3, "| %d ", $signed(dataStream[jj][pos-4]));
+                $fwrite(fid3, "| %d %d", $signed(flat_mlsd_i.est_seq[bitStream[jj][pos-4]][jj][0]), $signed(flat_mlsd_i.ucodes[jj]));
                 $fwrite(fid3, "| %d %d", prev_mlsd_energy[0][jj], prev_mlsd_energy[1][jj]);
                 $fwrite(fid3, "\n");
             end

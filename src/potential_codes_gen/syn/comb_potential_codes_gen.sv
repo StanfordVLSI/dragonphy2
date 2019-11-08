@@ -37,7 +37,7 @@ generate
 		end
 
 		for(gi=0; gi < seqLength; gi=gi+1) begin
-			partial_code_gen #(
+			comb_partial_code_gen #(
 				.partial_est_depth(estDepth-1), 
 				.estBitwidth(estBitwidth),
 				.outBitwidth(codeBitwidth)
