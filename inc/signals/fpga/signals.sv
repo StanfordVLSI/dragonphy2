@@ -44,7 +44,7 @@ endinterface
 // define location of emulator interface
 // if it has not already been overridden
 `ifndef EMU
-    `define fpga_top.emu
+    `define EMU fpga_top.emu
 `endif
 
 `endif // `ifndef __SIGNALS_SV__
