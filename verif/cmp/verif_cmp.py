@@ -146,7 +146,7 @@ def main():
     #Create TestBench Object
     tester   = Tester(
                         top       = 'test',
-                        testbench = ['verif/cmp/test.sv'],
+                        testbench = ['verif/cmp/test_cmp.sv'],
                         libraries = ['src/fir/syn/ffe.sv', 'src/dig_comp/syn/comparator.sv' ,'verif/tb/beh/logic_recorder.sv'],
                         packages  = [generic_packager.path, testbench_packager.path, ffe_packager.path, cmp_packager.path],
                         flags     = ['-sv', '-64bit', '+libext+.v', '+libext+.sv', '+libext+.vp'],
@@ -188,7 +188,8 @@ def main():
          
     #Execute TestBench Object
     tester.run()
-
+    
+    Packager.delete_pack_dir(path=pack_dir)
 
     #Execute ideal python FIR 
     py_arr = execute_fir(ffe_config, quantized_weights, depth, quantized_chan_out_t)
