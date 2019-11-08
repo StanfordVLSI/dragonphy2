@@ -13,7 +13,7 @@ module tx (
         `ANALOG_CONST(volt1, +1);
 
         // mux between +/- 1
-        `DECL_ANALOG(out_imm);
+        `DECL_ANALOG_LOCAL(out_imm);
         `SVREAL_MUX(data_i, volt0, volt1, out_imm);
 
         // assign to output with DFF
