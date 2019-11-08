@@ -6,7 +6,7 @@ setup(
     description='Open Source PHY v2',
     scripts=[],
     packages=[
-        'dragonphy','yaml'
+        'dragonphy'
     ],
     install_requires=[
         'pexpect', 'pyyaml'
