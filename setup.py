@@ -9,7 +9,7 @@ setup(
         'dragonphy','yaml'
     ],
     install_requires=[
-        'pexpect'
+        'pexpect', 'yaml'
     ],
     license='Apache License 2.0',
     url='https://github.com/StanfordVLSI/dragonphy',
