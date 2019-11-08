@@ -1,64 +1,72 @@
 from pathlib import Path
 from copy import deepcopy
+import shutil
+
 class Packager():
-	def __init__(self, package_name='constant', parameter_dict={}, path="."):
-		self.name = package_name + '_gpack'
-		self.parameters = parameter_dict#deepcopy(parameter_dict)
-		self.package = []
-		self.filename = "{}.sv".format(self.name)
-		self.path_head = path
+    def __init__(self, package_name='constant', parameter_dict={}, path="."):
+        self.name = package_name + '_gpack'
+        self.parameters = parameter_dict#deepcopy(parameter_dict)
+        self.package = []
+        self.filename = "{}.sv".format(self.name)
+        self.path_head = path
 
-	def create_package(self, new_parameters={}):
-		self.add_parameters(new_parameters)
-		self.generate_package()
-		self.save_package()
+    def create_package(self, new_parameters={}):
+        self.add_parameters(new_parameters)
+        self.generate_package()
+        self.save_package()
 
-	@property
-	def path(self):
-		return str(Path(self.path_head + '/' + self.name + '.sv'))
 
-	def add_parameters(self, new_parameters={}):
-		self.parameters.update(new_parameters)
+    @property
+    def path(self):
+        return str(Path(self.path_head + '/' + self.name + '.sv'))
 
-	def package_wrapper(self, lines=[]):
-		package_definition_open = "package {};".format(self.name)
-		package_definition_close = "endpackage"
+    def add_parameters(self, new_parameters={}):
+        self.parameters.update(new_parameters)
 
-		new_lines = [package_definition_open]
-		for line in lines:
-			new_lines += ['\t' + line]
-		new_lines += [package_definition_close]
+    def package_wrapper(self, lines=[]):
+        package_definition_open = "package {};".format(self.name)
+        package_definition_close = "endpackage"
 
-		return new_lines
+        new_lines = [package_definition_open]
+        for line in lines:
+            new_lines += ['\t' + line]
+        new_lines += [package_definition_close]
 
-	def generate_parameter_list(self,lines=[]):
-		new_lines = []
-		new_lines += lines
+        return new_lines
 
-		#new_lines = line creates a pointer across all objects! XD
+    def generate_parameter_list(self,lines=[]):
+        new_lines = []
+        new_lines += lines
 
-		for parameter in self.parameters:
-			new_lines += [self.design_param_definition(parameter, self.parameters[parameter])]
+        #new_lines = line creates a pointer across all objects! XD
 
-		return new_lines
+        for parameter in self.parameters:
+            new_lines += [self.design_param_definition(parameter, self.parameters[parameter])]
 
-	def design_param_definition(self, parameter_name, parameter_default):
-		if isinstance(parameter_default, str):
-			parameter_type    = 'string'
-			parameter_default = "\"" + parameter_default + "\""
-		elif isinstance(parameter_default, int):
-			parameter_type    = 'integer'
+        return new_lines
 
-		return "localparam {} {} = {};".format(parameter_type, parameter_name, parameter_default)
+    def design_param_definition(self, parameter_name, parameter_default):
+        if isinstance(parameter_default, str):
+            parameter_type    = 'string'
+            parameter_default = "\"" + parameter_default + "\""
+        elif isinstance(parameter_default, int):
+            parameter_type    = 'integer'
 
-	def generate_package(self):
-		self.package = self.package_wrapper(self.generate_parameter_list())
+        return "localparam {} {} = {};".format(parameter_type, parameter_name, parameter_default)
 
-	def save_package(self):
-		cwd = Path(self.path_head)
-		cwd.mkdir(exist_ok=True)
+    def generate_package(self):
+        self.package = self.package_wrapper(self.generate_parameter_list())
 
-		with open(Path(self.path_head + '/' + self.filename).resolve(), 'w') as f:
-			for line in self.package:
-				f.write(line +'\n')
-			f.flush()
+    def save_package(self):
+        cwd = Path(self.path_head)
+        cwd.mkdir(exist_ok=True)
+
+        with open(Path(self.path_head + '/' + self.filename).resolve(), 'w') as f:
+            for line in self.package:
+                f.write(line +'\n')
+            f.flush()
+
+    @classmethod 
+    def delete_pack_dir(cls, path='.'):
+        cwd = Path(path)
+        shutil.rmtree(cwd) 
