@@ -14,13 +14,13 @@
 `define ANALOG_EXPONENT -12
 
 `define DECL_ANALOG(name) \
+    `MAKE_SVREAL_INTF(``name``, `ANALOG_SIGNIFICAND_WIDTH, `ANALOG_EXPONENT)
+
+`define DECL_ANALOG_LOCAL(name) \
     `MAKE_SVREAL(``name``, `ANALOG_SIGNIFICAND_WIDTH, `ANALOG_EXPONENT)
 `define ANALOG_CONST(name, value) \
-    `DECL_ANALOG(``name``); \
+    `DECL_ANALOG_LOCAL(``name``); \
     assign `SVREAL_SIGNIFICAND(``name``) = `FLOAT_TO_FIXED(``value``, `ANALOG_EXPONENT)
-
-`define DECL_ANALOG_INTF(name) \
-    `MAKE_SVREAL_INTF(``name``, `ANALOG_SIGNIFICAND_WIDTH, `ANALOG_EXPONENT)
 
 // DT representation
 // resolution is about 0.01 ps

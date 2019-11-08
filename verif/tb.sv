@@ -4,8 +4,8 @@
 
 module tb;
 
-    `DECL_ANALOG_INTF(data_tx_o);
-    `DECL_ANALOG_INTF(data_rx_i);
+    `DECL_ANALOG(data_tx_o);
+    `DECL_ANALOG(data_rx_i);
 
     logic rst_user;
     logic clk_tx_i, data_tx_i;
