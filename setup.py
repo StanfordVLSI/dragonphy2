@@ -6,10 +6,11 @@ setup(
     description='Open Source PHY v2',
     scripts=[],
     packages=[
-        'dragonphy',
+        'dragonphy'
     ],
     install_requires=[
-        'pexpect'
+        'pexpect', 
+        'pyyaml', 'numpy', 'matplotlib', 
     ],
     license='Apache License 2.0',
     url='https://github.com/StanfordVLSI/dragonphy',
