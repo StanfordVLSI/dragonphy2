@@ -51,7 +51,7 @@ assign tb_i.tx_clk_i.clk_i = clks[1];
 // generate the emulation timestep
 ///////////////////////////////////
 localparam integer n_dt = 2;
-dt_t dt_req [n_dt];
+`DT_T dt_req [n_dt];
 time_manager  #(.n(n_dt)) tm_i (
     .dt_req(dt_req),
     .emu_dt(emu.dt)

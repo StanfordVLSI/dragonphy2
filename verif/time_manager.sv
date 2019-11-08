@@ -3,12 +3,12 @@
 module time_manager #(
     parameter integer n=2
 ) (
-    input wire dt_t dt_req [n],
-    output wire dt_t emu_dt
+    input wire `DT_T dt_req [n],
+    output wire `DT_T emu_dt
 );
 
     // creat array of intermediate results and assign the endpoints
-    dt_t dt_arr [n];
+    `DT_T dt_arr [n];
     assign dt_arr[0] = dt_req[0];
     assign emu_dt = dt_arr[n-1];
     
