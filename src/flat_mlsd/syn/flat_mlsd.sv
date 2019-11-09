@@ -12,7 +12,7 @@ module flat_mlsd #(
 	input wire logic clk,
 	input wire logic rstb,
 
-	output reg predict_bits [numChannels-1:0]
+	output logic predict_bits [numChannels-1:0]
 );
 	localparam integer numPastBuffers  = $ceil(real'(estDepth-1)*1.0/numChannels);
 	localparam integer numFutureBuffers = $ceil(real'(seqLength-1)*1.0/numChannels);

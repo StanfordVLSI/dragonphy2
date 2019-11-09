@@ -165,23 +165,22 @@ def test_system_cheating():
     err_idx = [i for i in range(len(corrected_comp_out)) if corrected_comp_out[i] != ideal_codes[i]]
     print(f'Mismatches occur: {err_idx}')
 
-    margin = 1500 
+    margin = max(np.abs(corrected_ffe_out)) 
+
     # Plot MLSD Statistics
     print(f'MLSD Output (only on margin < {margin}, no update, look at {m.n_future} bits in the future)')
     ffe_mlsd_err = m.plot_ffe_mlsd(corrected_ffe_out, corrected_comp_out, quantized_chan_out, ideal_codes, plot_range=[900,1000]) 
     marginal_bits = ffe_mlsd_err < margin
-    print(f'Marginal indices: {[i for i in range(len(marginal_bits)) if marginal_bits[i]]}')
+    #print(f'Marginal indices: {[i for i in range(len(marginal_bits)) if marginal_bits[i]]}')
 
     mlsd_out_ffe_margin = m.perform_mlsd_zeros(corrected_comp_out, quantized_chan_out, bool_arr = marginal_bits, update=False)
     err_idx = m.find_err_idx(mlsd_out_ffe_margin, ideal_codes)
-
-    # Plot MLSD statistics
-    print(f'MLSD Output (only on margin < {margin}, no update, look at {m1.n_future} bits in the future)')
-    mlsd_out_ffe_margin = m1.perform_mlsd_zeros(corrected_comp_out, quantized_chan_out, bool_arr = marginal_bits, update=False)
-    err_idx = m1.find_err_idx(mlsd_out_ffe_margin, ideal_codes)
     
-    ffe_norm = m.calc_mlsd_err(corrected_comp_out, quantized_chan_out)
-    print(f'FFE Norm: {ffe_norm[:plot_len]}')
+    flipped_flags = [1 if mlsd_out_ffe_margin[i] != corrected_comp_out[i] else 0 for i in range(len(mlsd_out_ffe_margin))]
+
+    mlsd_out = m.perform_mlsd_variable(corrected_comp_out, quantized_chan_out, flipped_flags)
+
+    err_idx = m.find_err_idx(mlsd_out, ideal_codes)
 
     if len(err_idx) == 0:
         print(f'TEST PASSED')

@@ -16,6 +16,12 @@ class MLSD:
         self.bw = bitwidth    
         self.lsb = quantizer_lsb
 
+    def update_n_future(self, n_future):
+        self.n_future = n_future
+    
+    def update_n_prev(self, n_prev):
+        self.n_prev = n_prev
+
     def calculate_norm(self, recovered_bits, chan_out, index=0, bit=1, debug=False):
         qc = Quantizer(self.bw, lsb=self.lsb, signed=True)        
 
@@ -186,6 +192,26 @@ class MLSD:
         print(f'Mismatches occur: {err_idx}')
         print(f'Num mismatch: {len(err_idx)} \t BER: {len(err_idx)/len(mlsd)}')
         return err_idx 
+
+    def perform_mlsd_variable(self, recovered_bits, chan_out, flags, update=False, debug=False):
+        result = np.copy(recovered_bits)
+
+        flag_count = 0
+        start_idx = 0
+        for i in range(len(flags)):
+            if flags[i]: 
+                if not flag_count:
+                    start_idx = i
+                flag_count += 1
+            else:
+                if flag_count > 0:
+                    self.update_n_future(flag_count)
+                    new_seq = self.perform_mlsd_single(recovered_bits, chan_out, start_idx, debug)
+                    result[start_idx:start_idx + flag_count] = new_seq
+                    flag_count = 0
+
+        return result
+         
 
 def main():
     ideal = np.array([-1, -1, 1, -1, -1, 1, 1, 1, -1, -1, -1, -1])
