@@ -57,9 +57,9 @@ time_manager  #(.n(n_dt)) tm_i (
     .emu_dt(emu.dt)
 );
 // RX
-assign dt_req[0] = tb_i.rx_i.rx_clk_i.dt_req;
+assign dt_req[0] = `SVREAL_SIGNIFICAND(tb_i.rx_i.rx_clk_i.dt_req);
 // TX
-assign dt_req[1] = tb_i.tx_clk_i.dt_req;
+assign dt_req[1] = `SVREAL_SIGNIFICAND(tb_i.tx_clk_i.dt_req);
 
 /////////////////////////////////
 // Read/Write signals externally
