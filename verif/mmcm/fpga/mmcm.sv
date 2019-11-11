@@ -1,6 +1,6 @@
 module mmcm (
-    input wire logic ext_clk_p,
-    input wire logic ext_clk_n,
+    input wire logic clk_in1_p,
+    input wire logic clk_in1_n,
     output var logic emu_clk_2x
 );
 
@@ -11,8 +11,8 @@ module mmcm (
         .clk_out2(dbg_clk),
         .reset(0),
         .locked(locked),
-        .clk_in1_p(ext_clk_p),
-        .clk_in1_n(ext_clk_n)
+        .clk_in1_p(clk_in1_p),
+        .clk_in1_n(clk_in1_n)
     );
 
 endmodule

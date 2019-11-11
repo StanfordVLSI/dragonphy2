@@ -1,19 +1,19 @@
 // dragon uses fpga_top
 
 module stim;
-    logic ext_clk_p, ext_clk_n;
+    logic clk_in1_p, clk_in1_n;
 
     fpga_top fpga_top_i(
-        .ext_clk_p(ext_clk_p),
-        .ext_clk_n(ext_clk_n)
+        .clk_in1_p(clk_in1_p),
+        .clk_in1_n(clk_in1_n)
     );
 
     always begin
-        ext_clk_p = 1'b0;
-        ext_clk_n = 1'b1;
+        clk_in1_p = 1'b0;
+        clk_in1_n = 1'b1;
         #(0.5/200e6*1s);
-        ext_clk_p = 1'b1;
-        ext_clk_n = 1'b0;
+        clk_in1_p = 1'b1;
+        clk_in1_n = 1'b0;
         #(0.5/200e6*1s);
     end
 

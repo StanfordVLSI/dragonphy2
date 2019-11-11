@@ -1,0 +1,12 @@
+{
+  "PLUGIN": {
+    "msdsl": {
+      "dt": 0.1e-6
+    }
+  },
+  "TARGET": {
+    "sim": {
+      "tstop": 10e-6
+    }
+  }
+}
