@@ -4,17 +4,28 @@ from svreal import get_svreal_header
 def test_emu_build():
     print('Attemping to build bitstream for emulator.')
 
-    # build list of files needed to build the bitstream
+    src_cfg = AnasymodSourceConfig()
+
+    # Verilog Sources
     fpga_top = get_file('verif/fpga_top.sv')
     deps = get_deps(fpga_top, view_order=['fpga'])
-    header_file_list = [get_file('inc/signals/fpga/signals.sv')] + [get_svreal_header()]
-    file_list = [fpga_top] + deps + header_file_list
+    file_list = [fpga_top] + deps
+    src_cfg.add_verilog_sources(file_list)
 
-    # start TCL interpreter
-    tcl = VivadoTCL(cwd=get_dir('emu'), debug=True)
-    tcl.set_var('file_list', file_list)
-    tcl.set_var('header_file_list', header_file_list)
-    tcl.source(get_file('emu/build.tcl'))
+    # Verilog Headers
+    header_file_list = [get_file('inc/signals/fpga/signals.sv')] + [get_svreal_header()]
+    src_cfg.add_verilog_headers(header_file_list)
+
+    # XCI files
+    xci_files = [get_file('emu/clk_wiz_0.xci'), get_file('emu/vio_0.xci')]
+    src_cfg.add_xci_files(xci_files)
+
+    # XDC files
+    xdc_files = [get_file('emu/constr.xdc')]
+    src_cfg.add_xdc_files(xdc_files)
+
+    # Write source config
+    src_cfg.write_to_file(get_file('emu/source.config'))
 
 if __name__ == '__main__':
     test_emu_build()

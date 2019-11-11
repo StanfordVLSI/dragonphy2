@@ -1,8 +1,8 @@
 module mmcm #(
     parameter real freq=20e6
 ) (
-    input wire logic ext_clk_p,
-    input wire logic ext_clk_n,
+    input wire logic clk_in1_p,
+    input wire logic clk_in1_n,
     output var logic emu_clk_2x
 );
 

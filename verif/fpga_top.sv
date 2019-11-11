@@ -3,8 +3,8 @@
 `include "signals.sv"
 
 module fpga_top(
-    input wire logic ext_clk_p,
-    input wire logic ext_clk_n
+    input wire logic clk_in1_p,
+    input wire logic clk_in1_n
 );
 
 //////////////////////////////
@@ -23,8 +23,8 @@ emu_if emu ();
 ////////////////////////////////////
 logic emu_clk_2x;
 mmcm mmcm_i (
-    .ext_clk_p(ext_clk_p),
-    .ext_clk_n(ext_clk_n),
+    .clk_in1_p(clk_in1_p),
+    .clk_in1_n(clk_in1_n),
     .emu_clk_2x(emu_clk_2x)
 );
 
