@@ -3,7 +3,15 @@
 .Xil
 fpga_prj
 build_*
+*.swp
+*.txt
 __pycache__
+xcelium.d
+xrun.*
+waves.*
+wave.*
+*_gpack.sv
+.simvision*
 *.log
 *.jou
 *.str
