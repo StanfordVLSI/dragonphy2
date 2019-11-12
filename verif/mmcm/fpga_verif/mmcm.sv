@@ -1,7 +1,7 @@
 module mmcm #(
     parameter real freq=20e6
 ) (
-    `ifdef anasymod_diff_clk
+    `ifdef ANASYMOD_DIFF_CLK
         input wire logic clk_in1_p,
         input wire logic clk_in1_n,
     `else

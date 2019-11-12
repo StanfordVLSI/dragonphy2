@@ -1,4 +1,6 @@
 build
 source.config
-clk_wiz_0
+prj_config.json
+clk_wiz_0_single_ended
+clk_wiz_0_differential
 vio_0
