@@ -1,19 +1,29 @@
 // dragon uses fpga_top
 
 module stim;
-    logic clk_in1_p, clk_in1_n;
+
+    logic clk_in1;
+
+    `ifdef ANASYMOD_DIFF_CLK
+        logic clk_in1_p;
+        logic clk_in1_n;
+        assign clk_in1_p =  clk_in1;
+        assign clk_in1_n = ~clk_in1;
+    `endif
 
     fpga_top fpga_top_i(
-        .clk_in1_p(clk_in1_p),
-        .clk_in1_n(clk_in1_n)
+        `ifdef ANASYMOD_DIFF_CLK
+            .clk_in1_p(clk_in1_p),
+            .clk_in1_n(clk_in1_n)
+        `else
+            .clk_in1(clk_in1)
+        `endif
     );
 
     always begin
-        clk_in1_p = 1'b0;
-        clk_in1_n = 1'b1;
+        clk_in1 = 1'b0;
         #(0.5/200e6*1s);
-        clk_in1_p = 1'b1;
-        clk_in1_n = 1'b0;
+        clk_in1 = 1'b1;
         #(0.5/200e6*1s);
     end
 

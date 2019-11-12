@@ -3,8 +3,12 @@
 `include "signals.sv"
 
 module fpga_top(
-    input wire logic clk_in1_p,
-    input wire logic clk_in1_n
+    `ifdef ANASYMOD_DIFF_CLK
+        input wire logic clk_in1_p,
+        input wire logic clk_in1_n
+    `else
+        input wire logic clk_in1
+    `endif
 );
 
 //////////////////////////////
@@ -23,8 +27,12 @@ emu_if emu ();
 ////////////////////////////////////
 logic emu_clk_2x;
 mmcm mmcm_i (
-    .clk_in1_p(clk_in1_p),
-    .clk_in1_n(clk_in1_n),
+    `ifdef ANASYMOD_DIFF_CLK
+        .clk_in1_p(clk_in1_p),
+        .clk_in1_n(clk_in1_n),
+    `else
+        .clk_in1(clk_in1),
+    `endif
     .emu_clk_2x(emu_clk_2x)
 );
 
