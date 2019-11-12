@@ -6,7 +6,8 @@ from svreal import get_svreal_header
 prj_cfg = {
   "PROJECT": {
     "board_name": "ZC702",
-    "plugins": []
+    "plugins": [],
+    "emu_clk_freq": 20e6
   },
   "TARGET": {
     "fpga": {
@@ -45,10 +46,6 @@ def test_emu_build():
 
     # XCI files
     xci_files = [get_file('emu/vio_0/vio_0.xci')]
-    if 'USE_PYNQ' in os.environ:
-        xci_files += [get_file('emu/clk_wiz_0_single_ended/clk_wiz_0.xci')]
-    else:
-        xci_files += [get_file('emu/clk_wiz_0_differential/clk_wiz_0.xci')]
     src_cfg.add_xci_files(xci_files)
 
     # XDC files
