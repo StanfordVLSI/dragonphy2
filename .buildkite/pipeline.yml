@@ -15,6 +15,13 @@ steps:
       conda create -p ./conda_env -m -y pip python=3.7.4
       export PATH=$$PWD/conda_env/bin:$$PATH
 
+      # install svreal
+      git clone https://github.com/sgherbst/svreal.git
+      cd svreal
+      git checkout v3
+      pip install -e .
+      cd ..
+
       # install msdsl
       git clone https://github.com/sgherbst/msdsl.git
       cd msdsl
@@ -25,13 +32,6 @@ steps:
       git clone https://github.com/sgherbst/anasymod.git
       cd anasymod
       git checkout dragonphy_support
-      pip install -e .
-      cd ..
-
-      # install svreal
-      git clone https://github.com/sgherbst/svreal.git
-      cd svreal
-      git checkout v3
       pip install -e .
       cd ..
 
@@ -54,6 +54,13 @@ steps:
       python3.7 -m venv venv
       source venv/bin/activate
 
+      # install svreal
+      git clone https://github.com/sgherbst/svreal.git
+      cd svreal
+      git checkout v3
+      pip install -e .
+      cd ..
+
       # install msdsl
       git clone https://github.com/sgherbst/msdsl.git
       cd msdsl
@@ -64,13 +71,6 @@ steps:
       git clone https://github.com/sgherbst/anasymod.git
       cd anasymod
       git checkout dragonphy_support
-      pip install -e .
-      cd ..
-
-      # install svreal
-      git clone https://github.com/sgherbst/svreal.git
-      cd svreal
-      git checkout v3
       pip install -e .
       cd ..
 
