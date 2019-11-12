@@ -6,7 +6,7 @@ def test_config_1():
 
 def test_config_2():
     print('Test 2')
-    get_deps(get_file('verif/tb.sv'), view_order=['beh'], override={'clk_gen': 'beh'})
+    get_deps(get_file('verif/tb.sv'), view_order=['beh'], override={'osc_model': 'beh'})
 
 def test_config_3():
     print('Test 3')

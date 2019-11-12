@@ -1,4 +1,4 @@
-// dragon uses tx chan rx clk_gen prbs21 loopback
+// dragon uses tx chan rx osc_model prbs21 loopback
 
 `include "signals.sv"
 
@@ -33,7 +33,7 @@ module tb;
     );
 
     // tx clock
-    clk_gen tx_clk_i (
+    osc_model tx_clk_i (
         .clk_o(clk_tx_i)
     );
 

@@ -11,7 +11,7 @@ module rx #(
 );
 
     // instantiate the clock
-    clk_gen rx_clk_i (
+    osc_model rx_clk_i (
         .clk_o(clk_o)
     );
     

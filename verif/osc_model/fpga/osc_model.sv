@@ -1,6 +1,6 @@
 `include "signals.sv"
 
-module clk_gen #(
+module osc_model #(
     parameter real t_hi=0.5e-9,
     parameter real t_lo=0.5e-9
 ) (

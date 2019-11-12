@@ -11,8 +11,6 @@ prj_cfg = {
   },
   "TARGET": {
     "fpga": {
-        "custom_top": True,
-        "top_module": "fpga_top"
     }
   }
 }
