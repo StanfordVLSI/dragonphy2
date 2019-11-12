@@ -3,12 +3,8 @@
 `include "signals.sv"
 
 module fpga_top(
-    `ifdef ANASYMOD_DIFF_CLK
-        input wire logic clk_in1_p,
-        input wire logic clk_in1_n
-    `else
-        input wire logic clk_in1
-    `endif
+    // NOTE: remember that this is actually "emu_clk_2x"
+    input wire logic emu_clk
 );
 
 //////////////////////////////
@@ -21,21 +17,6 @@ tb tb_i ();
 //////////////////////////////////////
 emu_if emu ();
 
-////////////////////////////////////
-// Generate clock from which others
-// are derived
-////////////////////////////////////
-logic emu_clk_2x;
-mmcm mmcm_i (
-    `ifdef ANASYMOD_DIFF_CLK
-        .clk_in1_p(clk_in1_p),
-        .clk_in1_n(clk_in1_n),
-    `else
-        .clk_in1(clk_in1),
-    `endif
-    .emu_clk_2x(emu_clk_2x)
-);
-
 /////////////////////////////////
 // generate all emulation clocks
 /////////////////////////////////
@@ -43,7 +24,7 @@ localparam integer n_clks = 2;
 logic clk_vals [n_clks];
 logic clks [n_clks];
 gen_emu_clks  #(.n(n_clks)) gc_i (
-    .emu_clk_2x(emu_clk_2x),
+    .emu_clk_2x(emu_clk), // NOTE: "emu_clk" is really "emu_clk_2x"
     .emu_clk(emu.clk),
     .clk_vals(clk_vals),
     .clks(clks)
