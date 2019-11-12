@@ -1,12 +1,12 @@
 {
-  "PLUGIN": {
-    "msdsl": {
-      "dt": 0.1e-6
-    }
+  "PROJECT": {
+    "board_name": "ZC702",
+    "plugins": []
   },
   "TARGET": {
-    "sim": {
-      "tstop": 10e-6
+    "fpga": {
+        "custom_top": true,
+        "top_module": "fpga_top"
     }
   }
 }

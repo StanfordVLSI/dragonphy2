@@ -1,14 +1,3 @@
-# External clock
-
-# ZC702: Differential 200 MHz clock
-set_property -dict { PACKAGE_PIN D18 IOSTANDARD LVDS_25 } [get_ports clk_in1_p]
-set_property -dict { PACKAGE_PIN C19 IOSTANDARD LVDS_25 } [get_ports clk_in1_n]
-create_clock -period 5.000 -name clk_in1_p -waveform {0.000 2.500} -add [get_ports clk_in1_p]
-
-# PYNQ: Singled-ended 125 MHz clock
-# set_property -dict { PACKAGE_PIN H16 IOSTANDARD LVCMOS33 } [get_ports { clk_in1 }];
-# create_clock -add -name clk_in1 -period 8.000 -waveform {0.000 4.000} [get_ports { clk_in1 }];
-
 # Debug Hub Clock
 set_property C_ENABLE_CLK_DIVIDER false [get_debug_cores dbg_hub]
 set_property C_USER_SCAN_CHAIN 1 [get_debug_cores dbg_hub]
