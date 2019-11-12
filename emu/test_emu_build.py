@@ -17,11 +17,12 @@ def test_emu_build():
     src_cfg.add_verilog_headers(header_file_list)
 
     # XCI files
-    xci_files = [get_file('emu/clk_wiz_0.xci'), get_file('emu/vio_0.xci')]
+    xci_files = [get_file('emu/clk_wiz_0/clk_wiz_0.xci'),
+                 get_file('emu/vio_0/vio_0.xci')]
     src_cfg.add_xci_files(xci_files)
 
     # XDC files
-    xdc_files = [get_file('emu/constr.xdc')]
+    xdc_files = [get_file('emu/custom.xdc')]
     src_cfg.add_xdc_files(xdc_files)
 
     # Write source config

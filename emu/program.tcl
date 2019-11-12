@@ -1,6 +1,6 @@
 # program device
-set bit_file {project/project.runs/impl_1/fpga_top.bit}
-set probe_file {project/project.runs/impl_1/fpga_top.ltx}
+set bit_file {build/project/project.runs/impl_1/fpga_top.bit}
+set probe_file {build/project/project.runs/impl_1/fpga_top.ltx}
 
 open_hw
 connect_hw_server
