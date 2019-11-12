@@ -29,7 +29,7 @@ class AnasymodSourceConfig:
             vhdrs = [f'{vhdr}' for vhdr in self.verilog_headers]
             f.write(f'VerilogHeader(files={vhdrs}, fileset="fpga")\n')
 
-            for key, val in self.defines:
+            for key, val in self.defines.items():
                 if val is None:
                     f.write(f'Define(name="{key}", fileset="fpga"')
                 else:
