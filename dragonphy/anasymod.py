@@ -31,9 +31,9 @@ class AnasymodSourceConfig:
 
             for key, val in self.defines.items():
                 if val is None:
-                    f.write(f'Define(name="{key}", fileset="fpga"')
+                    f.write(f'Define(name="{key}", fileset="fpga")\n')
                 else:
-                    f.write(f'Define(name="{key}", value="{val}", fileset="fpga"')
+                    f.write(f'Define(name="{key}", value="{val}", fileset="fpga")\n')
 
             xdcs = [f'{xdc}' for xdc in self.xdc_files]
             f.write(f'XDCFile(files={xdcs}, fileset="fpga")\n')
