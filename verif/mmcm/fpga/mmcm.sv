@@ -1,5 +1,5 @@
 module mmcm (
-    `ifdef anasymod_diff_clk
+    `ifdef ANASYMOD_DIFF_CLK
         input wire logic clk_in1_p,
         input wire logic clk_in1_n,
     `else
@@ -15,8 +15,12 @@ module mmcm (
         .clk_out2(dbg_clk),
         .reset(0),
         .locked(locked),
+    `ifdef ANASYMOD_DIFF_CLK
         .clk_in1_p(clk_in1_p),
         .clk_in1_n(clk_in1_n)
+    `else
+        .clk_in1(clk_in1)
+    `endif
     );
 
 endmodule
