@@ -47,7 +47,7 @@ endinterface
 // define location of emulator interface
 // if it has not already been overridden
 `ifndef EMU
-    `define EMU fpga_top.emu
+    `define EMU top.fpga_top_i.emu
 `endif
 
 `define IMPORT_EMU_DT \

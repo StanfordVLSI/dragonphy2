@@ -1,4 +1,4 @@
-module clk_gen #(
+module osc_model #(
     parameter real t_lo=1,
     parameter real t_hi=1
 ) (
