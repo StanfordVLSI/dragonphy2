@@ -1,4 +1,4 @@
-// dragon uses tb gen_emu_clks time_manager vio
+// dragon uses tb gen_emu_clks time_manager
 
 `include "signals.sv"
 
@@ -49,15 +49,5 @@ time_manager  #(.n(n_dt)) tm_i (
 assign dt_req[0] = `SVREAL_SIGNIFICAND(tb_i.rx_i.rx_clk_i.dt_req);
 // TX
 assign dt_req[1] = `SVREAL_SIGNIFICAND(tb_i.tx_clk_i.dt_req);
-
-/////////////////////////////////
-// Read/Write signals externally
-/////////////////////////////////
-vio vio_i (
-    .emu_rst(emu.rst),
-    .rst_user(tb_i.rst_user),
-    .number(tb_i.number),
-    .clk(emu.clk)
-);
 
 endmodule
