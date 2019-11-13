@@ -1,4 +1,4 @@
-// dragon uses tb mmcm gen_emu_clks time_manager vio
+// dragon uses tb gen_emu_clks time_manager vio
 
 `include "signals.sv"
 

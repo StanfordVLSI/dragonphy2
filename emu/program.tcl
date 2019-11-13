@@ -6,7 +6,7 @@ open_hw
 connect_hw_server
 open_hw_target
 
-set hw_device [get_hw_devices *xc7z020*]
+set hw_device [get_hw_devices *xc7*]
 current_hw_device $hw_device
 refresh_hw_device $hw_device
 
