@@ -2,29 +2,21 @@
 
 module stim;
 
-    logic clk_in1;
-
-    `ifdef ANASYMOD_DIFF_CLK
-        logic clk_in1_p;
-        logic clk_in1_n;
-        assign clk_in1_p =  clk_in1;
-        assign clk_in1_n = ~clk_in1;
-    `endif
+    localparam real emu_clk_2x_freq = 20e6;
+    logic emu_clk_2x;
 
     fpga_top fpga_top_i(
-        `ifdef ANASYMOD_DIFF_CLK
-            .clk_in1_p(clk_in1_p),
-            .clk_in1_n(clk_in1_n)
-        `else
-            .clk_in1(clk_in1)
-        `endif
+        // NOTE: the port "emu_clk" on fpga_top is really
+        // emu_clk_2x, but could not be given that name yet
+        // due to an implementation issue.
+        .emu_clk(emu_clk_2x)
     );
 
     always begin
-        clk_in1 = 1'b0;
-        #(0.5/200e6*1s);
-        clk_in1 = 1'b1;
-        #(0.5/200e6*1s);
+        emu_clk_2x = 1'b0;
+        #((0.5/emu_clk_2x_freq)*1s);
+        emu_clk_2x = 1'b1;
+        #((0.5/emu_clk_2x_freq)*1s);
     end
 
     initial begin
