@@ -1,4 +1,3 @@
-import os
 import json
 from dragonphy import *
 from svreal import get_svreal_header
@@ -15,14 +14,13 @@ prj_cfg = {
   }
 }
 
-def test_emu_build():
+def test_emu_build(board_name='ZC702'):
     print('Attemping to build bitstream for emulator.')
 
     src_cfg = AnasymodSourceConfig()
 
     # Select board
-    if 'USE_PYNQ' in os.environ:
-        prj_cfg['PROJECT']['board_name'] = 'PYNQ_Z1'
+    prj_cfg['PROJECT']['board_name'] = board_name 
     with open(get_file('emu/prj_config.json'), 'w') as f:
         f.write(json.dumps(prj_cfg))
 
@@ -36,12 +34,6 @@ def test_emu_build():
     header_file_list = [get_file('inc/signals/fpga/signals.sv')] + [get_svreal_header()]
     src_cfg.add_verilog_headers(header_file_list)
 
-    # Verilog defines
-    if 'USE_PYNQ' in os.environ:
-        pass
-    else:
-        src_cfg.add_defines({'ANASYMOD_DIFF_CLK': None})
-
     # XCI files
     xci_files = [get_file('emu/vio_0/vio_0.xci')]
     src_cfg.add_xci_files(xci_files)
@@ -54,4 +46,4 @@ def test_emu_build():
     src_cfg.write_to_file(get_file('emu/source.config'))
 
 if __name__ == '__main__':
-    test_emu_build()
+    test_emu_build('ARTY_A7')
