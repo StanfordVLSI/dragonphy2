@@ -7,10 +7,6 @@ import yaml
 import math
 import shutil
 
-from verif.fir.fir import Fir
-from verif.analysis.histogram import *
-
-
 def write_files(parameters, codes, weights, path="."):
     with open(path + '/' + "adapt_coeff.txt", "w+") as f:
         f.write("\n".join([str(int(w)) for w in weights]) + '\n')
@@ -110,13 +106,14 @@ def compare(arr1, arr2, arr2_trim=0, length=None, debug=False):
             equal = False
     return equal
 
-def verif_fir_main():
-    build_dir = 'verif/fir/build_fir'
-    pack_dir  = 'verif/fir/pack'
+def test_fir_main():
     module_name = 'fir'
+    build_dir = 'tests/' + module_name + '/build_fir'
+    pack_dir  = 'tests/' + module_name + '/pack'
 
     system_config = Configuration('system')
-    test_config   = Configuration('test_verif_fir', 'verif/fir')
+    test_config   = Configuration('test_' + module_name, 'tests/' + module_name)
+    tb_path = 'tests/' + module_name + '/test_' + module_name + '.sv'
 
     #Associate the correct build directory to the python collateral
     test_config['parameters']['ideal_code_filename'] = str(Path(build_dir + '/' + test_config['parameters']['ideal_code_filename']).resolve())
@@ -165,7 +162,7 @@ def verif_fir_main():
     print(ffe_shift)
     print(f'Weights: {weights}')
     print(f'Quantized Weights: {quantized_weights}')
-    write_files([depth, ffe_config['parameters']["length"], ffe_config["adaptation"]["args"]["mu"]], quantized_chan_out, quantized_weights, 'verif/fir/build_fir')   
+    write_files([depth, ffe_config['parameters']["length"], ffe_config["adaptation"]["args"]["mu"]], quantized_chan_out, quantized_weights, build_dir)   
          
     #Create Package Generator Object 
     generic_packager   = Packager(package_name='constant', parameter_dict=system_config['generic']['parameters'], path=pack_dir)
@@ -180,7 +177,7 @@ def verif_fir_main():
     #Create TestBench Object
     tester   = Tester(
                         top 	  = 'test',
-                        testbench = ['verif/fir/test_fir.sv'],
+                        testbench = [tb_path],
                         libraries = ['src/flat_buffer/syn/flat_buffer.sv', 'src/flat_buffer/syn/buffer.sv', 'src/flat_buffer/syn/flatten_buffer.sv', 'src/fir/syn/comb_ffe.sv', 'src/fir/syn/flat_ffe.sv', 'verif/tb/beh/signed_recorder.sv'],
                         packages  = [generic_packager.path, testbench_packager.path, ffe_packager.path],
                         flags     = ['-sv', '-64bit', '+libext+.v', '+libext+.sv', '+libext+.vp'],
@@ -199,7 +196,7 @@ def verif_fir_main():
     py_arr = [int(np.floor(py_val/2**float(ffe_shift))) for py_val in py_arr]
 
     # Read in the SV results file
-    sv_arr = read_svfile('verif/fir/build_fir/FFE_results.txt')
+    sv_arr = read_svfile(build_dir + '/FFE_results.txt')
 
     sv_arr = convert_2s_comp(sv_arr, ffe_config["parameters"]["output_precision"])
 
@@ -221,4 +218,4 @@ def verif_fir_main():
 
 # Used for testing 
 if __name__ == "__main__":
-    verif_fir_main()
+    test_fir_main()
