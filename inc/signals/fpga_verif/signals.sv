@@ -4,10 +4,11 @@
 typedef logic [31:0] dt_t;
 
 `define ANALOG_WIDTH 18
-`define ANALOG_EXPONENT -12
+`define ANALOG_EXPONENT -15
+`define ANALOG_TYPE logic signed [((`ANALOG_WIDTH)-1):0]
 
 interface analog_if ();
-    logic signed [((`ANALOG_WIDTH)-1):0] value;
+    `ANALOG_TYPE value;
     modport in (input value);
     modport out (output value);
 endinterface
