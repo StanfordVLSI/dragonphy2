@@ -1,9 +1,14 @@
 parameter_list:
-  - &channel_width 32
+  - &channel_width 16
   - &code_precision 8
-  - &output_precision 16
-  - &ffe_length 15
+  - &output_precision 8
+  - &ffe_length 3
   - &ffe_weight_precision 11
+  - &estimate_depth 16
+  - &estimate_precision 8
+  - &sequence_length 5
+  - &decision_shift_precision 4
+  - &ffe_shift_precision 4
 
 generic:
   parameters:
@@ -12,6 +17,7 @@ generic:
     ffe_length: *ffe_length
     ffe_weight_precision: *ffe_weight_precision
     ffe_shift: 8
+    mlsd_shift: 8
   ffe:
     parameters:
       length : *ffe_length
@@ -19,7 +25,7 @@ generic:
       input_precision : *code_precision
       output_precision: *output_precision
       weight_precision: *ffe_weight_precision
-      shift_precision: 4
+      shift_precision: *ffe_shift_precision
     adaptation:
       type: 'wiener'
       args: { mu : 0.1 }
@@ -31,4 +37,12 @@ generic:
       thresh_precision : *output_precision
     threshold:
       value: 0
+  mlsd:
+    parameters:
+      width: *channel_width
+      length: *sequence_length
+      code_precision : *code_precision
+      estimate_precision: *estimate_precision
+      estimate_depth: *estimate_depth
+      shift_precision: *decision_shift_precision
 

@@ -1,4 +1,4 @@
-module delay_buffer #(
+module flat_buffer #(
 	parameter integer numChannels = 16,
 	parameter integer bitwidth 	  = 8,
 	parameter integer depth       = 5
@@ -8,7 +8,7 @@ module delay_buffer #(
 	input wire logic clk,
 	input wire logic rstb,
 
-	output logic [bitwidth-1:0] out [numChannels-1:0]
+	output logic [bitwidth-1:0] flat_out [numChannels*depth-1:0]
 );
 
 logic [bitwidth-1:0] internal_pipeline [numChannels-1:0][depth-1:0];
@@ -24,11 +24,13 @@ buffer #(
 	.buffer(internal_pipeline)
 );
 
-genvar gi;
-generate
-	for (int gi = 0; gi < numChannels; gi=gi+1) begin
-		assign out[gi] = internal_pipeline[gi][depth-1]; 
-	end
-endgenerate
+flatten_buffer #(
+	.numChannels(numChannels),
+	.bitwidth   (bitwidth),
+	.depth      (depth)
+) fbuff_i (
+	.buffer     (internal_pipeline),
+	.flat_buffer(flat_out)
+);
 
-endmodule : delay_buffer
+endmodule : flat_buffer

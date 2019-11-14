@@ -22,11 +22,6 @@ module test();
 
   integer ii,jj, pos;
   integer fid;
-  initial begin
-    for(ii=0; ii<ffe_gpack::width; ii=ii+1) begin
-      shift_index[ii] = shift_default;
-    end
-  end
 
    flat_ffe #(
    	.ffeDepth(ffe_gpack::length),
@@ -61,6 +56,7 @@ module test();
       record     = 0;
       for(jj=0;jj<ffe_gpack::width;jj=jj+1) begin
          data[jj] =0;
+         shift_index[jj] = shift_default;
       end
 
       fid = $fopen(test_gpack::adapt_coef_filename, "r");
