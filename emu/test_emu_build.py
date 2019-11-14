@@ -34,10 +34,6 @@ def test_emu_build(board_name='ZC702'):
     header_file_list = [get_file('inc/signals/fpga/signals.sv')] + [get_svreal_header()]
     src_cfg.add_verilog_headers(header_file_list)
 
-    # XDC files
-    xdc_files = [get_file('emu/custom.xdc')]
-    src_cfg.add_xdc_files(xdc_files)
-
     # Write source config
     src_cfg.write_to_file(get_file('emu/source.config'))
 
