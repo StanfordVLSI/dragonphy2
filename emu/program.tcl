@@ -24,7 +24,7 @@ set vio_0_i [get_hw_vios -of_objects $hw_device -filter {CELL_NAME=~"sim_ctrl_ge
 set_property CORE_REFRESH_RATE_MS 0 $vio_0_i
 
 # set aliases to VIO probes
-set emu_rst [get_hw_probes "sim_ctrl_gen_i/rst" -of_objects $vio_0_i]
+set emu_rst [get_hw_probes "sim_ctrl_gen_i/emu_rst" -of_objects $vio_0_i]
 set rst_user [get_hw_probes "sim_ctrl_gen_i/rst_user" -of_objects $vio_0_i]
 set number [get_hw_probes "sim_ctrl_gen_i/number" -of_objects $vio_0_i]
 
