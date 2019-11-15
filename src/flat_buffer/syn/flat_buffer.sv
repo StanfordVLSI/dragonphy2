@@ -1,3 +1,4 @@
+// dragon uses buffer flatten_buffer
 module flat_buffer #(
 	parameter integer numChannels = 16,
 	parameter integer bitwidth 	  = 8,
