@@ -1,4 +1,4 @@
-// dragon uses rx_cmp
+// dragon uses rx_adc
 
 `include "signals.sv"
 
@@ -15,12 +15,17 @@ module rx #(
         .clk_o(clk_o)
     );
     
-    // instantiate the comparator
-    logic cmp_o;
-    rx_cmp rx_cmp_i (
+    // instantiate the ADC
+    logic signed [7:0] adc_o;
+    rx_adc rx_adc_i (
         .in(data_ana_i),
-        .out(cmp_o)
+        .out(adc_o),
+        .clk(clk_o)
     );
+
+    // create digital comparator
+    logic cmp_o;
+    assign cmp_o = (adc_o > 0) ? 1'b1 : 1'b0;
 
     // sample comparator output
     logic [n_del-1:0] delay;

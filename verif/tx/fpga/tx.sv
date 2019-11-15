@@ -1,6 +1,9 @@
 `include "signals.sv"
 
-module tx (
+module tx #(
+    parameter real v_lo=-1.0,
+    parameter real v_hi=+1.0
+) (
     input wire logic data_i,
     input wire logic clk_i,
     `ANALOG_OUTPUT data_ana_o
@@ -9,8 +12,8 @@ module tx (
     generate
         // constants
         `ANALOG_CONST(zero,   0);
-        `ANALOG_CONST(volt0, -1);
-        `ANALOG_CONST(volt1, +1);
+        `ANALOG_CONST(volt0, v_lo);
+        `ANALOG_CONST(volt1, v_hi);
 
         // mux between +/- 1
         `DECL_ANALOG_LOCAL(out_imm);
