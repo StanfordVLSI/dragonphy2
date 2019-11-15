@@ -25,9 +25,9 @@ def test_emu_build(board_name='ZC702'):
         f.write(json.dumps(prj_cfg))
 
     # Verilog Sources
-    fpga_top = get_file('verif/fpga_top.sv')
-    deps = get_deps(fpga_top, view_order=['fpga'])
-    file_list = [fpga_top] + deps
+    tb = get_file('verif/tb.sv')
+    deps = get_deps(tb, view_order=['fpga'])
+    file_list = [tb] + deps
     src_cfg.add_verilog_sources(file_list)
 
     # Verilog Headers
