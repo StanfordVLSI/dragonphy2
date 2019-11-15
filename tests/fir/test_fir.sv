@@ -19,6 +19,12 @@ module test();
    logic signed [ffe_gpack::output_precision-1:0]  out  	        [ffe_gpack::width-1:0];
    logic signed [ffe_gpack::output_precision-1:0]  serial_out     [data_depth*ffe_gpack::width-1:0];
    logic signed [ffe_gpack::output_precision-1:0]  record_out;
+      for(ii=0; ii<ffe_gpack::length; ii=ii+1) begin
+         // Uncomment if you want to read weights from a text file
+         //void'($fscanf(fid, "%d\n", read_weights[ii]));
+         for(jj=0; jj<ffe_gpack::width; jj=jj+1) begin
+            weights[ii][jj] = read_weights[ii];
+         end
    logic [ffe_gpack::shift_precision-1:0] shift_default = ffe_shift;
    logic [ffe_gpack::shift_precision-1:0] shift_index  [ffe_gpack::width-1:0];
 
