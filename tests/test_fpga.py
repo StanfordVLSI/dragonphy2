@@ -5,7 +5,7 @@ def test_fpga():
     src = get_file('stim/fpga_stim.sv')
     inc = get_file('inc/signals/fpga/signals.sv')
     libs = get_deps(src, view_order=['fpga_verif', 'fpga'])
-    defs = [('EMU', 'stim.fpga_top_i.emu')]
+    defs = [('DT_WIDTH', '27'), ('DT_EXPONENT', '-46')]
     run_sim(srcs=[src, inc], libs=libs, cwd=get_dir('tests/build_fpga'),
             top='stim', inc_dirs=[get_svreal_header().parent]+get_dirs('inc/signals/fpga'),
             defs=defs)
