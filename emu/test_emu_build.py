@@ -5,7 +5,7 @@ def test_emu_build():
 
     # build list of files needed to build the bitstream
     fpga_top = get_file('verif/fpga_top.sv')
-    deps = get_deps(fpga_top, view_order=['fpga'])
+    deps = get_deps(fpga_top, view_order=['fpga', 'syn'])
     file_list = [fpga_top] + deps + [get_file('inc/signals/fpga/signals.sv')]
 
     # start TCL interpreter
