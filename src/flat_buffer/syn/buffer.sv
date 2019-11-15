@@ -22,10 +22,7 @@ generate
 				 	buffer[gi][ii] <= 0;
 				 end
 			end else begin
-				buffer[gi][0] <= in[gi];
-				for(ii=1; ii<depth; ii=ii+1) begin
-					buffer[gi][ii] <= buffer[gi][ii-1];
-				end
+				buffer[gi] <= {buffer[gi][depth-2:0], in[gi]};
 			end
 		end
 	end
