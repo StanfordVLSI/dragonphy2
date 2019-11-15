@@ -16,6 +16,13 @@ def write_files(parameters, codes, weights, path="."):
 
     #This is the most compatible way of writing for verilog - given its a fairly low level language
 
+def write_weights_sv(weights, bitwidth, path="."):
+    with open(path + '/' + 'weights_pack.sv', "w+") as f:
+        f.write('package weights_pack;\n')
+        f.write('logic signed [' + str(bitwidth) + '-1:0]  read_weights   [0:' + str(len(weights)) + '-1] = ')
+        f.write('{' + ",".join([str(int(w)) for w in weights]) + '};\n')
+        f.write('endpackage')
+
 def deconvolve(weights, chan):
     plt.plot(chan(weights))
     plt.show()
@@ -174,12 +181,14 @@ def test_fir_main():
     testbench_packager.create_package()
     ffe_packager.create_package()
 
+    write_weights_sv(quantized_weights, ffe_config["parameters"]["weight_precision"], path=pack_dir)        
+
     #Create TestBench Object
     tester   = Tester(
                         top 	  = 'test',
                         testbench = [tb_path],
                         libraries = ['src/flat_buffer/syn/flat_buffer.sv', 'src/flat_buffer/syn/buffer.sv', 'src/flat_buffer/syn/flatten_buffer.sv', 'src/fir/syn/comb_ffe.sv', 'src/fir/syn/flat_ffe.sv', 'verif/tb/beh/signed_recorder.sv'],
-                        packages  = [generic_packager.path, testbench_packager.path, ffe_packager.path],
+                        packages  = [generic_packager.path, testbench_packager.path, ffe_packager.path, pack_dir + '/weights_pack.sv'],
                         flags     = ['-sv', '-64bit', '+libext+.v', '+libext+.sv', '+libext+.vp'],
                         build_dir = build_dir,
                         overload_seed=True,
@@ -189,7 +198,7 @@ def test_fir_main():
     #Execute TestBench Object
     tester.run()
 
-    Packager.delete_pack_dir(path=pack_dir)
+    #Packager.delete_pack_dir(path=pack_dir)
 
     #Execute ideal python FIR 
     py_arr = execute_fir(ffe_config, quantized_weights, depth, quantized_chan_out)
