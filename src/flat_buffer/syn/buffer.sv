@@ -31,4 +31,4 @@ generate
 	end
 endgenerate
 
-endmodule : delay_buffer
+endmodule 
