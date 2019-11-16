@@ -24,6 +24,9 @@ steps:
       pip install pytest
       pip install -e .
       pytest emu/test_emu_build.py
+      tree emu
+      cat emu/project/project.runs/synth_1/runme.log
+      cat emu/project/project.runs/impl_1/runme.log
       pytest emu/test_emu_prog.py
       deactivate
     label: "test_emu"
