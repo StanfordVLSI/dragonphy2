@@ -43,6 +43,7 @@ module rx #(
         .shiftBitwidth   (ffe_gpack::shift_precision )
     ) ffe_inst (
         .clk(clk_o),
+        // TODO: fixme
         .rstb(rstb),
         .new_shift_index(shift_index),
         .new_weights(weights),
