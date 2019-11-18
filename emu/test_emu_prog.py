@@ -10,26 +10,35 @@ def test_emu_prog(emu_rate=5e6, sleep_time=1):
     print('Programming FPGA.')
     tcl.source(get_file('emu/program.tcl'))
 
-    # go through reset sequence
-    print('Going through the reset sequence.')
-    tcl.set_vio(name='$emu_rst', value=1)
-    tcl.set_vio(name='$rst_user', value=1)
-    tcl.set_vio(name='$emu_rst', value=0)
-    tcl.set_vio(name='$rst_user', value=0)
-
-    # wait a bit
-    print(f'Waiting {sleep_time:0.3f}s as the emulation runs.')
-    sleep(sleep_time)
-
-    # get the number of consecutive correct bits
-    print(f'Getting the number of consecutive correct bits.')
+    # reset emulator
+    tcl.set_vio(name='$emu_rst', value=0b1)
+    sleep(1e-6)
+    tcl.set_vio(name='$emu_rst', value=0b0)
+    sleep(1e-6)
+    # reset everything else
+    tcl.set_vio(name='$prbs_rst', value=0b1)
+    tcl.set_vio(name='$lb_mode', value=0b00)
+    sleep(1e-6)
+    # align the loopback tester
+    tcl.set_vio(name='$prbs_rst', value=0b0)
+    tcl.set_vio(name='$lb_mode', value=0b01)
+    sleep(100e-6)
+    # run the loopback test
+    tcl.set_vio(name='$lb_mode', value=0b10)
+    sleep(2100e-6)
+    # get results
+    print(f'Reading results from VIO.')
     tcl.refresh_hw_vio('$vio_0_i')
-    number = int(tcl.get_vio('$number'))
-
-    # check number of correct bits
-    expect = int(emu_rate * sleep_time)
-    print(f'Making sure that at least {expect} bits were correctly received.')
-    assert number >= expect, f'Expected at least {expect} correct bits, got {number}.'
+    lb_latency = int(tcl.get_vio('$lb_latency'))
+    lb_correct_bits = int(tcl.get_vio('$lb_correct_bits'))
+    lb_total_bits = int(tcl.get_vio('$lb_total_bits'))
+    # print results
+    print(f'Loopback latency: {lb_latency} cycles.')
+    print(f'Loopback correct bits: {lb_correct_bits}.')
+    print(f'Loopback total bits: {lb_total_bits}.')
+    # check results
+    assert (lb_total_bits >= 10000), 'Not enough total bits transmitted.'
+    assert (lb_total_bits == lb_correct_bits), 'Bit error detected.'
 
 if __name__ == '__main__':
     test_emu_prog()
