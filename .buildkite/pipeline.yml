@@ -19,7 +19,7 @@ steps:
 
       # run tests
       pip install pytest
-      pytest tests
+      pytest tests -xs
     label: "test"
     timeout_in_minutes: 60
     agents:
@@ -40,7 +40,7 @@ steps:
       pip install pytest
 
       # build bitstream
-      pytest emu/test_emu_build.py
+      pytest emu/test_emu_build.py -xs
 
       # show results of bitstream build
       tree emu
@@ -48,7 +48,7 @@ steps:
       cat emu/build/project/project.runs/impl_1/runme.log
 
       # program FPGA and run test
-      pytest emu/test_emu_prog.py
+      pytest emu/test_emu_prog.py -xs
 
       # deactivate virtual env
       deactivate
