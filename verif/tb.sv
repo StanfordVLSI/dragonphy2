@@ -7,10 +7,17 @@ module tb;
     `DECL_ANALOG(data_tx_o);
     `DECL_ANALOG(data_rx_i);
 
-    logic rst_user;
     logic clk_tx_i, data_tx_i;
     logic data_rx_o, clk_rx_o;
-    logic [63:0] number;
+
+    // prbs signals
+    logic prbs_rst;
+
+    // loopback tester signals
+    logic [1:0] lb_mode;
+    logic [7:0] lb_latency;
+    logic [63:0] lb_correct_bits;
+    logic [63:0] lb_total_bits;
 
     // transmitter
     tx tx_i (
@@ -41,18 +48,19 @@ module tb;
     prbs21 prbs21_i (
 	    .out_o(data_tx_i),
         .clk_i(clk_tx_i),
-        .rst_i(rst_user)
+        .rst_i(prbs_rst)
     );
 
     // loopback tester
     loopback lb_i (
         .data_tx(data_tx_i),
         .clk_tx(clk_tx_i),
-        .rst_tx(rst_user),
         .data_rx(data_rx_o),
         .clk_rx(clk_rx_o),
-        .rst_rx(rst_user),
-        .number(number)
+        .mode(lb_mode),
+        .correct_bits(lb_correct_bits),
+        .total_bits(lb_total_bits),
+        .latency(lb_latency)
     );
 
 endmodule

@@ -25,8 +25,14 @@ set_property CORE_REFRESH_RATE_MS 0 $vio_0_i
 
 # set aliases to VIO probes
 set emu_rst [get_hw_probes "vio_i/emu_rst" -of_objects $vio_0_i]
-set rst_user [get_hw_probes "vio_i/rst_user" -of_objects $vio_0_i]
-set number [get_hw_probes "vio_i/number" -of_objects $vio_0_i]
+set prbs_rst [get_hw_probes "vio_i/prbs_rst" -of_objects $vio_0_i]
+set tm_stall [get_hw_probes "vio_i/tm_stall" -of_objects $vio_0_i]
+set lb_mode [get_hw_probes "vio_i/lb_mode" -of_objects $vio_0_i]
+set lb_latency [get_hw_probes "vio_i/lb_latency" -of_objects $vio_0_i]
+set lb_correct_bits [get_hw_probes "vio_i/lb_correct_bits" -of_objects $vio_0_i]
+set lb_total_bits [get_hw_probes "vio_i/lb_total_bits" -of_objects $vio_0_i]
 
 # configure VIO radix
-set_property INPUT_VALUE_RADIX UNSIGNED $number
+set_property INPUT_VALUE_RADIX UNSIGNED $lb_latency
+set_property INPUT_VALUE_RADIX UNSIGNED $lb_correct_bits
+set_property INPUT_VALUE_RADIX UNSIGNED $lb_total_bits
