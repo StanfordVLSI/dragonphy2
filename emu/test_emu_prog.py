@@ -12,7 +12,7 @@ def test_emu_prog(mock=False):
 
     # reset emulator
     tcl.set_vio(name='$emu_rst', value=0b1)
-    tcl.set_vio(name='$tm_stall', value=0xffffffff)
+    tcl.set_vio(name='$tm_stall', value='FFFFFFFF')
     sleep(0.1)
     tcl.set_vio(name='$emu_rst', value=0b0)
     sleep(0.1)
@@ -28,7 +28,7 @@ def test_emu_prog(mock=False):
     tcl.set_vio(name='$lb_mode', value=0b10)
     sleep(10.1)
     # halt the emulation
-    tcl.set_vio(name='$tm_stall', value=0x00000000)
+    tcl.set_vio(name='$tm_stall', value='00000000')
     sleep(0.1)
     # get results
     print(f'Reading results from VIO.')
