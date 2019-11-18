@@ -32,4 +32,6 @@ set lb_correct_bits [get_hw_probes "vio_i/lb_correct_bits" -of_objects $vio_0_i]
 set lb_total_bits [get_hw_probes "vio_i/lb_total_bits" -of_objects $vio_0_i]
 
 # configure VIO radix
-set_property INPUT_VALUE_RADIX UNSIGNED $number
+set_property INPUT_VALUE_RADIX UNSIGNED $lb_latency
+set_property INPUT_VALUE_RADIX UNSIGNED $lb_correct_bits
+set_property INPUT_VALUE_RADIX UNSIGNED $lb_total_bits

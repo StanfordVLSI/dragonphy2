@@ -2,9 +2,9 @@ from time import sleep
 from dragonphy import *
 
 
-def test_emu_prog(emu_rate=5e6, sleep_time=1):
+def test_emu_prog(mock=False):
     # start TCL interpreter
-    tcl = VivadoTCL(cwd=get_dir('emu'), debug=True)
+    tcl = VivadoTCL(cwd=get_dir('emu'), debug=True, mock=mock)
 
     # program FPGA
     print('Programming FPGA.')
@@ -41,4 +41,4 @@ def test_emu_prog(emu_rate=5e6, sleep_time=1):
     assert (lb_total_bits == lb_correct_bits), 'Bit error detected.'
 
 if __name__ == '__main__':
-    test_emu_prog()
+    test_emu_prog(mock=True)
