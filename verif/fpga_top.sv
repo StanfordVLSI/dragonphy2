@@ -66,8 +66,11 @@ assign dt_req[1] = tb_i.tx_clk_i.dt_req;
 /////////////////////////////////
 vio vio_i (
     .emu_rst(emu.rst),
-    .rst_user(tb_i.rst_user),
-    .number(tb_i.number),
+    .prbs_rst(tb_i.prbs_rst),
+    .lb_mode(tb_i.lb_mode),
+    .lb_latency(tb_i.lb_latency),
+    .lb_total_bits(tb_i.lb_total_bits),
+    .lb_correct_bits(tb_i.lb_correct_bits),
     .clk(emu.clk)
 );
 
