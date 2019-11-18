@@ -12,6 +12,7 @@ def test_emu_prog(mock=False):
 
     # reset emulator
     tcl.set_vio(name='$emu_rst', value=0b1)
+    tcl.set_vio(name='$tm_stall', value=0xffffffff)
     sleep(0.1)
     tcl.set_vio(name='$emu_rst', value=0b0)
     sleep(0.1)
