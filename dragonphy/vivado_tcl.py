@@ -8,7 +8,7 @@ from .console_print import cprint_block, cprint_block_start, cprint_block_end
 SERVER_PORT = 57937
 
 class VivadoTCL:
-    def __init__(self, cwd=None, prompt='Vivado% ', err_strs=None, debug=False):
+    def __init__(self, cwd=None, prompt='Vivado% ', err_strs=None, debug=False, mock=False):
         # set defaults
         if err_strs is None:
             err_strs = ['ERROR', 'FATAL']
@@ -18,6 +18,12 @@ class VivadoTCL:
         self.prompt = prompt
         self.debug = debug
         self.err_strs = err_strs
+        self.mock = mock
+
+        # return at this point if in "mock" mode
+        if self.mock:
+            print('Creating a VivadoTCL object in "mock" mode.')
+            return
 
         # start the interpreter
         from pexpect import spawnu
@@ -25,7 +31,7 @@ class VivadoTCL:
         sys.stdout.flush()
         cmd = 'vivado -nolog -nojournal -notrace -mode tcl'
         self.proc = spawnu(command=cmd, cwd=cwd)
-
+        
         # wait for the prompt
         self.expect_prompt(timeout=300)
 
@@ -53,6 +59,10 @@ class VivadoTCL:
         return before
 
     def sendline(self, line, timeout=float('inf')):
+        if self.mock:
+            print(f'Would send the TCL command "{line}".')
+            return
+
         if self.debug:
             cprint_block([line], title='SEND', color='magenta')
 
@@ -67,19 +77,35 @@ class VivadoTCL:
         return before
 
     def source(self, script, timeout=float('inf')):
+        if self.mock:
+            print(f'Would source the TCL script {script}.')
+            return
+
         script = Path(script).resolve()
         self.sendline(f'source {script}', timeout=timeout)
     
     def refresh_hw_vio(self, name, timeout=30):
+        if self.mock:
+            print(f'Would refresh the VIO to get the latest signal values.')
+            return
+
         self.sendline(f'refresh_hw_vio {name}', timeout=timeout)
 
     def get_vio(self, name, timeout=30):
+        if self.mock:
+            print(f'Would get VIO signal {name}, but will just return 0 for now.')
+            return 0
+
         before = self.sendline(f'get_property INPUT_VALUE {name}', timeout=timeout)
         before = before.splitlines()[-1] # get last line
         before = before.strip() # strip off whitespace
         return before
 
     def set_vio(self, name, value, timeout=30):
+        if self.mock:
+            print(f'Would set VIO signal {name} to value {value}.')
+            return
+
         self.sendline(f'set_property OUTPUT_VALUE {value} {name}', timeout=timeout)
         self.sendline(f'commit_hw_vio {name}')
 
@@ -100,6 +126,9 @@ class VivadoTCL:
             raise Exception(f"Don't know how to convert to a TCL literal: {value}.")
 
     def __del__(self):
+        if self.mock:
+            return
+
         print('Sending "exit" to Vivado TCL interpreter.')
         self.proc.sendline('exit')
 
