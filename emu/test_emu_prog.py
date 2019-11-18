@@ -25,7 +25,7 @@ def test_emu_prog(mock=False):
     sleep(100e-6)
     # run the loopback test
     tcl.set_vio(name='$lb_mode', value=0b10)
-    sleep(2100e-6)
+    sleep(1.1)
     # get results
     print(f'Reading results from VIO.')
     tcl.refresh_hw_vio('$vio_0_i')
@@ -37,7 +37,7 @@ def test_emu_prog(mock=False):
     print(f'Loopback correct bits: {lb_correct_bits}.')
     print(f'Loopback total bits: {lb_total_bits}.')
     # check results
-    assert (lb_total_bits >= 10000), 'Not enough total bits transmitted.'
+    assert (lb_total_bits >= 5e6), 'Not enough total bits transmitted.'
     assert (lb_total_bits == lb_correct_bits), 'Bit error detected.'
 
 if __name__ == '__main__':
