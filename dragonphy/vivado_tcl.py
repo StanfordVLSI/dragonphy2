@@ -22,7 +22,7 @@ class VivadoTCL:
 
         # return at this point if in "mock" mode
         if self.mock:
-            print('Creating a VivadoTCL object is "mock" mode.')
+            print('Creating a VivadoTCL object in "mock" mode.')
             return
 
         # start the interpreter
