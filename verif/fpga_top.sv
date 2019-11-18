@@ -50,7 +50,7 @@ assign tb_i.tx_clk_i.clk_i = clks[1];
 ///////////////////////////////////
 // generate the emulation timestep
 ///////////////////////////////////
-localparam integer n_dt = 2;
+localparam integer n_dt = 3;
 dt_t dt_req [n_dt];
 time_manager  #(.n(n_dt)) tm_i (
     .dt_req(dt_req),
@@ -60,6 +60,9 @@ time_manager  #(.n(n_dt)) tm_i (
 assign dt_req[0] = tb_i.rx_i.rx_clk_i.dt_req;
 // TX
 assign dt_req[1] = tb_i.tx_clk_i.dt_req;
+// Stall signal
+dt_t tm_stall;
+assign dt_req[2] = tm_stall;
 
 /////////////////////////////////
 // Read/Write signals externally
@@ -67,6 +70,7 @@ assign dt_req[1] = tb_i.tx_clk_i.dt_req;
 vio vio_i (
     .emu_rst(emu.rst),
     .prbs_rst(tb_i.prbs_rst),
+    .tm_stall(tm_stall),
     .lb_mode(tb_i.lb_mode),
     .lb_latency(tb_i.lb_latency),
     .lb_total_bits(tb_i.lb_total_bits),

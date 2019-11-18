@@ -17,8 +17,13 @@ module stim;
         #(0.5/200e6*1s);
     end
 
+    logic [7:0] lb_latency;
+    logic [63:0] lb_correct_bits;
+    logic [63:0] lb_total_bits;
+
     initial begin
         // reset emulator
+        force fpga_top_i.tm_stall = 32'hFFFFFFFF;
         force fpga_top_i.emu.rst = 1'b1;
         #(1us);
         force fpga_top_i.emu.rst = 1'b0;
@@ -34,14 +39,24 @@ module stim;
         // run the loopback test
         force fpga_top_i.tb_i.lb_mode = 2'b10;
         #(2100us);
+        // halt emulation
+        force fpga_top_i.tm_stall = 32'h00000000;
+        #(10us);
+        // read results
+        lb_latency = fpga_top_i.tb_i.lb_latency;
+        #(10us);
+        lb_correct_bits = fpga_top_i.tb_i.lb_correct_bits;
+        #(10us);
+        lb_total_bits = fpga_top_i.tb_i.lb_total_bits;
+        #(10us);
         // print results
-        $display("Loopback latency: %0d cycles.", fpga_top_i.tb_i.lb_latency);
-        $display("Loopback correct bits: %0d.", fpga_top_i.tb_i.lb_correct_bits);
-        $display("Loopback total bits: %0d.", fpga_top_i.tb_i.lb_total_bits);
+        $display("Loopback latency: %0d cycles.", lb_latency);
+        $display("Loopback correct bits: %0d.", lb_correct_bits);
+        $display("Loopback total bits: %0d.", lb_total_bits);
         // check results
-        assert (fpga_top_i.tb_i.lb_total_bits >= 10000) else
+        assert (lb_total_bits >= 10000) else
             $error("Not enough total bits transmitted.");
-        assert (fpga_top_i.tb_i.lb_total_bits == fpga_top_i.tb_i.lb_correct_bits) else
+        assert (lb_total_bits == lb_correct_bits) else
             $error("Bit error detected.");
         $finish;
     end
