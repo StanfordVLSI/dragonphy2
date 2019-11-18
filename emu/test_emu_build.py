@@ -6,7 +6,8 @@ prj_cfg = {
   "PROJECT": {
     "board_name": "ZC702",
     "plugins": [],
-    "emu_clk_freq": 20e6
+    "emu_clk_freq": 20e6,
+    "dt": 1e-6
   },
   "TARGET": {
     "fpga": {
@@ -29,6 +30,9 @@ def test_emu_build(board_name='ZC702'):
     deps = get_deps(tb, view_order=['fpga'])
     file_list = [tb] + deps
     src_cfg.add_verilog_sources(file_list)
+
+    # Simulation source
+    src_cfg.add_verilog_sources([get_file('emu/sim_ctrl.sv')], fileset='sim')
 
     # Verilog Headers
     header_file_list = [get_file('inc/signals/fpga/signals.sv')] + [get_svreal_header()]
