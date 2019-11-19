@@ -10,6 +10,9 @@ module sim_ctrl(
         rst_user = 1'b0; 
         #(100us);
 
+        // print the results
+        $display("number=%0d", number);
+
         // check the results
         assert (number >= 400) else
             $error("Not enough successful bits.");
