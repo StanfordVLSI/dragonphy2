@@ -3,14 +3,15 @@
 `include "signals.sv"
 
 module tb;
-
     `DECL_ANALOG(data_tx_o);
     `DECL_ANALOG(data_rx_i);
-
     logic rst_user;
-    logic clk_tx_i, data_tx_i;
-    logic data_rx_o, clk_rx_o;
+    logic clk_tx_i;
+    logic clk_rx_o;
     logic [63:0] number;
+
+    (* dont_touch = "true" *) logic data_tx_i;
+    (* dont_touch = "true" *) logic data_rx_o;
 
     // transmitter
     tx tx_i (
