@@ -64,9 +64,9 @@ module tb;
         .mode(lb_mode),
         .correct_bits(lb_correct_bits),
         .total_bits(lb_total_bits),
-        .latency(lb_latency)
-        .data_rx(data_rx), 
-        .mem_rd(mem_rd)
+        .latency(lb_latency),
+        .mem_rd_o(mem_rd), 
+        .data_rx_o(data_rx)
     );
 
 endmodule
