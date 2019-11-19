@@ -6,6 +6,7 @@ module rx #(
     parameter integer n_del=3
 ) (
     `ANALOG_INPUT data_ana_i,
+    input wire logic rstb,
     output wire logic clk_o,
     output wire logic data_o
 );
@@ -44,7 +45,7 @@ module rx #(
     ) ffe_inst (
         .clk(clk_o),
         // TODO: fixme
-        .rstb(rstb),
+        .rstb(1),
         .new_shift_index(shift_index),
         .new_weights(weights),
         .codes      (adc_o),
