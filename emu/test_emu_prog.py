@@ -38,6 +38,7 @@ def test_emu_prog(mock=False):
         rx_bit = int(tcl.get_vio('$data_rx'))
         tx_bit = int(tcl.get_vio('$mem_rd'))
         write_bits(tx_bit, rx_bit)
+        tcl.set_vio(name='$tm_stall', value='FFFFFFFF')
         sleep(0.1)
     sleep(10.1)
 
