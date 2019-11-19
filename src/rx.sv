@@ -45,28 +45,28 @@ module rx #(
     ) ffe_inst (
         .clk(clk_o),
         // TODO: fixme
-        .rstb(1),
+        .rstb(rstb),
         .new_shift_index(shift_index),
         .new_weights(weights),
         .codes      (adc_o),
         .results    (ffe_o)
     );
 
-    integer ii,jj;    
-    initial begin
-        for(ii=0; ii<ffe_gpack::length; ii=ii+1) begin
-            for(jj=0; jj<ffe_gpack::width; jj=jj+1) begin
-                weights[ii][jj] = read_weights[ii];
+    // initialize weights and shift_index
+    genvar gi,gj;    
+    generate
+        for(gi=0; gi<ffe_gpack::length; gi=gi+1) begin
+            for(gj=0; gj<ffe_gpack::width; gj=gj+1) begin
+                assign weights[gi][gj] = read_weights[gi];
             end
         end
-        for(jj=0;jj<ffe_gpack::width;jj=jj+1) begin
-            shift_index[jj] = shift_default;
+        for(gj=0;gj<ffe_gpack::width;gj=gj+1) begin
+            assign shift_index[gj] = shift_default;
         end
-    end 
+    endgenerate 
 
     // create digital comparator
     logic cmp_o [ffe_gpack::width-1:0];
-    genvar gi;
     generate
         for (gi=0; gi<ffe_gpack::width;gi+=1) begin
             assign cmp_o[gi] = (ffe_o[gi] > 0) ? 1'b1 : 1'b0;
