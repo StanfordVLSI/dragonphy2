@@ -19,6 +19,10 @@ module tb;
     logic [63:0] lb_correct_bits;
     logic [63:0] lb_total_bits;
 
+    // loopback bit signals
+    logic mem_rd;
+    logic data_rx;
+
     // transmitter
     tx tx_i (
         .clk_i(clk_tx_i),
@@ -61,6 +65,8 @@ module tb;
         .correct_bits(lb_correct_bits),
         .total_bits(lb_total_bits),
         .latency(lb_latency)
+        .data_rx(data_rx), 
+        .mem_rd(mem_rd)
     );
 
 endmodule

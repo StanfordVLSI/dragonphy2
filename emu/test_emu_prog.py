@@ -1,6 +1,9 @@
 from time import sleep
 from dragonphy import *
 
+def write_bits(tx_bit, rx_bit, path='.'):
+    with open(path + '/bit_output.log', 'w+') as f:
+        f.write("tx: " + str(tx_bit) + "\trx: " + str(rx_bit))
 
 def test_emu_prog(mock=False):
     # start TCL interpreter
@@ -26,7 +29,18 @@ def test_emu_prog(mock=False):
     sleep(1)
     # run the loopback test
     tcl.set_vio(name='$lb_mode', value=0b10)
+    sleep(0.1)
+
+    # Write a handful of bits to a file
+    for i in range(100):
+        tcl.set_vio(name='$tm_stall', value='00000000')
+        sleep(0.1)
+        rx_bit = int(tcl.get_vio('$data_rx'))
+        tx_bit = int(tcl.get_vio('$mem_rd'))
+        write_bits(tx_bit, rx_bit)
+        sleep(0.1)
     sleep(10.1)
+
     # halt the emulation
     tcl.set_vio(name='$tm_stall', value='00000000')
     sleep(0.1)
