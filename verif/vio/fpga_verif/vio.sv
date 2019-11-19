@@ -6,6 +6,8 @@ module vio (
     input wire logic [7:0] lb_latency,
     input wire logic [63:0] lb_correct_bits,
     input wire logic [63:0] lb_total_bits,
+    input wire logic data_rx, 
+    input wire logic mem_rd, 
     input wire logic clk
 );
 

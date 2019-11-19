@@ -10,7 +10,9 @@ module loopback #(
     input wire logic [1:0] mode,
     output var logic [63:0] correct_bits,
     output var logic [63:0] total_bits,
-    output wire logic [(n_addr-1):0] latency
+    output wire logic [(n_addr-1):0] latency,
+    output wire logic data_rx_o,
+    output wire logic mem_rd_o
 );
 
     // TODO: consider using enum here
@@ -66,5 +68,6 @@ module loopback #(
 
     // send latency value to the output
     assign latency = ptr_tx - ptr_rx;
-
+    assign data_rx_o = data_rx;
+    assign mem_rd_o = mem_rd;
 endmodule
