@@ -39,6 +39,7 @@ module tb;
     // receiver
     rx rx_i (
         .data_ana_i(data_rx_i),
+        .rstb(1),
         .data_o(data_rx_o),
         .clk_o(clk_rx_o)
     );
