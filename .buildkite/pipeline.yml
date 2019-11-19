@@ -40,7 +40,11 @@ steps:
 
       # run tests
       pip install pytest
-      pytest tests -s
+      pytest tests -xs
+
+      # simulate FPGA design
+      pytest emu/test_emu_build.py -xs
+      anasymod -i emu --sim --simulator_name xrun
     label: "test"
     timeout_in_minutes: 60
     agents:
@@ -81,7 +85,10 @@ steps:
       pip install pytest
 
       # build file structure
-      pytest emu/test_emu_build.py -s
+      pytest emu/test_emu_build.py -xs
+
+      # simulate FPGA design
+      anasymod -i emu --sim --simulator_name vivado
 
       # build bitstream
       anasymod -i emu --build
@@ -92,7 +99,7 @@ steps:
       cat emu/build/project/project.runs/impl_1/runme.log
 
       # program FPGA and run test
-      pytest emu/test_emu_prog.py -s
+      pytest emu/test_emu_prog.py -xs
 
       # deactivate virtual env
       deactivate
