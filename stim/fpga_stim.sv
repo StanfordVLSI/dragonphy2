@@ -38,7 +38,7 @@ module stim;
         #(100us);
         // run the loopback test
         force fpga_top_i.tb_i.lb_mode = 2'b10;
-        #(2100us);
+        #(5500us);
         // halt emulation
         force fpga_top_i.tm_stall = 32'h00000000;
         #(10us);

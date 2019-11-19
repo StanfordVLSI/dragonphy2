@@ -75,6 +75,8 @@ vio vio_i (
     .lb_latency(tb_i.lb_latency),
     .lb_total_bits(tb_i.lb_total_bits),
     .lb_correct_bits(tb_i.lb_correct_bits),
+    .data_rx(tb_i.data_rx),
+    .mem_rd(tb_i.mem_rd),
     .clk(emu.clk)
 );
 

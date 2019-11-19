@@ -19,7 +19,7 @@ module flat_mlsd #(
 
 	localparam integer bufferDepth   = numPastBuffers + numFutureBuffers + 1;
 	localparam integer centerBuffer  = numPastBuffers;
-
+	localparam integer shiftWidth    = 4;
 	//Connecting Wires
 	wire logic   [codeBitwidth-1:0]  ucodes		[numChannels-1:0];
 	 logic   [codeBitwidth-1:0]  ucodes_d_1 [numChannels-1:0];
@@ -32,24 +32,19 @@ module flat_mlsd #(
 
 	logic signed [codeBitwidth-1:0] est_seq [1:0][numChannels-1:0][seqLength-1:0];
 
-
+	logic [shiftWidth-1:0] shift_index [numChannels-1:0];
+	
 	genvar gi;
 	generate
 		for(gi=0; gi<numChannels; gi=gi+1) begin
 			assign ucodes[gi] = $unsigned(codes[gi]);
-			always_ff @(posedge clk or negedge rstb) begin : proc_ucodes_d_1
-				if(~rstb) begin
-					estimate_bits_d_1[gi] <= 0;
-				end else begin
-					estimate_bits_d_1[gi] <= estimate_bits[gi];
-				end
-			end
+			assign shift_index[gi] = 3;
 		end
-
 		for(gi=0; gi<numChannels*bufferDepth; gi=gi+1) begin
 			assign flat_codes[gi] = $signed(uflat_codes[gi]);
 		end
 	endgenerate
+
 
 
 	flat_buffer #(
@@ -61,6 +56,17 @@ module flat_mlsd #(
 		.clk     (clk),
 		.rstb    (rstb),
 		.flat_out(uflat_codes)
+	);
+
+	delay_buffer #(
+		.numChannels(numChannels),
+		.bitwidth(1),
+		.depth(1)
+	) db_b_i (
+		.in(estimate_bits),
+		.clk(clk),
+		.rstb(rstb),
+		.out (estimate_bits_d_1)
 	);
 
 	flat_buffer #(
@@ -93,12 +99,14 @@ module flat_mlsd #(
 	comb_mlsd_decision #(
 		.seqLength(seqLength),
 		.codeBitwidth(codeBitwidth),
+		.shiftWidth  (shiftWidth),
 		.numChannels(numChannels),
 		.bufferDepth (bufferDepth),
 		.centerBuffer(centerBuffer)
 	) comb_mlsd_dec_i (
 		.flat_codes  (flat_codes),
 		.est_seq     (est_seq),
+		.shift_index (shift_index),
 		.predict_bits(next_predict_bits)
 	);
 

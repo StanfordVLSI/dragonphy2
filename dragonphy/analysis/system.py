@@ -1,7 +1,6 @@
 from dragonphy import *
 from verif.fir.fir import Fir
 from verif.mlsd.mlsd import MLSD
-from verif.analysis.histogram import *
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -70,14 +69,14 @@ def test_system_cheating():
     # Generate weight training codes
     if load_codes:
         # Load Ideal Codes
-        ideal_codes = np.loadtxt('verif/analysis/ideal_codes.txt', dtype=np.int16)
+        ideal_codes = np.loadtxt('dragonphy/analysis/ideal_codes.txt', dtype=np.int16)
         print(f'Ideal codes: {ideal_codes[:plot_len]}')
         training_len=len(ideal_codes)
     else:
         # Generate Ideal Codes
         #ideal_codes = np.tile(np.array([-1, 1]), int(training_len/2))    # Harmonic Codes
         ideal_codes = np.random.randint(2, size=training_len)*2 - 1   # Random Codes
-        np.savetxt('verif/analysis/ideal_codes.txt', ideal_codes)
+        np.savetxt('dragonphy/analysis/ideal_codes.txt', ideal_codes)
 
 
     # Create channel model and channel output
@@ -127,9 +126,9 @@ def test_system_cheating():
     ffe_out = f(quantized_chan_out)
 
     # Plot histogram of FFE results
-    plot_comparison(quantized_chan_out, ideal_codes, delay_ffe=pos, scale=50, labels=["quantized chan", "ideal"])
-    plot_comparison(ffe_out, ideal_codes, delay_ffe=pos, scale=15000, labels=["ffe out", "ideal"])
-    plot_multi_hist(ffe_out, ideal_codes, delay_ffe=pos, n_bits=1, bit_pos=0) 
+    Histogram.plot_comparison(quantized_chan_out, ideal_codes, delay_ffe=pos, scale=50, labels=["quantized chan", "ideal"])
+    Histogram.plot_comparison(ffe_out, ideal_codes, delay_ffe=pos, scale=15000, labels=["ffe out", "ideal"])
+    Histogram.plot_multi_hist(ffe_out, ideal_codes, delay_ffe=pos, n_bits=1, bit_pos=0) 
 
 
     # Make decision based on FFE output
