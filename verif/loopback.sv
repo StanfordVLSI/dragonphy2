@@ -69,5 +69,5 @@ module loopback #(
     // send latency value to the output
     assign latency = ptr_tx - ptr_rx;
     assign data_rx_o = data_rx;
-    assign mem_rd_o = data_tx;
+    assign mem_rd_o = mem_rd;
 endmodule

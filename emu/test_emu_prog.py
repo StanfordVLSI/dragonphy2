@@ -1,11 +1,13 @@
 from time import sleep
 from dragonphy import *
 
-def write_bits(tx_bit, rx_bit, path='.'):
-    with open(path + '/bit_output.log', 'w+') as f:
-        f.write("tx: " + str(tx_bit) + "\trx: " + str(rx_bit))
+import os
 
-def test_emu_prog(mock=False):
+def write_bits(tx_bit, rx_bit, path='./bit_output.log'):
+    with open(path, 'a+') as f:
+        f.write("tx: " + str(tx_bit) + "\trx: " + str(rx_bit) + "\n")
+
+def test_emu_prog(mock=False, bitfile_path=None):
     # start TCL interpreter
     tcl = VivadoTCL(cwd=get_dir('emu'), debug=True, mock=mock)
 
@@ -31,15 +33,24 @@ def test_emu_prog(mock=False):
     tcl.set_vio(name='$lb_mode', value=0b10)
     sleep(0.1)
 
-    # Write a handful of bits to a file
-    for i in range(100):
-        tcl.set_vio(name='$tm_stall', value='00000000')
-        sleep(0.1)
-        rx_bit = int(tcl.get_vio('$data_rx'))
-        tx_bit = int(tcl.get_vio('$mem_rd'))
-        write_bits(tx_bit, rx_bit)
-        tcl.set_vio(name='$tm_stall', value='FFFFFFFF')
-        sleep(0.1)
+    # For testing purposes, write to file if necesarry
+    if not bitfile_path is None:
+        print(f'Writing to file: {bitfile_path}')
+        # First delete bitfile if it exists
+        if os.path.exists(bitfile_path):
+            os.remove(bitfile_path)
+        # Write a handful of bits to a file
+        iterations = 100
+        for i in range(iterations):
+            tcl.set_vio(name='$tm_stall', value='00000000')
+            sleep(0.1)
+            tcl.refresh_hw_vio('$vio_0_i')
+            rx_bit = int(tcl.get_vio('$data_rx'))
+            tx_bit = int(tcl.get_vio('$mem_rd'))
+            write_bits(tx_bit, rx_bit, bitfile_path)
+            tcl.set_vio(name='$tm_stall', value='FFFFFFFF')
+            sleep(0.1)
+
     sleep(10.1)
 
     # halt the emulation
@@ -60,4 +71,4 @@ def test_emu_prog(mock=False):
     assert (lb_total_bits == lb_correct_bits), 'Bit error detected.'
 
 if __name__ == '__main__':
-    test_emu_prog(mock=True)
+    test_emu_prog(mock=False, bitfile_path='./bit_output.log')
