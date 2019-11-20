@@ -17,8 +17,6 @@ prj_cfg = {
 }
 
 def test_emu_build(board_name='ZC702'):
-    print('Attemping to build bitstream for emulator.')
-
     # Select board
     # TODO: interact directly with anasymod library rather
     # than through config files
@@ -38,7 +36,8 @@ def test_emu_build(board_name='ZC702'):
     # Verilog Sources
     tb = get_file('verif/tb.sv')
     deps = get_deps(tb, view_order=['fpga', 'syn'])
-    file_list = [tb] + deps + packages
+    file_list = packages + deps + [tb]
+    print(file_list)
     src_cfg.add_verilog_sources(file_list)
 
     # Simulation source
