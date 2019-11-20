@@ -1,9 +1,9 @@
 parameter_list:
-  - &channel_width 16
+  - &channel_width 1
   - &code_precision 8
   - &output_precision 8
   - &ffe_length 3
-  - &ffe_weight_precision 11
+  - &ffe_weight_precision 8
   - &estimate_depth 16
   - &estimate_precision 8
   - &sequence_length 5

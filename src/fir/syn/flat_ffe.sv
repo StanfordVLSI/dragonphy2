@@ -1,3 +1,4 @@
+// dragon uses flat_buffer comb_ffe
 module flat_ffe #(
 	parameter integer codeBitwidth=8,
 	parameter integer weightBitwidth=8,
