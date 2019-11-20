@@ -17,7 +17,7 @@ def test_emu_prog(mock=False, bitfile_path=None):
 
     # reset emulator
     tcl.set_vio(name='$emu_rst', value=0b1)
-    tcl.set_vio(name='$tm_stall', value='FFFFFFFF')
+    tcl.set_vio(name='$tm_stall', value='3FFFFFF')
     sleep(0.1)
     tcl.set_vio(name='$emu_rst', value=0b0)
     sleep(0.1)
@@ -42,19 +42,19 @@ def test_emu_prog(mock=False, bitfile_path=None):
         # Write a handful of bits to a file
         iterations = 100
         for i in range(iterations):
-            tcl.set_vio(name='$tm_stall', value='00000000')
+            tcl.set_vio(name='$tm_stall', value='0000000')
             sleep(0.1)
             tcl.refresh_hw_vio('$vio_0_i')
             rx_bit = int(tcl.get_vio('$data_rx'))
             tx_bit = int(tcl.get_vio('$mem_rd'))
             write_bits(tx_bit, rx_bit, bitfile_path)
-            tcl.set_vio(name='$tm_stall', value='FFFFFFFF')
+            tcl.set_vio(name='$tm_stall', value='3FFFFFF')
             sleep(0.1)
 
     sleep(10.1)
 
     # halt the emulation
-    tcl.set_vio(name='$tm_stall', value='00000000')
+    tcl.set_vio(name='$tm_stall', value='0000000')
     sleep(0.1)
     # get results
     print(f'Reading results from VIO.')
@@ -71,4 +71,4 @@ def test_emu_prog(mock=False, bitfile_path=None):
     assert (lb_total_bits == lb_correct_bits), 'Bit error detected.'
 
 if __name__ == '__main__':
-    test_emu_prog(mock=False, bitfile_path='./bit_output.log')
+    test_emu_prog(mock=True, bitfile_path='./bit_output.log')

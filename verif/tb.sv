@@ -1,4 +1,4 @@
-// dragon uses tx chan rx osc_model prbs21 loopback
+// dragon uses tx chan rx osc_model prbs21 loopback tm_stall
 
 `include "signals.sv"
 
@@ -71,4 +71,7 @@ module tb;
         .data_rx_o(data_rx)
     );
 
+    // needed for time management infrastructure
+    // will be cleaned up in a future commit
+    tm_stall tm_stall_i ();
 endmodule
