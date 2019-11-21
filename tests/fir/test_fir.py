@@ -36,33 +36,15 @@ def plot_adapt_input(codes, chan_out, n, plt_mode='normal'):
         plt.plot(chan_out[:n], 'o-')
     plt.show()
 
-def perform_wiener(ideal_input, chan, chan_out, M = 11, u = 0.1, pos=2, iterations=200000, build_dir='.'):
+def perform_wiener(ideal_input, chan, chan_out, M = 11, u = 0.1, pos=2, iterations=200000 ):
     adapt = Wiener(step_size = u, num_taps = M, cursor_pos=pos)
     for i in range(iterations-pos):
         adapt.find_weights_pulse(ideal_input[i-pos], chan_out[i])   
     
-#   pulse_weights = adapt.weights   
-#   for i in range(iterations-2):
-#       adapt.find_weights_error(ideal_codes[i-pos], chan_out[i])   
-#   
-#   pulse2_weights = adapt.find_weights_pulse2()
 
-#   print(pulse_weights)
-#   print(adapt.weights)
-    
-    #plt.plot(adapt.weights)
-    #plt.show()
-
-    #print(f'Filter input: {adapt.filter_in}')
     print(f'Adapted Weights: {adapt.weights}')
 
-    #chan_out = chan_out[2:iterations+2]
-    
-    #deconvolve(adapt.weights, chan)
 
-    #plt.plot(chan(np.reshape(pulse_weights, len(pulse_weights))))
-    #plt.plot(chan(pulse2_weights[-1]))
-    #plt.show()
     return adapt.weights
 
 def execute_fir(ffe_config, quantized_weights, depth, quantized_chan_out):
@@ -118,6 +100,9 @@ def test_fir_main():
     build_dir = 'tests/' + module_name + '/build_fir'
     pack_dir  = 'tests/' + module_name + '/pack'
 
+    # Make the build directory
+    Path(build_dir).mkdir(exist_ok=True) 
+
     system_config = Configuration('system')
     test_config   = Configuration('test_' + module_name, 'tests/' + module_name)
     tb_path = 'tests/' + module_name + '/test_' + module_name + '.sv'
@@ -152,7 +137,7 @@ def test_fir_main():
     weights = []
     if ffe_config["adaptation"]["type"] == "wiener":
         weights = perform_wiener(ideal_codes, chan, chan_out, ffe_config['parameters']["length"], \
-            ffe_config["adaptation"]["args"]["mu"], pos, iterations, build_dir=build_dir)
+            ffe_config["adaptation"]["args"]["mu"], pos, iterations )
     else: 
         print(f'Do Nothing')
 
