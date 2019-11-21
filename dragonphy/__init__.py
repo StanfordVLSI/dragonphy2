@@ -2,7 +2,7 @@
 from .cmd 			import CmdLineParser
 from .packager      import Packager
 from .config 		import Configuration
-#from .tester		import Tester
+from .tester		import Tester
 
 # Some analysis libraries
 from .analysis.histogram import Histogram
