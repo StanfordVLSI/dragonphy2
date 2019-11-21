@@ -25,3 +25,4 @@ from .deluxe_run import deluxe_run
 from .run_sim import run_sim, Probe
 from .vivado_tcl import VivadoTCL, get_vivado_tcl_client
 from .vivado_batch import vivado_batch
+from .anasymod import AnasymodSourceConfig

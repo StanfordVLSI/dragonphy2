@@ -1,14 +1,15 @@
-// dragon uses tx chan rx clk_gen prbs21 loopback
+// dragon uses tx chan rx osc_model prbs21 loopback tm_stall
 
 `include "signals.sv"
 
 module tb;
-
+    // analog signals
     `DECL_ANALOG(data_tx_o);
     `DECL_ANALOG(data_rx_i);
 
+    // clock + data
     logic clk_tx_i, data_tx_i;
-    logic data_rx_o, clk_rx_o;
+    logic clk_rx_o, data_rx_o;
 
     // prbs signals
     logic prbs_rst;
@@ -19,7 +20,7 @@ module tb;
     logic [63:0] lb_correct_bits;
     logic [63:0] lb_total_bits;
 
-    // loopback bit signals
+    // RX/TX bits for VIO
     logic mem_rd;
     logic data_rx;
 
@@ -39,13 +40,13 @@ module tb;
     // receiver
     rx rx_i (
         .data_ana_i(data_rx_i),
-        .rstb(1),
+        .rstb(1'b1),
         .data_o(data_rx_o),
         .clk_o(clk_rx_o)
     );
 
     // tx clock
-    clk_gen tx_clk_i (
+    osc_model tx_clk_i (
         .clk_o(clk_tx_i)
     );
 
@@ -70,4 +71,7 @@ module tb;
         .data_rx_o(data_rx)
     );
 
+    // needed for time management infrastructure
+    // will be cleaned up in a future commit
+    tm_stall tm_stall_i ();
 endmodule
