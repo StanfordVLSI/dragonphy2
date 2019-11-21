@@ -1,30 +1,33 @@
 `ifndef __SIGNALS_SV__
 `define __SIGNALS_SV__
 
-typedef logic [31:0] dt_t;
+`include "svreal.sv"
 
-`define ANALOG_WIDTH 18
-`define ANALOG_EXPONENT -15
-`define ANALOG_TYPE logic signed [((`ANALOG_WIDTH)-1):0]
+// ANALOG representation
+// resolution is about 0.2 mV
+// range is about +/- 30 V
 
-interface analog_if ();
-    `ANALOG_TYPE value;
-    modport in (input value);
-    modport out (output value);
-endinterface
+`define ANALOG_INPUT svreal.in
+`define ANALOG_OUTPUT svreal.out
 
-interface emu_if ();
-    dt_t dt;
-    logic clk;
-    logic rst;
-endinterface
+`define ANALOG_SIGNIFICAND_WIDTH 18
+`define ANALOG_EXPONENT -12
 
-`define ANALOG_INPUT analog_if.in
-`define ANALOG_OUTPUT analog_if.out
+`define DECL_ANALOG(name) \
+    `MAKE_SVREAL_INTF(``name``, `ANALOG_SIGNIFICAND_WIDTH, `ANALOG_EXPONENT)
 
-`define DECL_ANALOG(x) analog_if x ()
-`define DECL_DT(x) dt_t x
+`define DECL_ANALOG_LOCAL(name) \
+    `MAKE_SVREAL(``name``, `ANALOG_SIGNIFICAND_WIDTH, `ANALOG_EXPONENT)
+`define ANALOG_CONST(name, value) \
+    `DECL_ANALOG_LOCAL(``name``); \
+    assign `SVREAL_SIGNIFICAND(``name``) = `FLOAT_TO_FIXED(``value``, `ANALOG_EXPONENT) 
 
-`define EMU fpga_top.emu
+// DT representation
+
+`define DECL_DT_LOCAL(name) \
+    `MAKE_SVREAL(``name``, `DT_WIDTH, `DT_EXPONENT)
+`define DT_CONST(name, value) \
+    `DECL_DT_LOCAL(``name``); \
+    assign `SVREAL_SIGNIFICAND(``name``) = `FLOAT_TO_FIXED(``value``, `DT_EXPONENT) 
 
 `endif // `ifndef __SIGNALS_SV__

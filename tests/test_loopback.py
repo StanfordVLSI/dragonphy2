@@ -9,7 +9,6 @@ def test_loopback():
     # Adapts the fir weights and returns the package files needed
     config = 'test_loopback_config'
     packages = adapt_fir(build_dir, config)
-    packages += []
 
     src = get_file('stim/loopback_stim.sv')
     inc = get_file('inc/signals/beh/signals.sv')
