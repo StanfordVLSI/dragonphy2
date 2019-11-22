@@ -22,7 +22,7 @@ class VivadoTCL:
 
         # return at this point if in "mock" mode
         if self.mock:
-            print('Creating a VivadoTCL object in "mock" mode.')
+            print('Creating a VivadoTCL object in "mock" mode.  TCL commands will be printed instead of sent to a Vivado TCL interpreter.')
             return
 
         # start the interpreter
@@ -60,7 +60,6 @@ class VivadoTCL:
 
     def sendline(self, line, timeout=float('inf')):
         if self.mock:
-            #print(f'Would send the TCL command "{line}".')
             print(f'{line}')
             return None
 
@@ -87,7 +86,7 @@ class VivadoTCL:
     def get_vio(self, name, timeout=30):
         before = self.sendline(f'get_property INPUT_VALUE {name}', timeout=timeout)
         if self.mock:
-            return 0
+            return '0'
 
         before = before.splitlines()[-1] # get last line
         before = before.strip() # strip off whitespace

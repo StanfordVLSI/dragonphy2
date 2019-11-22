@@ -20,10 +20,6 @@ module tb;
     logic [63:0] lb_correct_bits;
     logic [63:0] lb_total_bits;
 
-    // RX/TX bits for VIO
-    logic mem_rd;
-    logic data_rx;
-
     // transmitter
     tx tx_i (
         .clk_i(clk_tx_i),
@@ -66,9 +62,7 @@ module tb;
         .mode(lb_mode),
         .correct_bits(lb_correct_bits),
         .total_bits(lb_total_bits),
-        .latency(lb_latency),
-        .mem_rd_o(mem_rd), 
-        .data_rx_o(data_rx)
+        .latency(lb_latency)
     );
 
     // needed for time management infrastructure

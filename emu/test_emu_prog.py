@@ -1,64 +1,78 @@
 from time import sleep
 from dragonphy import *
 
-import os
+LB_RESET = 0b00
+LB_ALIGN = 0b01
+LB_TEST = 0b10
 
-def write_bits(tx_bit, rx_bit, path='./bit_output.log'):
-    with open(path, 'a+') as f:
-        f.write("tx: " + str(tx_bit) + "\trx: " + str(rx_bit) + "\n")
+class EmuCtrl(VivadoTCL):
+    def set_vio_var(self, name, value, t_sleep=0.01):
+        self.set_vio(name=f'${name}', value=str(value))
+        if t_sleep is not None:
+            sleep(t_sleep)
 
-def test_emu_prog(mock=False, bitfile_path=None):
+    def get_vio_var(self, name):
+        self.refresh_hw_vio('$vio_0_i')
+        return int(self.get_vio(f'${name}'))
+
+    def stall(self):
+        self.set_vio_var('tm_stall', 0)
+
+    def unstall(self):
+        self.set_vio_var('tm_stall', (1<<26)-1)
+
+    def run_ila(self, csv_file):
+        # halt the emulation
+        self.stall()
+
+        # arm the ILA
+        self.sendline('run_hw_ila $ila_0_i')
+
+        # resume emulation (thereby triggering the ILA) and wait for ILA to finish capturing
+        self.unstall()
+        self.sendline('wait_on_hw_ila $ila_0_i')
+
+        # dump ILA data to a CSV file
+        self.sendline('upload_hw_ila_data $ila_0_i')
+        self.sendline(f'write_hw_ila_data -csv_file -force {{{csv_file}}} hw_ila_data_1')
+
+def test_emu_prog(mock=False):
     # start TCL interpreter
-    tcl = VivadoTCL(cwd=get_dir('emu'), debug=True, mock=mock)
+    ctl = EmuCtrl(cwd=get_dir('emu'), debug=True, mock=mock)
 
     # program FPGA
     print('Programming FPGA.')
-    tcl.source(get_file('emu/program.tcl'))
+    ctl.source(get_file('emu/program.tcl'))
 
-    # reset emulator
-    tcl.set_vio(name='$emu_rst', value=0b1)
-    tcl.set_vio(name='$tm_stall', value='3FFFFFF')
+    # initialize VIO outputs
+    ctl.set_vio_var('emu_rst', 1)
+    ctl.set_vio_var('prbs_rst', 1)
+    ctl.set_vio_var('lb_mode', LB_RESET)
+    ctl.unstall()
+
+    # release emulator reset
+    ctl.set_vio_var('emu_rst', 0)
+    
+    # release PRBS reset and wait for the loopback tester to align
+    ctl.set_vio_var('prbs_rst', 0)
+    ctl.set_vio_var('lb_mode', LB_ALIGN)
     sleep(0.1)
-    tcl.set_vio(name='$emu_rst', value=0b0)
-    sleep(0.1)
-    # reset everything else
-    tcl.set_vio(name='$prbs_rst', value=0b1)
-    tcl.set_vio(name='$lb_mode', value=0b00)
-    sleep(0.1)
-    # align the loopback tester
-    tcl.set_vio(name='$prbs_rst', value=0b0)
-    tcl.set_vio(name='$lb_mode', value=0b01)
-    sleep(1)
 
-    # halt the emulation
-    tcl.set_vio(name='$tm_stall', value='0000000')
-
-    # arm the ILA
-    tcl.sendline('run_hw_ila $ila_0_i')
-
-    # resume emulation and wait for ILA to finish capturing
-    tcl.set_vio(name='$tm_stall', value='3FFFFFF')
-    tcl.sendline('wait_on_hw_ila $ila_0_i')
-
-    # dump ILA data 
-    csv_file_path = get_file('emu/ila.csv')
-    tcl.sendline('upload_hw_ila_data $ila_0_i')
-    tcl.sendline(f'write_hw_ila_data -csv_file -force {{{csv_file_path}}} hw_ila_data_1')
+    # capture some data with the ILA
+    ctl.run_ila(csv_file=get_file('emu/ila.csv'))
 
     # run the loopback test
-    tcl.set_vio(name='$lb_mode', value=0b10)
+    ctl.set_vio_var('lb_mode', LB_TEST)
     sleep(10.1)
 
     # halt the emulation
-    tcl.set_vio(name='$tm_stall', value='0000000')
-    sleep(0.1)
+    ctl.stall()
 
     # get results
     print(f'Reading results from VIO.')
-    tcl.refresh_hw_vio('$vio_0_i')
-    lb_latency = int(tcl.get_vio('$lb_latency'))
-    lb_correct_bits = int(tcl.get_vio('$lb_correct_bits'))
-    lb_total_bits = int(tcl.get_vio('$lb_total_bits'))
+    lb_latency = ctl.get_vio_var('lb_latency')
+    lb_correct_bits = ctl.get_vio_var('lb_correct_bits')
+    lb_total_bits = ctl.get_vio_var('lb_total_bits')
 
     # print results
     print(f'Loopback latency: {lb_latency} cycles.')
@@ -70,4 +84,4 @@ def test_emu_prog(mock=False, bitfile_path=None):
     assert (lb_total_bits == lb_correct_bits), 'Bit error detected.'
 
 if __name__ == '__main__':
-    test_emu_prog(mock=True, bitfile_path='./bit_output.log')
+    test_emu_prog(mock=True)

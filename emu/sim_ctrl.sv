@@ -2,8 +2,6 @@ module sim_ctrl(
     input wire logic [7:0] lb_latency,
     input wire logic [63:0] lb_correct_bits,
     input wire logic [63:0] lb_total_bits,
-    input wire logic data_rx,
-    input wire logic mem_rd,
     output var logic prbs_rst=1'b1,
     output var logic [1:0] lb_mode=2'b00,
     output var logic [31:0] tm_stall=27'h3FFFFFF

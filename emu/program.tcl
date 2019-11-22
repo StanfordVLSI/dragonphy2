@@ -31,15 +31,15 @@ set lb_mode [get_hw_probes "sim_ctrl_gen_i/lb_mode" -of_objects $vio_0_i]
 set lb_latency [get_hw_probes "sim_ctrl_gen_i/lb_latency" -of_objects $vio_0_i]
 set lb_correct_bits [get_hw_probes "sim_ctrl_gen_i/lb_correct_bits" -of_objects $vio_0_i]
 set lb_total_bits [get_hw_probes "sim_ctrl_gen_i/lb_total_bits" -of_objects $vio_0_i]
-set data_rx [get_hw_probes "sim_ctrl_gen_i/data_rx" -of_objects $vio_0_i]
-set mem_rd [get_hw_probes "sim_ctrl_gen_i/mem_rd" -of_objects $vio_0_i]
 
 # configure VIO radix
+set_property OUTPUT_VALUE_RADIX UNSIGNED $emu_rst
+set_property OUTPUT_VALUE_RADIX UNSIGNED $prbs_rst
+set_property OUTPUT_VALUE_RADIX UNSIGNED $tm_stall
+set_property OUTPUT_VALUE_RADIX UNSIGNED $lb_mode
 set_property INPUT_VALUE_RADIX UNSIGNED $lb_latency
 set_property INPUT_VALUE_RADIX UNSIGNED $lb_correct_bits
 set_property INPUT_VALUE_RADIX UNSIGNED $lb_total_bits
-set_property INPUT_VALUE_RADIX UNSIGNED $mem_rd
-set_property INPUT_VALUE_RADIX UNSIGNED $data_rx
 
 # configure the ILA for low latency
 # TODO: figure out why using the path to the ILA instance doesn't work...
