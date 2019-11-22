@@ -1,7 +1,15 @@
 import json
 from dragonphy import *
 from svreal import get_svreal_header
+
+####################################################
+# import function from tests directory
+# ref: https://stackoverflow.com/questions/4383571/importing-files-from-different-folder
+import sys
+# insert at 1, 0 is the script path (or '' in REPL)
+sys.path.insert(1, str(get_dir('tests')))
 from common import adapt_fir
+####################################################
 
 prj_cfg = {
   "PROJECT": {
