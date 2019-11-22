@@ -60,8 +60,9 @@ class VivadoTCL:
 
     def sendline(self, line, timeout=float('inf')):
         if self.mock:
-            print(f'Would send the TCL command "{line}".')
-            return
+            #print(f'Would send the TCL command "{line}".')
+            print(f'{line}')
+            return None
 
         if self.debug:
             cprint_block([line], title='SEND', color='magenta')
@@ -77,35 +78,22 @@ class VivadoTCL:
         return before
 
     def source(self, script, timeout=float('inf')):
-        if self.mock:
-            print(f'Would source the TCL script {script}.')
-            return
-
         script = Path(script).resolve()
         self.sendline(f'source {script}', timeout=timeout)
     
     def refresh_hw_vio(self, name, timeout=30):
-        if self.mock:
-            print(f'Would refresh the VIO to get the latest signal values.')
-            return
-
         self.sendline(f'refresh_hw_vio {name}', timeout=timeout)
 
     def get_vio(self, name, timeout=30):
+        before = self.sendline(f'get_property INPUT_VALUE {name}', timeout=timeout)
         if self.mock:
-            print(f'Would get VIO signal {name}, but will just return 0 for now.')
             return 0
 
-        before = self.sendline(f'get_property INPUT_VALUE {name}', timeout=timeout)
         before = before.splitlines()[-1] # get last line
         before = before.strip() # strip off whitespace
         return before
 
     def set_vio(self, name, value, timeout=30):
-        if self.mock:
-            print(f'Would set VIO signal {name} to value {value}.')
-            return
-
         self.sendline(f'set_property OUTPUT_VALUE {value} {name}', timeout=timeout)
         self.sendline(f'commit_hw_vio {name}')
 

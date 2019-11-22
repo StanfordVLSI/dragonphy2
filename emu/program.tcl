@@ -40,3 +40,28 @@ set_property INPUT_VALUE_RADIX UNSIGNED $lb_correct_bits
 set_property INPUT_VALUE_RADIX UNSIGNED $lb_total_bits
 set_property INPUT_VALUE_RADIX UNSIGNED $mem_rd
 set_property INPUT_VALUE_RADIX UNSIGNED $data_rx
+
+# configure the ILA for low latency
+# TODO: figure out why using the path to the ILA instance doesn't work...
+set ila_0_i [get_hw_ilas -of_objects $hw_device]
+set_property CORE_REFRESH_RATE_MS 0 $ila_0_i
+
+# set aliases to ILA probes
+set data_tx_i [get_hw_probes "trace_port_gen_i/data_tx_i" -of_objects $ila_0_i]
+set data_rx_o [get_hw_probes "trace_port_gen_i/data_rx_o" -of_objects $ila_0_i]
+set clk_tx_i [get_hw_probes "trace_port_gen_i/clk_tx_i" -of_objects $ila_0_i]
+set clk_rx_o [get_hw_probes "trace_port_gen_i/clk_rx_o" -of_objects $ila_0_i]
+set stall_set [get_hw_probes "trace_port_gen_i/stall_set" -of_objects $ila_0_i]
+set emu_time_probe [get_hw_probes "trace_port_gen_i/emu_time_probe" -of_objects $ila_0_i]
+
+# configure ILA radix
+set_property DISPLAY_RADIX UNSIGNED $data_tx_i
+set_property DISPLAY_RADIX UNSIGNED $data_rx_o
+set_property DISPLAY_RADIX UNSIGNED $clk_tx_i
+set_property DISPLAY_RADIX UNSIGNED $clk_rx_o
+set_property DISPLAY_RADIX UNSIGNED $stall_set
+set_property DISPLAY_RADIX UNSIGNED $emu_time_probe
+
+# configure the ILA trigger condition
+set_property CONTROL.TRIGGER_POSITION 0 $ila_0_i
+set_property TRIGGER_COMPARE_VALUE eq1'bR $stall_set
