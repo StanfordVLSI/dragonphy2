@@ -148,7 +148,35 @@ class MLSD:
 
         return np.abs(ffe_out)
 
-    def perform_mlsd_zeros(self, recovered_bits, chan_out, step_size=1, bool_arr = None, update=True, debug=False):
+    def perform_mlsd_full_result(self, recovered_bits, chan_out, step_size=1, bool_arr = None, update=False, debug=False):
+        result = [0]*(len(recovered_bits) - self.n_future)
+        if bool_arr is None:
+            bool_arr = np.ones(len(recovered_bits))
+
+        n_front_zeros = self.chan_resp_depth - self.chan_cursor_pos - 1
+        n_back_zeros = self.chan_cursor_pos
+        r_bits_zero = np.concatenate((np.zeros(n_front_zeros), recovered_bits, np.zeros(n_back_zeros)))
+
+        start_index = self.chan_resp_depth - self.chan_cursor_pos - 1
+        end_index = len(r_bits_zero) - self.chan_cursor_pos
+        for i in range(start_index + self.n_prev, end_index - self.n_future, step_size):
+            if debug:
+                print(f'=========== Index: {i - start_index}')
+
+            if bool_arr[i-n_front_zeros]:
+                mlsd_out = self.perform_mlsd_single(r_bits_zero, chan_out, i, debug)
+            else:
+                mlsd_out = r_bits_zero[i]
+
+            if update:
+                r_bits_zero[i] = mlsd_out 
+            
+            result[i - start_index - self.n_prev] = mlsd_out
+        
+        return result
+
+    
+    def perform_mlsd_zeros(self, recovered_bits, chan_out, step_size=1, bool_arr = None, update=False, debug=False):
         result = np.zeros(len(recovered_bits))
 
         if bool_arr is None:
@@ -172,7 +200,7 @@ class MLSD:
             if update:
                 r_bits_zero[i] = mlsd_out 
 
-            result[i - start_index - self.n_prev: i - start_index + self.n_future+ 1] = mlsd_out
+            result[i - start_index - self.n_prev: i - start_index + self.n_future + 1] = mlsd_out
 
         return result
 
@@ -186,6 +214,29 @@ class MLSD:
         print(f'Mismatches occur: {err_idx}')
         print(f'Num mismatch: {len(err_idx)} \t BER: {len(err_idx)/len(mlsd)}')
         return err_idx 
+
+    @classmethod
+    def plot_full_result(cls, result, bit_estimate, title=None):
+        seq_len = len(result[0])
+
+        for i in range(len(result)):
+            plt.plot(range(i, i + seq_len), result[i])
+
+        plt.plot(bit_estimate)
+        plt.title(title)
+        plt.show()
+
+    @classmethod
+    def print_full_result(cls, result, bit_estimate, bit_estimate_err_idx):
+        seq_len = len(result[0])
+        
+        for err in bit_estimate_err_idx:
+            print(f'\nFFE ERROR AT LOCATION {err}')
+            for i in range(-2, 5):
+                print(f'MLSD[{err+i}]: {result[err + i]}', end=',  ')
+            cls.plot_full_result(result[err - 2 : err + 5], bit_estimate[err - 2: err + 5], title="Main bit at index 2")
+ 
+        
 
 def main():
     ideal = np.array([-1, -1, 1, -1, -1, 1, 1, 1, -1, -1, -1, -1])
