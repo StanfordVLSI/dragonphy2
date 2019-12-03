@@ -26,7 +26,7 @@ buffer #(
 
 genvar gi;
 generate
-	for (int gi = 0; gi < numChannels; gi=gi+1) begin
+	for (gi = 0; gi < numChannels; gi=gi+1) begin
 		assign out[gi] = internal_pipeline[gi][depth-1]; 
 	end
 endgenerate

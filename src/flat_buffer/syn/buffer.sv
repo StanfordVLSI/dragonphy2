@@ -19,10 +19,17 @@ generate
 		always @(posedge clk or negedge rstb) begin
 			if(~rstb) begin
 				 for(ii=0;ii<depth; ii=ii+1) begin
-				 	buffer[gi][ii] <= 0;
+				 	buffer[gi][ii] = 0;
 				 end
 			end else begin
-				buffer[gi] <= {buffer[gi][depth-2:0], in[gi]};
+				if(depth > 1) begin
+					for(ii=0; ii<depth-1; ii=ii+1) begin
+						buffer[gi][depth-ii-1] = buffer[gi][depth-2-ii];
+					end
+					buffer[gi][0] = in[gi];
+				end else begin
+					buffer[gi][0] = in[gi];
+				end
 			end
 		end
 	end

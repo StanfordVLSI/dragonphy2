@@ -6,10 +6,11 @@ parameter_list:
   - &ffe_weight_precision 11
   - &estimate_depth 16
   - &estimate_precision 8
-  - &sequence_length 5
+  - &sequence_length 3
   - &decision_shift_precision 4
   - &ffe_shift_precision 4
-
+  - &mlsd_bit_length 2
+  - &mlsd_est_cursor_pos 1
 generic:
   parameters:
     channel_width: *channel_width
@@ -45,4 +46,6 @@ generic:
       estimate_precision: *estimate_precision
       estimate_depth: *estimate_depth
       shift_precision: *decision_shift_precision
+      bit_lenght: *mlsd_bit_length
+      est_center: *mlsd_est_cursor_pos
 

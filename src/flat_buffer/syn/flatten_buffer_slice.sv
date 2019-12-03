@@ -30,4 +30,4 @@ flatten_buffer #(
 	.flat_buffer(flat_slice)
 );
 
-endmodule : flatten_buffer
+endmodule : flatten_buffer_slice

@@ -3,7 +3,9 @@ module flat_mlsd #(
 	parameter integer codeBitwidth = 8,
 	parameter integer estBitwidth  = 8,
 	parameter integer estDepth     = 11,
-	parameter integer seqLength    = 5
+	parameter integer seqLength    = 5,
+	parameter integer nbit=2,
+	parameter integer cbit=0
 ) (
 	input wire logic signed [codeBitwidth-1:0] codes [numChannels-1:0],
 	input wire logic signed [estBitwidth-1:0] channel_est [numChannels-1:0][estDepth-1:0],
@@ -28,9 +30,9 @@ module flat_mlsd #(
 
 	wire logic signed [codeBitwidth-1:0] flat_codes [numChannels*bufferDepth-1:0];
 	wire logic 							 flat_bits 	[numChannels*bufferDepth-1:0];
-    logic next_predict_bits [numChannels-1:0];
+    logic [nbit-1:0] next_predict_bits [numChannels-1:0];
 
-	logic signed [codeBitwidth-1:0] est_seq [1:0][numChannels-1:0][seqLength-1:0];
+	logic signed [codeBitwidth-1:0] est_seq [2**nbit-1:0][numChannels-1:0][seqLength-1:0];
 
 	logic [shiftWidth-1:0] shift_index [numChannels-1:0];
 	
@@ -87,7 +89,9 @@ module flat_mlsd #(
 		.codeBitwidth(codeBitwidth),
 		.numChannels (numChannels),
 		.bufferDepth (bufferDepth),
-		.centerBuffer(centerBuffer)
+		.centerBuffer(centerBuffer),
+		.nbit        (nbit),
+		.cbit        (cbit)
 	) comb_pt_cg_i (
 		.flat_bits  (flat_bits),
 		.channel_est(channel_est),
@@ -102,7 +106,9 @@ module flat_mlsd #(
 		.shiftWidth  (shiftWidth),
 		.numChannels(numChannels),
 		.bufferDepth (bufferDepth),
-		.centerBuffer(centerBuffer)
+		.centerBuffer(centerBuffer),
+		.nbit        (nbit),
+		.cbit        (cbit)
 	) comb_mlsd_dec_i (
 		.flat_codes  (flat_codes),
 		.est_seq     (est_seq),
@@ -118,7 +124,7 @@ module flat_mlsd #(
 			end
 		end else begin
 			foreach(predict_bits[ii]) begin
-				predict_bits[ii] <= next_predict_bits[ii];
+				predict_bits[ii] <= next_predict_bits[ii][0];
 			end
 		end
 	end
