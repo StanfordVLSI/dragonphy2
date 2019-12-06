@@ -17,7 +17,7 @@ steps:
       # install svreal
       git clone https://github.com/sgherbst/svreal.git
       cd svreal
-      git checkout v3
+      git checkout v1
       pip install -e .
       cd ..
 
@@ -60,7 +60,7 @@ steps:
       # install svreal
       git clone https://github.com/sgherbst/svreal.git
       cd svreal
-      git checkout v3
+      git checkout v1
       pip install -e .
       cd ..
 

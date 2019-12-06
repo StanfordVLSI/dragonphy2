@@ -10,18 +10,15 @@ module tx #(
 );
 
     generate
-        // constants
-        `ANALOG_CONST(zero,   0);
+        // mux between +/- 1
         `ANALOG_CONST(volt0, v_lo);
         `ANALOG_CONST(volt1, v_hi);
-
-        // mux between +/- 1
         `DECL_ANALOG_LOCAL(out_imm);
-        `SVREAL_MUX(data_i, volt0, volt1, out_imm);
+        `ITE_INTO_REAL(data_i, volt1, volt0, out_imm);
 
         // assign to output with DFF
-        `SVREAL_ALIAS_OUTPUT(data_ana_o.value, data_ana_o_value);
-        `SVREAL_DFF(out_imm, data_ana_o_value, 1'b0, clk_i, 1'b1, zero);
+        `INTF_OUTPUT_TO_REAL(data_ana_o.value, data_ana_o_value);
+        `DFF_INTO_REAL(out_imm, data_ana_o_value, 1'b0, clk_i, 1'b1, 0.0);
     endgenerate
 
 endmodule

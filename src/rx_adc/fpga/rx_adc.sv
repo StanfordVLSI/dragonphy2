@@ -11,7 +11,7 @@ module rx_adc #(
 );
     // TODO: make more generic
     always @(posedge clk) begin
-        if (`SVREAL_SIGNIFICAND(in.value) < 0) begin
+        if (in.value < 0) begin
             out <= -(1<<(n_adc-1))+0;
         end else begin
             out <= +(1<<(n_adc-1))-1;

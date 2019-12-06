@@ -6,7 +6,6 @@ module osc_model #(
 ) (
     output wire logic clk_o
 );
-
     // signals use for external I/O
     (* dont_touch = "true" *) logic __emu_clk_val;
     (* dont_touch = "true" *) logic __emu_rst;
@@ -22,40 +21,36 @@ module osc_model #(
     assign clk_o = __emu_clk_i;
 
     // import emu_dt as a svreal signal
-    logic signed [((`DT_WIDTH)-1):0] emu_dt_significand;
-    logic signed [15:0] emu_dt_exponent;
-    localparam integer emu_dt_significand_width = `DT_WIDTH;
-    assign emu_dt_significand = __emu_dt;
-    assign emu_dt_exponent = `DT_EXPONENT;
+    `REAL_FROM_WIDTH_EXP(emu_dt, `DT_WIDTH, `DT_EXPONENT);
+    assign emu_dt = __emu_dt;
 
     // Main control logic.  "dont_touch" is used
     // because the dt_req and clk_val signals are
     // read hierarchically, even though they are
     // not outputs of the module
     `DECL_DT_LOCAL(dt_req);
-    assign __emu_dt_req = dt_req_significand;
+    assign __emu_dt_req = dt_req;
 
     // check if the emulator timestep matches the 
     // requested timestep
-    logic dt_req_eq_emu_dt;
-    `SVREAL_EQ(dt_req, emu_dt, dt_req_eq_emu_dt);
+    `EQ_REAL(dt_req, emu_dt, dt_req_eq_emu_dt);
 
     // compute difference between requested 
     `DECL_DT_LOCAL(dt_req_minus_emu_dt);
-    `SVREAL_SUB(dt_req, emu_dt, dt_req_minus_emu_dt);
+    `SUB_INTO_REAL(dt_req, emu_dt, dt_req_minus_emu_dt);
 
     // compute the duration of the next half period
     `DECL_DT_LOCAL(next_half_period);
     `DT_CONST(t_hi_const, t_hi);
     `DT_CONST(t_lo_const, t_lo);
-    `SVREAL_MUX(__emu_clk_val, t_hi_const, t_lo_const, next_half_period);
+    `ITE_INTO_REAL(__emu_clk_val, t_lo_const, t_hi_const, next_half_period);
 
     // determine the next value of dt_req
     `DECL_DT_LOCAL(dt_req_imm);
-    `SVREAL_MUX(dt_req_eq_emu_dt, dt_req_minus_emu_dt, next_half_period, dt_req_imm);
+    `ITE_INTO_REAL(dt_req_eq_emu_dt, next_half_period, dt_req_minus_emu_dt, dt_req_imm);
 
     // assign to dt_req with memory
-    `SVREAL_DFF(dt_req_imm, dt_req, __emu_rst, __emu_clk, 1'b1, t_lo_const);
+    `DFF_INTO_REAL(dt_req_imm, dt_req, __emu_rst, __emu_clk, 1'b1, t_lo);
 
     // clock toggling logic
     always @(posedge __emu_clk) begin
@@ -67,5 +62,4 @@ module osc_model #(
             __emu_clk_val <= __emu_clk_val;
         end
     end
-
 endmodule
