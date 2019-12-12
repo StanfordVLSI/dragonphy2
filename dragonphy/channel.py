@@ -21,6 +21,7 @@ class Channel(Filter):
         self.resp_depth       = resp_depth
         self.cursor_pos       = cursor_pos
         self.impulse_response = self.channel_generator[channel_type](self, resp_depth=self.resp_depth, **kwargs)
+        self.pulse_response = []
         self.reset_cursor()
         self.real_time        = (np.array(range(self.length()))-self.cursor_pos)*1.0/sampl_rate
 
@@ -53,7 +54,7 @@ class Channel(Filter):
         try:
             tau = kwargs['tau']
         except KeyError as e:
-            print("Dielectric Effect Channel: {} not specified, defaulting to {}=2".format('tau','tau'))
+            print("Dielectric2 Effect Channel: {} not specified, defaulting to {}=2".format('tau','tau'))
             tau = 2
         
         sample_per = 1.0/self.sampl_rate
@@ -67,18 +68,78 @@ class Channel(Filter):
         return self.normal_select[normal](self, unscaled_array)
 
     # From: Ryan Boesch Thesis
-    # Continuous Model: h(t) = 1/(pi*k) * (1+t/k)/(1+(t/k)^2)
-    def dielectric1_channel(self, resp_depth=10, normal='area', **kwargs):
+    # Continuous Channel Model: h(t) = 1/(pi*k) * (1+t/k)/(1+(t/k)^2)
+    # Continuous Pulse Response: p(t) = rect(t/T) * h(t)
+    def dielectric1_pulse_channel(self, resp_depth=10, normal='area', **kwargs):
         try:
             tau = kwargs['tau']
         except KeyError as e:
-            print("Dielectric Effect Channel: {} not specified, defaulting to {}=2".format('tau','tau'))
+            print("Dielectric1 Pulse Response Effect Channel: {} not specified, defaulting to {}=2".format('tau','tau'))
             tau = 2
         
         sample_per = 1.0/self.sampl_rate
        
         func_scale = 1.0/(np.pi*tau)
-        nT_over_tau = np.divide(range(-int(1/tau) - 1 , resp_depth-int(1/tau) - 1), np.repeat(sample_per/tau, resp_depth))
+
+        T = sample_per
+        delta = T/100.
+        t = np.arange(-1./delta, resp_depth/delta, delta)
+        rect = np.where(np.abs(t) < T/2, 1., 0.)
+
+        t = np.arange(-1./delta, resp_depth/delta, delta)
+        t_over_k = np.divide(t, tau)
+        h = func_scale * np.divide((1. + t_over_k), (1. + t_over_k ** 2))
+        h = np.clip(h, 0, None)
+
+        plt.plot(rect)
+        plt.plot(h)
+        plt.show()
+
+        p = np.convolve(rect, h)
+
+
+        argmax_p = np.argmax(p)
+        print(argmax_p)
+        
+        start_n = argmax_p % int(T/delta)
+        p_n = p[start_n::int(T/delta)] 
+
+        print(f'Length = {len(p_n)}')
+
+        start_nonzero = next((i for i, x in enumerate(p_n) if x), None) - 1
+
+        plt.plot(p)
+        plt.stem(start_n + np.arange(0, int(T/delta) * len(p_n), int(T/delta)), p_n)
+        plt.show()
+        p_n_crop = p_n[start_nonzero:start_nonzero + resp_depth]
+
+        return self.normal_select[normal](self, p_n_crop)
+    # From: Ryan Boesch Thesis
+    # Continuous Channel Model: h(t) = 1/(pi*k) * (1+t/k)/(1+(t/k)^2)
+    def dielectric1_channel(self, resp_depth=10, normal='area', **kwargs):
+        try:
+            tau = kwargs['tau']
+        except KeyError as e:
+            print("Dielectric1 Effect Channel: {} not specified, defaulting to {}=2".format('tau','tau'))
+            tau = 2
+        
+        sample_per = 1.0/self.sampl_rate
+       
+        func_scale = 1.0/(np.pi*tau)
+
+        # Find argmax of continuous time function
+        sample_points_cont = np.linspace(-1./tau, -1./tau + sample_per * resp_depth, resp_depth * 10000)
+        nT_over_tau_cont = np.multiply(sample_points_cont, np.repeat(sample_per/tau, resp_depth * 10000))
+        unscaled_array_cont = np.clip((1.0 + nT_over_tau_cont)/(1.0 + nT_over_tau_cont**2), 0, None)
+    
+        argmax_val = np.argmax(unscaled_array_cont)
+        print(argmax_val)
+        
+        # Now calculate discrete time signal with argmax
+        argmax_mod = argmax_val % sample_per
+
+        sample_points = np.linspace(-1./tau + argmax_mod, -1./tau + argmax_mod + sample_per * resp_depth, resp_depth)
+        nT_over_tau = np.multiply(sample_points, np.repeat(sample_per/tau, resp_depth))
         
         unscaled_array = np.pad(np.clip((1.0 + nT_over_tau)/(1.0 + nT_over_tau**2), 0, None), (self.cursor_pos, 0), 'constant', constant_values=(0,0))[0:resp_depth]
         return self.normal_select[normal](self, unscaled_array)
@@ -155,23 +216,24 @@ class Channel(Filter):
 
 
     channel_generator = { 'perfect' : perfect_channel, 'exponent' : exponential_channel, 'skineffect' : skineffect_channel, 'dielectric2' : dielectric2_channel, \
-                         'dielectric1' : dielectric1_channel, 'combined' : combined_channel}
+                         'dielectric1' : dielectric1_channel, 'combined' : combined_channel, 'dielectric1_pulse' : dielectric1_pulse_channel}
     normal_select     = { 'area' : normalize_area, 'energy' : normalize_energy, 'none': normalize_none}
 
 # Used for testing 
 if __name__ == "__main__":
     c1 = Channel(channel_type='skineffect', sampl_rate=5, resp_depth=10)
-    c2 = Channel(channel_type='dielectric1', sampl_rate=5, resp_depth=125)
+    c2 = Channel(channel_type='dielectric1', tau=0.87, sampl_rate=1, resp_depth=125)
     c3 = Channel(channel_type='dielectric2', sampl_rate=5, resp_depth=125)
+    c4 = Channel(channel_type='dielectric1_pulse', tau=0.87, sampl_rate=1., resp_depth=100)
 
-    print(c1.impulse_response)
     plt.plot(c1.impulse_response)
     plt.show()
 
-    print(c2.impulse_response)  
-    plt.plot(c2.impulse_response)
+    plt.stem(c2.impulse_response)
     plt.show()
 
-    print(c3.impulse_response)  
+    plt.stem(c4.impulse_response)
+    plt.show()
+
     plt.plot(c3.impulse_response)
     plt.show()
