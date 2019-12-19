@@ -1,6 +1,4 @@
 from dragonphy import *
-from verif.fir.fir import Fir
-from verif.mlsd.mlsd import MLSD
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -52,22 +50,24 @@ def test_system_cheating():
 
 
     # Initialize parameters 
-    load_codes = False
-    iterations = 1000
+    load_model = False
+    iterations = 100
     training_len = 100000
     pos = 1
     resp_len = 150
     bitwidth = 6
     plot_len = 100 #iterations
     num_taps = 3
-    noise_amp = 0.02 # with iterations of 1000
+    noise_amp = 0.1
+    #noise_amp = 0.02 # with iterations of 1000
     #noise_amp = 0.003 # with iterations of 1M
     noise_en = True
+    debug = False
     tau = 0.87
     
    
     # Generate weight training codes
-    if load_codes:
+    if load_model:
         # Load Ideal Codes
         ideal_codes = np.loadtxt('dragonphy/analysis/ideal_codes.txt', dtype=np.int16)
         print(f'Ideal codes: {ideal_codes[:plot_len]}')
@@ -87,9 +87,11 @@ def test_system_cheating():
     plt.plot(chan.impulse_response)
     plt.suptitle("Channel Response")
     plt.show()
-    print(f'Channel resp: {chan.impulse_response}')
-    print(f'Channel out: {chan_out[:plot_len]}')
-    print(f'Cursor pos: {chan.cursor_pos}')
+
+    if debug:
+        print(f'Channel resp: {chan.impulse_response}')
+        print(f'Channel out: {chan_out[:plot_len]}')
+        print(f'Cursor pos: {chan.cursor_pos}')
     pos = chan.cursor_pos
 
     # Add noise
@@ -111,8 +113,13 @@ def test_system_cheating():
     qw = Quantizer(11, signed=True)
     quantized_weights = qw.quantize_2s_comp(weights)
     
-    # Generate test codes
-    ideal_codes = np.random.randint(2, size=iterations)*2 - 1   # Random Codes
+    if load_model:
+        ideal_codes = np.loadtxt('dragonphy/analysis/test_codes.txt')
+    else:
+        # Generate test codes
+        ideal_codes = np.random.randint(2, size=iterations)*2 - 1   # Random Codes
+        np.savetxt('dragonphy/analysis/test_codes.txt', ideal_codes)
+
     chan_out = chan(ideal_codes)
     # Add noise
     if noise_en:
@@ -161,8 +168,8 @@ def test_system_cheating():
 
     ffe_errors = np.inner(corrected_comp_out - ideal_codes, corrected_comp_out - ideal_codes)/4
     print(f'Number of FFE mismatches: {ffe_errors} \t BER: {ffe_errors/iterations}')
-    err_idx = [i for i in range(len(corrected_comp_out)) if corrected_comp_out[i] != ideal_codes[i]]
-    print(f'Mismatches occur: {err_idx}')
+    ffe_err_idx = [i for i in range(len(corrected_comp_out)) if corrected_comp_out[i] != ideal_codes[i]]
+    print(f'Mismatches occur: {ffe_err_idx}')
 
     margin = 1500 
     # Plot MLSD Statistics
@@ -176,9 +183,18 @@ def test_system_cheating():
 
     # Plot MLSD statistics
     print(f'MLSD Output (only on margin < {margin}, no update, look at {m1.n_future} bits in the future)')
-    mlsd_out_ffe_margin = m1.perform_mlsd_zeros(corrected_comp_out, quantized_chan_out, bool_arr = marginal_bits, update=False)
-    err_idx = m1.find_err_idx(mlsd_out_ffe_margin, ideal_codes)
+    mlsd_out = m1.perform_mlsd_zeros(corrected_comp_out, quantized_chan_out, update=False)
+    err_idx = m1.find_err_idx(mlsd_out, ideal_codes)
     
+    # Plot MLSD statistics for 2 future bits
+    m2 = MLSD(chan.cursor_pos, chan.impulse_response, n_future=1, bitwidth=bitwidth, quantizer_lsb=qc.lsb)
+    print(f'MLSD output, no update, look at {m2.n_future} bits in the future')
+    mlsd_out_2bit = m2.perform_mlsd_full_result(corrected_comp_out, quantized_chan_out, update=False)
+    print(f'MLSD 2bit future slices: {mlsd_out_2bit}')
+
+    MLSD.plot_full_result(mlsd_out_2bit, corrected_comp_out)
+    MLSD.print_full_result(mlsd_out_2bit, corrected_comp_out, ffe_err_idx)
+
     ffe_norm = m.calc_mlsd_err(corrected_comp_out, quantized_chan_out)
     print(f'FFE Norm: {ffe_norm[:plot_len]}')
 
@@ -186,6 +202,9 @@ def test_system_cheating():
         print(f'TEST PASSED')
     else:   
         print(f'TEST FAILED') 
+
+    
+    
 
 def main():
     #plot_parametric_channel()
