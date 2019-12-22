@@ -138,7 +138,7 @@ class Channel(Filter):
         # Now calculate discrete time signal with argmax
         argmax_mod = argmax_val % sample_per
 
-        sample_points = np.linspace(-1./tau + argmax_mod, -1./tau + argmax_mod + sample_per * resp_depth, resp_depth)
+        sample_points = np.linspace(-sample_per/tau + argmax_mod, -sample_per/tau + argmax_mod + sample_per * resp_depth, resp_depth)
         nT_over_tau = np.multiply(sample_points, np.repeat(sample_per/tau, resp_depth))
         
         unscaled_array = np.pad(np.clip((1.0 + nT_over_tau)/(1.0 + nT_over_tau**2), 0, None), (self.cursor_pos, 0), 'constant', constant_values=(0,0))[0:resp_depth]
@@ -219,8 +219,85 @@ class Channel(Filter):
                          'dielectric1' : dielectric1_channel, 'combined' : combined_channel, 'dielectric1_pulse' : dielectric1_pulse_channel}
     normal_select     = { 'area' : normalize_area, 'energy' : normalize_energy, 'none': normalize_none}
 
+class PulseChannel(Channel):
+    def __init__(self, baud_rate=1, channel_type='perfect', resp_depth=12500, cursor_pos=2, sampl_rate=100, **kwargs):
+        super().__init__(channel_type=channel_type, resp_depth=resp_depth, cursor_pos=cursor_pos, sampl_rate=sampl_rate, **kwargs)
+        self.baud_rate   = baud_rate
+        self.pulse_width = 1.0/baud_rate
+        self.osr         = int(self.sampl_rate*self.pulse_width)
+        self.rect_pulse = self.create_rectangle_pulse()
+
+        self.pulse_response = super().__call__(self.rect_pulse)[int(self.osr/2):]
+
+    def create_rectangle_pulse(self):
+        T = 1.0/self.sampl_rate
+        pw = self.pulse_width
+
+        return np.where(np.abs(np.arange(-pw, pw, T)) <= pw/2, 1, 0)
+
+    def downsample(self, samples):
+        return samples[::self.osr]
+
+    def upsample(self, samples):
+        upsamples = np.zeros(self.osr*len(samples)-1, dtype=samples.dtype)
+        upsamples[::self.osr] = samples
+        return upsamples
+
+    def __call__(self, symbols):
+        if isinstance(symbols, (list)):
+            symbols = np.array(symbols)
+
+        #Upsample the symbol input with a zero-order hold then convolute with the pulse response (pulse+channel) and then downsample
+        oversampled_values = np.convolve(self.upsample(symbols), self.pulse_response, mode='full')[int(self.osr/2):]*1.0/self.sampl_rate
+        return self.downsample(oversampled_values)
+
+class JitterModel():
+    def __init__(self, jitter_type='gaussian', **kwargs):
+        self.jitter_model = self.jitter_generator[jitter_type](self, **kwargs)
+
+    def gaussian_jitter(self, **kwargs):
+        std = kwargs['std']
+        mean = kwargs['mean']
+
+        def jitter_model(size):
+            return np.random.normal(loc=mean, scale=std, size=size)
+
+        return jitter_model
+
+    def __call__(self, size):
+        return self.jitter_model(size=size)
+
+    jitter_generator = {'gaussian': gaussian_jitter}
+
+class JitterPulseChannel(PulseChannel):
+    def __init__(self, jitter_model, baud_rate=1, channel_type='perfect', resp_depth=12500, cursor_pos=2, sampl_rate=100, **kwargs):
+        super().__init__(baud_rate=baud_rate, channel_type=channel_type, resp_depth=resp_depth, cursor_pos=cursor_pos, sampl_rate=sampl_rate, **kwargs)
+        self.jitter_model= jitter_model
+
+    def downsample(self,samples):
+        if isinstance(samples, list):
+            samples = np.array(samples)
+
+        num_of_samples = int(len(samples)/self.osr)
+
+        #Generate timing jitter, remove possible negative index, scale jitter to fit oversampling rate and cast it into ints 
+        timing_jitter    = self.jitter_model(size=(num_of_samples,))
+        timing_jitter[0] = abs(timing_jitter[0])
+        timing_jitter    = (timing_jitter*self.osr).astype(dtype='int32')
+
+        timing_positions = np.arange(0,num_of_samples,1)*self.osr
+
+        return samples[timing_jitter+timing_positions]
+
+
 # Used for testing 
 if __name__ == "__main__":
+
+    j1 = JitterModel(mean=0, std=0.25)
+
+    c6 = JitterPulseChannel(jitter_model=j1, channel_type='dielectric1', tau=0.0087, sampl_rate=100, resp_depth=12500)
+    c5 = PulseChannel(channel_type='dielectric1', tau=0.0087, sampl_rate=100, resp_depth=12500)
+    exit()
     c1 = Channel(channel_type='skineffect', sampl_rate=5, resp_depth=10)
     c2 = Channel(channel_type='dielectric1', tau=0.87, sampl_rate=1, resp_depth=125)
     c3 = Channel(channel_type='dielectric2', sampl_rate=5, resp_depth=125)

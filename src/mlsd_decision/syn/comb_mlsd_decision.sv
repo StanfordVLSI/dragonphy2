@@ -21,8 +21,6 @@ localparam cursor_pos_offset = centerBuffer*numChannels;
 wire logic signed [codeBitwidth-1:0] act_seq [numChannels-1:0][seqLength-1:0];
 wire logic signed [codeBitwidth-1:0] error_energ   [2**nbit-1:0][numChannels-1:0];
 
-logic signed [codeBitwidth-1:0] lowest_error_energ [numChannels-1:0];
-
 genvar gi, gj;
 generate
 	for(gi=0; gi < numChannels; gi=gi+1) begin
@@ -37,7 +35,7 @@ generate
 				.est_seq (est_seq[gj][gi]),
 				.code_seq(act_seq[gi]),
 				.shift_index(shift_index[gi]),
-				.energ   (error_energ[gj][gi])
+				.distance(error_energ[gj][gi])
 			);
 		end
 		integer ii;
