@@ -51,6 +51,9 @@ class Packager():
             parameter_default = "\"" + parameter_default + "\""
         elif isinstance(parameter_default, int):
             parameter_type    = 'integer'
+        else:
+            print(f'Cannot determine type for {parameter_name} (default: {parameter_default})')
+            exit()
 
         return "localparam {} {} = {};".format(parameter_type, parameter_name, parameter_default)
 

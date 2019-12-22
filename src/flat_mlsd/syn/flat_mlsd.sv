@@ -4,11 +4,12 @@ module flat_mlsd #(
 	parameter integer estBitwidth  = 8,
 	parameter integer estDepth     = 11,
 	parameter integer seqLength    = 5,
-	parameter integer nbit=2,
-	parameter integer cbit=0
+	parameter integer nbit=4,
+	parameter integer cbit=1
 ) (
 	input wire logic signed [codeBitwidth-1:0] codes [numChannels-1:0],
 	input wire logic signed [estBitwidth-1:0] channel_est [numChannels-1:0][estDepth-1:0],
+	input wire logic signed [estBitwidth-1:0] precalc_seq_vals [2**nbit-1:0][numChannels-1:0][seqLength-1:0],
 	input wire logic estimate_bits [numChannels-1:0],
 
 	input wire logic clk,
@@ -22,11 +23,12 @@ module flat_mlsd #(
 	localparam integer bufferDepth   = numPastBuffers + numFutureBuffers + 1;
 	localparam integer centerBuffer  = numPastBuffers;
 	localparam integer shiftWidth    = 4;
+	
 	//Connecting Wires
 	wire logic   [codeBitwidth-1:0]  ucodes		[numChannels-1:0];
-	 logic   [codeBitwidth-1:0]  ucodes_d_1 [numChannels-1:0];
+		 logic   [codeBitwidth-1:0]  ucodes_d_1 [numChannels-1:0];
 	wire logic   [codeBitwidth-1:0] uflat_codes [numChannels*bufferDepth-1:0];
-	logic estimate_bits_d_1 [numChannels-1:0];
+		 logic estimate_bits_d_1 [numChannels-1:0];
 
 	wire logic signed [codeBitwidth-1:0] flat_codes [numChannels*bufferDepth-1:0];
 	wire logic 							 flat_bits 	[numChannels*bufferDepth-1:0];
@@ -95,8 +97,7 @@ module flat_mlsd #(
 	) comb_pt_cg_i (
 		.flat_bits  (flat_bits),
 		.channel_est(channel_est),
-		.clk        (clk),
-		.rstb       (rstb),
+		.precalc_seq_vals(precalc_seq_vals),
 		.est_seq_out(est_seq)
 	);
 

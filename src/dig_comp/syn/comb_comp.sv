@@ -39,4 +39,4 @@ module comb_comp #(
 	endgenerate
 
 
-endmodule : comparator
+endmodule : comb_comp

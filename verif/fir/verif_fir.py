@@ -1,13 +1,12 @@
 from dragonphy import *
-from dragonphy.analysis import *
-
+from dragonphy.analysis.histogram import *
 from pathlib import Path
 
 import numpy as np
 import matplotlib.pyplot as plt
 import yaml
 import math
-
+import shutil
 
 
 
@@ -38,18 +37,37 @@ def perform_wiener(ideal_input, chan, chan_out, M = 11, u = 0.1, pos=2, iteratio
     for i in range(iterations-pos):
         adapt.find_weights_pulse(ideal_input[i-pos], chan_out[i])   
     
+#   pulse_weights = adapt.weights   
+#   for i in range(iterations-2):
+#       adapt.find_weights_error(ideal_codes[i-pos], chan_out[i])   
+#   
+#   pulse2_weights = adapt.find_weights_pulse2()
 
+#   print(pulse_weights)
+#   print(adapt.weights)
+    
+    #plt.plot(adapt.weights)
+    #plt.show()
+
+    #print(f'Filter input: {adapt.filter_in}')
     print(f'Adapted Weights: {adapt.weights}')
 
+    #chan_out = chan_out[2:iterations+2]
+    
+    #deconvolve(adapt.weights, chan)
+
+    #plt.plot(chan(np.reshape(pulse_weights, len(pulse_weights))))
+    #plt.plot(chan(pulse2_weights[-1]))
+    #plt.show()
     return adapt.weights
 
 def execute_fir(ffe_config, quantized_weights, depth, quantized_chan_out):
     f = Fir(len(quantized_weights), quantized_weights, ffe_config["parameters"]["width"])
     
     # Only works when all channel weights are the same
-    #single_matrix = []
-    #for i in range(0, depth - len(quantized_weights) + 1, ffe_config["parameters"]["width"]):
-    #    single_matrix.extend(f.single(quantized_chan_out, i).flatten())
+    single_matrix = []
+    for i in range(0, depth - len(quantized_weights) + 1, ffe_config["parameters"]["width"]):
+        single_matrix.extend(f.single(quantized_chan_out, i).flatten())
 
     single_matrix = f(quantized_chan_out)
     # Works when all channel weights are different
@@ -57,18 +75,12 @@ def execute_fir(ffe_config, quantized_weights, depth, quantized_chan_out):
 
     assert(compare(channel_matrix, single_matrix, length=500))
     # Format conv_matrix to match SV output
-    return np.divide(np.array(single_matrix), 256)
+    return np.divide(np.array(single_matrix), 1)
 
 def read_svfile(fname):
     with open(fname, "r") as f:
         f_lines = f.readlines()
-        values  = []
-        for line in f_lines:
-            try:
-                values += [int(line)]
-            except:
-                values += [-99]
-        return np.array(values)
+        return np.array([int(x) for x in f_lines])
 
 def convert_2s_comp(np_arr, width):
     signed_arr=[]
@@ -97,21 +109,19 @@ def compare(arr1, arr2, arr2_trim=0, length=None, debug=False):
             equal = False
     return equal
 
-def main():
-    build_dir = 'verif/cmp/build_cmp'
-    pack_dir  = 'verif/cmp/pack'
+def verif_fir_main():
+    build_dir = 'verif/fir/build_fir'
+    pack_dir  = 'verif/fir/pack'
+    module_name = 'fir'
 
     system_config = Configuration('system')
-    test_config   = Configuration('test_verif_cmp', 'verif/cmp')
+    test_config   = Configuration('test_verif_fir', 'verif/fir')
 
     #Associate the correct build directory to the python collateral
     test_config['parameters']['ideal_code_filename'] = str(Path(build_dir + '/' + test_config['parameters']['ideal_code_filename']).resolve())
     test_config['parameters']['adapt_code_filename'] = str(Path(build_dir + '/' + test_config['parameters']['adapt_code_filename']).resolve())
     test_config['parameters']['adapt_coef_filename'] = str(Path(build_dir + '/' + test_config['parameters']['adapt_coef_filename']).resolve())
     test_config['parameters']['output_filename'] = str(Path(build_dir + '/' + test_config['parameters']['output_filename']).resolve())
-
-    #
-    cmp_config = system_config['generic']['comp']
 
     # Get config parameters from system.yml file
     ffe_config = system_config['generic']['ffe']
@@ -137,8 +147,7 @@ def main():
     ideal_codes = ffe_helper.ideal_codes
     quantized_chan_out = ffe_helper.quantized_channel_output
     weights = ffe_helper.weights
-
-
+    
     chan_out = chan(ideal_codes)
 
     #plot_adapt_input(ideal_codes, chan_out, 100)
@@ -153,83 +162,69 @@ def main():
 
     qffe_resp = Fir(len(quantized_weights), quantized_weights, ffe_config["parameters"]["width"]).impulse_response
     system_config['generic']['parameters']['ffe_shift'] = ffe_shift
-    
+
     print(f'Weights: {weights}')
     print(f'Quantized Weights: {quantized_weights}')
     write_files([depth, ffe_config['parameters']["length"], ffe_config["adaptation"]["args"]["mu"]], quantized_chan_out, quantized_weights, 'verif/fir/build_fir')   
          
-
     #Create Package Generator Object 
     generic_packager   = Packager(package_name='constant', parameter_dict=system_config['generic']['parameters'], path=pack_dir)
     testbench_packager = Packager(package_name='test',     parameter_dict=test_config['parameters'], path=pack_dir)
     ffe_packager       = Packager(package_name='ffe',      parameter_dict=ffe_config['parameters'], path=pack_dir)
-    cmp_packager       = Packager(package_name='cmp',      parameter_dict=cmp_config['parameters'], path=pack_dir)
+
     #Create package file from parameters specified in system.yaml under generic
     generic_packager.create_package()
     testbench_packager.create_package()
     ffe_packager.create_package()
-    cmp_packager.create_package()
 
     #Create TestBench Object
     tester   = Tester(
                         top       = 'test',
-                        testbench = ['verif/cmp/test_cmp.sv'],
-                        libraries = ['src/fir/syn/ffe.sv', 'src/dig_comp/syn/comparator.sv' ,'verif/tb/beh/logic_recorder.sv'],
-                        packages  = [generic_packager.path, testbench_packager.path, ffe_packager.path, cmp_packager.path],
+                        testbench = ['verif/fir/test_fir.sv'],
+                        libraries = [ 'src/flat_buffer/syn/buffer.sv',
+                                      'src/flat_buffer/syn/flatten_buffer.sv',
+                                      'src/flat_buffer/syn/flatten_buffer_slice.sv',
+                                      'src/delay_buffer/delay_buffer.sv',
+                                      'src/fir/syn/comb_ffe.sv',
+                                      'src/fir/syn/flat_ffe.sv', 
+                                      'verif/tb/beh/signed_recorder.sv' ],
+                        packages  = [generic_packager.path, testbench_packager.path, ffe_packager.path],
                         flags     = ['-sv', '-64bit', '+libext+.v', '+libext+.sv', '+libext+.vp'],
                         build_dir = build_dir,
                         overload_seed=True,
                         wave=True
                     )
 
-
-    check_bits = 300
-    quantized_chan_out_t = quantized_chan_out[check_bits:check_bits+depth]
-
-    print(f'Quantized Chan: {quantized_chan_out}')
-    print(f'Chan: {chan_out}')
-    quantized_weights = weights
-    print(f'Weights: {weights}')
-    print(f'Quantized Weights: {quantized_weights}')
-    write_files([depth, ffe_config['parameters']["length"], ffe_config["adaptation"]["args"]["mu"]], quantized_chan_out_t, quantized_weights, 'verif/cmp/build_cmp')   
-         
     #Execute TestBench Object
     tester.run()
-    
+
     Packager.delete_pack_dir(path=pack_dir)
 
     #Execute ideal python FIR 
-    py_arr = execute_fir(ffe_config, quantized_weights, depth, quantized_chan_out_t)
-
-    hist_helper = Histogram()
-    # Plot a window of the ideal vs ffe output
-    #hist_helper.plot_comparison(py_arr, ideal_codes, length=150, scale=50, delay_ffe=pos, delay_ideal=check_bits)
-    # Histogram Plot
-    #hist_helper.plot_histogram(py_arr, ideal_codes, delay_ffe=pos, delay_ideal=check_bits, save_dir=build_dir) 
-    
-    py_arr = np.array([1 if int(np.floor(py_val)) >= 0 else 0 for py_val in py_arr])
+    py_arr = execute_fir(ffe_config, quantized_weights, depth, quantized_chan_out)
+    py_arr = [int(np.floor(py_val/2**float(ffe_shift))) for py_val in py_arr]
 
     # Read in the SV results file
-    sv_arr = read_svfile('verif/cmp/build_cmp/cmp_results.txt')
+    sv_arr = read_svfile('verif/fir/build_fir/FFE_results.txt')
+
+    sv_arr = convert_2s_comp(sv_arr, ffe_config["parameters"]["output_precision"])
+
     # Compare
-    sv_trim = (4+ffe_config['parameters']["length"]) * ffe_config["parameters"]["width"] - (ffe_config["parameters"]["length"]-1)
+    sv_trim = (3 + math.ceil((ffe_config["parameters"]["length"]-1)/ffe_config["parameters"]["width"]))* ffe_config["parameters"]["width"] - (ffe_config["parameters"]["length"]-1)
+
     # This trim needs to be fixed - I think the current approach is ""hacky""
     comp_len = math.floor((depth - ffe_config["parameters"]["length"] + 1) \
         /ffe_config["parameters"]["width"]) * ffe_config["parameters"]["width"]
 
-    # Print ideal codes
-    ideal_in = ideal_codes[pos:pos+check_bits]
-    print(f'Ideal Codes: {ideal_in}')
-
     # Comparison
-    result = compare(py_arr, sv_arr, sv_trim, check_bits, True)
+    result = compare(py_arr, sv_arr, sv_trim, 100, True)
     if result:
         print('TEST PASSED')
-    else: 
+    else:
         print('TEST FAILED')
     assert(result)
 
 
 # Used for testing 
 if __name__ == "__main__":
-    main()
+    verif_fir_main()

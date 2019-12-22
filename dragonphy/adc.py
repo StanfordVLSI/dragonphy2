@@ -1,10 +1,45 @@
 from butterphy import read_ti_adc, read_rx_input
+from dragonphy import *
 
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn import linear_model
 
 class AdcModel:
+    def __init__(self, N_bit =8, full_scale_range=1, signed=False):
+        self.signed    = signed
+        self.N_bit     = N_bit
+        self.full_scale_range = full_scale_range
+
+        self.quantizer = Quantizer(width=N_bit, full_scale=1, lsb=full_scale_range/float(2**N_bit), signed=signed)
+        offset = 2**(N_bit-1) if signed else 0
+        self.code_map  = {idx - offset: idx-offset for idx in range(2**N_bit)}
+
+    def __call__(self, values):
+        if isinstance(values, (list, np.array, np.ndarray)):
+            if signed:
+                quant_vals = self.quantizer.quantize_2s_comp(values)
+            else:
+                quant_vals = self.quantizer.quantize(values)
+            return np.array([self.code_map[qval] for qval in quant_vals])
+        else:
+            if signed:
+                quant_vals = self.quantizer.quantize_2s_comp(values)
+            else:
+                quant_vals = self.quantizer.quantize(values)
+            return self.code_map[quant_vals]
+
+class StochasticAdcModel(AdcModel):
+    def __init__(self, N_bit=8, full_scale_range=1, signed=True):
+        super.__init__(N_bit=Nbit, full_scale_range=full_scale_range, signed=signed)
+
+    def generate_random_code_map(self, mean, std, symmetric=True):
+        if symmetric:
+            random_values = np.random.randn(2**(self.N_bit-1))*std + mean
+            
+
+
+class AdcCharacterizer:
     def __init__(self, x, y):
         self.x = x
         self.y = y
