@@ -264,15 +264,28 @@ class JitterModel():
 
         return jitter_model
 
+    def full_jitter(self, **kwargs):
+        rj_std = kwargs['rj_std']
+        rj_mean =kwargs['rj_mean']
+
+        dj_amp = kwargs['dj_amp']
+        dj_mean = kwargs['dj_mean']
+
+
+        def jitter_model(size):
+            return np.random.normal(loc=rj_mean, scale=rj_std, size=size) + dj_mean + dj_amp*np.sin(np.random.uniform(-np.pi, np.pi, size=size))
+
+        return jitter_model
+
     def __call__(self, size):
         return self.jitter_model(size=size)
 
-    jitter_generator = {'gaussian': gaussian_jitter}
+    jitter_generator = {'gaussian': gaussian_jitter, 'RJ+DJ': full_jitter}
 
 class JitterPulseChannel(PulseChannel):
     def __init__(self, jitter_model, baud_rate=1, channel_type='perfect', resp_depth=12500, cursor_pos=2, sampl_rate=100, **kwargs):
         super().__init__(baud_rate=baud_rate, channel_type=channel_type, resp_depth=resp_depth, cursor_pos=cursor_pos, sampl_rate=sampl_rate, **kwargs)
-        self.jitter_model= jitter_model
+        self.jitter_model = jitter_model
 
     def downsample(self,samples):
         if isinstance(samples, list):
@@ -293,7 +306,7 @@ class JitterPulseChannel(PulseChannel):
 # Used for testing 
 if __name__ == "__main__":
 
-    j1 = JitterModel(mean=0, std=0.25)
+    j1 = JitterModel(jitter_type='RJ+DJ', rj_mean=0, rj_std=0.05, dj_amp=1, dj_mean=0)
 
     c6 = JitterPulseChannel(jitter_model=j1, channel_type='dielectric1', tau=0.0087, sampl_rate=100, resp_depth=12500)
     c5 = PulseChannel(channel_type='dielectric1', tau=0.0087, sampl_rate=100, resp_depth=12500)
