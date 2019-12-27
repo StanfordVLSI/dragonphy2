@@ -3,6 +3,11 @@ from dragonphy import *
 import numpy as np
 import matplotlib.pyplot as plt
 
+np.random.seed(0)
+
+def perform_mlsd(margin=None, n_pre=1, n_post=1, update=False, n_bit_mlsd=2):
+    return 0
+
 def plot_parametric_channel():
     tau1 = [2, 8, 11, 16, 32, 64]
     tau2 = [2, 1, 0.5, 0.25, 0.1, 0.05]
@@ -51,16 +56,16 @@ def test_system_cheating():
 
     # Initialize parameters 
     load_model = False
-    iterations = 100
+    iterations = 10000
     training_len = 100000
     pos = 1
     resp_len = 150
     bitwidth = 6
     plot_len = 100 #iterations
     num_taps = 3
-    noise_amp = 0.1
-    #noise_amp = 0.02 # with iterations of 1000
-    #noise_amp = 0.003 # with iterations of 1M
+    #noise_amp = 0.1
+    noise_amp = 0.05 # with iterations of 1000
+    #noise_amp = 0.0001 # with iterations of 1M
     noise_en = True
     debug = False
     tau = 0.87
@@ -84,7 +89,7 @@ def test_system_cheating():
     chan_out = chan(ideal_codes)
 
     # Plot channel model
-    plt.plot(chan.impulse_response)
+    plt.stem(chan.impulse_response)
     plt.suptitle("Channel Response")
     plt.show()
 
@@ -143,9 +148,9 @@ def test_system_cheating():
 
 
     # Perform MLSD on FFE output
-    m1 = MLSD(chan.cursor_pos, chan.impulse_response, n_future=1, bitwidth=bitwidth, quantizer_lsb=qc.lsb)
-    m = MLSD(chan.cursor_pos, chan.impulse_response, bitwidth=bitwidth, quantizer_lsb=qc.lsb)
-
+#    m1 = MLSD(chan.cursor_pos, chan.impulse_response, n_future=1, bitwidth=bitwidth, quantizer_lsb=qc.lsb)
+#    m = MLSD(chan.cursor_pos, chan.impulse_response, bitwidth=bitwidth, quantizer_lsb=qc.lsb)
+#
     chan_ffe_response = chan(f.impulse_response)
 
     plt.figure()
@@ -171,32 +176,33 @@ def test_system_cheating():
     ffe_err_idx = [i for i in range(len(corrected_comp_out)) if corrected_comp_out[i] != ideal_codes[i]]
     print(f'Mismatches occur: {ffe_err_idx}')
 
-    margin = 1500 
-    # Plot MLSD Statistics
-    print(f'MLSD Output (only on margin < {margin}, no update, look at {m.n_future} bits in the future)')
-    ffe_mlsd_err = m.plot_ffe_mlsd(corrected_ffe_out, corrected_comp_out, quantized_chan_out, ideal_codes, plot_range=[900,1000]) 
-    marginal_bits = ffe_mlsd_err < margin
-    print(f'Marginal indices: {[i for i in range(len(marginal_bits)) if marginal_bits[i]]}')
+  #  margin = 1500 
+  #  # Plot MLSD Statistics
+  #  print(f'MLSD Output (only on margin < {margin}, no update, look at {m.n_future} bits in the future)')
+  #  ffe_mlsd_err = m.plot_ffe_mlsd(corrected_ffe_out, corrected_comp_out, quantized_chan_out, ideal_codes, plot_range=[900,1000]) 
+  #  marginal_bits = ffe_mlsd_err < margin
+  #  print(f'Marginal indices: {[i for i in range(len(marginal_bits)) if marginal_bits[i]]}')
 
-    mlsd_out_ffe_margin = m.perform_mlsd_zeros(corrected_comp_out, quantized_chan_out, bool_arr = marginal_bits, update=False)
-    err_idx = m.find_err_idx(mlsd_out_ffe_margin, ideal_codes)
+  #  mlsd_out_ffe_margin = m.perform_mlsd_zeros(corrected_comp_out, quantized_chan_out, bool_arr = marginal_bits, update=False)
+  #  err_idx = m.find_err_idx(mlsd_out_ffe_margin, ideal_codes)
 
-    # Plot MLSD statistics
-    print(f'MLSD Output (only on margin < {margin}, no update, look at {m1.n_future} bits in the future)')
-    mlsd_out = m1.perform_mlsd_zeros(corrected_comp_out, quantized_chan_out, update=False)
-    err_idx = m1.find_err_idx(mlsd_out, ideal_codes)
+  #  # Plot MLSD statistics
+  #  print(f'MLSD Output (only on margin < {margin}, no update, look at {m1.n_future} bits in the future)')
+  #  mlsd_out = m1.perform_mlsd_zeros(corrected_comp_out, quantized_chan_out, update=False)
+  #  err_idx = m1.find_err_idx(mlsd_out, ideal_codes)
     
     # Plot MLSD statistics for 2 future bits
-    m2 = MLSD(chan.cursor_pos, chan.impulse_response, n_future=1, bitwidth=bitwidth, quantizer_lsb=qc.lsb)
+    m2 = MLSD(chan.cursor_pos, chan.impulse_response[:100],n_pre=1, n_post=1, n_future=1, bitwidth=bitwidth, quantizer_lsb=qc.lsb)
+
     print(f'MLSD output, no update, look at {m2.n_future} bits in the future')
-    mlsd_out_2bit = m2.perform_mlsd_full_result(corrected_comp_out, quantized_chan_out, update=False)
+    mlsd_out_2bit = m2.count_update_iterations(ideal_codes, quantized_chan_out, update=True)
     print(f'MLSD 2bit future slices: {mlsd_out_2bit}')
+    err_idx = m2.find_err_idx(mlsd_out_2bit, ideal_codes)
 
-    MLSD.plot_full_result(mlsd_out_2bit, corrected_comp_out)
-    MLSD.print_full_result(mlsd_out_2bit, corrected_comp_out, ffe_err_idx)
+    #MLSD.plot_full_result(mlsd_out_2bit, corrected_comp_out)
+    #MLSD.print_full_result(mlsd_out_2bit, corrected_comp_out, ffe_err_idx)
 
-    ffe_norm = m.calc_mlsd_err(corrected_comp_out, quantized_chan_out)
-    print(f'FFE Norm: {ffe_norm[:plot_len]}')
+    #print(f'FFE Norm: {ffe_norm[:plot_len]}')
 
     if len(err_idx) == 0:
         print(f'TEST PASSED')
@@ -204,7 +210,7 @@ def test_system_cheating():
         print(f'TEST FAILED') 
 
     
-    
+   
 
 def main():
     #plot_parametric_channel()

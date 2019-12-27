@@ -82,7 +82,7 @@ class Channel(Filter):
         func_scale = 1.0/(np.pi*tau)
 
         T = sample_per
-        delta = T/100.
+        delta = T/10.
         t = np.arange(-1./delta, resp_depth/delta, delta)
         rect = np.where(np.abs(t) < T/2, 1., 0.)
 
@@ -91,26 +91,18 @@ class Channel(Filter):
         h = func_scale * np.divide((1. + t_over_k), (1. + t_over_k ** 2))
         h = np.clip(h, 0, None)
 
-        plt.plot(rect)
-        plt.plot(h)
-        plt.show()
-
         p = np.convolve(rect, h)
 
-
         argmax_p = np.argmax(p)
-        print(argmax_p)
         
         start_n = argmax_p % int(T/delta)
         p_n = p[start_n::int(T/delta)] 
 
-        print(f'Length = {len(p_n)}')
-
         start_nonzero = next((i for i, x in enumerate(p_n) if x), None) - 1
 
-        plt.plot(p)
-        plt.stem(start_n + np.arange(0, int(T/delta) * len(p_n), int(T/delta)), p_n)
-        plt.show()
+#        plt.plot(p)
+#        plt.stem(start_n + np.arange(0, int(T/delta) * len(p_n), int(T/delta)), p_n)
+#        plt.show()
         p_n_crop = p_n[start_nonzero:start_nonzero + resp_depth]
 
         return self.normal_select[normal](self, p_n_crop)
@@ -128,8 +120,8 @@ class Channel(Filter):
         func_scale = 1.0/(np.pi*tau)
 
         # Find argmax of continuous time function
-        sample_points_cont = np.linspace(-1./tau, -1./tau + sample_per * resp_depth, resp_depth * 10000)
-        nT_over_tau_cont = np.multiply(sample_points_cont, np.repeat(sample_per/tau, resp_depth * 10000))
+        sample_points_cont = np.linspace(-1./tau, -1./tau + sample_per * resp_depth, resp_depth * 1000)
+        nT_over_tau_cont = np.multiply(sample_points_cont, np.repeat(sample_per/tau, sample_points_cont.shape[0]))
         unscaled_array_cont = np.clip((1.0 + nT_over_tau_cont)/(1.0 + nT_over_tau_cont**2), 0, None)
     
         argmax_val = np.argmax(unscaled_array_cont)
