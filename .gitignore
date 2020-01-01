@@ -21,3 +21,5 @@ wave.*
 *_gpack.sv
 pack/
 *pack/
+
+*.png
