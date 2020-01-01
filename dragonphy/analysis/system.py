@@ -1,9 +1,14 @@
+
 from dragonphy import *
 
+import time
 import numpy as np
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 
-np.random.seed(0)
+seed_num = 4
+np.random.seed(seed_num)
 
 def perform_mlsd(margin=None, n_pre=1, n_post=1, update=False, n_bit_mlsd=2):
     return 0
@@ -56,19 +61,21 @@ def test_system_cheating():
 
     # Initialize parameters 
     load_model = False
-    iterations = 10000
+    iterations = 1000000
     training_len = 100000
     pos = 1
     resp_len = 150
     bitwidth = 6
-    plot_len = 100 #iterations
-    num_taps = 3
-    #noise_amp = 0.1
-    noise_amp = 0.05 # with iterations of 1000
+    plot_len = 10 #iterations
+    num_taps = 5
+    noise_amp = 0.02
+    #noise_amp = 0.03 # with iterations of 1000
     #noise_amp = 0.0001 # with iterations of 1M
     noise_en = True
     debug = False
     tau = 0.87
+
+    plot_en = False
     
    
     # Generate weight training codes
@@ -89,9 +96,10 @@ def test_system_cheating():
     chan_out = chan(ideal_codes)
 
     # Plot channel model
-    plt.stem(chan.impulse_response)
-    plt.suptitle("Channel Response")
-    plt.show()
+    if plot_en:
+        plt.stem(chan.impulse_response)
+        plt.suptitle("Channel Response")
+        plt.show()
 
     if debug:
         print(f'Channel resp: {chan.impulse_response}')
@@ -138,9 +146,10 @@ def test_system_cheating():
     ffe_out = f(quantized_chan_out)
 
     # Plot histogram of FFE results
-    Histogram.plot_comparison(quantized_chan_out, ideal_codes, delay_ffe=pos, scale=50, labels=["quantized chan", "ideal"])
-    Histogram.plot_comparison(ffe_out, ideal_codes, delay_ffe=pos, scale=15000, labels=["ffe out", "ideal"])
-    Histogram.plot_multi_hist(ffe_out, ideal_codes, delay_ffe=pos, n_bits=1, bit_pos=0) 
+    if plot_en:
+        Histogram.plot_comparison(quantized_chan_out, ideal_codes, delay_ffe=pos, scale=50, labels=["quantized chan", "ideal"])
+        Histogram.plot_comparison(ffe_out, ideal_codes, delay_ffe=pos, scale=15000, labels=["ffe out", "ideal"])
+        Histogram.plot_multi_hist(ffe_out, ideal_codes, delay_ffe=pos, n_bits=1, bit_pos=0) 
 
 
     # Make decision based on FFE output
@@ -153,19 +162,21 @@ def test_system_cheating():
 #
     chan_ffe_response = chan(f.impulse_response)
 
-    plt.figure()
-    plt.stem(chan_ffe_response)
-    plt.suptitle("Channel response * FFE Weights")
-    plt.show()
+    if plot_en:
+        plt.figure()
+        plt.stem(chan_ffe_response)
+        plt.suptitle("Channel response * FFE Weights")
+        plt.show()
     
     shift_amt = np.argmax(chan_ffe_response)
 
-    plt.figure()
-    plt.plot(ideal_codes[:plot_len], label="ideal in")
-    plt.plot(comp_out[shift_amt:shift_amt + plot_len], label="ffe out")
-    plt.legend()
-    plt.suptitle("Ideal Codes vs. FFE Decision") 
-    plt.show()
+    if plot_en:
+        plt.figure()
+        plt.plot(ideal_codes[:plot_len], label="ideal in")
+        plt.plot(comp_out[shift_amt:shift_amt + plot_len], label="ffe out")
+        plt.legend()
+        plt.suptitle("Ideal Codes vs. FFE Decision") 
+        plt.show()
 
     corrected_comp_out = comp_out[shift_amt: iterations + shift_amt]
     corrected_ffe_out = ffe_out[shift_amt: iterations + shift_amt]
@@ -195,9 +206,12 @@ def test_system_cheating():
     m2 = MLSD(chan.cursor_pos, chan.impulse_response[:100],n_pre=1, n_post=1, n_future=1, bitwidth=bitwidth, quantizer_lsb=qc.lsb)
 
     print(f'MLSD output, no update, look at {m2.n_future} bits in the future')
-    mlsd_out_2bit = m2.count_update_iterations(ideal_codes, quantized_chan_out, update=True)
-    print(f'MLSD 2bit future slices: {mlsd_out_2bit}')
-    err_idx = m2.find_err_idx(mlsd_out_2bit, ideal_codes)
+    #mlsd_out_ideal = m2.count_update_iterations_channel(ideal_codes, quantized_chan_out, update=True)
+    mlsd_out_comp  = m2.count_update_iterations_channel(corrected_comp_out, quantized_chan_out, update=True, seed_num=seed_num)
+    #print(f'MLSD 2bit future slices: {mlsd_out_ideal}')
+    #err_idx = m2.find_err_idx(mlsd_out_ideal, ideal_codes)
+    print(f'MLSD 2bit future slices: {mlsd_out_comp[:200]}')
+    err_idx = m2.find_err_idx(mlsd_out_comp, ideal_codes)
 
     #MLSD.plot_full_result(mlsd_out_2bit, corrected_comp_out)
     #MLSD.print_full_result(mlsd_out_2bit, corrected_comp_out, ffe_err_idx)
@@ -214,7 +228,11 @@ def test_system_cheating():
 
 def main():
     #plot_parametric_channel()
+    start_time = time.time()
     test_system_cheating()
+    prog_time = int((time.time() - start_time) / 60)
+
+    print(f'Program took {prog_time} minutes to run')
 
 # Run the digital backend for the RX system in Python
 if __name__ == "__main__":

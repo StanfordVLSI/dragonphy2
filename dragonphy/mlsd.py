@@ -236,6 +236,61 @@ class MLSD:
         
         return result
 
+    def count_update_iterations_channel(self, recovered_bits, chan_out, step_size=1, bool_arr = None, update=True, debug=False, channel_size=16, seed_num=0):
+        result = np.copy(recovered_bits)
+
+        n_zeros_front = self.chan_resp_depth - self.chan_cursor_pos - 1
+        n_zeros_back = self.chan_cursor_pos
+
+        r_bits_zero = np.concatenate((np.zeros(n_zeros_front), recovered_bits, np.zeros(n_zeros_back)))
+
+        iter_cnt = 0
+        iter_cnts = []
+
+        start_index = self.n_post + n_zeros_front
+        end_index =  len(r_bits_zero) - self.chan_cursor_pos - self.n_pre
+
+        for s in range(start_index, end_index, channel_size):
+            flipped = True
+            iter_cnt = 0
+
+            if int(s/channel_size) % 5000 == 0:
+                print(f'Calculating MLSD Index: {s}')
+
+            while flipped and iter_cnt < 8:
+                start_idx = len(recovered_bits) + 1000
+                mlsd_out_start = 0
+                flipped = False
+                for j in range(0, channel_size):
+                    i = s + j
+
+                    if i >= end_index:
+                        break
+
+                    mlsd_out = self.perform_mlsd_single(r_bits_zero, chan_out, i, debug)            
+                    if mlsd_out[0] != r_bits_zero[i]:
+                        if i < start_idx:   
+                            start_idx = i
+                            mlsd_out_start = mlsd_out[0]
+                        flipped = True
+
+                if flipped:
+                    result[start_idx - n_zeros_front] = mlsd_out_start
+                    r_bits_zero[start_idx] = mlsd_out_start
+
+                iter_cnt += 1
+            iter_cnts.append(iter_cnt)
+
+        print(f'Max MLSD iterations: {np.max(iter_cnts)}')
+        print(f'Average MLSD iterations: {np.average(iter_cnts)}')
+    
+        np.savetxt('mlsd_iteration_cnts' + str(seed_num) + '.txt', np.array(iter_cnts))
+        plt.hist(iter_cnts)
+        plt.savefig('./mlsd_iterations' + str(seed_num) + '.png')
+
+        return result
+
+
     def count_update_iterations(self, recovered_bits, chan_out, step_size=1, bool_arr = None, update=True, debug=False):
         result = np.zeros(len(recovered_bits))
 
@@ -378,7 +433,7 @@ def main():
     print(chan_out)
     m = MLSD(cursor_pos, chan_resp, n_pre=1, n_post=1, n_future=1,  quantizer_lsb=q.lsb)
 
-    mlsd_out =  m.perform_mlsd_full_result(ideal_one_err, q_chan_out, debug=True, update=True)
+    mlsd_out =  m.count_update_iterations_channel(ideal_one_err, q_chan_out, debug=True, update=True, channel_size=4)
     print(f'Ideal: {ideal}')
     print(f'Ideal (err): {ideal_one_err}')
     print(f'MLSD: {mlsd_out}')

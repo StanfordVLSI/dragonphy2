@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 class Histogram:
     @classmethod
     def plot_histogram(cls, ffe_out, ideal_in, delay_ffe=0, delay_ideal=0, bins=50, plt_show=True, save_dir=None, title="FFE Output Histogram"):
-        ideal_in = ideal_in[delay_ideal:-1]
-        ffe_out = ffe_out[delay_ffe:-1]
+        ideal_in = ideal_in[delay_ideal:]
+        ffe_out = ffe_out[delay_ffe:]
         arr_len = min(len(ideal_in), len(ffe_out))
 
         pos = np.array([ffe_out[i] for i in range(arr_len) if ideal_in[i] >= 0])
