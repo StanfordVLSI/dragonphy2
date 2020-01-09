@@ -7,11 +7,11 @@ module chan (
 
     generate
         // alias I/O
-        `SVREAL_ALIAS_INPUT(data_ana_i.value, data_ana_i_value);
-        `SVREAL_ALIAS_OUTPUT(data_ana_o.value, data_ana_o_value);
+        `INTF_INPUT_TO_REAL(data_ana_i.value, data_ana_i_value);
+        `INTF_OUTPUT_TO_REAL(data_ana_o.value, data_ana_o_value);
 
         // pass input straight to output
-        `SVREAL_ASSIGN(data_ana_i_value, data_ana_o_value);
+        `ASSIGN_REAL(data_ana_i_value, data_ana_o_value);
     endgenerate
 
 endmodule
