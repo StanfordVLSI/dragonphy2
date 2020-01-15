@@ -17,20 +17,21 @@ steps:
       # install svreal
       git clone https://github.com/sgherbst/svreal.git
       cd svreal
-      git checkout v3
+      git checkout v1
       pip install -e .
       cd ..
 
       # install msdsl
       git clone https://github.com/sgherbst/msdsl.git
       cd msdsl
+      git checkout v1
       pip install -e .
       cd ..
 
       # install anasymod
       git clone https://github.com/sgherbst/anasymod.git
       cd anasymod
-      git checkout dragonphy_support
+      git checkout v1
       pip install -e .
       cd ..
 
@@ -60,20 +61,21 @@ steps:
       # install svreal
       git clone https://github.com/sgherbst/svreal.git
       cd svreal
-      git checkout v3
+      git checkout v1
       pip install -e .
       cd ..
 
       # install msdsl
       git clone https://github.com/sgherbst/msdsl.git
       cd msdsl
+      git checkout v1
       pip install -e .
       cd ..
 
       # install anasymod
       git clone https://github.com/sgherbst/anasymod.git
       cd anasymod
-      git checkout dragonphy_support
+      git checkout v1
       pip install -e .
       cd ..
 
