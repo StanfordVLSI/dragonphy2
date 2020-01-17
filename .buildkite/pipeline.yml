@@ -8,6 +8,9 @@ steps:
       /usr/local/miniconda/bin/python3.7 -m venv venv
       source venv/bin/activate
 
+      # upgrade pip
+      pip install -U pip
+
       # install dragonphy
       pip install -e .
 
@@ -33,6 +36,9 @@ steps:
       # create virtual environment
       python3.7 -m venv venv
       source venv/bin/activate
+
+      # upgrade pip
+      pip install -U pip
 
       # install dragonphy
       pip install -e .
