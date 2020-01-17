@@ -23,9 +23,9 @@ setup(
         f'{name}'
     ],
     install_requires=[
-        'svreal>=0.1.6',
-        'msdsl>=0.1.1',
-        'anasymod>=0.1.3',
+        'svreal>=0.1.7',
+        'msdsl>=0.1.2',
+        'anasymod>=0.1.4',
         'pexpect', 
         'pyyaml',
         'numpy',
