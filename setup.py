@@ -1,7 +1,7 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 name = 'dragonphy'
-version = '0.1.0'
+version = '0.1.1'
 
 DESCRIPTION = '''\
 Open Source PHY v2\
@@ -19,13 +19,11 @@ setup(
     keywords = ['high-speed', 'high speed', 'link', 'high-speed link',
                 'high speed link', 'analog', 'mixed-signal', 'mixed signal',
                 'generator', 'ic', 'integrated circuit', 'chip'],
-    packages=[
-        f'{name}'
-    ],
+    packages=find_packages(),
     install_requires=[
-        'svreal>=0.1.7',
-        'msdsl>=0.1.2',
-        'anasymod>=0.1.4',
+        'svreal>=0.1.9',
+        'msdsl>=0.1.4',
+        'anasymod>=0.1.6',
         'pexpect', 
         'pyyaml',
         'numpy',
