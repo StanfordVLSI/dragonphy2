@@ -22,8 +22,8 @@ setup(
     packages=find_packages(),
     install_requires=[
         'svreal>=0.1.9',
-        'msdsl>=0.1.4',
-        'anasymod>=0.1.6',
+        'msdsl>=0.1.6',
+        'anasymod>=0.1.9',
         'pexpect', 
         'pyyaml',
         'numpy',
