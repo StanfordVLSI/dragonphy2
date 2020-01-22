@@ -1,3 +1,5 @@
+// dragon uses rx_adc_core
+
 `include "signals.sv"
 
 module rx_adc #(
