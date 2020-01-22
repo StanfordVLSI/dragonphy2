@@ -14,6 +14,10 @@ steps:
       # install dragonphy
       pip install -e .
 
+      # build models (TODO: cleanup)
+      python src/rx_adc/fpga/gen.py -o src/rx_adc/fpga
+      sed -i '1 s/^/`include "msdsl.sv"\n/' src/rx_adc/fpga/rx_adc_core.sv
+
       # run tests
       pip install pytest
       pytest tests -s -v -r s
