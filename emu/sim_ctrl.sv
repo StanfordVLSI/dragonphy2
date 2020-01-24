@@ -5,6 +5,7 @@ module sim_ctrl(
     input wire logic data_rx,
     input wire logic mem_rd,
     output var logic prbs_rst=1'b1,
+    output var logic rx_rstb=1'b0,
     output var logic [1:0] lb_mode=2'b00,
     output var logic [31:0] tm_stall=27'h3FFFFFF
 );
@@ -18,11 +19,13 @@ module sim_ctrl(
 
         // initialize signals
         tm_stall = 27'h3FFFFFF;
+        rx_rstb = 1'b0;
         prbs_rst = 1'b1;
         lb_mode = 2'b00;
         #(1us);
 
         // align the loopback tester
+        rx_rstb = 1'b1;
         prbs_rst = 1'b0;
         lb_mode = 2'b01;
         #(100us);

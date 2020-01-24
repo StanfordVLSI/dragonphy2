@@ -12,7 +12,7 @@ def adapt_fir(pack_dir = ".", config="system"):
 
     # Channel parameters
     chan_type = 'exponent'
-    chan_tau = 2.0
+    chan_tau = 0.5
     chan_sampl_rate = 5
     chan_resp_depth = 50
     pos = 2
@@ -62,18 +62,23 @@ def adapt_fir(pack_dir = ".", config="system"):
     with open(impulse_pack, "w+") as f:
         f.write(f'''\
 package impulse_pack;
-    parameter integer impulse_length = {impulse_length};
-    parameter real impulse_values [{impulse_length}] = '{{{impulse_values}}};
+    localparam integer impulse_length = {impulse_length};
+    localparam real impulse_values [{impulse_length}] = '{{{impulse_values}}};
 endpackage\
 ''')
 
     # Write weights to package
+    # TODO: why is "weights" used here instead of quantized_weights?
     weights_pack = pack_dir + '/' + 'weights_pack.sv'
+    weight_width = ffe_config["parameters"]["weight_precision"]
+    weight_count = len(quantized_weights)
+    weight_values = ', '.join(f'{int(w)}' for w in weights)
     with open(weights_pack, "w+") as f:
-        f.write('package weights_pack;\n')
-        f.write('logic signed [' + str(ffe_config["parameters"]["weight_precision"]) + '-1:0]  read_weights   [0:' + str(len(quantized_weights)) + '-1] = ')
-        f.write('{' + ",".join([str(int(w)) for w in weights]) + '};\n')
-        f.write('endpackage')
+        f.write(f'''\
+package weights_pack;
+    localparam signed [{weight_width-1}:0] read_weights [0:{weight_count-1}] = '{{{weight_values}}};
+endpackage\
+''')
 
     # Return packages  
     packages  = [generic_packager.path, ffe_packager.path, impulse_pack, weights_pack]
