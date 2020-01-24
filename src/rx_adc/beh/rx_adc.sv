@@ -1,31 +1,38 @@
 `include "signals.sv"
 
 module rx_adc #(
-    parameter real v_ref_p=+1.0,
-    parameter real v_ref_n=-1.0,
-    parameter integer n_adc=8
+    parameter real vp=+1.0,
+    parameter real vn=-1.0,
+    parameter integer n=8
 ) (
     `ANALOG_INPUT in,
-    output var logic signed [(n_adc-1):0] out = 0,
-    input wire logic clk
+    output var logic signed [(n-1):0] out,
+    input wire logic clk,
+    input wire logic rst
 );
 
-    integer code_raw, code;
+    integer code;
     always @(posedge clk) begin
-        // convert input to code mapping [v_ref_n, v_ref_p] to [0, ((1<<n_adc)-1)]
-        code_raw = integer'(((2.0**n_adc)-1.0)*(in.value-v_ref_n)/(v_ref_p-v_ref_n));
-
-        // clamp code to [0, ((1<<n_adc)-1)]
-        if (code_raw < 0) begin
+        // calculate output code
+        if (rst == 1'b1) begin
             code = 0;
-        end else if (code_raw > ((1<<n_adc)-1)) begin
-            code = (1<<n_adc)-1;
         end else begin
-            code = code_raw;
+            // convert input to code mapping [vn, vp] to [0, ((1<<n)-1)]
+            code = integer'(((2.0**n)-1)*(in.value-vn)/(vp-vn));
+
+            // clamp code to [0, ((1<<n)-1)]
+            if (code < 0) begin
+                code = 0;
+            if (code > ((1<<n)-1)) begin
+                code = (1<<n)-1;
+            end
+
+            // shift output to range -(1<<(n-1)), +(1<<(n-1)) - 1
+            code = code - (1<<(n-1));
         end
 
-        // shift output to range -(1<<(n_adc-1)), +(1<<(n_adc-1)) - 1
-        out = code - (1<<(n_adc-1));
+        // assign code to output
+        out <= code;
     end
 
 endmodule
