@@ -27,7 +27,7 @@ module tx #(
         localparam integer sig_e = `ANALOG_EXPONENT;
         logic signed [(sig_w-1):0] mux_o [impulse_length];
         for (genvar i=0; i<impulse_length; i=i+1) begin
-            assign mux_o[i] = mem[i] ? float_to_fixed(impulse_values[i]*v_hi, sig_e) : float_to_fixed(impulse_values[i]*v_lo, sig_e);
+            assign mux_o[i] = mem[i] ? `FLOAT_TO_FIXED(impulse_values[i]*v_hi, sig_e) : `FLOAT_TO_FIXED(impulse_values[i]*v_lo, sig_e);
         end
 
         // sum values together

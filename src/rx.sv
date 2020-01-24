@@ -2,9 +2,7 @@
 
 `include "signals.sv"
 
-module rx #(
-    parameter integer n_del=3
-) (
+module rx (
     `ANALOG_INPUT data_ana_i,
     input wire logic rstb,
     output wire logic clk_o,
@@ -26,7 +24,8 @@ module rx #(
     rx_adc rx_adc_i (
         .in(data_ana_i),
         .out(adc_o[0]),
-        .clk(clk_o)
+        .clk(clk_o),
+        .rst(~rstb)
     );
 
     // instantiate the FFE
