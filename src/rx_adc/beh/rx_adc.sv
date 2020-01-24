@@ -23,6 +23,7 @@ module rx_adc #(
             // clamp code to [0, ((1<<n)-1)]
             if (code < 0) begin
                 code = 0;
+            end
             if (code > ((1<<n)-1)) begin
                 code = (1<<n)-1;
             end
