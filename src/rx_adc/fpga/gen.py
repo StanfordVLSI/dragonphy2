@@ -27,8 +27,6 @@ def main():
     m = MixedSignalModel('rx_adc_core', dt=a.dt)
     m.add_analog_input('in_')
     m.add_digital_output('out', width=a.n, signed=True)
-    m.add_digital_input('clk')
-    m.add_digital_input('rst')
 
     # define model behavior
     # compute expression for ADC output as an unclamped, real number
@@ -38,7 +36,7 @@ def main():
     clamped = clamp(expr, -(2**(a.n-1)), (2**(a.n-1))-1)
 
     # assign expression to output
-    m.set_next_cycle(m.out, to_sint(clamped, width=a.n), clk=m.clk, rst=m.rst)
+    m.set_this_cycle(m.out, to_sint(clamped, width=a.n))
 
     # determine the output filename
     filename = Path(a.output).resolve() / f'{m.module_name}.sv'

@@ -11,12 +11,17 @@ steps:
       # upgrade pip
       pip install -U pip
 
+      # install svreal (temporary fix)
+      git clone --single-branch --branch vivado_bug_fixes https://github.com/sgherbst/svreal.git
+      cd svreal
+      pip install -e .
+      cd ..
+
       # install dragonphy
       pip install -e .
 
       # build models (TODO: cleanup)
       python src/rx_adc/fpga/gen.py -o src/rx_adc/fpga
-      sed -i '1 s/^/`include "msdsl.sv"\n/' src/rx_adc/fpga/rx_adc_core.sv
 
       # run tests
       pip install pytest
@@ -44,12 +49,17 @@ steps:
       # upgrade pip
       pip install -U pip
 
+      # install svreal (temporary fix)
+      git clone --single-branch --branch vivado_bug_fixes https://github.com/sgherbst/svreal.git
+      cd svreal
+      pip install -e .
+      cd ..
+
       # install dragonphy
       pip install -e .
 
       # build models (TODO: cleanup)
       python src/rx_adc/fpga/gen.py -o src/rx_adc/fpga
-      sed -i '1 s/^/`include "msdsl.sv"\n/' src/rx_adc/fpga/rx_adc_core.sv
 
       # install pytest to allow tests to run
       pip install pytest
