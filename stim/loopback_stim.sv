@@ -7,10 +7,12 @@ module stim;
     initial begin
         // reset everything
         force tb_i.prbs_rst = 1'b1;
+        force tb_i.rx_rstb = 1'b0
         force tb_i.lb_mode = 2'b00;
         #(20ns);
         // align the loopback tester
         force tb_i.prbs_rst = 1'b0;
+        force tb_i.rx_rstb = 1'b1;
         force tb_i.lb_mode = 2'b01;
         #(2500ns);
         // run the loopback test
