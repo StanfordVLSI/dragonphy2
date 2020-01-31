@@ -11,12 +11,6 @@ steps:
       # upgrade pip
       pip install -U pip
 
-      # install svreal (temporary fix)
-      git clone --single-branch --branch vivado_bug_fixes https://github.com/sgherbst/svreal.git
-      cd svreal
-      pip install -e .
-      cd ..
-
       # install dragonphy
       pip install -e .
 
@@ -48,12 +42,6 @@ steps:
 
       # upgrade pip
       pip install -U pip
-
-      # install svreal (temporary fix)
-      git clone --single-branch --branch vivado_bug_fixes https://github.com/sgherbst/svreal.git
-      cd svreal
-      pip install -e .
-      cd ..
 
       # install dragonphy
       pip install -e .
