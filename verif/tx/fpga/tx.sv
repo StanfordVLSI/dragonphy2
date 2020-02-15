@@ -1,3 +1,4 @@
+`include "svreal.sv"
 `include "signals.sv"
 
 module tx #(
@@ -8,18 +9,35 @@ module tx #(
     input wire logic clk_i,
     `ANALOG_OUTPUT data_ana_o
 );
-
     generate
-        // constants
-        `MAKE_CONST_REAL(v_lo, volt0);
-        `MAKE_CONST_REAL(v_hi, volt1);
+        // import impulse response
+        import impulse_pack::*;
+    
+        // determine max(abs(v_lo), abs(v_hi))
+        localparam real v_range = `MAX_MATH(`ABS_MATH(v_lo), `ABS_MATH(v_hi));
 
-        // mux between +/- 1
-        `ITE_REAL(data_i, volt1, volt0, out_imm);
+        // remember past inputs
+        logic [(impulse_length-1):0] mem;
+        always @(posedge clk_i) begin
+            mem <= (mem << 1) | data_i;
+        end
+            
+        // mux values depending on data sign
+        localparam integer sig_w = `ANALOG_WIDTH;
+        localparam integer sig_e = `ANALOG_EXPONENT;
+        logic signed [(sig_w-1):0] mux_o [impulse_length];
+        for (genvar i=0; i<impulse_length; i=i+1) begin
+            assign mux_o[i] = mem[i] ? `FLOAT_TO_FIXED(impulse_values[i]*v_hi, sig_e) : `FLOAT_TO_FIXED(impulse_values[i]*v_lo, sig_e);
+        end
 
-        // assign to output with DFF
-        `INTF_OUTPUT_TO_REAL(data_ana_o.value, data_ana_o_value);
-        `DFF_INTO_REAL(out_imm, data_ana_o_value, 1'b0, clk_i, 1'b1, 0.0);
+        // sum values together
+        logic signed [(sig_w-1):0] sum_o[impulse_length+1];
+        assign sum_o[0] = 'd0;
+        for (genvar i=0; i<impulse_length; i=i+1) begin
+            assign sum_o[i+1] = sum_o[i] + mux_o[i];
+        end
+
+        // assign to output
+        assign data_ana_o.value = sum_o[impulse_length];
     endgenerate
-
 endmodule

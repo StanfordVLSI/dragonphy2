@@ -26,6 +26,7 @@ set_property CORE_REFRESH_RATE_MS 0 $vio_0_i
 # set aliases to VIO probes
 set emu_rst [get_hw_probes "sim_ctrl_gen_i/emu_rst" -of_objects $vio_0_i]
 set prbs_rst [get_hw_probes "sim_ctrl_gen_i/prbs_rst" -of_objects $vio_0_i]
+set rx_rstb [get_hw_probes "sim_ctrl_gen_i/rx_rstb" -of_objects $vio_0_i]
 set tm_stall [get_hw_probes "sim_ctrl_gen_i/tm_stall" -of_objects $vio_0_i]
 set lb_mode [get_hw_probes "sim_ctrl_gen_i/lb_mode" -of_objects $vio_0_i]
 set lb_latency [get_hw_probes "sim_ctrl_gen_i/lb_latency" -of_objects $vio_0_i]

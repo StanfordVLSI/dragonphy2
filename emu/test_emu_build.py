@@ -1,12 +1,11 @@
 import json
 from dragonphy import *
-from svreal import get_svreal_header
 from common import adapt_fir
 
 prj_cfg = {
   "PROJECT": {
     "board_name": "ZC702",
-    "plugins": [],
+    "plugins": ["msdsl"],
     "emu_clk_freq": 20e6,
     "dt": 50e-9
   },
@@ -22,7 +21,7 @@ def test_emu_build(board_name='ZC702'):
     # than through config files
     prj_cfg['PROJECT']['board_name'] = board_name 
     with open(get_file('emu/prj_config.json'), 'w') as f:
-        f.write(json.dumps(prj_cfg))
+        f.write(json.dumps(prj_cfg, sort_keys=True, indent=4, separators=(',', ': ')))
 
     # Adapts the fir weights and returns the package files needed
     config = 'test_loopback_config'
@@ -43,14 +42,8 @@ def test_emu_build(board_name='ZC702'):
     src_cfg.add_verilog_sources([get_file('emu/sim_ctrl.sv')], fileset='sim')
 
     # Verilog Headers
-    header_file_list = [get_file('inc/signals/fpga/signals.sv')] + [get_svreal_header()]
+    header_file_list = [get_file('inc/signals/fpga/signals.sv')] 
     src_cfg.add_verilog_headers(header_file_list)
-
-    # Verilog defines for simulation
-    # TODO: clean up naming / interface (SIMULATION_MODE should be set automatically
-    # when running a simulation, DT_MSDSL is essentially obsolete because adaptive
-    # timestepping is used now, etc.)
-    src_cfg.add_defines({'SIMULATION_MODE_MSDSL': None, 'DT_MSDSL': 50e-9}, fileset='sim')
 
     # Write source config
     # TODO: interact directly with anasymod library rather

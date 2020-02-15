@@ -1,92 +1,59 @@
 steps:
   - command: |
       # set up environment
-      export PATH=$$PATH:/usr/local/miniconda/bin:/usr/local/bin
-      echo $$PATH
-      export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:/usr/local/lib
-      echo $$LD_LIBRARY_PATH
-
-      # tool setup
       source /cad/modules/tcl/init/bash
       module load base xcelium
 
-      # create conda env
-      conda create -p ./conda_env -m -y pip python=3.7.4
-      export PATH=$$PWD/conda_env/bin:$$PATH
+      # create virtual environment
+      /usr/local/miniconda/bin/python3.7 -m venv venv
+      source venv/bin/activate
 
-      # install svreal
-      git clone https://github.com/sgherbst/svreal.git
-      cd svreal
-      git checkout v1
-      pip install -e .
-      cd ..
-
-      # install msdsl
-      git clone https://github.com/sgherbst/msdsl.git
-      cd msdsl
-      git checkout v1
-      pip install -e .
-      cd ..
-
-      # install anasymod
-      git clone https://github.com/sgherbst/anasymod.git
-      cd anasymod
-      git checkout v1
-      pip install -e .
-      cd ..
+      # upgrade pip
+      pip install -U pip
 
       # install dragonphy
       pip install -e .
 
+      # build models (TODO: cleanup)
+      python src/rx_adc/fpga/gen.py -o src/rx_adc/fpga
+
       # run tests
       pip install pytest
-      pytest tests -xs
+      pytest tests -s -v -r s
 
       # simulate FPGA design
-      pytest emu/test_emu_build.py -xs
+      pytest emu/test_emu_build.py -s -v -r s
       anasymod -i emu --sim --simulator_name xrun
+
+      # deactivate virtual environment
+      deactivate
     label: "test"
     timeout_in_minutes: 60
     agents:
-      butterphy: "true"
+      fault2: "true"
   - command: |
       # set up environment
       source /etc/environment
       echo $$PATH
 
-      # activate virtual env
+      # create virtual environment
       python3.7 -m venv venv
       source venv/bin/activate
 
-      # install svreal
-      git clone https://github.com/sgherbst/svreal.git
-      cd svreal
-      git checkout v1
-      pip install -e .
-      cd ..
-
-      # install msdsl
-      git clone https://github.com/sgherbst/msdsl.git
-      cd msdsl
-      git checkout v1
-      pip install -e .
-      cd ..
-
-      # install anasymod
-      git clone https://github.com/sgherbst/anasymod.git
-      cd anasymod
-      git checkout v1
-      pip install -e .
-      cd ..
+      # upgrade pip
+      pip install -U pip
 
       # install dragonphy
       pip install -e .
+
+      # build models (TODO: cleanup)
+      python src/rx_adc/fpga/gen.py -o src/rx_adc/fpga
 
       # install pytest to allow tests to run
       pip install pytest
 
       # build file structure
-      pytest emu/test_emu_build.py -xs
+      pytest emu/test_emu_build.py -s -v -r s
 
       # simulate FPGA design
       anasymod -i emu --sim --simulator_name vivado
@@ -100,7 +67,7 @@ steps:
       cat emu/build/project/project.runs/impl_1/runme.log
 
       # program FPGA and run test
-      pytest emu/test_emu_prog.py -xs
+      pytest emu/test_emu_prog.py -s -v -r s
 
       # deactivate virtual env
       deactivate
