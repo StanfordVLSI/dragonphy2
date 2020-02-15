@@ -11,8 +11,9 @@ module tb;
     logic clk_tx_i, data_tx_i;
     logic clk_rx_o, data_rx_o;
 
-    // prbs signals
+    // reset signals
     logic prbs_rst;
+    logic rx_rstb;
 
     // loopback tester signals
     logic [1:0] lb_mode;
@@ -40,7 +41,7 @@ module tb;
     // receiver
     rx rx_i (
         .data_ana_i(data_rx_i),
-        .rstb(1'b1),
+        .rstb(rx_rstb),
         .data_o(data_rx_o),
         .clk_o(clk_rx_o)
     );
