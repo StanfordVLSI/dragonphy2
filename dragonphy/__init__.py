@@ -19,8 +19,11 @@ from .ffe           import FFEHelper
 
 # For fpga emulation
 from .files import get_file, get_files, get_files_arr, get_dir, get_dirs, TOP_DIR
-from .views import DragonViews, get_deps
+from .views import get_deps
 from .console_print import cprint, cprint_block, cprint_announce
 from .deluxe_run import deluxe_run
 from .run_sim import run_sim, Probe
 from .anasymod import AnasymodSourceConfig, AnasymodProjectConfig
+
+# Package generation
+from .adapt_fir import adapt_fir

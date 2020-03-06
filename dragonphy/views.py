@@ -1,5 +1,6 @@
 import json
 from .files import get_dir
+from svinst import get_mod_defs
 
 VIEW_DIRS = ['src', 'verif']
 VIEW_NAMES = {'beh', 'fpga', 'fpga_verif', 'syn', 'spice', 'layout', 'struct', 'all'}
@@ -7,21 +8,35 @@ KNOWN_PRIMS = {'BUFG'}
 VIEW_EXTS = {'.v', '.sv'}
 
 class CellView:
-    def __init__(self, file_, view=None, comment='//'):
+    def __init__(self, file_, view=None, comment='//', includes=None, defines=None):
+        # set defaults
+        if includes is None:
+            includes = []
+        if defines is None:
+            defines = {}
+
+        # save settings
         self.file_ = file_
         self.view = view
         self.comment = comment
+        self.includes = includes
+        self.defines = defines
+
+        # parse submodules
         self.uses = self.parse_submodules()
 
     def parse_submodules(self):
-        with open(self.file_, 'r') as f:
-            for line in f:
-                toks = line.split()
-                if len(toks) < 3:
-                    continue
-                elif toks[:3] == [self.comment, 'dragon', 'uses']:
-                    return list(set(toks[3:]))
-        return []
+        # TODO: do we need to pass in defines and includes, or is ignore_include enough?
+        try:
+            mod_defs = get_mod_defs(self.file_, includes=self.includes, defines=self.defines)
+        except:
+            print(f'Could not parse {self.file_}, assuming there are no relevant module instantiations...')
+            return set()
+        if len(mod_defs) >= 1:
+            mod_def = mod_defs[0]
+            return set([elem.mod_name for elem in mod_def.insts])
+        else:
+            return set()
 
     def serialize(self):
         return {'file_': f'{self.file_}',
@@ -30,8 +45,13 @@ class CellView:
     def __str__(self):
         return json.dumps(self.serialize(), indent=2)
 
-class _DragonViews:
-    def __init__(self):
+class DragonViews:
+    def __init__(self, includes=None, defines=None):
+        # save settings
+        self.includes = includes
+        self.defines = defines
+
+        # instantiate internal variables
         self.view_dict = {}
         self.build_view_dict()
 
@@ -73,7 +93,12 @@ class _DragonViews:
             raise Exception(f'Cannot define a view from {file_} since cell={cell}, view={view} has already been defined in {self.view_dict[cell][view]}.')
 
         # finally add the cell view
-        self.view_dict[cell][view] = CellView(file_=file_, view=view)
+        self.view_dict[cell][view] = CellView(
+            file_=file_,
+            view=view,
+            includes=self.includes,
+            defines=self.defines
+        )
 
     def has_cell(self, cell):
         return cell in self.view_dict
@@ -117,44 +142,47 @@ class _DragonViews:
     def __str__(self):
         return json.dumps(self.serialize(), indent=2)
 
-DragonViews = _DragonViews()
+def get_deps(cell, view_order=None, override=None, includes=None, defines=None):
+    dv = DragonViews(includes=includes, defines=defines)
 
-def get_deps(cell, view_order=None, override=None, retval=None):
-    # set defaults
-    if view_order is None:
-        view_order = []
-    if override is None:
-        override = {}
-    if retval is None:
-        retval = {}
+    def get_deps_helper(cell, view_order=None, override=None, retval=None):
+        # set defaults
+        if view_order is None:
+            view_order = []
+        if override is None:
+            override = {}
+        if retval is None:
+            retval = {}
 
-    # convert cell to a CellView if needed
-    if not isinstance(cell, CellView):
-        cell = CellView(cell)
+        # convert cell to a CellView if needed
+        if not isinstance(cell, CellView):
+            cell = CellView(cell, includes=includes, defines=defines)
 
-    # recursively descend into the blocks used by this cell
-    for subcell in cell.uses:
-        if subcell in retval:
-            # don't revist the same cell twice
-            continue
-        elif subcell in override:
-            # note that this will produce an error if the specified
-            # view does not exist
-            print(f'Adding view={override[subcell]} for cell={subcell}.')
-            retval[subcell] = DragonViews.get_view(cell=subcell, view=override[subcell])
-        else:
-            subcell_view = DragonViews.search_views(cell=subcell, view_order=view_order)
-            if subcell_view is not None:
-                print(f'Adding view={subcell_view.view} for cell={subcell}.')
-                retval[subcell] = subcell_view
-                get_deps(cell=subcell_view, view_order=view_order, override=override, retval=retval)
+        # recursively descend into the blocks used by this cell
+        for subcell in cell.uses:
+            if subcell in retval:
+                # don't revist the same cell twice
+                continue
+            elif subcell in override:
+                # note that this will produce an error if the specified
+                # view does not exist
+                print(f'Adding view={override[subcell]} for cell={subcell}.')
+                retval[subcell] = dv.get_view(cell=subcell, view=override[subcell])
             else:
-                if subcell in KNOWN_PRIMS:
-                    # we already know this is a primitive cell, so pass
-                    pass
+                subcell_view = dv.search_views(cell=subcell, view_order=view_order)
+                if subcell_view is not None:
+                    print(f'Adding view={subcell_view.view} for cell={subcell}.')
+                    retval[subcell] = subcell_view
+                    get_deps_helper(cell=subcell_view, view_order=view_order, override=override, retval=retval)
                 else:
-                    # otherwise raise an exception that we could not find
-                    # a suitable view
-                    raise Exception(f'Could not find a suitable view for cell={subcell}.')
+                    if subcell in KNOWN_PRIMS:
+                        # we already know this is a primitive cell, so pass
+                        pass
+                    else:
+                        # otherwise raise an exception that we could not find
+                        # a suitable view
+                        raise Exception(f'Could not find a suitable view for cell={subcell}.')
 
-    return [val.file_ for val in retval.values()]
+        return [val.file_ for val in retval.values()]
+
+    return get_deps_helper(cell=cell, view_order=view_order, override=override)
