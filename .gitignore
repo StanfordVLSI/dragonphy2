@@ -1,6 +1,6 @@
 __pycache__
 
-*.idea
+.idea
 *.egg-info
 *.swp
 *.txt
