@@ -63,8 +63,8 @@ steps:
 
       # show results of bitstream build
       tree emu
-      cat emu/build/project/project.runs/synth_1/runme.log
-      cat emu/build/project/project.runs/impl_1/runme.log
+      cat emu/build/fpga/project/project.runs/synth_1/runme.log
+      cat emu/build/fpga/project/project.runs/impl_1/runme.log
 
       # program FPGA and run test
       pytest emu/test_emu_prog.py -s -v -r s
