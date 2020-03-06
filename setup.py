@@ -21,9 +21,10 @@ setup(
                 'generator', 'ic', 'integrated circuit', 'chip'],
     packages=find_packages(),
     install_requires=[
-        'svreal==0.2.0.dev1',
-        'msdsl==0.1.6',
-        'anasymod==0.1.9',
+        'svreal==0.2.0',
+        'msdsl==0.1.7',
+        'anasymod==0.2.1.dev2',
+        'svinst==0.0.8',
         'pexpect', 
         'pyyaml',
         'numpy',

@@ -1,0 +1,10 @@
+derived_clks:
+  rx_clk:
+    abspath: 'tb_i.rx_i.rx_clk_i'
+    preset: oscillator
+  tx_clk:
+    abspath: 'tb_i.tx_clk_i'
+    preset: oscillator
+  tm_stall:
+    abspath: 'tb_i.tm_stall_i'
+    preset: variable_timestep
