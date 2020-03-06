@@ -1,48 +1,47 @@
+import os
 from time import sleep
-from anasymod.vivado_tcl import VivadoTCL
-from dragonphy import *
+from anasymod.analysis import Analysis
 
-def test_emu_prog(mock=False):
-    # start TCL interpreter
-    tcl = VivadoTCL(cwd=get_dir('emu'), debug=True, mock=mock)
-
-    # program FPGA
-    print('Programming FPGA.')
-    tcl.source(get_file('emu/program.tcl'))
+def test_emu_prog():
+    # create analysis object
+    ana = Analysis(input=os.path.dirname(__file__))
+    ana.setup_filesets()
+    ana.set_target(target_name='fpga')      # set the active target to 'fpga'
+    ctrl = ana.launch(debug=True)           # start interactive control
 
     # reset emulator
-    tcl.set_vio(name='$emu_rst', value=0b1)
-    tcl.set_vio(name='$tm_stall', value='3FFFFFF')
+    ctrl.set_reset(1)
+    ctrl.set_param(name='tm_stall', value=0x3FFFFFF)
     sleep(0.1)
-    tcl.set_vio(name='$emu_rst', value=0b0)
+    ctrl.set_reset(0)
     sleep(0.1)
 
     # reset everything else
-    tcl.set_vio(name='$rx_rstb', value=0b0)
-    tcl.set_vio(name='$prbs_rst', value=0b1)
-    tcl.set_vio(name='$lb_mode', value=0b00)
+    ctrl.set_param(name='rx_rstb', value=0b0)
+    ctrl.set_param(name='prbs_rst', value=0b1)
+    ctrl.set_param(name='lb_mode', value=0b00)
     sleep(0.1)
 
     # align the loopback tester
-    tcl.set_vio(name='$rx_rstb', value=0b1)
-    tcl.set_vio(name='$prbs_rst', value=0b0)
-    tcl.set_vio(name='$lb_mode', value=0b01)
+    ctrl.set_param(name='rx_rstb', value=0b1)
+    ctrl.set_param(name='prbs_rst', value=0b0)
+    ctrl.set_param(name='lb_mode', value=0b01)
     sleep(1)
 
     # run the loopback test
-    tcl.set_vio(name='$lb_mode', value=0b10)
+    ctrl.set_param(name='lb_mode', value=0b10)
     sleep(10)
 
     # halt the emulation
-    tcl.set_vio(name='$tm_stall', value='0000000')
+    ctrl.set_param(name='tm_stall', value='0000000')
     sleep(0.1)
 
     # get results
     print(f'Reading results from VIO.')
-    tcl.refresh_hw_vio('$vio_0_i')
-    lb_latency = int(tcl.get_vio('$lb_latency'))
-    lb_correct_bits = int(tcl.get_vio('$lb_correct_bits'))
-    lb_total_bits = int(tcl.get_vio('$lb_total_bits'))
+    ctrl.refresh_param('vio_0_i')
+    lb_latency = int(ctrl.get_param('lb_latency'))
+    lb_correct_bits = int(ctrl.get_param('lb_correct_bits'))
+    lb_total_bits = int(ctrl.get_param('lb_total_bits'))
 
     # print results
     print(f'Loopback latency: {lb_latency} cycles.')
@@ -53,5 +52,5 @@ def test_emu_prog(mock=False):
     assert (lb_total_bits >= 50e6), 'Not enough total bits transmitted.'
     assert (lb_total_bits == lb_correct_bits), 'Bit error detected.'
 
-if __name__ == '__main__':
-    test_emu_prog(mock=True)
+if __name__ == "__main__":
+    test_emu_prog()

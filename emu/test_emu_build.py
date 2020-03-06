@@ -2,26 +2,11 @@ import json
 from dragonphy import *
 from common import adapt_fir
 
-prj_cfg = {
-  "PROJECT": {
-    "board_name": "ZC702",
-    "plugins": ["msdsl"],
-    "emu_clk_freq": 20e6,
-    "dt": 50e-9
-  },
-  "TARGET": {
-    "fpga": {
-    }
-  }
-}
-
 def test_emu_build(board_name='ZC702'):
-    # Select board
-    # TODO: interact directly with anasymod library rather
-    # than through config files
-    prj_cfg['PROJECT']['board_name'] = board_name 
-    with open(get_file('emu/prj_config.json'), 'w') as f:
-        f.write(json.dumps(prj_cfg, sort_keys=True, indent=4, separators=(',', ': ')))
+    # Write project config
+    prj = AnasymodProjectConfig()
+    prj.set_board_name(board_name)
+    prj.write_to_file(get_file('emu/prj.yaml'))
 
     # Adapts the fir weights and returns the package files needed
     config = 'test_loopback_config'
@@ -48,7 +33,11 @@ def test_emu_build(board_name='ZC702'):
     # Write source config
     # TODO: interact directly with anasymod library rather
     # than through config files
-    src_cfg.write_to_file(get_file('emu/source.config'))
+    src_cfg.write_to_file(get_file('emu/source.yaml'))
+
+    # Create empty models folder
+    # TODO: fix this
+    get_file('emu/build/models').mkdir(exist_ok=True, parents=True)
 
 if __name__ == '__main__':
     test_emu_build('ARTY_A7')
