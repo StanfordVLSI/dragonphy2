@@ -23,4 +23,4 @@ from .views import DragonViews, get_deps
 from .console_print import cprint, cprint_block, cprint_announce
 from .deluxe_run import deluxe_run
 from .run_sim import run_sim, Probe
-from .anasymod import AnasymodSourceConfig
+from .anasymod import AnasymodSourceConfig, AnasymodProjectConfig

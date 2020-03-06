@@ -1,45 +1,72 @@
-# TODO: replace with programmatic construction of filesets
+from pathlib import Path
+import yaml
 
-class AnasymodSourceConfig:
+class AnasymodProjectConfig:
     def __init__(self):
-        self.verilog_sources = []
-        self.verilog_headers = []
-        self.xci_files = []
-        self.xdc_files = []
-        self.defines = []
+        self.config = {
+            'PROJECT': {
+                'dt': 50e-9,
+                'board_name': 'ZC702',
+                'plugins': ['msdsl'],
+                'emu_clk_freq': 20e6
+            }
+        }
 
-    def add_verilog_sources(self, file_list, fileset='default'):
-        self.verilog_sources += [(file_, fileset) for file_ in file_list]
+    def set_board_name(self, value):
+        self.config['PROJECT']['board_name'] = value
 
-    def add_verilog_headers(self, header_list, fileset='default'):
-        self.verilog_headers += [(header, fileset) for header in header_list]
+    def set_dt(self, value):
+        self.config['PROJECT']['dt'] = value
 
-    def add_xci_files(self, xci_files, fileset='default'):
-        self.xci_files += [(xci_file, fileset) for xci_file in xci_files]
+    def add_plugin(self, arg):
+        self.config['PROJECT']['plugins'].append(arg)
 
-    def add_xdc_files(self, xdc_files, fileset='default'):
-        self.xdc_files += [(xdc_file, fileset) for xdc_file in xdc_files]
-
-    def add_defines(self, defines, fileset='default'):
-        for key, val in defines.items():
-            self.defines += [(key, val, fileset)]
+    def set_emu_clk_freq(self, value):
+        self.config['PROJECT']['emu_clk_freq'] = value
 
     def write_to_file(self, fname):
         with open(fname, 'w') as f:
-            for file_, fileset in self.verilog_sources:
-                f.write(f'VerilogSource(files="{file_}", fileset="{fileset}")\n')
+            yaml.dump(self.config, f, sort_keys=False)
 
-            for file_, fileset in self.verilog_headers:
-                f.write(f'VerilogHeader(files="{file_}", fileset="{fileset}")\n')
+class AnasymodSourceConfig:
+    def __init__(self):
+        self.sources = {}
 
-            for key, val, fileset in self.defines:
-                if val is None:
-                    f.write(f'Define(name="{key}", fileset="{fileset}")\n')
-                else:
-                    f.write(f'Define(name="{key}", value="{val}", fileset="{fileset}")\n')
+    def add_verilog_sources(self, file_list, fileset=None):
+        if 'verilog_sources' not in self.sources:
+            self.sources['verilog_sources'] = {}
+        for file_ in file_list:
+            key = Path(file_).stem
+            if key in self.sources['verilog_sources']:
+                raise Exception(f'Source "{key}" already defined.')
+            else:
+                self.sources['verilog_sources'][key] = {}
+            self.sources['verilog_sources'][key]['files'] = str(file_)
+            if fileset is not None:
+                self.sources['verilog_sources'][key]['fileset'] = fileset
 
-            for file_, fileset in self.xdc_files:
-                f.write(f'XDCFile(files="{file_}", fileset="{fileset}")\n')
+    def add_verilog_headers(self, header_list, fileset=None):
+        if 'verilog_headers' not in self.sources:
+            self.sources['verilog_headers'] = {}
+        for file_ in header_list:
+            key = Path(file_).stem
+            if key in self.sources['verilog_headers']:
+                raise Exception(f'Header "{key}" already defined.')
+            else:
+                self.sources['verilog_headers'][key] = {}
+            self.sources['verilog_headers'][key]['files'] = str(file_)
+            if fileset is not None:
+                self.sources['verilog_headers'][key]['fileset'] = fileset
 
-            for file_, fileset in self.xci_files:
-                f.write(f'XCIFile(files="{file_}", fileset="{fileset}")\n')
+    def add_defines(self, defines, fileset=None):
+        if 'defines' not in self.sources:
+            self.sources['defines'] = {}
+        for k, v in defines.items():
+            self.sources['defines'][k]['name'] = k
+            self.sources['defines'][k]['value'] = v
+            if fileset is not None:
+                self.sources['defines'][k]['fileset'] = fileset
+
+    def write_to_file(self, fname):
+        with open(fname, 'w') as f:
+            yaml.dump(self.sources, f, sort_keys=False)

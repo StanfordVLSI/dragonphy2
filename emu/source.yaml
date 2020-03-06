@@ -1,0 +1,45 @@
+verilog_sources:
+  constant_gpack:
+    files: /home/sherbst/Code/dragonphy/emu/pack_dir/constant_gpack.sv
+  ffe_gpack:
+    files: /home/sherbst/Code/dragonphy/emu/pack_dir/ffe_gpack.sv
+  impulse_pack:
+    files: /home/sherbst/Code/dragonphy/emu/pack_dir/impulse_pack.sv
+  weights_pack:
+    files: /home/sherbst/Code/dragonphy/emu/pack_dir/weights_pack.sv
+  rx:
+    files: /home/sherbst/Code/dragonphy/src/rx.sv
+  rx_adc:
+    files: /home/sherbst/Code/dragonphy/src/rx_adc/fpga/rx_adc.sv
+  rx_adc_core:
+    files: /home/sherbst/Code/dragonphy/src/rx_adc/fpga/rx_adc_core.sv
+  flat_ffe:
+    files: /home/sherbst/Code/dragonphy/src/fir/syn/flat_ffe.sv
+  comb_ffe:
+    files: /home/sherbst/Code/dragonphy/src/fir/syn/comb_ffe.sv
+  flat_buffer:
+    files: /home/sherbst/Code/dragonphy/src/flat_buffer/syn/flat_buffer.sv
+  buffer:
+    files: /home/sherbst/Code/dragonphy/src/flat_buffer/syn/buffer.sv
+  flatten_buffer:
+    files: /home/sherbst/Code/dragonphy/src/flat_buffer/syn/flatten_buffer.sv
+  tm_stall:
+    files: /home/sherbst/Code/dragonphy/verif/tm_stall/fpga/tm_stall.sv
+  chan:
+    files: /home/sherbst/Code/dragonphy/verif/chan/fpga/chan.sv
+  prbs21:
+    files: /home/sherbst/Code/dragonphy/verif/prbs21.sv
+  osc_model:
+    files: /home/sherbst/Code/dragonphy/verif/osc_model/fpga/osc_model.sv
+  tx:
+    files: /home/sherbst/Code/dragonphy/verif/tx/fpga/tx.sv
+  loopback:
+    files: /home/sherbst/Code/dragonphy/verif/loopback.sv
+  tb:
+    files: /home/sherbst/Code/dragonphy/verif/tb.sv
+  sim_ctrl:
+    files: /home/sherbst/Code/dragonphy/emu/sim_ctrl.sv
+    fileset: sim
+verilog_headers:
+  signals:
+    files: /home/sherbst/Code/dragonphy/inc/signals/fpga/signals.sv
