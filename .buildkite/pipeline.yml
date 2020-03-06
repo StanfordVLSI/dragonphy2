@@ -58,16 +58,16 @@ steps:
       # simulate FPGA design
       anasymod -i emu --sim --simulator_name vivado
 
-      ## build bitstream
-      #anasymod -i emu --build
+      # build bitstream
+      anasymod -i emu --build
 
-      ## show results of bitstream build
-      #tree emu
-      #cat emu/build/project/project.runs/synth_1/runme.log
-      #cat emu/build/project/project.runs/impl_1/runme.log
+      # show results of bitstream build
+      tree emu
+      cat emu/build/project/project.runs/synth_1/runme.log
+      cat emu/build/project/project.runs/impl_1/runme.log
 
-      ## program FPGA and run test
-      #pytest emu/test_emu_prog.py -s -v -r s
+      # program FPGA and run test
+      pytest emu/test_emu_prog.py -s -v -r s
 
       # deactivate virtual env
       deactivate
