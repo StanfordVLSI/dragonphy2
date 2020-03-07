@@ -2,6 +2,7 @@
 
 [![BuildKite Status](https://badge.buildkite.com/df233a0a276c870f908484cdf1e94db22868edd69514c7a977.svg?branch=master)](https://buildkite.com/stanford-aha/dragonphy)
 [![License:Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Code Coverage](https://codecov.io/gh/StanfordVLSI/dragonphy/branch/master/graph/badge.svg)](https://codecov.io/gh/StanfordVLSI/dragonphy)
 
 DragonPHY is the second design in the Open Source PHY project at Stanford.
 
