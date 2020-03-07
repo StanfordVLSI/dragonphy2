@@ -8,6 +8,7 @@ from anasymod.analysis import Analysis
 from dragonphy import *
 
 THIS_DIR = Path(__file__).resolve().parent
+SIMULATOR = 'xrun' if 'FPGA_SERVER' not in os.environ else 'vivado'
 
 def test_emu_build(board_name='ZC702'):
     # Write project config
@@ -50,10 +51,10 @@ def test_emu_build(board_name='ZC702'):
     # TODO: fix this
     (THIS_DIR / 'build' / 'models').mkdir(exist_ok=True, parents=True)
 
-def test_emu_sim(simulator_name='vivado'):
+def test_emu_sim():
     # create analysis object
     ana = Analysis(input=os.path.dirname(__file__),
-                   simulator_name=simulator_name)
+                   simulator_name=SIMULATOR)
     # setup project's filesets
     ana.setup_filesets()
     # run the simulation
@@ -122,7 +123,6 @@ def test_emu_prog(bitstream=True):
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('--board_name', type=str, default='ARTY_A7')
-    parser.add_argument('--simulator_name', type=str, default='vivado')
     parser.add_argument('--build', action='store_true')
     parser.add_argument('--sim', action='store_true')
     parser.add_argument('--prog', action='store_true')
@@ -132,6 +132,6 @@ if __name__ == '__main__':
     if args.build:
         test_emu_build(args.board_name)
     if args.sim:
-        test_emu_sim(args.simulator_name)
+        test_emu_sim()
     if args.prog:
         test_emu_prog(args.bitstream)
