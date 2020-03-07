@@ -15,7 +15,7 @@ steps:
       pip install -e .
 
       # build models (TODO: cleanup)
-      python src/rx_adc/fpga/gen.py -o src/rx_adc/fpga
+      python vlog/fpga_models/gen_rx_adc_core.py -o vlog/fpga_models/
 
       # run tests
       pip install pytest
@@ -47,7 +47,7 @@ steps:
       pip install -e .
 
       # build models (TODO: cleanup)
-      python src/rx_adc/fpga/gen.py -o src/rx_adc/fpga
+      python vlog/fpga_models/gen_rx_adc_core.py -o vlog/fpga_models/
 
       # install pytest to allow tests to run
       pip install pytest
