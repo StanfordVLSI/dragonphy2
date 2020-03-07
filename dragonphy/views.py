@@ -2,8 +2,8 @@ from .files import get_dir
 from svinst import get_mod_defs
 
 def remove_dup(seq):
-    # Raymond Hettinger
-    # https://twitter.com/raymondh/status/944125570534621185
+    # fast method to remove duplicates from a list while preserving order
+    # source: Raymond Hettinger (https://twitter.com/raymondh/status/944125570534621185)
     return list(dict.fromkeys(seq))
 
 def find_preferred_impl(cell_name, view_order, override):
