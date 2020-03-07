@@ -3,28 +3,11 @@ steps:
       # set up environment
       source /cad/modules/tcl/init/bash
       module load base xcelium
+      export DRAGONPHY_PYTHON=/usr/local/miniconda/bin/python3.7
+      printenv
 
-      # create virtual environment
-      /usr/local/miniconda/bin/python3.7 -m venv venv
-      source venv/bin/activate
-
-      # upgrade pip
-      pip install -U pip
-
-      # install dragonphy
-      pip install -e .
-
-      # build models (TODO: cleanup)
-      python vlog/fpga_models/gen_rx_adc_core.py -o vlog/fpga_models/
-
-      # install pytest
-      pip install pytest
-
-      # run tests
-      pytest tests -s -v -r s
-
-      # deactivate virtual environment
-      deactivate
+      # run regression script
+      source .buildkite/regress.sh
     label: "test"
     timeout_in_minutes: 60
     agents:
@@ -32,30 +15,12 @@ steps:
   - command: |
       # set up environment
       source /etc/environment
-      echo $$PATH
-
-      # create virtual environment
-      python3.7 -m venv venv
-      source venv/bin/activate
-
-      # upgrade pip
-      pip install -U pip
-
-      # install dragonphy
-      pip install -e .
-
-      # build models (TODO: cleanup)
-      python vlog/fpga_models/gen_rx_adc_core.py -o vlog/fpga_models/
-
-      # install pytest
-      pip install pytest
-
-      # run tests
+      export DRAGONPHY_PYTHON=python3.7
       export FPGA_SERVER=1
-      pytest tests -s -v -r s
+      printenv
 
-      # deactivate virtual env
-      deactivate
+      # run regression script
+      source .buildkite/regress.sh
     label: "test_emu"
     timeout_in_minutes: 60
     agents:
