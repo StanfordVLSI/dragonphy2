@@ -21,14 +21,23 @@ setup(
                 'generator', 'ic', 'integrated circuit', 'chip'],
     packages=find_packages(exclude=['tests']),
     install_requires=[
-        'svreal==0.2.0',
-        'msdsl==0.1.7',
-        'anasymod==0.2.1',
-        'svinst==0.0.8',
         'pexpect', 
         'pyyaml',
         'numpy',
-        'matplotlib'
+        'matplotlib',
+        # sv-parser
+        'svinst==0.0.8',
+        # anasymod ecosystem
+        'svreal==0.2.0',
+        'msdsl==0.1.7',
+        'anasymod==0.2.1',
+        # magma ecosystem dependencies
+        'fault==3.0.7',
+        'magma-lang==2.0.21',
+        'coreir==2.0.61',
+        'mantle==2.0.7',
+        'hwtypes==1.3.5',
+        'pysmt==0.8.1.dev93'
     ],
     license='Apache License 2.0',
     url=f'https://github.com/StanfordVLSI/{name}',

@@ -23,9 +23,6 @@ steps:
       # run tests
       pytest tests -s -v -r s
 
-      # simulate FPGA design
-      anasymod -i tests/test_emu --sim --simulator_name xrun
-
       # deactivate virtual environment
       deactivate
     label: "test"
@@ -53,23 +50,9 @@ steps:
       # install pytest
       pip install pytest
 
-      # build file structure
-      pytest tests/test_emu/test_emu_build.py -s -v -r s
-
-      # simulate FPGA design
-      anasymod -i tests/test_emu --sim --simulator_name vivado
-
-      # build bitstream
-      anasymod -i tests/test_emu --build
-
-      # show results of bitstream build
-      tree tests/test_emu
-      cat tests/test_emu/build/fpga/project/project.runs/synth_1/runme.log
-      cat tests/test_emu/build/fpga/project/project.runs/impl_1/runme.log
-
-      # program FPGA and run test
+      # run tests
       export FPGA_SERVER=1
-      pytest tests/test_emu/test_emu_prog.py -s -v -r s
+      pytest tests -s -v -r s
 
       # deactivate virtual env
       deactivate
