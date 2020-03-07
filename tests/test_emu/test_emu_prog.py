@@ -1,7 +1,9 @@
 import os
+import pytest
 from time import sleep
 from anasymod.analysis import Analysis
 
+@pytest.mark.skipif('FPGA_SERVER' not in os.environ, reason='The FPGA_SERVER environment variable must be set to run this test.')
 def test_emu_prog():
     # create analysis object
     ana = Analysis(input=os.path.dirname(__file__))

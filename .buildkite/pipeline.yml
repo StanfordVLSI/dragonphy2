@@ -17,13 +17,14 @@ steps:
       # build models (TODO: cleanup)
       python vlog/fpga_models/gen_rx_adc_core.py -o vlog/fpga_models/
 
-      # run tests
+      # install pytest
       pip install pytest
+
+      # run tests
       pytest tests -s -v -r s
 
       # simulate FPGA design
-      pytest emu/test_emu_build.py -s -v -r s
-      anasymod -i emu --sim --simulator_name xrun
+      anasymod -i tests/test_emu --sim --simulator_name xrun
 
       # deactivate virtual environment
       deactivate
@@ -49,25 +50,26 @@ steps:
       # build models (TODO: cleanup)
       python vlog/fpga_models/gen_rx_adc_core.py -o vlog/fpga_models/
 
-      # install pytest to allow tests to run
+      # install pytest
       pip install pytest
 
       # build file structure
-      pytest emu/test_emu_build.py -s -v -r s
+      pytest tests/test_emu/test_emu_build.py -s -v -r s
 
       # simulate FPGA design
-      anasymod -i emu --sim --simulator_name vivado
+      anasymod -i tests/test_emu --sim --simulator_name vivado
 
       # build bitstream
-      anasymod -i emu --build
+      anasymod -i tests/test_emu --build
 
       # show results of bitstream build
-      tree emu
-      cat emu/build/fpga/project/project.runs/synth_1/runme.log
-      cat emu/build/fpga/project/project.runs/impl_1/runme.log
+      tree tests/test_emu
+      cat tests/test_emu/build/fpga/project/project.runs/synth_1/runme.log
+      cat tests/test_emu/build/fpga/project/project.runs/impl_1/runme.log
 
       # program FPGA and run test
-      pytest emu/test_emu_prog.py -s -v -r s
+      export FPGA_SERVER=1
+      pytest tests/test_emu/test_emu_prog.py -s -v -r s
 
       # deactivate virtual env
       deactivate
