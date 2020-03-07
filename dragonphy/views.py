@@ -1,188 +1,92 @@
-import json
 from .files import get_dir
 from svinst import get_mod_defs
 
-VIEW_DIRS = ['src', 'verif']
-VIEW_NAMES = {'beh', 'fpga', 'fpga_verif', 'syn', 'spice', 'layout', 'struct', 'all'}
-KNOWN_PRIMS = {'BUFG'}
-VIEW_EXTS = {'.v', '.sv'}
+def remove_dup(seq):
+    # Raymond Hettinger
+    # https://twitter.com/raymondh/status/944125570534621185
+    return list(dict.fromkeys(seq))
 
-class CellView:
-    def __init__(self, file_, view=None, comment='//', includes=None, defines=None):
-        # set defaults
-        if includes is None:
-            includes = []
-        if defines is None:
-            defines = {}
+def find_preferred_impl(cell_name, view_order, override):
+    # if there is a specific view desired for this cell, use it instead of the view order
+    if cell_name in override:
+        view_order = [override[cell_name]]
 
-        # save settings
-        self.file_ = file_
-        self.view = view
-        self.comment = comment
-        self.includes = includes
-        self.defines = defines
-
-        # parse submodules
-        self.uses = self.parse_submodules()
-
-    def parse_submodules(self):
-        # TODO: do we need to pass in defines and includes, or is ignore_include enough?
-        try:
-            mod_defs = get_mod_defs(self.file_, includes=self.includes, defines=self.defines)
-        except:
-            print(f'Could not parse {self.file_}, assuming there are no relevant module instantiations...')
-            return set()
-        if len(mod_defs) >= 1:
-            mod_def = mod_defs[0]
-            return set([elem.mod_name for elem in mod_def.insts])
+    # walk through the view names in order, checking to see if there are any matches in each
+    for view_name in view_order:
+        view_folder = get_dir('vlog') / view_name
+        matches = list(view_folder.rglob(f'{cell_name}.*v'))
+        if len(matches) == 0:
+            continue
+        elif len(matches) == 1:
+            return matches[0]
         else:
-            return set()
+            print(f'Found multiple matches for cell_name={cell_name}:')
+            for match in matches:
+                print(f'{match}')
+            raise Exception('Build failed due to ambiguity.')
 
-    def serialize(self):
-        return {'file_': f'{self.file_}',
-                'uses': self.uses}
+    # fail if we get to this point because no matches were found
+    print(f'Found no matches for cell_name={cell_name}:')
+    print(f'using view_order={view_order}')
+    print(f'using override={override}')
+    raise Exception('Build failed due to a missing cell definition.')
 
-    def __str__(self):
-        return json.dumps(self.serialize(), indent=2)
+def find_mod_def(cell_name, impl_file, includes, defines):
+    mod_defs = get_mod_defs(impl_file, includes=includes, defines=defines)
+    matches = [elem for elem in mod_defs if elem.name == cell_name]
+    if len(matches) == 0:
+        print(f'Found no matches for cell_name={cell_name}:')
+        print(f'using impl_file={impl_file}')
+        print(f'using includes={includes}')
+        print(f'using defines={defines}')
+        raise Exception('Build failed due to a missing module definition.')
+    elif len(matches) > 1:
+        print(f'Found multiple matches for cell_name={cell_name}:')
+        print(f'using impl_file={impl_file}')
+        print(f'using includes={includes}')
+        print(f'using defines={defines}')
+        raise Exception('Build failed due to an unexpected module redefinition.')
+    else:
+        return matches[0]
 
-class DragonViews:
-    def __init__(self, includes=None, defines=None):
-        # save settings
-        self.includes = includes
-        self.defines = defines
+def get_deps(cell_name, view_order=None, override=None, skip=None,
+             includes=None, defines=None):
+    print(f'Visiting cell_name={cell_name}')
 
-        # instantiate internal variables
-        self.view_dict = {}
-        self.build_view_dict()
+    # set defaults
+    if view_order is None:
+        view_order = []
+    if override is None:
+        override = {}
+    if skip is None:
+        skip = set()
 
-    def build_view_dict(self):
-        for view_dir in VIEW_DIRS:
-            view_dir = get_dir(view_dir)
-            for f in view_dir.iterdir():
-                if not f.is_dir():
-                    if f.suffix in VIEW_EXTS:
-                        self.add_view_def(f.stem, 'all', f)
-                else:
-                    self.process_subdir(f)
+    # find the most preferred implementation of this cell given
+    impl_file = find_preferred_impl(
+        cell_name=cell_name,
+        view_order=view_order,
+        override=override
+    )
 
-    def process_subdir(self, subdir):
-        for f in subdir.iterdir():
-            if not f.is_dir():
-                if f.suffix in VIEW_EXTS:
-                    self.add_view_def(f.stem, 'all', f)
-            else:
-                self.process_subsubdir(f)
+    # find out what cells are instantiated by this module and descend into them
+    mod_def = find_mod_def(cell_name=cell_name, impl_file=impl_file, includes=includes, defines=defines)
 
-    def process_subsubdir(self, subsubdir):
-        for f in subsubdir.iterdir():
-            if not f.is_dir():
-                if f.suffix in VIEW_EXTS:
-                    self.add_view_def(f.stem, subsubdir.name, f)
+    # get a list of unique modules instantiated, preserving order
+    submods = remove_dup([inst.mod_name for inst in mod_def.insts])
+    print(f'Found the following dependencies: {submods}')
 
-    def add_view_def(self, cell, view, file_):
-        # make sure cell and view are strings
-        cell = f'{cell}'
-        view = f'{view}'
+    # recurse into dependencies
+    deps = []
+    for submod in submods:
+        if submod in skip:
+            continue
+        deps += get_deps(cell_name=submod, view_order=view_order, override=override, skip=skip,
+                         includes=includes, defines=defines)
 
-        # create a new cell if needed
-        if cell not in self.view_dict:
-            self.view_dict[cell] = {}
+    # add the current file to the end of the list
+    deps += [impl_file]
 
-        # make sure the cell view has not already been defined
-        if view in self.view_dict[cell]:
-            raise Exception(f'Cannot define a view from {file_} since cell={cell}, view={view} has already been defined in {self.view_dict[cell][view]}.')
+    # remove duplicates preserving order
+    deps = remove_dup(deps)
 
-        # finally add the cell view
-        self.view_dict[cell][view] = CellView(
-            file_=file_,
-            view=view,
-            includes=self.includes,
-            defines=self.defines
-        )
-
-    def has_cell(self, cell):
-        return cell in self.view_dict
-
-    def get_cell(self, cell):
-        assert self.has_cell(cell), f'Could not find cell={cell}.'
-        return self.view_dict[cell]
-
-    def has_view(self, cell, view):
-        return self.has_cell(cell) and view in self.get_cell(cell)
-
-    def get_view(self, cell, view):
-        assert self.has_view(cell=cell, view=view), f'Could not find cell={cell} view={view}.'
-        return self.view_dict[cell][view]
-
-    def search_views(self, cell, view_order=None):
-        # set defaults
-        if view_order is None:
-            view_order = []
-
-        # return None if the cell hasn't been defined
-        if not self.has_cell(cell):
-            return None
-
-        # otherwise return a view in the preference order listed
-        for view_name in view_order:
-            if view_name in self.view_dict[cell]:
-                return self.view_dict[cell][view_name]
-
-        # if we get to this point, make one last check for the 'all' view
-        if 'all' in self.view_dict[cell]:
-            return self.view_dict[cell]['all']
-
-        # no view found
-        return None
-
-    def serialize(self):
-        return {cell: {view_name: view_obj.serialize() for view_name, view_obj in views.items()}
-                    for cell, views in self.view_dict.items()}
-
-    def __str__(self):
-        return json.dumps(self.serialize(), indent=2)
-
-def get_deps(cell, view_order=None, override=None, includes=None, defines=None):
-    dv = DragonViews(includes=includes, defines=defines)
-
-    def get_deps_helper(cell, view_order=None, override=None, retval=None):
-        # set defaults
-        if view_order is None:
-            view_order = []
-        if override is None:
-            override = {}
-        if retval is None:
-            retval = {}
-
-        # convert cell to a CellView if needed
-        if not isinstance(cell, CellView):
-            cell = CellView(cell, includes=includes, defines=defines)
-
-        # recursively descend into the blocks used by this cell
-        for subcell in cell.uses:
-            if subcell in retval:
-                # don't revist the same cell twice
-                continue
-            elif subcell in override:
-                # note that this will produce an error if the specified
-                # view does not exist
-                print(f'Adding view={override[subcell]} for cell={subcell}.')
-                retval[subcell] = dv.get_view(cell=subcell, view=override[subcell])
-            else:
-                subcell_view = dv.search_views(cell=subcell, view_order=view_order)
-                if subcell_view is not None:
-                    print(f'Adding view={subcell_view.view} for cell={subcell}.')
-                    retval[subcell] = subcell_view
-                    get_deps_helper(cell=subcell_view, view_order=view_order, override=override, retval=retval)
-                else:
-                    if subcell in KNOWN_PRIMS:
-                        # we already know this is a primitive cell, so pass
-                        pass
-                    else:
-                        # otherwise raise an exception that we could not find
-                        # a suitable view
-                        raise Exception(f'Could not find a suitable view for cell={subcell}.')
-
-        return [val.file_ for val in retval.values()]
-
-    return get_deps_helper(cell=cell, view_order=view_order, override=override)
+    return deps
