@@ -1,6 +1,6 @@
 from dragonphy import *
 from verif.fir.fir import Fir
-from verif.mlsd.mlsd import MLSD
+from vlog.tb.mlsd.mlsd import MLSD
 
 import numpy as np
 import matplotlib.pyplot as plt
