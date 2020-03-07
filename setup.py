@@ -19,11 +19,11 @@ setup(
     keywords = ['high-speed', 'high speed', 'link', 'high-speed link',
                 'high speed link', 'analog', 'mixed-signal', 'mixed signal',
                 'generator', 'ic', 'integrated circuit', 'chip'],
-    packages=find_packages(),
+    packages=find_packages(exclude=['tests']),
     install_requires=[
         'svreal==0.2.0',
         'msdsl==0.1.7',
-        'anasymod==0.2.1.dev2',
+        'anasymod==0.2.1',
         'svinst==0.0.8',
         'pexpect', 
         'pyyaml',

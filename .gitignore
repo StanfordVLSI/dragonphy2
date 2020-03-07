@@ -1,6 +1,7 @@
 __pycache__
 
-*.idea
+.idea
+
 *.egg-info
 *.swp
 *.txt
@@ -22,3 +23,4 @@ wave.*
 *_gpack.sv
 pack/
 *pack/
+build/
