@@ -22,7 +22,7 @@ def test_loopback():
 
     # Run simulation
     run_sim(srcs=packages + deps, cwd=get_dir(build_dir),
-            top='stim', inc_dirs=[INC_DIR])
+            top='loopback_stim', inc_dirs=[INC_DIR])
 
 if __name__ == '__main__':
     test_loopback()

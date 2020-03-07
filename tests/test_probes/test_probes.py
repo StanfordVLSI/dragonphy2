@@ -22,7 +22,8 @@ def test_probes():
 
     # Run simulation
     run_sim(srcs=packages + deps, cwd=get_dir(build_dir),
-            top='stim', inc_dirs=[INC_DIR], probes=['stim'])
+            top='loopback_stim', inc_dirs=[INC_DIR],
+            probes=['loopback_stim'])
 
 if __name__ == '__main__':
     test_probes()

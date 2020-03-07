@@ -1,4 +1,4 @@
-module stim;
+module loopback_stim;
 
     tb tb_i();
 
