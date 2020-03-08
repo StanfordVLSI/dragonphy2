@@ -2,8 +2,8 @@ from .files import get_dir
 from svinst import get_mod_defs
 
 def remove_dup(seq):
-    # Raymond Hettinger
-    # https://twitter.com/raymondh/status/944125570534621185
+    # fast method to remove duplicates from a list while preserving order
+    # source: Raymond Hettinger (https://twitter.com/raymondh/status/944125570534621185)
     return list(dict.fromkeys(seq))
 
 def find_preferred_impl(cell_name, view_order, override):
@@ -13,8 +13,10 @@ def find_preferred_impl(cell_name, view_order, override):
 
     # walk through the view names in order, checking to see if there are any matches in each
     for view_name in view_order:
-        view_folder = get_dir('vlog') / view_name
-        matches = list(view_folder.rglob(f'{cell_name}.*v'))
+        matches = []
+        for dir_name in ['vlog', 'build']:
+            view_folder = get_dir(dir_name) / view_name
+            matches += list(view_folder.rglob(f'{cell_name}.*v'))
         if len(matches) == 0:
             continue
         elif len(matches) == 1:

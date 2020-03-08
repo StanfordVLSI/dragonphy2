@@ -1,84 +1,57 @@
 from pathlib import Path
-import subprocess
+import random
+
+import magma, fault
 
 class Tester:
-	def __init__(self, top = 'test', testbench=[], libraries=[], packages=[], flags=[], files=[], input_tcl=None, sim='xrun', build_dir='', overload_seed=False, seed=None, wave=False):
-		self.build_dir = build_dir
-		self.top 	   = top
+	def __init__(self, top_module='test', testbench=None, libraries=None,
+				 packages=None, flags=None, files=None, simulator='ncsim',
+				 directory='', overload_seed=False, seed=None):
+		# set values for arguments that default to a list
+		# see: https://stackoverflow.com/questions/1132941/least-astonishment-and-the-mutable-default-argument
+		testbench = testbench if testbench is not None else []
+		libraries = libraries if libraries is not None else []
+		packages = packages if packages is not None else []
+		flags = flags if flags is not None else []
+		files = files if files is not None else []
+
+		# save settings
+		self.directory = directory
+		self.top_module = top_module
 		self.testbench = [Path(tb).resolve() for tb in testbench]
 		self.libraries = [Path(library).resolve() for library in libraries]
-		self.packages  = [Path(package).resolve() for package in packages]
-		self.files 	   = [Path(file).resolve() for file in files]
-		self.wave = wave
-		self.flags 	   = flags
-		self.sim	   = sim
-		self.args 	   = []
-		self.cwd 	   = Path(self.build_dir)
-		self.returncode = None
+		self.packages = [Path(package).resolve() for package in packages]
+		self.files = [Path(file).resolve() for file in files]
+		self.flags = flags
+		self.simulator = simulator
+		self.seed = seed
 
-		if overload_seed and not seed:
-			with open('/dev/urandom', 'rb') as f:
-				self.seed = int.from_bytes(f.read(4), byteorder='big')
-		elif overload_seed:
-			self.seed = seed
-
-		self.cwd.mkdir(exist_ok=True)
-
-		if not input_tcl:
-			self.generate_input_tcl()
-		else:
-			self.input_tcl = input_tcl
-
-		self.generate_arguments()
-
+		# generate a random seed if needed
+		if overload_seed and (self.seed is None):
+			self.generate_new_seed()
 
 	def generate_new_seed(self):
-		with open('/dev/urandom', 'rb') as f:
-			self.seed = int.from_bytes(f.read(4), byteorder='big')
-
-	def generate_input_tcl(self):
-		input_path = Path(self.build_dir + '/hdl.tcl').resolve()
-		with open(input_path, 'w') as f:
-			if self.wave:
-				f.write(f'database -open waves.shm -into waves.shm -default\n')
-				f.write(f'probe -create {self.top} -depth 9\n')
-				f.write(f'probe -create {self.top} -depth 9 -all -memories\n')
-			f.write(f'run\n')
-			f.write(f'exit\n')
-		self.input_tcl = input_path
-
-	def execute(self):
-		self.generate_arguments()
-		self.cwd.mkdir(exist_ok=True)
-		print('\u001b[32;1mCOMMAND\u001b[0m: ' + " ".join(self.args))
-		self.returncode = subprocess.run(self.args, cwd=self.cwd).returncode
-
-	def generate_arguments(self):
-		self.args = []
-
-		self.args += [f'{self.sim}', '-clean']
-		if self.seed:
-			self.args += ['-seed', f'{self.seed}']
-		for flag in self.flags:
-			self.args += [f'{flag}']
-		self.args += ['-top', f'{self.top}']
-		for package in self.packages:
-			self.args += [f'{package}']
-		for tb in self.testbench:
-			self.args += [f'{tb}']
-
-		for library in self.libraries:
-			self.args += ['-v', f'{library}']
-		for file in self.files:
-			self.args += ['-f', f'{file}']
-
-		#Access is required for the probe to work
-		self.args += ['-input', f'{self.input_tcl}', '-access', 'r']
-
-	def check(self):
-		assert self.returncode == 0
-		print('\u001b[32:1mBUILD SUCCESFUL\u001b[0m')
+		self.seed = random.getrandbits(32)
 
 	def run(self):
-		self.execute()
-		self.check()
+		# generate list of extra flags (beyond those requested by the user)
+		# TODO: make this work for simulators other than ncsim
+		extra_flags = []
+		extra_flags += ['-clean']
+		if self.seed is not None:
+			extra_flags += ['-seed', self.seed]
+		for file_ in self.files:
+			extra_flags += ['-f', file_]
+
+		# run tester
+		tester = fault.Tester(magma.DeclareCircuit(self.top_module))
+		tester.compile_and_run(
+			target='system-verilog',
+			simulator=self.simulator,
+			top_module=self.top_module,
+			ext_srcs=self.packages + self.testbench,
+			ext_libs=self.libraries,
+			flags=self.flags + extra_flags,
+			ext_test_bench=True,
+			disp_type='realtime'
+		)
