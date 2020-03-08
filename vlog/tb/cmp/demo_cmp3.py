@@ -124,16 +124,15 @@ def main():
     cmp_packager.create_package()
 
     #Create TestBench Object
-    tester   = Tester(
-                        top       = 'test',
-                        testbench = ['verif/cmp/test.sv'],
-                        libraries = ['src/fir/syn/ffe.sv', 'src/dig_comp/syn/comparator.sv' ,'verif/tb/beh/logic_recorder.sv'],
-                        packages  = [generic_packager.path, testbench_packager.path, ffe_packager.path, cmp_packager.path],
-                        flags     = ['-sv', '-64bit', '+libext+.v', '+libext+.sv', '+libext+.vp'],
-                        build_dir = build_dir,
-                        overload_seed=True,
-                        wave=True
-                    )
+    tester = Tester(
+        top_module = 'test',
+        testbench = ['verif/cmp/test.sv'],
+        libraries = ['src/fir/syn/ffe.sv', 'src/dig_comp/syn/comparator.sv' ,'verif/tb/beh/logic_recorder.sv'],
+        packages = [generic_packager.path, testbench_packager.path, ffe_packager.path, cmp_packager.path],
+        flags = ['-sv', '-64bit', '+libext+.v', '+libext+.sv', '+libext+.vp'],
+        directory = build_dir,
+        overload_seed = True
+    )
 
     # Cursor position with the most energy 
     pos = 2

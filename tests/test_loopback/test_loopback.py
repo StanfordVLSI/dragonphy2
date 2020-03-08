@@ -1,7 +1,9 @@
+import os
 from pathlib import Path
 from dragonphy import *
 
 THIS_DIR = Path(__file__).resolve().parent
+SIMULATOR = 'ncsim' if 'FPGA_SERVER' not in os.environ else 'vivado'
 
 def test_loopback():
     build_dir = str(THIS_DIR / 'build')
@@ -12,7 +14,7 @@ def test_loopback():
     packages = get_files_arr(packages)
 
     # Get dependencies for simulation
-    INC_DIR = get_dir('inc/cpu_models')
+    INC_DIR = get_dir('inc/cpu')
     deps = get_deps(
         'loopback_stim',
         view_order=['tb', 'cpu_models', 'chip_src'],
@@ -21,8 +23,13 @@ def test_loopback():
     )
 
     # Run simulation
-    run_sim(srcs=packages + deps, cwd=get_dir(build_dir),
-            top='loopback_stim', inc_dirs=[INC_DIR])
+    run_sim(
+        ext_srcs=packages+deps,
+        directory=get_dir(build_dir),
+        top_module='loopback_stim',
+        inc_dirs=[INC_DIR],
+        simulator=SIMULATOR
+    )
 
 if __name__ == '__main__':
     test_loopback()
