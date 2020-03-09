@@ -1,29 +1,26 @@
-from pathlib import Path
 import random
+import magma
+import fault
 
-import magma, fault
+class DragonTester:
+	def __init__(self, top_module, ext_test_bench=True, disp_type='realtime',
+				 simulator='ncsim', overload_seed=False, seed=None, clean=True,
+				 flags=None, target='system-verilog', **kwargs):
+		# save kwargs
+		kwargs['top_module'] = top_module
+		kwargs['ext_test_bench'] = ext_test_bench
+		kwargs['disp_type'] = disp_type
+		kwargs['simulator'] = simulator
+		kwargs['target'] = target
+		self.kwargs = kwargs
 
-class Tester:
-	def __init__(self, top_module='test', testbench=None, libraries=None,
-				 packages=None, flags=None, files=None, simulator='ncsim',
-				 directory='', overload_seed=False, seed=None):
-		# set values for arguments that default to a list
-		# see: https://stackoverflow.com/questions/1132941/least-astonishment-and-the-mutable-default-argument
-		testbench = testbench if testbench is not None else []
-		libraries = libraries if libraries is not None else []
-		packages = packages if packages is not None else []
+		# save flags argument -- this is treated as a special case because the
+		# flags that should be passed are simulator dependent.
 		flags = flags if flags is not None else []
-		files = files if files is not None else []
-
-		# save settings
-		self.directory = directory
-		self.top_module = top_module
-		self.testbench = [Path(tb).resolve() for tb in testbench]
-		self.libraries = [Path(library).resolve() for library in libraries]
-		self.packages = [Path(package).resolve() for package in packages]
-		self.files = [Path(file).resolve() for file in files]
 		self.flags = flags
-		self.simulator = simulator
+
+		# save custom arguments
+		self.clean = clean
 		self.seed = seed
 
 		# generate a random seed if needed
@@ -34,24 +31,21 @@ class Tester:
 		self.seed = random.getrandbits(32)
 
 	def run(self):
-		# generate list of extra flags (beyond those requested by the user)
-		# TODO: make this work for simulators other than ncsim
-		extra_flags = []
-		extra_flags += ['-clean']
-		if self.seed is not None:
-			extra_flags += ['-seed', self.seed]
-		for file_ in self.files:
-			extra_flags += ['-f', file_]
+		# declare magma circuit to represent the testbench
+		class DUT(magma.Circuit):
+			name = self.kwargs['top_module']
+			io = magma.IO()
 
-		# run tester
-		tester = fault.Tester(magma.DeclareCircuit(self.top_module))
-		tester.compile_and_run(
-			target='system-verilog',
-			simulator=self.simulator,
-			top_module=self.top_module,
-			ext_srcs=self.packages + self.testbench,
-			ext_libs=self.libraries,
-			flags=self.flags + extra_flags,
-			ext_test_bench=True,
-			disp_type='realtime'
-		)
+		# instantiate the tester
+		tester = fault.Tester(DUT)
+
+		# update flags for ncsim
+		flags = self.flags
+		if self.kwargs['simulator'] == 'ncsim':
+			if self.clean:
+				flags += ['-clean']
+			if self.seed is not None:
+				flags += ['-seed', self.seed]
+
+		# run the simulation
+		tester.compile_and_run(**self.kwargs, flags=flags)
