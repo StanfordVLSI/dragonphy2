@@ -23,13 +23,13 @@ def test_loopback():
     )
 
     # Run simulation
-    run_sim(
+    DragonTester(
         ext_srcs=packages+deps,
         directory=get_dir(build_dir),
         top_module='loopback_stim',
         inc_dirs=[INC_DIR],
         simulator=SIMULATOR
-    )
+    ).run()
 
 if __name__ == '__main__':
     test_loopback()
