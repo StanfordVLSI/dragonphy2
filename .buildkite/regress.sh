@@ -8,8 +8,8 @@ pip install -U pip
 # install dragonphy
 pip install -e .
 
-# make models
-make models
+# make dependencies for design
+make all
 
 # install pytest
 pip install pytest pytest-cov
