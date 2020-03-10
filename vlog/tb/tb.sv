@@ -25,9 +25,9 @@ module tb;
 
     // transmitter
     tx tx_i (
-        .clk_i(clk_tx_i),
         .data_i(data_tx_i),
-        .data_ana_o(data_tx_o)
+        .data_ana_o(data_tx_o),
+        .clk_i(clk_tx_i)
     );
 
     // channel

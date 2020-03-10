@@ -12,22 +12,13 @@ module rx_adc #(
     input wire logic rst
 );
     generate
-        // run ADC as combo logic
-        logic signed [(n_adc-1):0] out_imm;
         rx_adc_core #(
             `INTF_PASS_REAL(in_, in.value)
         ) rx_adc_core_i (
             .in_(in.value),
-            .out(out_imm)
+            .out(out),
+            .clk(clk),
+            .rst(rst)
         );
-
-        // synchronize output
-        always @(posedge clk) begin
-            if (rst == 1'b1) begin
-                out <= 'd0;
-            end else begin
-                out <= out_imm;
-            end
-        end
     endgenerate   
 endmodule

@@ -5,8 +5,8 @@ module tx #(
     parameter real v_hi=+1.0
 ) (
     input wire logic data_i,
-    input wire logic clk_i,
-    `ANALOG_OUTPUT data_ana_o
+    `ANALOG_OUTPUT data_ana_o,
+    input wire logic clk_i
 );
     import impulse_pack::*;
     logic [(impulse_length-1):0] mem = '0;
