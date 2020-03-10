@@ -17,10 +17,7 @@ def test_emu_build(board_name='ZC702'):
     prj.write_to_file(THIS_DIR / 'prj.yaml')
 
     # Adapts the fir weights and returns the package files needed
-    config = 'test_loopback_config'
-    build_dir = str(THIS_DIR / 'pack_dir')
-    packages = adapt_fir(build_dir, config)
-    packages = get_files_arr(packages)
+    packages = list(get_dir('build/adapt_fir').glob('*.sv'))
 
     # Build up a configuration of source files for the project
     src_cfg = AnasymodSourceConfig()

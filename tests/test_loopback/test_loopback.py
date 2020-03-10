@@ -6,12 +6,8 @@ THIS_DIR = Path(__file__).resolve().parent
 SIMULATOR = 'ncsim' if 'FPGA_SERVER' not in os.environ else 'vivado'
 
 def test_loopback():
-    build_dir = str(THIS_DIR / 'build')
-
-    # Adapts the fir weights and returns the package files needed
-    config = 'test_loopback_config'
-    packages = adapt_fir(build_dir, config)
-    packages = get_files_arr(packages)
+    # get list of packages
+    packages = list(get_dir('build/adapt_fir').glob('*.sv'))
 
     # Get dependencies for simulation
     INC_DIR = get_dir('inc/cpu')
@@ -25,7 +21,7 @@ def test_loopback():
     # Run simulation
     DragonTester(
         ext_srcs=packages+deps,
-        directory=get_dir(build_dir),
+        directory=Path(__file__).parent / 'build',
         top_module='loopback_stim',
         inc_dirs=[INC_DIR],
         simulator=SIMULATOR
