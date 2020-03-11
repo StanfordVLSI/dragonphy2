@@ -1,6 +1,8 @@
 from pathlib import Path
 from argparse import ArgumentParser
+
 from msdsl import MixedSignalModel, VerilogGenerator, to_sint, min_op, max_op
+from msdsl.expr.extras import if_
 
 def clamp(a, min_val, max_val):
     return min_op([max_op([a, min_val]), max_val])
@@ -27,19 +29,26 @@ def main():
     m = MixedSignalModel(Path(__file__).stem, dt=a.dt)
     m.add_analog_input('in_')
     m.add_digital_output('out', width=a.n, signed=True)
-    m.add_digital_input('clk')
     m.add_digital_input('clk_val')
-    m.add_digital_input('rst')
+    m.add_digital_input('emu_clk')
+    m.add_digital_input('emu_rst')
+    m.add_digital_output('emu_stall')
 
-    # define model behavior
-    # compute expression for ADC output as an unclamped, real number
-    expr = ((m.in_-a.vn)/(a.vp-a.vn) * ((2**a.n)-1)) - (2**(a.n-1))
+    # determine when sampling should happen
+    m.add_digital_state('prev_clk_val')
+    m.set_next_cycle(m.prev_clk_val, m.clk_val, clk=m.emu_clk, rst=m.emu_rst)
 
-    # clamp to ADC range
+    # determine when the emulator should stall
+    m.set_this_cycle(m.emu_stall, m.clk_val & (~m.prev_clk_val))
+
+    # sample channel value at the right time
+    m.add_analog_state('samp_val', range_=30)
+    m.set_next_cycle(m.samp_val, if_(m.emu_stall, m.in_, m.samp_val), clk=m.emu_clk, rst=m.emu_rst)
+
+    # define ADC behavior using combinational logic acting on the sampled value
+    expr = ((m.samp_val-a.vn)/(a.vp-a.vn) * ((2**a.n)-1)) - (2**(a.n-1))
     clamped = clamp(expr, -(2**(a.n-1)), (2**(a.n-1))-1)
-
-    # assign expression to output
-    m.set_next_cycle(m.out, to_sint(clamped, width=a.n), clk=m.clk, rst=m.rst)
+    m.set_this_cycle(m.out, to_sint(clamped, width=a.n))
 
     # determine the output filename
     filename = Path(a.output).resolve() / f'{m.module_name}.sv'

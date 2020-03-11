@@ -8,3 +8,6 @@ derived_clks:
   tm_stall:
     abspath: 'tb_i.tm_stall_i'
     preset: variable_timestep
+  rx_adc:
+    abspath: 'tb_i.rx_i.rx_adc_i'
+    preset: variable_timestep
