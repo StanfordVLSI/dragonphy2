@@ -10,13 +10,15 @@ module rx_adc #(
     input wire logic clk,
     input wire logic rst
 );
-
     integer code;
     always @(posedge clk) begin
         // calculate output code
         if (rst == 1'b1) begin
             code = 0;
         end else begin
+            // request update on the input signal
+            in.update();
+
             // convert input to code mapping [vn, vp] to [0, ((1<<n)-1)]
             code = integer'(((2.0**n)-1)*(in.value-vn)/(vp-vn));
 
@@ -35,5 +37,4 @@ module rx_adc #(
         // assign code to output
         out <= code;
     end
-
 endmodule

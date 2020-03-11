@@ -3,6 +3,12 @@
 
 interface analog_if ();
     real value;
+    event req;
+    event ack;
+    task update();
+        ->>req;
+        @(ack);
+    endtask
 endinterface
 
 `define ANALOG_INPUT interface
