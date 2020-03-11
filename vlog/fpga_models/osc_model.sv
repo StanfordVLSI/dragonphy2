@@ -1,7 +1,8 @@
 `include "signals.sv"
 
 module osc_model (
-    output wire logic clk_o
+    output wire logic clk_o,
+    output wire logic clk_o_val
 );
     // signals use for external I/O
     (* dont_touch = "true" *) logic __emu_clk_val;
@@ -23,8 +24,13 @@ module osc_model (
         .emu_clk(__emu_clk),
         .emu_dt(__emu_dt),
         .dt_req(__emu_dt_req),
-        .clk_val(__emu_clk_val),
+        .clk_val(clk_o_val),
         .clk_i(__emu_clk_i),
         .clk_o(clk_o)
     );
+
+    // assign to __emu_clk_val
+    // TODO: clean this up since it's a particularly messy detail
+    // to have to expose
+    assign __emu_clk_val = clk_o_val;
 endmodule

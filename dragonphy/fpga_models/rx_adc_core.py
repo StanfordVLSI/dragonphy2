@@ -28,6 +28,7 @@ def main():
     m.add_analog_input('in_')
     m.add_digital_output('out', width=a.n, signed=True)
     m.add_digital_input('clk')
+    m.add_digital_input('clk_val')
     m.add_digital_input('rst')
 
     # define model behavior

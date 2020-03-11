@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 name = 'dragonphy'
-version = '0.1.1'
+version = '0.1.2'
 
 DESCRIPTION = '''\
 Open Source PHY v2\
@@ -21,25 +21,28 @@ setup(
                 'generator', 'ic', 'integrated circuit', 'chip'],
     packages=find_packages(exclude=['tests']),
     install_requires=[
-        'pexpect', 
-        'pyyaml',
-        'numpy',
-        'matplotlib',
-        # sv-parser
-        'svinst==0.0.8',
         # anasymod ecosystem
         'svreal==0.2.0',
         'msdsl==0.1.7',
         'anasymod==0.2.1',
+        # system-verilog parser
+        'svinst==0.0.8',
         # magma ecosystem dependencies
-        'fault==3.0.7',
-        'magma-lang==2.0.21',
-        'coreir==2.0.61',
-        'mantle==2.0.7',
-        'hwtypes==1.3.5',
-        'ast_tools==0.0.14',
-        'jinja2==2.11.1',
-        'pysmt==0.8.1.dev93'
+        'fault>=3.0.7',
+        'magma-lang>=2.0.21',
+        'coreir>=2.0.61',
+        'mantle>=2.0.7',
+        'hwtypes>=1.3.5',
+        'ast_tools>=0.0.14',
+        # general requirements
+        'pexpect', 
+        'pyyaml',
+        'numpy',
+        'matplotlib',
+        # general requirements with special versions to prevent
+        # warnings that clutter pytest output
+        'jinja2>=2.11.1',
+        'pysmt>=0.8.1.dev93'
     ],
     license='Apache License 2.0',
     url=f'https://github.com/StanfordVLSI/{name}',

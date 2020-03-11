@@ -3,7 +3,6 @@
 
 `define ANALOG_INPUT inout wire
 `define ANALOG_OUTPUT inout wire
-
-`define DECL_ANALOG(x) wire x;
+`define DECL_ANALOG(name) wire ``name``
 
 `endif // `ifndef __SIGNALS_SV__
