@@ -12,39 +12,32 @@ def adapt_fir(build_dir ='.', config='system'):
     # convert build_dir to a path if it is not already
     build_dir = Path(build_dir)
 
+    # read in configuration information
     system_config = Configuration(config)
     ffe_config = system_config['generic']['ffe']
 
-    # Number of iterations of Wiener Steepest Descent
-    iterations = 200000
-
-    # Channel parameters
-    chan_type = 'exponent'
-    chan_tau = 0.5
-    chan_sampl_rate = 5
-    chan_resp_depth = 50
-    pos = 2
-
-    ideal_codes = np.random.randint(2, size=iterations)*2 - 1
-
+    # create channel model
     chan = Channel(
-        channel_type=chan_type,
-        normal='area',
-        tau=chan_tau,
-        sampl_rate=chan_sampl_rate,
-        resp_depth=chan_resp_depth,
-        cursor_pos=pos
+        channel_type='exponent',
+        tau=2e-9,
+        sampl_rate=1e9,
+        resp_depth=50
     )
-    chan_out = chan(ideal_codes) / chan_sampl_rate
+
+    # compute response of channel to codes
+    iterations = 200000
+    ideal_codes = np.random.randint(2, size=iterations)*2 - 1
+    chan_out = chan.compute_output(ideal_codes)
 
     # Adapt to the channel
+    cursor_pos = 3
     adapt = Wiener(
         step_size = ffe_config['adaptation']['args']['mu'],
         num_taps = ffe_config['parameters']['length'],
-        cursor_pos=pos
+        cursor_pos=cursor_pos
     )
-    for i in range(iterations-pos):
-        adapt.find_weights_pulse(ideal_codes[i-pos], chan_out[i])    
+    for i in range(iterations-cursor_pos):
+        adapt.find_weights_pulse(ideal_codes[i-cursor_pos], chan_out[i])
     weights = adapt.weights
 
     # Uncomment this line for debugging purposes to
@@ -74,11 +67,12 @@ def adapt_fir(build_dir ='.', config='system'):
     ).create_package()
 
     # Write impulse response to package
+    _, v_pulse = chan.get_pulse_resp()
     Packager(
-        package_name='impulse_pack',
+        package_name='pulse_resp_pack',
         parameters={
-            'impulse_length': len(chan.impulse_response),
-            'impulse_values': chan.impulse_response / chan_sampl_rate
+            'pulse_resp_length': len(v_pulse),
+            'pulse_resp_values': v_pulse
         },
         dir=build_dir
     ).create_package()
@@ -94,8 +88,8 @@ def adapt_fir(build_dir ='.', config='system'):
     ).create_package()
 
     # Write the impulse response to a YAML file
-    with open(build_dir / 'impulse.yml', 'w') as f:
-        yaml.dump({'impulse': [float(elem / chan_sampl_rate) for elem in chan.impulse_response]}, f)
+    with open(build_dir / 'pulse_resp.yml', 'w') as f:
+        yaml.dump({'pulse_resp': [float(elem) for elem in v_pulse]}, f)
 
     # Return a list of all packages created
     return list(build_dir.glob('*.sv'))
