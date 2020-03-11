@@ -66,12 +66,14 @@ def adapt_fir(build_dir ='.', config='system'):
     ).create_package()
 
     # Write impulse response to package
-    _, v_pulse = chan.get_pulse_resp()
+    step_dt = 0.1e-9
+    _, v_step = chan.get_step_resp(f_sig=1/step_dt)
     Packager(
-        package_name='pulse_resp_pack',
+        package_name='step_resp_pack',
         parameters={
-            'pulse_resp_length': len(v_pulse),
-            'pulse_resp_values': v_pulse
+            'step_len': len(v_step),
+            'step_dt': step_dt,
+            'v_step': v_step
         },
         dir=build_dir
     ).create_package()
