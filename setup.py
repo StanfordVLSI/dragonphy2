@@ -37,6 +37,8 @@ setup(
         'coreir==2.0.61',
         'mantle==2.0.7',
         'hwtypes==1.3.5',
+        'ast_tools==0.0.14',
+        'jinja2==2.11.1',
         'pysmt==0.8.1.dev93'
     ],
     license='Apache License 2.0',

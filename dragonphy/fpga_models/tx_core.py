@@ -27,8 +27,8 @@ def main():
     m.add_digital_input('clk')
 
     # impulse response
-    with open(get_file('build/adapt_fir/impulse.yml'), 'r') as f:
-        impulse = yaml.safe_load(f)['impulse']
+    with open(get_file('build/adapt_fir/pulse_resp.yml'), 'r') as f:
+        impulse = yaml.safe_load(f)['pulse_resp']
 
     # save a history of inputs
     i_hist = m.make_history(m.in_, len(impulse), clk=m.clk, rst="1'b0")
