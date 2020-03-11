@@ -17,10 +17,7 @@ def test_emu_build(board_name='ZC702'):
     prj.write_to_file(THIS_DIR / 'prj.yaml')
 
     # Adapts the fir weights and returns the package files needed
-    config = 'test_loopback_config'
-    build_dir = str(THIS_DIR / 'pack_dir')
-    packages = adapt_fir(build_dir, config)
-    packages = get_files_arr(packages)
+    packages = list(get_dir('build/adapt_fir').glob('*.sv'))
 
     # Build up a configuration of source files for the project
     src_cfg = AnasymodSourceConfig()
@@ -31,7 +28,8 @@ def test_emu_build(board_name='ZC702'):
         view_order=['tb', 'fpga_models', 'chip_src'],
         includes=[get_dir('inc/fpga'), svreal.get_svreal_header().parent, msdsl.get_msdsl_header().parent],
         defines={'DT_WIDTH': 27, 'DT_EXPONENT': -46},
-        skip={'svreal', 'assign_real', 'comp_real', 'add_sub_real', 'ite_real', 'dff_real', 'mul_real'}
+        skip={'svreal', 'assign_real', 'comp_real', 'add_sub_real', 'ite_real', 'dff_real', 'mul_real',
+              'mem_digital'}
     )
     file_list = packages + deps
     src_cfg.add_verilog_sources(file_list)

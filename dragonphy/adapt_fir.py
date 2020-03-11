@@ -1,44 +1,42 @@
 import numpy as np
+from pathlib import Path
+
 from .config import Configuration
 from .channel import Channel
 from .adaptation import Wiener
 from .quantizer import Quantizer
 from .packager import Packager
 
+def adapt_fir(build_dir ='.', config='system'):
+    # convert build_dir to a path if it is not already
+    build_dir = Path(build_dir)
 
-def adapt_fir(pack_dir = ".", config="system"):
-
+    # read in configuration information
     system_config = Configuration(config)
     ffe_config = system_config['generic']['ffe']
 
-    # Number of iterations of Wiener Steepest Descent
+    # create channel model
+    chan = Channel(
+        channel_type='exponent',
+        tau=2e-9,
+        sampl_rate=1e9,
+        resp_depth=50
+    )
+
+    # compute response of channel to codes
     iterations = 200000
-
-    # Channel parameters
-    chan_type = 'exponent'
-    chan_tau = 0.5
-    chan_sampl_rate = 5
-    chan_resp_depth = 50
-    pos = 2
-
     ideal_codes = np.random.randint(2, size=iterations)*2 - 1
-
-    chan = Channel(channel_type=chan_type,
-                   normal='area',
-                   tau=chan_tau,
-                   sampl_rate=chan_sampl_rate,
-                   resp_depth=chan_resp_depth,
-                   cursor_pos=pos)
-    chan_out = chan(ideal_codes) / chan_sampl_rate
+    chan_out = chan.compute_output(ideal_codes)
 
     # Adapt to the channel
+    cursor_pos = 3
     adapt = Wiener(
-        step_size = ffe_config["adaptation"]["args"]["mu"],
-        num_taps = ffe_config['parameters']["length"],
-        cursor_pos=pos
+        step_size = ffe_config['adaptation']['args']['mu'],
+        num_taps = ffe_config['parameters']['length'],
+        cursor_pos=cursor_pos
     )
-    for i in range(iterations-pos):
-        adapt.find_weights_pulse(ideal_codes[i-pos], chan_out[i])    
+    for i in range(iterations-cursor_pos):
+        adapt.find_weights_pulse(ideal_codes[i-cursor_pos], chan_out[i])
     weights = adapt.weights
 
     # Uncomment this line for debugging purposes to
@@ -49,51 +47,49 @@ def adapt_fir(pack_dir = ".", config="system"):
     weights = weights * (100.0 / np.sum(np.abs(weights)))
 
     # Quantize the weights
-    qw = Quantizer(width=ffe_config["parameters"]["weight_precision"], signed=True)
+    # TODO: why isn't "quantized_weights" used?
+    qw = Quantizer(width=ffe_config['parameters']['weight_precision'], signed=True)
     quantized_weights = qw.quantize_2s_comp(weights)
 
-    # Create Package Generator Object 
-    generic_packager = Packager(
-        package_name='constant',
-        parameter_dict=system_config['generic']['parameters'],
-        path=pack_dir
-    )
-    ffe_packager = Packager(
-        package_name='ffe',
-        parameter_dict=ffe_config['parameters'],
-        path=pack_dir
-    )
+    # create constants package
+    Packager(
+        package_name='constant_gpack',
+        parameters=system_config['generic']['parameters'],
+        dir=build_dir
+    ).create_package()
 
-    #Create package file from parameters specified in system.yaml under generic
-    generic_packager.create_package()
-    ffe_packager.create_package()
+    # Create ffe package
+    Packager(
+        package_name='ffe_gpack',
+        parameters=ffe_config['parameters'],
+        dir=build_dir
+    ).create_package()
 
     # Write impulse response to package
-    impulse_length = len(chan.impulse_response)
-    impulse_values = ', '.join(f'{elem / chan_sampl_rate}'
-                               for elem in chan.impulse_response)
-    impulse_pack = pack_dir + '/' + 'impulse_pack.sv' 
-    with open(impulse_pack, "w+") as f:
-        f.write(f'''\
-package impulse_pack;
-    localparam integer impulse_length = {impulse_length};
-    localparam real impulse_values [{impulse_length}] = '{{{impulse_values}}};
-endpackage\
-''')
+    step_dt = 0.1e-9
+    _, v_step = chan.get_step_resp(f_sig=1/step_dt)
+    Packager(
+        package_name='step_resp_pack',
+        parameters={
+            'step_len': len(v_step),
+            'step_dt': step_dt,
+            'v_step': v_step
+        },
+        dir=build_dir
+    ).create_package()
 
     # Write weights to package
-    # TODO: why is "weights" used here instead of quantized_weights?
-    weights_pack = pack_dir + '/' + 'weights_pack.sv'
-    weight_width = ffe_config["parameters"]["weight_precision"]
-    weight_count = len(quantized_weights)
-    weight_values = ', '.join(f'{int(w)}' for w in weights)
-    with open(weights_pack, "w+") as f:
-        f.write(f'''\
-package weights_pack;
-    localparam signed [{weight_width-1}:0] read_weights [0:{weight_count-1}] = '{{{weight_values}}};
-endpackage\
-''')
+    # TODO: why is "weights" used here instead of "quantized_weights"?
+    Packager(
+        package_name='weights_pack',
+        parameters={
+            'read_weights': [int(elem) for elem in weights]
+        },
+        dir=build_dir
+    ).create_package()
 
-    # Return packages  
-    packages  = [generic_packager.path, ffe_packager.path, impulse_pack, weights_pack]
-    return packages
+    # Write the step response data to a YAML file
+    chan.to_file(build_dir / 'chan.npy')
+
+    # Return a list of all packages created
+    return list(build_dir.glob('*.sv'))

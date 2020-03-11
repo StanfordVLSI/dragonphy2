@@ -4,14 +4,13 @@ module chan (
     `ANALOG_INPUT data_ana_i,
     `ANALOG_OUTPUT data_ana_o
 );
-
     generate
-        // alias I/O
-        `INTF_INPUT_TO_REAL(data_ana_i.value, data_ana_i_value);
-        `INTF_OUTPUT_TO_REAL(data_ana_o.value, data_ana_o_value);
-
-        // pass input straight to output
-        `ASSIGN_REAL(data_ana_i_value, data_ana_o_value);
+        chan_core #(
+            `INTF_PASS_REAL(in_, data_ana_i.value),
+            `INTF_PASS_REAL(out, data_ana_o.value)
+        ) chan_core_i (
+            .in_(data_ana_i.value),
+            .out(data_ana_o.value)
+        );
     endgenerate
-
 endmodule

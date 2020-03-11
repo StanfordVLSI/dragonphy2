@@ -2,7 +2,7 @@
 from .cmd 			import CmdLineParser
 from .packager      import Packager
 from .config 		import Configuration
-from .tester		import Tester
+from .tester     	import DragonTester
 
 # Some analysis libraries
 from .analysis.histogram import Histogram
@@ -20,7 +20,6 @@ from .ffe           import FFEHelper
 # For fpga emulation
 from .files import get_file, get_files, get_files_arr, get_dir, get_dirs, TOP_DIR
 from .views import get_deps
-from .run_sim import run_sim
 from .anasymod import AnasymodSourceConfig, AnasymodProjectConfig
 
 # Package generation
