@@ -1,10 +1,10 @@
-import yaml
 from pathlib import Path
 from argparse import ArgumentParser
 
 from msdsl import MixedSignalModel, VerilogGenerator, sum_op
 from msdsl.expr.extras import if_
 
+from dragonphy import Filter
 from dragonphy.files import get_file
 
 def main():
@@ -26,16 +26,16 @@ def main():
     m.add_analog_output('out')
     m.add_digital_input('clk')
 
-    # impulse response
-    with open(get_file('build/adapt_fir/pulse_resp.yml'), 'r') as f:
-        impulse = yaml.safe_load(f)['pulse_resp']
+    # pulse response
+    chan = Filter.from_file(get_file('build/adapt_fir/chan.npy'))
+    _, v_pulse = chan.get_pulse_resp()
 
     # save a history of inputs
-    i_hist = m.make_history(m.in_, len(impulse), clk=m.clk, rst="1'b0")
+    i_hist = m.make_history(m.in_, len(v_pulse), clk=m.clk, rst="1'b0")
 
     # write output values
     o_expr = sum_op([if_(elem, +weight, -weight)
-                     for elem, weight in zip(i_hist, impulse)])
+                     for elem, weight in zip(i_hist, v_pulse)])
     m.set_this_cycle(m.out, o_expr)
 
     # determine the output filename

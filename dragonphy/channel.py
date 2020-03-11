@@ -42,8 +42,18 @@ class Filter:
         # TODO: should samples at the beginning and end be dropped?
         return np.convolve(symbols, v_pulse, mode='full')
 
+    def to_file(self, file):
+        arr = np.column_stack((self.t_vec, self.v_vec))
+        np.save(file, arr)
+
+    @classmethod
+    def from_file(cls, file):
+        arr = np.load(file)
+        return cls(t_vec=arr[:, 0], v_vec=arr[:, 1])
+
+
 class Channel(Filter):
-    def __init__(self, channel_type='perfect', sampl_rate=1e9, resp_depth=50, **kwargs):
+    def __init__(self, channel_type='step', sampl_rate=1e9, resp_depth=50, **kwargs):
         # determine vector of time points
         t_vec = np.linspace(0, (resp_depth-1)/sampl_rate, resp_depth)
 

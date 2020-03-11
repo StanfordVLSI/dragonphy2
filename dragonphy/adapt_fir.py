@@ -1,5 +1,4 @@
 import numpy as np
-import yaml
 from pathlib import Path
 
 from .config import Configuration
@@ -87,9 +86,8 @@ def adapt_fir(build_dir ='.', config='system'):
         dir=build_dir
     ).create_package()
 
-    # Write the impulse response to a YAML file
-    with open(build_dir / 'pulse_resp.yml', 'w') as f:
-        yaml.dump({'pulse_resp': [float(elem) for elem in v_pulse]}, f)
+    # Write the step response data to a YAML file
+    chan.to_file(build_dir / 'chan.npy')
 
     # Return a list of all packages created
     return list(build_dir.glob('*.sv'))
