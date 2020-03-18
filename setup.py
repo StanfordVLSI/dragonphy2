@@ -22,13 +22,13 @@ setup(
     packages=find_packages(exclude=['tests']),
     install_requires=[
         # anasymod ecosystem
-        'svreal==0.2.0',
-        'msdsl==0.1.7',
-        'anasymod==0.2.1',
+        'svreal==0.2.2',
+        'msdsl==0.1.9',
+        'anasymod==0.2.2',
         # system-verilog parser
         'svinst==0.0.8',
         # magma ecosystem dependencies
-        'fault>=3.0.7',
+        'fault>=3.0.9',
         'magma-lang>=2.0.21',
         'coreir>=2.0.61',
         'mantle>=2.0.7',
