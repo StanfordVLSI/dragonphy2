@@ -17,6 +17,10 @@ def main():
     parser.add_argument('-o', '--output', type=str, default='.')
     parser.add_argument('--dt', type=float, default=0.1e-6)
 
+    # model-specific arguments
+    parser.add_argument('--vp', type=float, default=+1.0)
+    parser.add_argument('--vn', type=float, default=-1.0)
+
     # parse arguments
     a = parser.parse_args()
 
@@ -26,17 +30,8 @@ def main():
     m.add_analog_output('out')
     m.add_digital_input('clk')
 
-    # pulse response
-    chan = Filter.from_file(get_file('build/adapt_fir/chan.npy'))
-    _, v_pulse = chan.get_pulse_resp()
-
-    # save a history of inputs
-    i_hist = m.make_history(m.in_, len(v_pulse), clk=m.clk, rst="1'b0")
-
-    # write output values
-    o_expr = sum_op([if_(elem, +weight, -weight)
-                     for elem, weight in zip(i_hist, v_pulse)])
-    m.set_this_cycle(m.out, o_expr)
+    # define model behavior
+    m.set_next_cycle(m.out, if_(m.in_, a.vp, a.vn), clk=m.clk, rst="1'b0")
 
     # determine the output filename
     filename = Path(a.output).resolve() / f'{m.module_name}.sv'
