@@ -32,6 +32,6 @@ module rx_adc #(
             .emu_rst(__emu_rst),
             .emu_stall(emu_stall)
         );
-        assign __emu_dt_req = emu_stall ? 0 : {((`DT_WIDTH)-1){1'b1}};
+        assign __emu_dt_req = emu_stall ? 0 : {1'b0, {((`DT_WIDTH)-1){1'b1}}};
     endgenerate   
 endmodule
