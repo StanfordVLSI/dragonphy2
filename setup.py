@@ -23,7 +23,7 @@ setup(
     install_requires=[
         # anasymod ecosystem
         'svreal==0.2.2',
-        'msdsl==0.1.9',
+        'msdsl==0.2.0',
         'anasymod==0.2.2',
         # system-verilog parser
         'svinst==0.0.8',

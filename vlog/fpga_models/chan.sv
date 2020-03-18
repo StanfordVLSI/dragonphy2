@@ -20,11 +20,11 @@ module chan (
         chan_core #(
             `INTF_PASS_REAL(in_, data_ana_i.value),
             `INTF_PASS_REAL(out, data_ana_o.value),
-            `PASS_REAL(dt, DT_FMT)
+            `PASS_REAL(dt_sig, DT_FMT)
         ) chan_core_i (
             .in_(data_ana_i.value),
             .out(data_ana_o.value),
-            .dt(__emu_dt),
+            .dt_sig(__emu_dt),
             .clk(__emu_clk),
             .rst(__emu_rst)
         );
