@@ -1,12 +1,24 @@
+# Generic imports
 from pathlib import Path
 from argparse import ArgumentParser
-from msdsl import MixedSignalModel, VerilogGenerator, to_sint, min_op, max_op
+import numpy as np
 
-def clamp(a, min_val, max_val):
-    return min_op([max_op([a, min_val]), max_val])
+# FPGA-specific imports
+from msdsl import MixedSignalModel, VerilogGenerator
+
+# DragonPHY imports
+from dragonphy import Filter, get_file
+
+def check_error(f):
+    samp = np.random.uniform(f.domain[0], f.domain[1], 1000)
+    approx = f.eval_on(samp)
+    exact = f.func(samp)
+    err = np.sqrt(np.mean((exact-approx)**2))
+    print(f'RMS error: {err}')
 
 def main():
-    print('Running model generator...')
+    module_name = Path(__file__).stem
+    print(f'Running model generator for {module_name}...')
 
     # parse command line arguments
     parser = ArgumentParser()
@@ -14,27 +26,40 @@ def main():
     # generic arguments
     parser.add_argument('-o', '--output', type=str, default='.')
     parser.add_argument('--dt', type=float, default=0.1e-6)
+    parser.add_argument('--order', type=int, default=2)
+    parser.add_argument('--numel', type=int, default=32)
 
     # parse arguments
     a = parser.parse_args()
 
     # define model pinout
-    m = MixedSignalModel(Path(__file__).stem, dt=a.dt)
+    build_dir = Path(a.output).resolve()
+    m = MixedSignalModel(module_name, dt=a.dt, build_dir=build_dir)
     m.add_analog_input('in_')
     m.add_analog_output('out')
     m.add_analog_input('dt')
     m.add_digital_input('clk')
     m.add_digital_input('rst')
 
+    # read in the channel data
+    chan = Filter.from_file(get_file('build/adapt_fir/chan.npy'))
+
+    # create a function
+    domain = [chan.t_vec[0], chan.t_vec[-1]]
+    chan_func = m.make_function(chan.interp, domain=domain, order=a.order, numel=a.numel,
+                                verif_per_seg=10)
+
+    # check error
+    check_error(chan_func)
+
+    # apply function (albeit to
+    m.set_from_sync_func('unused_sig', chan_func, m.dt, clk=m.clk, rst=m.rst)
+
     # define model behavior
     m.set_this_cycle(m.out, m.in_)
 
-    # determine the output filename
-    filename = Path(a.output).resolve() / f'{m.module_name}.sv'
-    print(f'Model will be written to: {filename}')
-
     # generate the model
-    m.compile_to_file(VerilogGenerator(), filename)
+    m.compile_to_file(VerilogGenerator())
 
 if __name__ == '__main__':
     main()
