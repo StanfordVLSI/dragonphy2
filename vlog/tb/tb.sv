@@ -47,7 +47,9 @@ module tb;
     );
 
     // tx clock
-    osc_model tx_clk_i (
+    osc_model #(
+        .t_del(0.5e-9)
+    ) tx_clk_i (
         .clk_o(clk_tx_i),
         .clk_o_val(clk_tx_val)
     );
