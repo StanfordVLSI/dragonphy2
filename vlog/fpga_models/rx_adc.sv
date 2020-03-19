@@ -7,18 +7,31 @@ module rx_adc #(
     parameter integer n_adc=8
 ) (
     `ANALOG_INPUT in,
-    output var logic signed [(n_adc-1):0] out,
+    output wire logic signed [(n_adc-1):0] out,
     input wire logic clk,
+    // TODO: figure out a cleaner way to pass clk_o_val
+    input wire logic clk_val,
     input wire logic rst
 );
+    // signals use for external I/O
+    (* dont_touch = "true" *) logic __emu_rst;
+    (* dont_touch = "true" *) logic __emu_clk;
+    (* dont_touch = "true" *) logic signed [((`DT_WIDTH)-1):0] __emu_dt;
+    (* dont_touch = "true" *) logic signed [((`DT_WIDTH)-1):0] __emu_dt_req;
+
     generate
+        logic emu_stall;
         rx_adc_core #(
             `INTF_PASS_REAL(in_, in.value)
         ) rx_adc_core_i (
             .in_(in.value),
             .out(out),
-            .clk(clk),
-            .rst(rst)
+            .clk_val(clk_val),
+            // emulator control signal
+            .emu_clk(__emu_clk),
+            .emu_rst(__emu_rst),
+            .emu_stall(emu_stall)
         );
+        assign __emu_dt_req = emu_stall ? 0 : {1'b0, {((`DT_WIDTH)-1){1'b1}}};
     endgenerate   
 endmodule
