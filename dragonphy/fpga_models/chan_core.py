@@ -28,8 +28,8 @@ def main():
     # generic arguments
     parser.add_argument('-o', '--output', type=str, default='.')
     parser.add_argument('--dt', type=float, default=0.1e-6)
-    parser.add_argument('--func_order', type=int, default=2)
-    parser.add_argument('--func_numel', type=int, default=32)
+    parser.add_argument('--func_order', type=int, default=1)
+    parser.add_argument('--func_numel', type=int, default=512)
     parser.add_argument('--num_terms', type=int, default=25)
 
     # parse arguments
@@ -55,13 +55,17 @@ def main():
     check_func_error(chan_func)
 
     # create a history of past inputs
-    value_hist = m.make_history(m.in_, a.num_terms, clk=m.clk, rst=m.rst, ce=m.cke)
+    cke_d = m.add_digital_state('cke_d')
+    m.set_next_cycle(cke_d, m.cke, clk=m.clk, rst=m.rst)
+    value_hist = m.make_history(m.in_, a.num_terms+1, clk=m.clk, rst=m.rst, ce=cke_d)
 
     # create a history times in the past when the input changed
-    time_hist = []
-    for k in range(a.num_terms):
+    time_incr = []
+    time_mux = []
+    for k in range(a.num_terms+1):
         if k == 0:
-            time_hist.append(m.dt_sig)
+            time_incr.append(m.dt_sig)
+            time_mux.append(None)
         else:
             # create the signal
             mem_sig = AnalogState(name=f'time_mem_{k}', range_=m.dt_sig.format_.range_,
@@ -70,27 +74,29 @@ def main():
             m.add_signal(mem_sig)
 
             # increment time by dt_sig (this is the output from the current tap)
-            curr_sig = m.bind_name(f'time_hist_{k}', mem_sig + m.dt_sig)
-            time_hist.append(curr_sig)
-
+            incr_sig = m.bind_name(f'time_incr_{k}', mem_sig + m.dt_sig)
+            time_incr.append(incr_sig)
 
             # mux input of DFF between current and previous memory value
-            mux_sig = m.bind_name(f'time_mux_{k}', if_(m.cke, time_hist[k-1], time_hist[k]))
+            mux_sig = m.bind_name(f'time_mux_{k}', if_(m.cke_d, time_incr[k-1], time_incr[k]))
+            time_mux.append(mux_sig)
+
+            # delayed assignment
             m.set_next_cycle(signal=mem_sig, expr=mux_sig, clk=m.clk, rst=m.rst)
 
     # evaluate step response function
     step = []
     for k in range(a.num_terms):
-        step_sig = m.set_from_sync_func(f'step_{k}', chan_func, time_hist[k], clk=m.clk, rst=m.rst)
+        step_sig = m.set_from_sync_func(f'step_{k}', chan_func, time_mux[k+1], clk=m.clk, rst=m.rst)
         step.append(step_sig)
 
     # compute the products to be summed
     prod = []
     for k in range(a.num_terms):
         if k==0:
-            prod_sig = m.bind_name(f'prod_{k}', value_hist[k]*step[k])
+            prod_sig = m.bind_name(f'prod_{k}', value_hist[k+1]*step[k])
         else:
-            prod_sig = m.bind_name(f'prod_{k}', value_hist[k]*(step[k]-step[k-1]))
+            prod_sig = m.bind_name(f'prod_{k}', value_hist[k+1]*(step[k]-step[k-1]))
         prod.append(prod_sig)
 
     # define model behavior
