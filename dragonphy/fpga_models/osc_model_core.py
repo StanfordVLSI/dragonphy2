@@ -4,7 +4,8 @@ from msdsl import MixedSignalModel, VerilogGenerator
 from msdsl.expr.extras import if_
 
 def main():
-    print('Running model generator...')
+    module_name = Path(__file__).stem
+    print(f'Running model generator for {module_name}...')
 
     # parse command line arguments
     parser = ArgumentParser()
@@ -21,7 +22,8 @@ def main():
     a = parser.parse_args()
 
     # define model pinout
-    m = MixedSignalModel(Path(__file__).stem, dt=a.dt)
+    build_dir = Path(a.output).resolve()
+    m = MixedSignalModel(module_name, dt=a.dt, build_dir=build_dir)
     m.add_digital_input('emu_rst')
     m.add_digital_input('emu_clk')
     m.add_analog_input('emu_dt')
@@ -49,12 +51,8 @@ def main():
     # pass through clock input to clock output
     m.set_this_cycle(m.clk_o, m.clk_i)
 
-    # determine the output filename
-    filename = Path(a.output).resolve() / f'{m.module_name}.sv'
-    print(f'Model will be written to: {filename}')
-
     # generate the model
-    m.compile_to_file(VerilogGenerator(), filename)
+    m.compile_to_file(VerilogGenerator())
 
 if __name__ == '__main__':
     main()
