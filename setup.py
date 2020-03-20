@@ -25,6 +25,8 @@ setup(
         'pyyaml',
         'numpy',
         'matplotlib',
+        'pygraphviz',
+        'kratos',
         # sv-parser
         'svinst==0.0.8',
         # anasymod ecosystem
