@@ -6,23 +6,27 @@ module rx (
     output wire logic clk_o,
     output wire logic data_o
 );
-
     // Import packages needed for FFE
     import weights_pack::*; 
     import constant_gpack::*;
 
     // instantiate the clock
+    // TODO: figure out a cleaner way to pass clk_o_val
+    logic clk_o_val;
     osc_model rx_clk_i (
-        .clk_o(clk_o)
+        .clk_o(clk_o),
+        .clk_o_val(clk_o_val)
     );
     
     // instantiate the ADC
     // FIXME: Fix this hack for channelized interface
+    // TODO: figure out a cleaner way to pass clk_o_val
     logic signed [7:0] adc_o [0:0];
     rx_adc rx_adc_i (
         .in(data_ana_i),
         .out(adc_o[0]),
         .clk(clk_o),
+        .clk_val(clk_o_val),
         .rst(~rstb)
     );
 

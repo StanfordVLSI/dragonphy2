@@ -25,13 +25,4 @@ endinterface
 `define DECL_ANALOG(name) \
     svreal #(`REAL_INTF_PARAMS(value, `ANALOG_WIDTH, `ANALOG_EXPONENT)) ``name`` ()
 
-// dt representation
-
-`define DECL_DT(name) \
-    `REAL_FROM_WIDTH_EXP(``name``, `DT_WIDTH, `DT_EXPONENT)
-
-`define DT_CONST(name, value) \
-    `DECL_DT(``name``); \
-    `ASSIGN_CONST_REAL(``value``, ``name``)
-
 `endif // `ifndef __SIGNALS_SV__

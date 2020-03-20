@@ -3,7 +3,8 @@
 
 module chan (
     `ANALOG_INPUT data_ana_i,
-    `ANALOG_OUTPUT data_ana_o
+    `ANALOG_OUTPUT data_ana_o,
+    input wire logic cke
 );
     // initialize time/value memory to zeros
     localparam mem_len=50;
