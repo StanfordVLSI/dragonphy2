@@ -9,6 +9,8 @@ class Filter:
         # save time / voltage points of step response
         self.t_vec = t_vec
         self.v_vec = v_vec
+        self.interp = interp1d(t_vec, v_vec, bounds_error=False,
+                               fill_value=(v_vec[0], v_vec[-1]))
 
     def get_step_resp(self, f_sig=1e9, resp_depth=50):
         # truncate the response depth if needed
@@ -19,8 +21,7 @@ class Filter:
         t_step = np.linspace(0, (resp_depth-1)/f_sig, resp_depth)
 
         # compute interpolated step response
-        v_step = interp1d(self.t_vec, self.v_vec, bounds_error=False,
-                          fill_value=(self.v_vec[0], self.v_vec[-1]))(t_step)
+        v_step = self.interp(t_step)
 
         return t_step, v_step
 

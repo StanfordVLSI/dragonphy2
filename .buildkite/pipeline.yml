@@ -7,7 +7,7 @@ steps:
       printenv
 
       # run regression script
-      source .buildkite/regress.sh
+      source regress.sh
     label: "test"
     timeout_in_minutes: 60
     agents:
@@ -20,7 +20,7 @@ steps:
       printenv
 
       # run regression script
-      source .buildkite/regress.sh
+      source regress.sh
     label: "test_emu"
     timeout_in_minutes: 60
     agents:

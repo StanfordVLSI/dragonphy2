@@ -8,6 +8,7 @@ module tb;
     // clock + data
     logic clk_tx_i, data_tx_i;
     logic clk_rx_o, data_rx_o;
+    logic clk_tx_val;
 
     // reset signals
     logic prbs_rst;
@@ -33,7 +34,8 @@ module tb;
     // channel
     chan chan_i (
         .data_ana_i(data_tx_o),
-        .data_ana_o(data_rx_i)
+        .data_ana_o(data_rx_i),
+        .cke(clk_tx_val)
     );
 
     // receiver
@@ -46,7 +48,8 @@ module tb;
 
     // tx clock
     osc_model tx_clk_i (
-        .clk_o(clk_tx_i)
+        .clk_o(clk_tx_i),
+        .clk_o_val(clk_tx_val)
     );
 
     // prbs
