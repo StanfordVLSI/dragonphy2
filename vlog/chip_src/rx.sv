@@ -6,18 +6,28 @@ module rx (
     output wire logic clk_o,
     output wire logic data_o
 );
-    // Import packages needed for FFE
-    import weights_pack::*; 
-    import constant_gpack::*;
-
     // instantiate the clock
     // TODO: figure out a cleaner way to pass clk_o_val
-    logic clk_o_val;
+    logic clk_imm, clk_imm_val;
     osc_model rx_clk_i (
+        .clk_o(clk_imm),
+        .clk_o_val(clk_imm_val)
+    );
+
+    // Code to adjust sampling point
+    // TODO: make this closed-loop
+    logic [7:0] del_code;
+
+    // delay the clock
+    logic clk_o, clk_o_val;
+    clk_delay clk_delay_i (
+        .code(del_code),
+        .clk_i(clk_imm),
+        .clk_i_val(clk_imm_val),
         .clk_o(clk_o),
         .clk_o_val(clk_o_val)
     );
-    
+
     // instantiate the ADC
     // FIXME: Fix this hack for channelized interface
     // TODO: figure out a cleaner way to pass clk_o_val
@@ -30,51 +40,63 @@ module rx (
         .rst(~rstb)
     );
 
-    // instantiate the FFE
-    logic signed [ffe_gpack::output_precision-1:0]  ffe_o  	        [ffe_gpack::width-1:0];
-    logic signed [ffe_gpack::weight_precision-1:0]  weights        [ffe_gpack::length-1:0][ffe_gpack::width-1:0];
-    logic [ffe_gpack::shift_precision-1:0] shift_default = ffe_shift;
-    logic [ffe_gpack::shift_precision-1:0] shift_index  [ffe_gpack::width-1:0];
-
-    flat_ffe #(
-        .ffeDepth(ffe_gpack::length),
-        .numChannels(ffe_gpack::width),
-        .codeBitwidth(ffe_gpack::input_precision),
-        .weightBitwidth(ffe_gpack::weight_precision),
-        .resultBitwidth(ffe_gpack::output_precision),
-        .shiftBitwidth   (ffe_gpack::shift_precision )
-    ) ffe_inst (
+    // measure whether the clock is early or late
+    logic signed [1:0] pd_o;
+    mm_pd mm_pd_i (
         .clk(clk_o),
-        // TODO: fixme
         .rstb(rstb),
-        .new_shift_index(shift_index),
-        .new_weights(weights),
-        .codes      (adc_o),
-        .results    (ffe_o)
+        .data_i(adc_o[0]),
+        .pi_ctl(del_code)
     );
 
-    // initialize weights and shift_index
-    genvar gi,gj;    
-    generate
-        for(gi=0; gi<ffe_gpack::length; gi=gi+1) begin
-            for(gj=0; gj<ffe_gpack::width; gj=gj+1) begin
-                assign weights[gi][gj] = read_weights[gi];
-            end
-        end
-        for(gj=0;gj<ffe_gpack::width;gj=gj+1) begin
-            assign shift_index[gj] = shift_default;
-        end
-    endgenerate 
+    // slice data
+    assign data_o = (adc_o[0] > 0) ? 1'b1 : 1'b0;
 
-    // create digital comparator
-    logic cmp_o [ffe_gpack::width-1:0];
-    generate
-        for (gi=0; gi<ffe_gpack::width;gi+=1) begin
-            assign cmp_o[gi] = (ffe_o[gi] > 0) ? 1'b1 : 1'b0;
-        end
-    endgenerate
-
-    // sample comparator output
-    assign data_o = cmp_o[0];
-
+    //// Import packages needed for FFE
+    //import weights_pack::*;
+    //import constant_gpack::*;
+//
+    //// instantiate the FFE
+    //// logic signed [ffe_gpack::output_precision-1:0]  ffe_o  	        [ffe_gpack::width-1:0];
+    //// logic signed [ffe_gpack::weight_precision-1:0]  weights        [ffe_gpack::length-1:0][ffe_gpack::width-1:0];
+    //// logic [ffe_gpack::shift_precision-1:0] shift_default = ffe_shift;
+    //// logic [ffe_gpack::shift_precision-1:0] shift_index  [ffe_gpack::width-1:0];
+//
+    //flat_ffe #(
+    //    .ffeDepth(ffe_gpack::length),
+    //    .numChannels(ffe_gpack::width),
+    //    .codeBitwidth(ffe_gpack::input_precision),
+    //    .weightBitwidth(ffe_gpack::weight_precision),
+    //    .resultBitwidth(ffe_gpack::output_precision),
+    //    .shiftBitwidth   (ffe_gpack::shift_precision )
+    //) ffe_inst (
+    //    .clk(clk_o),
+    //    // TODO: fixme
+    //    .rstb(rstb),
+    //    .new_shift_index(shift_index),
+    //    .new_weights(weights),
+    //    .codes      (adc_o),
+    //    .results    (ffe_o)
+    //);
+//
+    //// initialize weights and shift_index
+    //genvar gi,gj;
+    //generate
+    //    for(gi=0; gi<ffe_gpack::length; gi=gi+1) begin
+    //        for(gj=0; gj<ffe_gpack::width; gj=gj+1) begin
+    //            assign weights[gi][gj] = read_weights[gi];
+    //        end
+    //    end
+    //    for(gj=0;gj<ffe_gpack::width;gj=gj+1) begin
+    //        assign shift_index[gj] = shift_default;
+    //    end
+    //endgenerate
+//
+    //// create digital comparator
+    //logic cmp_o [ffe_gpack::width-1:0];
+    //generate
+    //    for (gi=0; gi<ffe_gpack::width;gi+=1) begin
+    //        assign cmp_o[gi] = (ffe_o[gi] > 0) ? 1'b1 : 1'b0;
+    //    end
+    //endgenerate
 endmodule
