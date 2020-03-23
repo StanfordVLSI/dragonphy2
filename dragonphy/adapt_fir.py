@@ -42,7 +42,7 @@ def adapt_fir(build_dir ='.', config='system'):
 
     # Uncomment this line for debugging purposes to
     # use weights corresponding to a perfect channel
-    # weights = np.array([1.0, 0, 0])
+    weights = np.array([1.0, 0, 0])
 
     # Normalize weights
     weights = weights * (100.0 / np.sum(np.abs(weights)))
