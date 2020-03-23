@@ -14,11 +14,9 @@ module rx (
         .clk_o_val(clk_imm_val)
     );
 
-    // Code to adjust sampling point
-    // TODO: make this closed-loop
+    // delay the clock by an adjustable amount
+    // TODO: figure out a cleaner way to pass clk_o_val
     logic [7:0] del_code;
-
-    // delay the clock
     logic clk_o, clk_o_val;
     clk_delay clk_delay_i (
         .code(del_code),
@@ -29,7 +27,7 @@ module rx (
     );
 
     // instantiate the ADC
-    // FIXME: Fix this hack for channelized interface
+    // TODO: Fix this hack for channelized interface
     // TODO: figure out a cleaner way to pass clk_o_val
     logic signed [7:0] adc_o [0:0];
     rx_adc rx_adc_i (
@@ -40,7 +38,8 @@ module rx (
         .rst(~rstb)
     );
 
-    // measure whether the clock is early or late
+    // Measure phase and adjust sampling point
+    // TODO: cleanup hierarchy
     logic signed [1:0] pd_o;
     mm_pd mm_pd_i (
         .clk(clk_o),
