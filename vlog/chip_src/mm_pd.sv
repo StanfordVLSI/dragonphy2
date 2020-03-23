@@ -46,30 +46,4 @@ module mm_pd #(
         end
     end
     assign pi_ctl = pi_ctl_full[(pi_ctl_bits+filt_shift-1):filt_shift];
-
-    // filtering for debug
-    real pd_filter=0;
-    real min_margin=0;
-    real this_margin;
-    integer count=0;
-    always @(posedge clk) begin
-        if (rstb == 1'b0) begin
-            pd_filter = 0.0;
-            min_margin = 100.0;
-            count = 0;
-        end else begin
-            count = count+1;
-            pd_filter = pd_filter + pd_o;
-            this_margin = (data_i > 0) ? (+1.0*data_i) : (-1.0*data_i);
-            min_margin = (this_margin < min_margin) ? this_margin : min_margin;
-            if (count == 1000) begin
-                $display("Filtered PD output: %0f", pd_filter/1000.0);
-                $display("Minimum margin: %0f", min_margin);
-                $display("PI CTL: %0d", pi_ctl);
-                count = 0;
-                min_margin = 100.0;
-                pd_filter = 0;
-            end
-        end
-    end
 endmodule
