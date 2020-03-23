@@ -17,10 +17,11 @@ def adapt_fir(build_dir ='.', config='system'):
 
     # create channel model
     chan = Channel(
-        channel_type='exponent',
-        tau=2e-9,
-        sampl_rate=1e9,
-        resp_depth=50
+        channel_type='arctan',
+        tau=0.25e-9,
+        t_delay=2e-9,
+        sampl_rate=10e9,
+        resp_depth=500
     )
 
     # compute response of channel to codes
@@ -67,7 +68,7 @@ def adapt_fir(build_dir ='.', config='system'):
 
     # Write impulse response to package
     step_dt = 0.1e-9
-    _, v_step = chan.get_step_resp(f_sig=1/step_dt)
+    _, v_step = chan.get_step_resp(f_sig=1/step_dt, resp_depth=500)
     Packager(
         package_name='step_resp_pack',
         parameters={
