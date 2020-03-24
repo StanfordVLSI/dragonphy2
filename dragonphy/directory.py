@@ -1,7 +1,6 @@
-import os
+from pathlib import Path
 
 class Directory:
     @staticmethod
     def path():
-        return os.environ['PHY_BUILD_PATH']
-
+        return str(Path(__file__).parents[1])

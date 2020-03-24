@@ -4,39 +4,29 @@ from argparse import ArgumentParser
 from msdsl import MixedSignalModel, VerilogGenerator, sum_op
 from msdsl.expr.extras import if_
 
-from dragonphy import Filter
+from dragonphy import Filter, Directory
 from dragonphy.files import get_file
 
-def main():
-    module_name = Path(__file__).stem
-    print(f'Running model generator for {module_name}...')
+class TXCore:
+    def __init__(self, filename=None, **system_values):
+        module_name = Path(filename).stem
+        build_dir = Path(filename).parent
 
-    # parse command line arguments
-    parser = ArgumentParser()
+        #This is a wonky way of validating this.. :(
+        assert (all([req_val in system_values for req_val in self.required_values()])), f'Cannot build {module_name}, Missing parameter in config file'
 
-    # generic arguments
-    parser.add_argument('-o', '--output', type=str, default='.')
-    parser.add_argument('--dt', type=float, default=0.1e-6)
+        m = MixedSignalModel(module_name, dt=system_values['dt'], build_dir=build_dir)
 
-    # model-specific arguments
-    parser.add_argument('--vp', type=float, default=+1.0)
-    parser.add_argument('--vn', type=float, default=-1.0)
+        m.add_digital_input('in_')
+        m.add_analog_output('out')
+        m.add_digital_input('clk')
 
-    # parse arguments
-    a = parser.parse_args()
+        # define model behavior
+        m.set_next_cycle(m.out, if_(m.in_, system_values['vp'], system_values['vn']), clk=m.clk, rst="1'b0")
 
-    # define model pinout
-    build_dir = Path(a.output).resolve()
-    m = MixedSignalModel(module_name, dt=a.dt, build_dir=build_dir)
-    m.add_digital_input('in_')
-    m.add_analog_output('out')
-    m.add_digital_input('clk')
+        # generate the model
+        m.compile_to_file(VerilogGenerator())
 
-    # define model behavior
-    m.set_next_cycle(m.out, if_(m.in_, a.vp, a.vn), clk=m.clk, rst="1'b0")
-
-    # generate the model
-    m.compile_to_file(VerilogGenerator())
-
-if __name__ == '__main__':
-    main()
+    @staticmethod
+    def required_values():
+        return ['dt', 'vp', 'vn']

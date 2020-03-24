@@ -8,8 +8,10 @@ pip install -U pip
 # install dragonphy
 pip install -e .
 
+python make.py --view fpga
+
 # make dependencies for design
-make all
+#make all
 
 # install pytest
 pip install pytest pytest-cov
