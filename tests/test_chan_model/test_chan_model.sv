@@ -1,10 +1,6 @@
 `include "svreal.sv"
 
-module test_chan_model #(
-    parameter real in_range=10,
-    parameter real out_range=10,
-    parameter real dt_range=1e-6
-) (
+module test_chan_model (
     input real in_,
     output real out,
     input real dt_sig,
@@ -13,15 +9,15 @@ module test_chan_model #(
     input rst
 );
     // wire input
-    `MAKE_REAL(in_int, in_range);
+    `REAL_FROM_WIDTH_EXP(in_int, 18, -12);
     assign `FORCE_REAL(in_, in_int);
 
     // wire output
-    `MAKE_REAL(out_int, out_range);
+    `REAL_FROM_WIDTH_EXP(out_int, 18, -12);
     assign out = `TO_REAL(out_int);
 
     // wire dt
-    `MAKE_REAL(dt_int, dt_range);
+    `REAL_FROM_WIDTH_EXP(dt_int, 27, -46);
     assign `FORCE_REAL(dt_sig, dt_int);
 
     // instantiate model

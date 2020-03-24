@@ -17,7 +17,7 @@ module rx (
     // delay the clock by an adjustable amount
     // TODO: figure out a cleaner way to pass clk_o_val
     logic [7:0] del_code;
-    logic clk_o, clk_o_val;
+    logic clk_o_val;
     clk_delay clk_delay_i (
         .code(del_code),
         .clk_i(clk_imm),
