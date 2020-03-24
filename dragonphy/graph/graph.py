@@ -160,7 +160,8 @@ class BuildStatus(Directory):
             print(f'Missing Input Files: {mifs}') 
             exit()
 
-        #Check for Intermediate/Output File Existence
+        #Check for Intermediate/Output File Existence -- I think in the future, I will add a .done file to the top (like timestamps) that 
+        #contains what was built during the build process.
         for node_layer in inter_graph:
             for node_name in node_layer:
                 src_path = graph[node_name].src_path
@@ -198,8 +199,9 @@ class InputNode(DependencyNode):
         return self.source_file
 
 class ConfigNode(InputNode):
-    def __init__(self, source_file):
-        super().__init__(source_file, ext='yml', folders=['config'])
+    def __init__(self, source_file, folders=None):
+        folders = ['config'] if folders is None else folders
+        super().__init__(source_file, ext='yml', folders=folders)
 
         try:
             with open(Path(self.src_path).resolve(), 'r') as f:
@@ -237,16 +239,16 @@ class ConcatNode(DependencyNode):
         pass #Location Of Merged Verilog File?
 
 class KratosNode(DependencyNode):
-    def __init__(self, name, source_file, generator_name, config_sources=None, folders=None):
-        config_sources = set() if config_sources is None else config_sources
+    def __init__(self, name, source_file, generator_name, configs=None, folders=None):
+        configs = set() if configs is None else configs
         folders = [] if folders is None else folders
-        super().__init__(name, sources=config_sources)
+        super().__init__(name, sources=configs)
 
         #Make Directory if it doesnt exist
         directory_path = "/".join([self.path(), 'build', name])
         Path(directory_path).mkdir(parents=True, exist_ok=True)
 
-        self.src_path = "/".join([self.path(), 'src', *folders, source_file]) + '.py'
+        self.src_path = "/".join([self.path(), *folders, source_file]) + '.py'
         self.snk_path = directory_path + '/' + f'{self.name}.sv'
         self.gen_name = generator_name
 
@@ -257,22 +259,55 @@ class KratosNode(DependencyNode):
         gen_spec.loader.exec_module(gen_mod)
         vlog_gen = getattr(gen_mod, self.gen_name)
 
-        kratos.verilog(vlog_gen(**(src_nodes[0].config_dict)), filename=self.snk_path)
+        if len(src_nodes) > 1:
+            config = {}
+            for src_node in src_nodes:
+                config[src_node.name] = src_node.config_dict
+        else:
+            config = src_nodes[0].config_dict
+
+        kratos.verilog(vlog_gen(**config), filename=self.snk_path)
 
     def output(self):
         pass #Location of Verilog File?
 
 class PythonNode(DependencyNode):
-    def __init__(self, name, python_generator, config_sources=None):
-        config_sources = set() if config_sources is None else config_sources
-        super().__init__(name, sources=config_sources)
-        self.python_generator = python_generator
+    def __init__(self, name, source_file, generator_name, sources=None, configs=None, folders=None):
+        configs = set() if configs is None else configs
+        sources = set() if sources is None else sources
+        folders = [] if folders is None else folders
+        super().__init__(name, sources=configs | sources)
 
-    def build(self, *src_nodes):
-        build_dir = self.path() + f'/build/{self.name}/'
-        filename = f'{self.name}.sv'
+        #Make Directory if it doesnt exist
+        directory_path = "/".join([self.path(), 'build', name])
+        Path(directory_path).mkdir(parents=True, exist_ok=True)
 
-        self.python_generator.generate(*src_nodes, filename=build_dir + filename, debug=False)
+        self.src_path = "/".join([self.path(), *folders, source_file]) + '.py'
+        self.snk_path = directory_path + '/' + f'{self.name}.sv'
+        self.gen_name = generator_name
+        self.configs  = configs
+
+    def build(self, src_nodes):
+
+        gen_spec = importlib.util.spec_from_file_location(self.gen_name, self.src_path)
+        gen_mod  = importlib.util.module_from_spec(gen_spec)
+        gen_spec.loader.exec_module(gen_mod)
+        vlog_gen = getattr(gen_mod, self.gen_name)
+
+        # I know this is an awkward way of doing this :( but the output of adapt_fir isn't in a config file format and is not received...
+        if len(self.configs) > 1:
+            config = {}
+            for src_node in src_nodes:
+                if src_node.name in self.configs:
+                    config[src_node.name] = src_node.config_dict
+
+        else:
+            config = {}
+            for src_node in src_nodes:
+                if src_node.name in self.configs:
+                    config = src_node.config_dict
+
+        vlog_gen(**config, filename=self.snk_path)
 
     def output(self):
         pass #
@@ -294,11 +329,14 @@ class BuildGraph(Directory):
     def add_input(self, name, ext=None, folders=None):
         self.depend_graph += InputNode(name, ext=ext, folders=folders)
 
-    def add_kratos(self, build_name, script, generator_name, folders=None, config_sources=None):
-        self.depend_graph += KratosNode(build_name, script, generator_name, folders=folders, config_sources=config_sources)
+    def add_kratos(self, build_name, script, generator_name, folders=None, configs=None):
+        self.depend_graph += KratosNode(build_name, script, generator_name, folders=folders, configs=configs)
 
-    def add_config(self, name):
-        self.depend_graph += ConfigNode(name)
+    def add_python(self, build_name, script, generator_name, folders=None, sources=None, configs=None):
+        self.depend_graph += PythonNode(build_name, script, generator_name, folders=folders, sources=sources, configs=configs)
+
+    def add_config(self, name, folders=None):
+        self.depend_graph += ConfigNode(name, folders)
 
     def merge_results(self, name, sources, ext=None, folders=None):
         self.depend_graph += ConcatNode(name, sources, ext=ext, folders=folders)
@@ -360,7 +398,7 @@ def test_build_graph_properties():
     build_graph.add_config('test')
     build_graph.merge_results('d', {'a','c'}, folders=['h'])
     build_graph.merge_results('e', {'a','d'}, folders=['g'])
-    build_graph.add_kratos('passthru', 'async_reg', 'PassThrough', folders=['c'], config_sources={'test'})
+    build_graph.add_kratos('passthru', 'async_reg', 'PassThrough', folders=['c'], configs={'test'})
 
     build_graph.build()
     build_graph.visualize()
