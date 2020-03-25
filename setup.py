@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages
+import os
 
 name = 'dragonphy'
 version = '0.1.2'
@@ -10,17 +11,7 @@ Open Source PHY v2\
 with open('README.md', 'r') as fh:
     LONG_DESCRIPTION = fh.read()
 
-setup(
-    name=name,
-    version=version,
-    description=DESCRIPTION,
-    long_description=LONG_DESCRIPTION,
-    long_description_content_type='text/markdown',
-    keywords = ['high-speed', 'high speed', 'link', 'high-speed link',
-                'high speed link', 'analog', 'mixed-signal', 'mixed signal',
-                'generator', 'ic', 'integrated circuit', 'chip'],
-    packages=find_packages(exclude=['tests']),
-    install_requires=[
+requires_list = [
         # anasymod ecosystem
         'svreal==0.2.2',
         'msdsl==0.2.2',
@@ -39,13 +30,27 @@ setup(
         'pyyaml',
         'numpy',
         'matplotlib',
-        'pygraphviz',
         'kratos',
         # general requirements with special versions to prevent
         # warnings that clutter pytest output
         'jinja2>=2.11.1',
         'pysmt>=0.8.1.dev93'
-    ],
+    ]
+
+if 'FPGA_SERVER' in os.environ:
+    requires_list.append('pygraphviz')
+
+setup(
+    name=name,
+    version=version,
+    description=DESCRIPTION,
+    long_description=LONG_DESCRIPTION,
+    long_description_content_type='text/markdown',
+    keywords = ['high-speed', 'high speed', 'link', 'high-speed link',
+                'high speed link', 'analog', 'mixed-signal', 'mixed signal',
+                'generator', 'ic', 'integrated circuit', 'chip'],
+    packages=find_packages(exclude=['tests']),
+    install_requires=requires_list,
     license='Apache License 2.0',
     url=f'https://github.com/StanfordVLSI/{name}',
     author='Stanford University',
