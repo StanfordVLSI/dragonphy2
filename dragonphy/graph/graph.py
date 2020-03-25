@@ -98,8 +98,8 @@ class DependencyGraph:
 
 
 class BuildStatus(Directory):
-    def __init__(self, status_file):
-        self.status_file = Path(self.path() + '/build/' + status_file + '.yml').resolve()
+    def __init__(self, status_file, view):
+        self.status_file = Path(self.path() + f'/build/{view}' + status_file + '.yml').resolve()
         self.state_dict = {'inputs' : None, 'outputs' : None}
 
     def load(self):
