@@ -1,4 +1,7 @@
 `define MM_PD_I tb_i.rx_i.mm_pd_i
+`define INIT_MARGIN 1000
+`define UPDATE_RATE 250
+
 module loopback_stim;
 
     tb tb_i();
@@ -36,15 +39,15 @@ module loopback_stim;
     end
 
     // Simulation debugging
-    integer count=0, curr_margin=0, min_margin=1000;
+    integer count=0, curr_margin=0, min_margin=`INIT_MARGIN;
     always @(posedge `MM_PD_I.clk) begin
         count = count + 1;
         curr_margin = `MM_PD_I.val * `MM_PD_I.data_i;
         min_margin = (curr_margin < min_margin) ? curr_margin : min_margin;
-        if (count == 1000) begin
+        if (count == `UPDATE_RATE) begin
             $display("pi_ctl: %0d, min_margin: %0d", `MM_PD_I.pi_ctl, min_margin);
             count = 0;
-            min_margin = 1000;
+            min_margin = `INIT_MARGIN;
         end
     end
 endmodule

@@ -1,3 +1,9 @@
+`timescale 1s/1fs
+
+`define MM_PD_I top.tb_i.rx_i.mm_pd_i
+`define INIT_MARGIN 1000
+`define UPDATE_RATE 250
+
 module sim_ctrl(
     input wire logic [7:0] lb_latency,
     input wire logic [63:0] lb_correct_bits,
@@ -14,21 +20,32 @@ module sim_ctrl(
     logic [63:0] lb_total_bits_local;
 
     initial begin
+        // Uncomment to dump all waveforms (significantly slows down simulation)
+        // $dumpvars(0, top);
+
         // wait for emulator reset to complete
+        $display("Waiting for emulator reset to complete...");
         #(10us);
 
         // initialize signals
+        $display("Initializing signals...");
         tm_stall = 27'h3FFFFFF;
         rx_rstb = 1'b0;
         prbs_rst = 1'b1;
         lb_mode = 2'b00;
         #(1us);
 
-        // align the loopback tester
+        // Take the RX out of reset
+        $display("Taking the RX out of reset...");
         rx_rstb = 1'b1;
         prbs_rst = 1'b0;
+        #(2500us);
+
+        // Align the loopback tester
+        $display("Aligning the loopback tester...");
         lb_mode = 2'b01;
-        #(100us);
+        #(700us);
+        $display("Loopback latency: %0d cycles.", lb_latency);
 
         // run the loopback test
         lb_mode = 2'b10;
@@ -39,15 +56,12 @@ module sim_ctrl(
         #(10us);
 
         // read results
-        lb_latency_local = lb_latency;
-        #(10us);
         lb_correct_bits_local = lb_correct_bits;
         #(10us);
         lb_total_bits_local = lb_total_bits;
         #(10us);
 
         // print results
-        $display("Loopback latency: %0d cycles.", lb_latency_local);
         $display("Loopback correct bits: %0d.", lb_correct_bits_local);
         $display("Loopback total bits: %0d.", lb_total_bits_local);
 
@@ -57,5 +71,18 @@ module sim_ctrl(
         assert (lb_total_bits_local == lb_correct_bits_local) else
             $error("Bit error detected.");
         $finish;
+    end
+
+    // Simulation debugging
+    integer count=0, curr_margin=0, min_margin=`INIT_MARGIN;
+    always @(posedge `MM_PD_I.clk) begin
+        count = count + 1;
+        curr_margin = `MM_PD_I.val * `MM_PD_I.data_i;
+        min_margin = (curr_margin < min_margin) ? curr_margin : min_margin;
+        if (count == `UPDATE_RATE) begin
+            $display("pi_ctl: %0d, min_margin: %0d", `MM_PD_I.pi_ctl, min_margin);
+            count = 0;
+            min_margin = `INIT_MARGIN;
+        end
     end
 endmodule
