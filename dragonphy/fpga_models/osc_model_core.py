@@ -17,6 +17,7 @@ def main():
     # model-specific arguments
     parser.add_argument('--tlo', type=float, default=0.5e-9)
     parser.add_argument('--thi', type=float, default=0.5e-9)
+    parser.add_argument('--tdel', type=float, default=0.5e-9)
 
     # parse arguments
     a = parser.parse_args()
@@ -24,11 +25,10 @@ def main():
     # define model pinout
     build_dir = Path(a.output).resolve()
     m = MixedSignalModel(module_name, dt=a.dt, build_dir=build_dir)
-    m.add_real_param('t_del', default=0.5e-9)
     m.add_digital_input('emu_rst')
     m.add_digital_input('emu_clk')
     m.add_analog_input('emu_dt')
-    m.add_analog_output('dt_req', init=m.t_del)
+    m.add_analog_output('dt_req', init=a.tdel)
     m.add_digital_output('clk_val')
     m.add_digital_input('clk_i')
     m.add_digital_output('clk_o')

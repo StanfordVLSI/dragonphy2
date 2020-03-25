@@ -19,7 +19,7 @@ def adapt_fir(build_dir ='.', config='system'):
     kwargs = dict(
         channel_type='arctan',
         tau=0.25e-9,
-        t_delay=4e-9,
+        t_delay=4.5e-9,
         sampl_rate=10e9,
         resp_depth=500
     )
@@ -29,7 +29,7 @@ def adapt_fir(build_dir ='.', config='system'):
     # cursor position is an integer
     # TODO: clean this up
     kwargs_d = kwargs.copy()
-    kwargs_d['t_delay'] += 0.5e-9
+    kwargs_d['t_delay'] += 0.0e-9
     chan_d = Channel(**kwargs_d)
 
     # compute response of channel to codes
