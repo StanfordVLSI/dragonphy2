@@ -19,7 +19,7 @@ SIMULATOR = 'ncsim' if 'FPGA_SERVER' not in os.environ else 'vivado'
 
 # DUT options
 T_PER = 1e-9
-DEL_PREC = 0.25e-12
+DEL_PREC = 0.6e-12
 
 # simulator options
 TCLK = 1e-6
@@ -76,6 +76,12 @@ def test_osc_model(float_real):
     t.poke(dut.emu_clk, 1)
     t.delay(DELTA)
 
+    # run main test
+    # note that for this test:
+    # t_del = 0.5e-9
+    #  t_lo = 0.4e-9
+    #  t_hi = 0.6e-9
+
     t.poke(dut.dt_req, 0.123e-9)
     check_result(0.123e-9, 0)
 
@@ -89,13 +95,13 @@ def test_osc_model(float_real):
     check_result(0.456e-9, 1)
 
     t.poke(dut.dt_req, 0.567e-9)
-    check_result(0.044e-9, 0)
+    check_result(0.144e-9, 0)
 
     t.poke(dut.dt_req, 0.678e-9)
-    check_result(0.5e-9, 1)
+    check_result(0.4e-9, 1)
 
     t.poke(dut.dt_req, 0.789e-9)
-    check_result(0.5e-9, 0)
+    check_result(0.6e-9, 0)
 
     # run the simulation
     defines = {
@@ -113,5 +119,6 @@ def test_osc_model(float_real):
         inc_dirs=[get_svreal_header().parent, get_msdsl_header().parent],
         ext_model_file=True,
         defines=defines,
+        parameters={'t_lo': 0.4e-9, 't_hi': 0.6e-9},
         disp_type='realtime'
     )

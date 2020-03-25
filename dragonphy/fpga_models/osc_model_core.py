@@ -17,8 +17,6 @@ def main():
     parser.add_argument('--dt', type=float, default=0.1e-6)
 
     # model-specific arguments
-    parser.add_argument('--tlo', type=float, default=0.5e-9)
-    parser.add_argument('--thi', type=float, default=0.5e-9)
     parser.add_argument('--tdel', type=float, default=0.5e-9)
 
     # parse arguments
@@ -27,6 +25,8 @@ def main():
     # define model pinout
     build_dir = Path(a.output).resolve()
     m = MixedSignalModel(module_name, dt=a.dt, build_dir=build_dir)
+    m.add_real_param('t_lo', default=0.5e-9)
+    m.add_real_param('t_hi', default=0.5e-9)
     m.add_digital_input('emu_rst')
     m.add_digital_input('emu_clk')
     m.add_analog_input('emu_dt')
@@ -55,7 +55,7 @@ def main():
     del array_fmt_kwargs['range_']
 
     # determine the next period
-    dt_req_next_array = array([a.thi, a.tlo], m.prev_clk_val, **array_fmt_kwargs)
+    dt_req_next_array = array([m.t_hi, m.t_lo], m.prev_clk_val, **array_fmt_kwargs)
     m.bind_name('dt_req_next', dt_req_next_array, **dt_fmt_kwargs)
 
     # increment the time request

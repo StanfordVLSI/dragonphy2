@@ -1,6 +1,9 @@
 `include "svreal.sv"
 
-module test_osc_model (
+module test_osc_model #(
+    parameter real t_lo=0.5e-9,
+    parameter real t_hi=0.5e-9
+) (
     output wire logic clk_val,
     input real dt_req,
     output real emu_dt,
@@ -25,6 +28,10 @@ module test_osc_model (
 
     // instantiate MSDSL model, passing through format information
     osc_model_core #(
+        // pass through real-valued parameters
+        .t_lo(t_lo),
+        .t_hi(t_hi),
+        // pass formatting information
         `PASS_REAL(emu_dt, emu_dt_int),
         `PASS_REAL(dt_req, dt_req_clk)
     ) osc_model_core_i (
