@@ -16,8 +16,8 @@ module mm_pd #(
     assign val = (data_i > 0) ? +1 : -1;
 
     // memory
-    logic signed [(adc_bits-1):0] data_prev = 0;
-    logic signed [1:0] val_prev = 0;
+    logic signed [(adc_bits-1):0] data_prev;
+    logic signed [1:0] val_prev;
     always @(posedge clk) begin
         if (rstb == 1'b0) begin
             val_prev <= 0;
@@ -37,8 +37,11 @@ module mm_pd #(
     assign pd_o = term1 - term2;
 
     // loop filter
-    logic signed [(pi_ctl_bits+filt_shift-1):0] pi_ctl_full = 0;
-    always @(posedge clk) begin
+    // asynchronous reset is used to prevent sending "x"
+    // to the programmable delay that generates the clock
+    // used by this block
+    logic signed [(pi_ctl_bits+filt_shift-1):0] pi_ctl_full;
+    always @(posedge clk or negedge rstb) begin
         if (rstb == 1'b0) begin
             pi_ctl_full <= (pi_ctl_init << filt_shift);
         end else begin
