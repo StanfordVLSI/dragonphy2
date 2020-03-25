@@ -25,10 +25,6 @@ def test_clk_delay():
         name = 'test_clk_delay'
         io = m.IO(
             code=m.In(m.Bits[8]),
-            clk_i_val=m.BitIn,
-            clk_o_val=m.BitOut,
-            dt_req=fault.RealIn,
-            emu_dt=fault.RealOut,
             emu_clk=m.In(m.Clock),
             emu_rst=m.BitIn
         )
@@ -36,55 +32,27 @@ def test_clk_delay():
     # create the t
     t = fault.Tester(dut, dut.emu_clk)
 
-    def cycle():
-        t.delay(TPER/2 - DELTA)
-        t.poke(dut.emu_clk, 0)
-        t.delay(TPER/2)
-        t.poke(dut.emu_clk, 1)
-        t.delay(DELTA)
+    def cycle(k=1):
+        for _ in range(k):
+            t.poke(dut.emu_clk, 1)
+            t.delay(TPER/2)
+            t.poke(dut.emu_clk, 0)
+            t.delay(TPER/2)
 
     # initialize
     t.poke(dut.code, 230)
-    t.poke(dut.clk_i_val, 0)
-    t.poke(dut.dt_req, 0.0)
     t.poke(dut.emu_clk, 0)
     t.poke(dut.emu_rst, 1)
 
     # apply reset
-    t.poke(dut.emu_clk, 1)
-    t.delay(TPER/2)
-    t.poke(dut.emu_clk, 0)
-    t.delay(TPER/2)
+    cycle()
 
     # clear reset
     t.poke(dut.emu_rst, 0)
-    t.poke(dut.emu_clk, 1)
-    t.delay(DELTA)
-
-    # run a few cycles
-    cycle()
-    cycle()
     cycle()
 
-    # raise clock val
-    t.poke(dut.clk_i_val, 1)
-    t.poke(dut.dt_req, 0.123e-9)
-    cycle()
-
-    # wait some time (expect dt_req ~ 0.1 ns)
-    t.poke(dut.clk_i_val, 1)
-    t.poke(dut.dt_req, 0.234e-9)
-    cycle()
-
-    # lower clk_val, wait some time (expect dt_req ~ 0.345 ns)
-    t.poke(dut.clk_i_val, 1)
-    t.poke(dut.dt_req, 0.345e-9)
-    cycle()
-
-    # wait some time (expect dt_req ~ 0.1 ns)
-    t.poke(dut.clk_i_val, 1)
-    t.poke(dut.dt_req, 0.456e-9)
-    cycle()
+    # run for awhile
+    cycle(20)
 
     # run the simulation
     t.compile_and_run(
@@ -92,6 +60,7 @@ def test_clk_delay():
         directory=BUILD_DIR,
         simulator=SIMULATOR,
         ext_srcs=[get_file('build/fpga_models/clk_delay_core.sv'),
+                  get_file('build/fpga_models/osc_model_core.sv'),
                   get_file('tests/test_clk_delay/test_clk_delay.sv')],
         inc_dirs=[get_svreal_header().parent, get_msdsl_header().parent],
         ext_model_file=True,
