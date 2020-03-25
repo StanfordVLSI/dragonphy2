@@ -32,7 +32,7 @@ module test_clk_delay (
     // instantiate MSDSL model, passing through format information
     clk_delay_core #(
         `PASS_REAL(emu_dt, emu_dt_int),
-        `PASS_REAL(dt_req, dt_req_dly),
+        `PASS_REAL(dt_req, dt_req_ext),
         `PASS_REAL(dt_req_max, dt_req_max)
     ) clk_delay_core_i (
         // main I/O: delay code, clock in/out values

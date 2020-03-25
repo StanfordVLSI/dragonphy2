@@ -46,12 +46,11 @@ def test_clk_delay(float_real):
     t = fault.Tester(dut, dut.emu_clk)
 
     # utility function for easier waveform debug
-    def check_result(emu_dt, clk_val, abs_tol=DEL_PREC):
+    def check_delay(val, abs_tol=DEL_PREC):
         t.delay((TCLK/2)-DELTA)
         t.poke(dut.emu_clk, 0)
         t.delay(TCLK/2)
-        t.expect(dut.emu_dt, emu_dt, abs_tol=abs_tol)
-        t.expect(dut.clk_o_val, clk_val)
+        t.expect(dut.emu_dt, val, abs_tol=abs_tol)
         t.poke(dut.emu_clk, 1)
         t.delay(DELTA)
 
@@ -86,37 +85,37 @@ def test_clk_delay(float_real):
     # raise clock val
     t.poke(dut.clk_i_val, 1)
     t.poke(dut.dt_req, 0.123e-9)
-    check_result(0.123e-9, 0)
+    check_delay(0.123e-9)
 
     # wait some time (expect dt_req ~ 0.1 ns)
     t.poke(dut.clk_i_val, 1)
     t.poke(dut.dt_req, 0.234e-9)
-    check_result(del_nom, 1)
+    check_delay(del_nom)
 
     # lower clk_val, wait some time (expect dt_req ~ 0.345 ns)
     t.poke(dut.clk_i_val, 0)
     t.poke(dut.dt_req, 0.345e-9)
-    check_result(0.345e-9, 1)
+    check_delay(0.345e-9)
 
     # wait some time (expect dt_req ~ 0.1 ns)
     t.poke(dut.clk_i_val, 0)
     t.poke(dut.dt_req, 0.456e-9)
-    check_result(del_nom, 0)
+    check_delay(del_nom)
 
     # raise clk_val, wait some time (expect dt_req ~ 0.567 ns)
     t.poke(dut.clk_i_val, 1)
     t.poke(dut.dt_req, 0.567e-9)
-    check_result(0.567e-9, 0)
+    check_delay(0.567e-9)
 
     # wait some time (expect dt_req ~ 0.1 ns)
     t.poke(dut.clk_i_val, 1)
     t.poke(dut.dt_req, 0.678e-9)
-    check_result(del_nom, 1)
+    check_delay(del_nom)
 
     # lower clk_val, wait some time (expect dt_req ~ 0.789 ns)
     t.poke(dut.clk_i_val, 0)
     t.poke(dut.dt_req, 0.789e-9)
-    check_result(0.789e-9, 1)
+    check_delay(0.789e-9)
 
     # run the simulation
     defines = {
