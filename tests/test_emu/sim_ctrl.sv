@@ -3,6 +3,7 @@
 `define MM_PD_I top.tb_i.rx_i.mm_pd_i
 `define INIT_MARGIN 1000
 `define UPDATE_RATE 250
+`define UPDATE_RATE_TIME 1000e-6
 
 module sim_ctrl(
     input wire logic [7:0] lb_latency,
@@ -84,5 +85,9 @@ module sim_ctrl(
             count = 0;
             min_margin = `INIT_MARGIN;
         end
+    end
+    always begin
+        $display("time: %0f us", $realtime*1e6);
+        #(`UPDATE_RATE_TIME * 1s);
     end
 endmodule

@@ -1,6 +1,8 @@
 from pathlib import Path
 from argparse import ArgumentParser
+from copy import deepcopy
 from msdsl import MixedSignalModel, VerilogGenerator
+from msdsl.expr.expr import array
 from msdsl.expr.extras import if_
 
 def main():
@@ -33,21 +35,36 @@ def main():
     m.add_digital_input('clk_i')
     m.add_digital_output('clk_o')
 
-    # determine the next requested timestep, advancing to the next half period
-    # if the timestep was granted, otherwise subtracting the actual timestep
-    # from the requested timestep
-    dt_req_imm = if_(m.dt_req == m.emu_dt,
-                     if_(m.clk_val,
-                         a.tlo,
-                         a.thi),
-                     m.dt_req - m.emu_dt)
-    m.set_next_cycle(m.dt_req, dt_req_imm, clk=m.emu_clk, rst=m.emu_rst)
+    # determine if the request was granted
+    m.bind_name('req_grant', m.dt_req == m.emu_dt)
 
     # update the clock value
-    clk_val_imm = if_(m.dt_req == m.emu_dt,
-                      ~m.clk_val,
-                      m.clk_val)
-    m.set_next_cycle(m.clk_val, clk_val_imm, clk=m.emu_clk, rst=m.emu_rst)
+    m.add_digital_state('prev_clk_val')
+    m.set_next_cycle(m.prev_clk_val, m.clk_val, clk=m.emu_clk, rst=m.emu_rst)
+    m.set_this_cycle(m.clk_val, if_(m.req_grant, ~m.prev_clk_val, m.prev_clk_val))
+
+    # determine arguments for formating time steps
+    # TODO: clean this up
+    dt_fmt_kwargs = dict(
+        range_=m.emu_dt.format_.range_,
+        width=m.emu_dt.format_.width,
+        exponent=m.emu_dt.format_.exponent
+    )
+    array_fmt_kwargs = deepcopy(dt_fmt_kwargs)
+    array_fmt_kwargs['real_range_hint'] = m.emu_dt.format_.range_
+    del array_fmt_kwargs['range_']
+
+    # determine the next period
+    dt_req_next_array = array([a.thi, a.tlo], m.prev_clk_val, **array_fmt_kwargs)
+    m.bind_name('dt_req_next', dt_req_next_array, **dt_fmt_kwargs)
+
+    # increment the time request
+    m.bind_name('dt_req_incr', m.dt_req - m.emu_dt, **dt_fmt_kwargs)
+
+    # determine the next period
+    dt_req_imm_array = array([m.dt_req_incr, m.dt_req_next], m.req_grant, **array_fmt_kwargs)
+    m.bind_name('dt_req_imm', dt_req_imm_array, **dt_fmt_kwargs)
+    m.set_next_cycle(m.dt_req, m.dt_req_imm, clk=m.emu_clk, rst=m.emu_rst)
 
     # pass through clock input to clock output
     m.set_this_cycle(m.clk_o, m.clk_i)

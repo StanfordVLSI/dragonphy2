@@ -18,15 +18,15 @@ module rx (
     // TODO: figure out a cleaner way to pass clk_o_val
     logic [7:0] del_code;
     logic clk_o_val;
-    assign clk_o = clk_imm;
-    assign clk_o_val = clk_imm_val;
-    //clk_delay clk_delay_i (
-    //    .code(del_code),
-    //    .clk_i(clk_imm),
-    //    .clk_i_val(clk_imm_val),
-    //    .clk_o(clk_o),
-    //    .clk_o_val(clk_o_val)
-    //);
+    //assign clk_o = clk_imm;
+    //assign clk_o_val = clk_imm_val;
+    clk_delay clk_delay_i (
+        .code(del_code),
+        .clk_i(clk_imm),
+        .clk_i_val(clk_imm_val),
+        .clk_o(clk_o),
+        .clk_o_val(clk_o_val)
+    );
 
     // instantiate the ADC
     // TODO: Fix this hack for channelized interface

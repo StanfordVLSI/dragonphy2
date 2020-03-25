@@ -14,6 +14,6 @@ derived_clks:
   chan:
     abspath: 'tb_i.chan_i'
     preset: variable_timestep
-#  clk_delay:
-#    abspath: 'tb_i.rx_i.clk_delay_i'
-#    preset: oscillator
+  clk_delay:
+    abspath: 'tb_i.rx_i.clk_delay_i'
+    preset: oscillator
