@@ -16,14 +16,18 @@ module clk_delay (
     (* dont_touch = "true" *) logic __emu_clk_val;
     (* dont_touch = "true" *) logic __emu_clk_i;
 
-    // format for timesteps
+    // format for emu_dt / dt_req
     `REAL_FROM_WIDTH_EXP(DT_FMT, `DT_WIDTH, `DT_EXPONENT);
+
+    // set maximum value for timestep
+    `REAL_FROM_WIDTH_EXP(dt_req_max, `DT_WIDTH, `DT_EXPONENT);
+    `ASSIGN_CONST_REAL(((2.0**((`DT_WIDTH)-1))-1.0)*2.0**(`DT_EXPONENT), dt_req_max);
 
     // instantiate MSDSL model, passing through format information
     clk_delay_core #(
         `PASS_REAL(emu_dt, DT_FMT),
         `PASS_REAL(dt_req, DT_FMT),
-        `PASS_REAL(dt_req_max, DT_FMT)
+        `PASS_REAL(dt_req_max, dt_req_max)
     ) clk_delay_core_i (
         // main I/O: delay code, clock in/out values
         .code(code),
@@ -36,8 +40,7 @@ module clk_delay (
         .emu_clk(__emu_clk),
         .emu_rst(__emu_rst),
         // additional input: maximum timestep
-        // TODO: clean this up because it is not compatible with the `FLOAT_REAL option
-        .dt_req_max({1'b0, {((`DT_WIDTH)-1){1'b1}}})
+        .dt_req_max(dt_req_max)
     );
 
     // wire up output clock value
