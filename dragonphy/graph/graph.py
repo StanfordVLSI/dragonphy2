@@ -1,6 +1,5 @@
 from dragonphy import Directory
 
-import pygraphviz as pgv
 import yaml, os
 import kratos
 import matplotlib.pyplot as plt
@@ -378,6 +377,7 @@ class BuildGraph(Directory):
 
 
     def visualize(self):
+        import pygraphviz as pgv
         graph_render = pgv.AGraph(directed=True)
 
         for node_name_list in self.depend_graph:
