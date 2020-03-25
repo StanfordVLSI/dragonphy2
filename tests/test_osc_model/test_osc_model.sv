@@ -1,9 +1,7 @@
 `include "svreal.sv"
 
-module test_clk_delay (
-    input wire logic [7:0] code,
-    input wire logic clk_i_val,
-    output wire logic clk_o_val,
+module test_osc_model (
+    output wire logic clk_val,
     input real dt_req,
     output real emu_dt,
     input wire logic emu_clk,
@@ -12,40 +10,34 @@ module test_clk_delay (
     // format for timesteps
     `REAL_FROM_WIDTH_EXP(emu_dt_int, `DT_WIDTH, `DT_EXPONENT);
     `REAL_FROM_WIDTH_EXP(dt_req_ext, `DT_WIDTH, `DT_EXPONENT);
-    `REAL_FROM_WIDTH_EXP(dt_req_dly, `DT_WIDTH, `DT_EXPONENT);
+    `REAL_FROM_WIDTH_EXP(dt_req_clk, `DT_WIDTH, `DT_EXPONENT);
 
     // wire to external real values
     assign `FORCE_REAL(dt_req, dt_req_ext);
     assign emu_dt = `TO_REAL(emu_dt_int);
 
     // monitor the time delay requested by the delay block
-    real dt_req_dly_real;
-    assign dt_req_dly_real = `TO_REAL(dt_req_dly);
+    real dt_req_clk_real;
+    assign dt_req_clk_real = `TO_REAL(dt_req_clk);
 
     // implement basic timestep management
-    `MIN_INTO_REAL(dt_req_ext, dt_req_dly, emu_dt_int);
-
-    // set maximum value for timestep
-    `REAL_FROM_WIDTH_EXP(dt_req_max, `DT_WIDTH, `DT_EXPONENT);
-    `ASSIGN_CONST_REAL(((2.0**((`DT_WIDTH)-1))-1.0)*2.0**(`DT_EXPONENT), dt_req_max);
+    `MIN_INTO_REAL(dt_req_ext, dt_req_clk, emu_dt_int);
 
     // instantiate MSDSL model, passing through format information
-    clk_delay_core #(
+    osc_model_core #(
         `PASS_REAL(emu_dt, emu_dt_int),
-        `PASS_REAL(dt_req, dt_req_ext),
-        `PASS_REAL(dt_req_max, dt_req_max)
-    ) clk_delay_core_i (
-        // main I/O: delay code, clock in/out values
-        .code(code),
-        .clk_i_val(clk_i_val),
-        .clk_o_val(clk_o_val),
+        `PASS_REAL(dt_req, dt_req_clk)
+    ) osc_model_core_i (
+        // main I/O: output clock values
+        .clk_val(clk_val),
         // timestep control: DT request and response
-        .dt_req(dt_req_dly),
+        .dt_req(dt_req_clk),
         .emu_dt(emu_dt_int),
         // emulator clock and reset
         .emu_clk(emu_clk),
         .emu_rst(emu_rst),
-        // additional input: maximum timestep
-        .dt_req_max(dt_req_max)
+        // unused (related to clock buffer)
+        .clk_i(1'b0),
+        .clk_o()
     );
 endmodule
