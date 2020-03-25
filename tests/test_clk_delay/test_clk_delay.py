@@ -44,7 +44,7 @@ def test_clk_delay():
         t.delay(DELTA)
 
     # initialize
-    t.poke(dut.code, 25)
+    t.poke(dut.code, 230)
     t.poke(dut.clk_i_val, 0)
     t.poke(dut.dt_req, 0.0)
     t.poke(dut.emu_clk, 0)
@@ -77,28 +77,13 @@ def test_clk_delay():
     cycle()
 
     # lower clk_val, wait some time (expect dt_req ~ 0.345 ns)
-    t.poke(dut.clk_i_val, 0)
+    t.poke(dut.clk_i_val, 1)
     t.poke(dut.dt_req, 0.345e-9)
     cycle()
 
     # wait some time (expect dt_req ~ 0.1 ns)
-    t.poke(dut.clk_i_val, 0)
+    t.poke(dut.clk_i_val, 1)
     t.poke(dut.dt_req, 0.456e-9)
-    cycle()
-
-    # raise clk_val, wait some time (expect dt_req ~ 0.567 ns)
-    t.poke(dut.clk_i_val, 1)
-    t.poke(dut.dt_req, 0.567e-9)
-    cycle()
-
-    # wait some time (expect dt_req ~ 0.1 ns)
-    t.poke(dut.clk_i_val, 1)
-    t.poke(dut.dt_req, 0.678e-9)
-    cycle()
-
-    # lower clk_val, wait some time (expect dt_req ~ 0.789 ns)
-    t.poke(dut.clk_i_val, 0)
-    t.poke(dut.dt_req, 0.789e-9)
     cycle()
 
     # run the simulation
