@@ -16,20 +16,29 @@ def adapt_fir(build_dir ='.', config='system'):
     ffe_config = system_config['generic']['ffe']
 
     # create channel model
-    chan = Channel(
-        channel_type='exponent',
-        tau=2e-9,
-        sampl_rate=1e9,
-        resp_depth=50
+    kwargs = dict(
+        channel_type='arctan',
+        tau=0.25e-9,
+        t_delay=4e-9,
+        sampl_rate=10e9,
+        resp_depth=500
     )
+    chan = Channel(**kwargs)
+
+    # create a channel model delayed such that the optimal
+    # cursor position is an integer
+    # TODO: clean this up
+    kwargs_d = kwargs.copy()
+    kwargs_d['t_delay'] += 0.5e-9
+    chan_d = Channel(**kwargs_d)
 
     # compute response of channel to codes
     iterations = 200000
     ideal_codes = np.random.randint(2, size=iterations)*2 - 1
-    chan_out = chan.compute_output(ideal_codes)
+    chan_out = chan_d.compute_output(ideal_codes)
 
     # Adapt to the channel
-    cursor_pos = 3
+    cursor_pos = 5
     adapt = Wiener(
         step_size = ffe_config['adaptation']['args']['mu'],
         num_taps = ffe_config['parameters']['length'],
@@ -67,7 +76,7 @@ def adapt_fir(build_dir ='.', config='system'):
 
     # Write impulse response to package
     step_dt = 0.1e-9
-    _, v_step = chan.get_step_resp(f_sig=1/step_dt)
+    _, v_step = chan.get_step_resp(f_sig=1/step_dt, resp_depth=500)
     Packager(
         package_name='step_resp_pack',
         parameters={
