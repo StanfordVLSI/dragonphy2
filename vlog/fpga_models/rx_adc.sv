@@ -19,19 +19,29 @@ module rx_adc #(
     (* dont_touch = "true" *) logic signed [((`DT_WIDTH)-1):0] __emu_dt;
     (* dont_touch = "true" *) logic signed [((`DT_WIDTH)-1):0] __emu_dt_req;
 
+    // declare format for timestep
+    `REAL_FROM_WIDTH_EXP(DT_FMT, `DT_WIDTH, `DT_EXPONENT);
+
     generate
-        logic emu_stall;
         rx_adc_core #(
-            `INTF_PASS_REAL(in_, in.value)
+            `INTF_PASS_REAL(in_, in.value),
+            `PASS_REAL(emu_dt, DT_FMT),
+            `PASS_REAL(dt_req, DT_FMT),
+            `PASS_REAL(dt_req_max, DT_FMT)
         ) rx_adc_core_i (
+            // main I/O: input, output, and clock
             .in_(in.value),
             .out(out),
             .clk_val(clk_val),
-            // emulator control signal
+            // timestep control: DT request and response
+            .dt_req(__emu_dt_req),
+            .emu_dt(__emu_dt),
+            // emulator clock and reset
             .emu_clk(__emu_clk),
             .emu_rst(__emu_rst),
-            .emu_stall(emu_stall)
+            // additional input: maximum timestep
+            // TODO: clean this up because it is not compatible with the `FLOAT_REAL option
+            .dt_req_max({1'b0, {((`DT_WIDTH)-1){1'b1}}})
         );
-        assign __emu_dt_req = emu_stall ? 0 : {1'b0, {((`DT_WIDTH)-1){1'b1}}};
-    endgenerate   
+    endgenerate
 endmodule

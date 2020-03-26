@@ -80,7 +80,7 @@ def exponential_channel(t_vec, t_delay=2e-9, tau=2.0e-9):
 # Impulse response is h(t) = 1/(pi*k) * 1/(1+(t/k)^2)
 # Therefore the step response is proportional to arctan(t/k)
 def arctan_channel(t_vec, t_delay=2e-9, tau=2.0e-9):
-    return (2.0/np.pi)*np.arctan((t_vec-t_delay)/tau)*np.heaviside(t_vec-t_delay, 0)
+    return (1.0/np.pi)*(np.arctan((t_vec-t_delay)/tau) + (np.pi/2.0))
 
 # # From: Ryan Boesch Thesis
 # # Continuous Model: h(t) = 1/(pi*k) * (1+t/k)/(1+(t/k)^2)
