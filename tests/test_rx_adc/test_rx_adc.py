@@ -70,10 +70,11 @@ def test_rx_adc(float_real):
         t.delay(DELTA)
 
     # utility function for checking results
-    def check_result(dt_req, out, abs_tol=DT_PREC):
-        #pass
-        t.expect(dut.dt_req, dt_req, abs_tol=abs_tol)
-        t.expect(dut.out, out)
+    def check_result(dt_req=None, out=None, abs_tol=DT_PREC):
+        if dt_req is not None:
+            t.expect(dut.dt_req, dt_req, abs_tol=abs_tol)
+        if out is not None:
+            t.expect(dut.out, out)
 
     # initialize
     t.poke(dut.in_, 0.0)
@@ -133,12 +134,31 @@ def test_rx_adc(float_real):
     t.poke(dut.in_, 0.789)
     cycle()
 
+    # run through some values to exercise the transfer function
+    test_vals = [-1.2, -1.0, -0.567, 0, +0.123, +1.0, +1.2]
+    for test_val in test_vals:
+        # set clk_val high
+        t.poke(dut.clk_val, 1)
+        t.poke(dut.in_, 0)
+        cycle()
+        check_result(dt_req=DT_MIN)
+
+        # set test value input
+        t.poke(dut.clk_val, 1)
+        t.poke(dut.in_, test_val)
+        cycle()
+        check_result(DT_MAX, adc_model(test_val))
+
+        # set clk_val low
+        t.poke(dut.clk_val, 0)
+        t.poke(dut.in_, 0)
+        cycle()
+        check_result(DT_MAX, adc_model(test_val))
+
     # run the simulation
     defines = {
         'DT_WIDTH': DT_WIDTH,
-        'DT_EXPONENT': DT_EXPONENT,
-        'VP': VP,
-        'VN': VN
+        'DT_EXPONENT': DT_EXPONENT
     }
     if float_real:
         defines['FLOAT_REAL'] = None
