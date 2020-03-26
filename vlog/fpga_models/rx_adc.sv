@@ -35,6 +35,7 @@ module rx_adc #(
         ) rx_adc_core_i (
             // main I/O: input, output, and clock
             .in_(in.value),
+            .in_valid(in.valid),
             .out(out),
             .clk_val(clk_val),
             // timestep control: DT request and response
