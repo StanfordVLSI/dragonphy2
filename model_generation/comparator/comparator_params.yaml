@@ -1,6 +1,6 @@
 test1:
   slice_point:
   - coef:
-      offset: 0.6317283845415534
+      offset: 0.6268976519325498
     mode:
       dummy_digitalmode: 0

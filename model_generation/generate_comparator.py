@@ -4,66 +4,9 @@ import fault
 import magma
 from pathlib import Path
 
-#def reformat(results):
-#    ivs = []
-#    dvs = []
-#    for result in results:
-#        iv, dv = result
-#        ivs.append(iv)
-#        #dvs.append([float(dv_component) for dv_component in dv])
-#        dvs.append(dv)
-#    return ivs, dvs
-#
-#def reformat2(results):
-#    # was for [in,out]: for mode: for vec: for pin: x
-#    # we swap the first two axes
-#    return list(zip(*list(results)))
-#
-#def get_tf(stats, ivs):
-#    def tf(x):
-#        y = 0
-#        for iv in ivs:
-#            coefs = list(stats['coef_gain'][iv])
-#            for order, coef in enumerate(coefs):
-#                y += coef * x**order
-#            return y
-#    return tf
-#
-#def plot_errors(x, y1, y2):
-#    import matplotlib.pyplot as plt
-#    for a,b,c in zip(x, y1, y2):
-#        d = '-g' if c > b else '-r'
-#        plt.plot([a, a], [b, c], d)
-#    plt.grid()
-#    plt.show()
-#
-#def plot2(results, statsmodels, in_dim=0):
-#    if __name__ != '__main__':
-#        return
-#    xs, ys = results
-#    xs = [x[in_dim] for x in xs]
-#    ys = [y[0] for y in ys]
-#    estimated = statsmodels.fittedvalues
-#    plot_errors(xs, ys, estimated)
-#
-#    
-#
-#def plot(results, tf):
-#    if __name__ != '__main__':
-#        return
-#    import matplotlib.pyplot as plt
-#    #xs, ys = zip(*results)
-#    #xs = [x[0] for x in xs]
-#    #ys = [y[0] for y in ys]
-#    xs, ys = results
-#    plt.plot(xs, ys, '*')
-#    xs.sort()
-#    plt.plot(xs, [tf(x[0]) for x in xs], '--')
-#    plt.grid()
-#    plt.show()
 
-spice_file = './comparator.sp'
-output_params_file = 'comparator_params.yaml'
+spice_file = './comparator/comparator.sp'
+output_params_file = './comparator/comparator_params.yaml'
 
 def model_comparator():
     print('\nTop of model_comparator')

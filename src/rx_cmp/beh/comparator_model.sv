@@ -10,7 +10,7 @@ module rx_cmp (
 	`output reg out
 );
 
-real slice_point = 0.631728384542;
+real slice_point = 0.626897651933;
 real in_real;
 
 pwl2real converter(
