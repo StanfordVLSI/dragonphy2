@@ -84,7 +84,7 @@ def test_chan_model(float_real):
     dt3 = 4e-9
     dt4 = 5e-9
     dt5 = 6e-9
-    dt6 = 7e-9
+    dt6 = 0e-9
     dt7 = 8e-9
     dt8 = 9e-9
 
@@ -110,37 +110,37 @@ def test_chan_model(float_real):
     t.poke(dut.cke, 1)
     t.poke(dut.dt_sig, dt1)
     t.poke(dut.in_, 0.0)
-    check_output(expt1, 0)
+    check_output(expt1, dt1==0)
 
     t.poke(dut.cke, 0)
     t.poke(dut.dt_sig, dt2)
     t.poke(dut.in_, val1)
-    check_output(expt2, 0)
+    check_output(expt2, dt2==0)
 
     t.poke(dut.cke, 0)
     t.poke(dut.dt_sig, dt3)
     t.poke(dut.in_, val1)
-    check_output(expt3, 0)
+    check_output(expt3, dt3==0)
 
     t.poke(dut.cke, 1)
     t.poke(dut.dt_sig, dt4)
     t.poke(dut.in_, val1)
-    check_output(expt4, 0)
+    check_output(expt4, dt4==0)
 
     t.poke(dut.cke, 0)
     t.poke(dut.dt_sig, dt5)
     t.poke(dut.in_, val2)
-    check_output(expt5, 0)
+    check_output(expt5, dt5==0)
 
     t.poke(dut.cke, 1)
     t.poke(dut.dt_sig, dt6)
     t.poke(dut.in_, val2)
-    check_output(expt6, 0)
+    check_output(expt6, dt6==0)
 
     t.poke(dut.cke, 0)
     t.poke(dut.dt_sig, dt7)
     t.poke(dut.in_, val3)
-    check_output(expt7, 0)
+    check_output(expt7, dt7==0)
 
     t.poke(dut.cke, 0)
     t.poke(dut.dt_sig, dt8)
