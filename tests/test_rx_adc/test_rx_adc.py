@@ -16,7 +16,7 @@ from msdsl import get_msdsl_header
 from dragonphy import get_file
 
 BUILD_DIR = Path(__file__).resolve().parent / 'build'
-SIMULATOR = 'ncsim' if 'FPGA_SERVER' not in os.environ else 'iverilog'
+SIMULATOR = 'ncsim' if 'FPGA_SERVER' not in os.environ else 'vivado'
 
 # Timestep options
 DT_WIDTH = 27
@@ -34,7 +34,7 @@ VP = +1.0
 TCLK = 1e-6
 DELTA = 0.1*TCLK
 
-@pytest.mark.parametrize('float_real', [True])
+@pytest.mark.parametrize('float_real', [False, True])
 def test_rx_adc(float_real):
     # declare circuit
     class dut(m.Circuit):
