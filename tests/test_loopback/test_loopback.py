@@ -15,7 +15,7 @@ def test_loopback():
         'loopback_stim',
         view_order=['tb', 'cpu_models', 'chip_src'],
         includes=[INC_DIR],
-        skip={'analog_if'}
+        skip={'analog_if', 'clock_intf'}
     )
 
     # Run simulation

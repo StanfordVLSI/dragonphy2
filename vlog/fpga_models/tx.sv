@@ -7,7 +7,7 @@ module tx #(
 ) (
     input wire logic data_i,
     `ANALOG_OUTPUT data_ana_o,
-    input wire logic clk_i
+    `CLOCK_INPUT clk_i
 );
     generate
         tx_core #(
@@ -15,7 +15,7 @@ module tx #(
         ) tx_core_i (
             .in_(data_i),
             .out(data_ana_o.value),
-            .clk(clk_i)
+            .clk(clk_i.clock)
         );
     endgenerate
 endmodule

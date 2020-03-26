@@ -4,8 +4,7 @@ module osc_model #(
     parameter real t_lo=0.5e-9,
     parameter real t_hi=0.5e-9
 ) (
-    output wire logic clk_o,
-    output wire logic clk_o_val
+    `CLOCK_OUTPUT clk_o
 );
     // signals use for external I/O
     (* dont_touch = "true" *) logic __emu_clk_val;
@@ -31,12 +30,12 @@ module osc_model #(
         .emu_clk(__emu_clk),
         .emu_dt(__emu_dt),
         .dt_req(__emu_dt_req),
-        .clk_val(clk_o_val),
+        .clk_val(clk_o.value),
         .clk_i(__emu_clk_i),
-        .clk_o(clk_o)
+        .clk_o(clk_o.clock)
     );
 
     // assign to __emu_clk_val
     // TODO: clean this up; it's a particularly messy detail
-    assign __emu_clk_val = clk_o_val;
+    assign __emu_clk_val = clk_o.value;
 endmodule

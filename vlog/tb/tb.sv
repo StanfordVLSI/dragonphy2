@@ -5,10 +5,13 @@ module tb;
     `DECL_ANALOG(data_tx_o);
     `DECL_ANALOG(data_rx_i);
 
-    // clock + data
-    logic clk_tx_i, data_tx_i;
-    logic clk_rx_o, data_rx_o;
-    logic clk_tx_val;
+    // clock
+    `DECL_CLOCK(clk_tx_i);
+    `DECL_CLOCK(clk_rx_o);
+
+    // data signals
+    logic data_tx_i;
+    logic data_rx_o;
 
     // reset signals
     logic prbs_rst;
@@ -35,7 +38,7 @@ module tb;
     chan chan_i (
         .data_ana_i(data_tx_o),
         .data_ana_o(data_rx_i),
-        .cke(clk_tx_val)
+        .clk(clk_tx_i)
     );
 
     // receiver
@@ -48,23 +51,22 @@ module tb;
 
     // tx clock
     osc_model tx_clk_i (
-        .clk_o(clk_tx_i),
-        .clk_o_val(clk_tx_val)
+        .clk_o(clk_tx_i)
     );
 
     // prbs
     prbs21 prbs21_i (
 	    .out_o(data_tx_i),
-        .clk_i(clk_tx_i),
+        .clk_i(`CLOCK_NET(clk_tx_i)),
         .rst_i(prbs_rst)
     );
 
     // loopback tester
     loopback lb_i (
         .data_tx(data_tx_i),
-        .clk_tx(clk_tx_i),
+        .clk_tx(`CLOCK_NET(clk_tx_i)),
         .data_rx(data_rx_o),
-        .clk_rx(clk_rx_o),
+        .clk_rx(`CLOCK_NET(clk_rx_o)),
         .mode(lb_mode),
         .correct_bits(lb_correct_bits),
         .total_bits(lb_total_bits),

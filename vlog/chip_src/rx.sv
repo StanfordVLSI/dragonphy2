@@ -3,47 +3,37 @@
 module rx (
     `ANALOG_INPUT data_ana_i,
     input wire logic rstb,
-    output wire logic clk_o,
+    `CLOCK_OUTPUT clk_o,
     output wire logic data_o
 );
     // instantiate the clock
-    // TODO: figure out a cleaner way to pass clk_o_val
-    logic clk_imm, clk_imm_val;
+    `DECL_CLOCK(clk_imm);
     osc_model rx_clk_i (
-        .clk_o(clk_imm),
-        .clk_o_val(clk_imm_val)
+        .clk_o(clk_imm)
     );
 
     // delay the clock by an adjustable amount
-    // TODO: figure out a cleaner way to pass clk_o_val
     logic [7:0] del_code;
-    logic clk_o_val;
-    //assign clk_o = clk_imm;
-    //assign clk_o_val = clk_imm_val;
+    `DECL_CLOCK(clk_del);
     clk_delay clk_delay_i (
         .code(del_code),
         .clk_i(clk_imm),
-        .clk_i_val(clk_imm_val),
-        .clk_o(clk_o),
-        .clk_o_val(clk_o_val)
+        .clk_o(clk_del)
     );
 
     // instantiate the ADC
-    // TODO: Fix this hack for channelized interface
-    // TODO: figure out a cleaner way to pass clk_o_val
     logic signed [7:0] adc_o [0:0];
     rx_adc rx_adc_i (
         .in(data_ana_i),
         .out(adc_o[0]),
-        .clk(clk_o),
-        .clk_val(clk_o_val),
+        .clk(clk_del),
         .rst(~rstb)
     );
 
     // Measure phase and adjust sampling point
     // TODO: cleanup hierarchy
     mm_pd mm_pd_i (
-        .clk(clk_o),
+        .clk(`CLOCK_NET(clk_del)),
         .rstb(rstb),
         .data_i(adc_o[0]),
         .pi_ctl(del_code)
@@ -67,7 +57,7 @@ module rx (
         .resultBitwidth(ffe_gpack::output_precision),
         .shiftBitwidth(ffe_gpack::shift_precision)
     ) ffe_inst (
-        .clk(clk_o),
+        .clk(`CLOCK_NET(clk_del)),
         // TODO: fixme
         .rstb(rstb),
         .new_shift_index(shift_index),
@@ -99,4 +89,7 @@ module rx (
 
     // sample comparator output
     assign data_o = cmp_o[0];
+
+    // assign output clock
+    `ASSIGN_CLOCK(clk_o, clk_del);
 endmodule

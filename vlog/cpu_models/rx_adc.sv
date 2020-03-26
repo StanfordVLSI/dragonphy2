@@ -7,15 +7,11 @@ module rx_adc #(
 ) (
     `ANALOG_INPUT in,
     output var logic signed [(n-1):0] out,
-    input wire logic clk,
-    // TODO: figure out a cleaner way to pass clk_o_val
-    // (ideally it should not appear in this model at
-    // all because it is only needed for FPGA emulation)
-    input wire logic clk_val,
+    `CLOCK_INPUT clk,
     input wire logic rst
 );
     integer code;
-    always @(posedge clk) begin
+    always @(posedge clk.clock) begin
         // calculate output code
         if (rst == 1'b1) begin
             code = 0;

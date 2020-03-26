@@ -1,12 +1,11 @@
 `timescale 1s/1fs
 `include "svreal.sv"
+`include "signals.sv"
 
 module clk_delay (
     input wire logic [7:0] code,
-    input wire logic clk_i,
-    input wire logic clk_i_val,
-    output wire logic clk_o,
-    output wire logic clk_o_val
+    `CLOCK_INPUT clk_i,
+    `CLOCK_OUTPUT clk_o
 );
     // signals use for external I/O
     (* dont_touch = "true" *) logic signed [((`DT_WIDTH)-1):0] __emu_dt_req;
@@ -31,8 +30,8 @@ module clk_delay (
     ) clk_delay_core_i (
         // main I/O: delay code, clock in/out values
         .code(code),
-        .clk_i_val(clk_i_val),
-        .clk_o_val(clk_o_val),
+        .clk_i_val(clk_i.value),
+        .clk_o_val(clk_o.value),
         // timestep control: DT request and response
         .dt_req(__emu_dt_req),
         .emu_dt(__emu_dt),
@@ -44,8 +43,8 @@ module clk_delay (
     );
 
     // wire up output clock value
-    assign __emu_clk_val = clk_o_val;
+    assign __emu_clk_val = clk_o.value;
 
     // wire up the output clock signal
-    assign clk_o = __emu_clk_i;
+    assign clk_o.clock = __emu_clk_i;
 endmodule

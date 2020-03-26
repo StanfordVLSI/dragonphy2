@@ -8,9 +8,7 @@ module rx_adc #(
 ) (
     `ANALOG_INPUT in,
     output wire logic signed [(n_adc-1):0] out,
-    input wire logic clk,
-    // TODO: figure out a cleaner way to pass clk_o_val
-    input wire logic clk_val,
+    `CLOCK_INPUT clk,
     input wire logic rst
 );
     // signals use for external I/O
@@ -37,7 +35,7 @@ module rx_adc #(
             .in_(in.value),
             .in_valid(in.valid),
             .out(out),
-            .clk_val(clk_val),
+            .clk_val(clk.value),
             // timestep control: DT request and response
             .dt_req(__emu_dt_req),
             .emu_dt(__emu_dt),

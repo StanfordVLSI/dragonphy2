@@ -6,9 +6,9 @@ module tx #(
 ) (
     input wire logic data_i,
     `ANALOG_OUTPUT data_ana_o,
-    input wire logic clk_i
+    `CLOCK_INPUT clk_i
 );
-    always @(posedge clk_i) begin
+    always @(posedge clk_i.clock) begin
         data_ana_o.value = data_i ? v_hi : v_lo;
     end
 endmodule

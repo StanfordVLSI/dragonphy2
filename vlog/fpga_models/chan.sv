@@ -3,7 +3,7 @@
 module chan (
     `ANALOG_INPUT data_ana_i,
     `ANALOG_OUTPUT data_ana_o,
-    input wire logic cke
+    `CLOCK_INPUT clk
 );
     // signals use for external I/O
     (* dont_touch = "true" *) logic __emu_rst;
@@ -29,7 +29,7 @@ module chan (
             .dt_sig(__emu_dt),
             .clk(__emu_clk),
             .rst(__emu_rst),
-            .cke(cke)
+            .cke(clk.value)
         );
     endgenerate
 endmodule

@@ -29,7 +29,7 @@ def test_emu_build(board_name='ZC702'):
         includes=[get_dir('inc/fpga'), svreal.get_svreal_header().parent, msdsl.get_msdsl_header().parent],
         defines={'DT_WIDTH': 27, 'DT_EXPONENT': -46},
         skip={'svreal', 'assign_real', 'comp_real', 'add_sub_real', 'ite_real', 'dff_real', 'mul_real',
-              'mem_digital', 'sync_rom_real'}
+              'mem_digital', 'sync_rom_real', 'clock_intf'}
     )
     file_list = packages + deps
     src_cfg.add_verilog_sources(file_list)
