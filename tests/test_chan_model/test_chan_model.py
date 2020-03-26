@@ -1,5 +1,6 @@
 # general imports
 import os
+import pytest
 from pathlib import Path
 
 # AHA imports
@@ -14,7 +15,9 @@ from msdsl import get_msdsl_header
 from dragonphy import get_file, Filter
 
 BUILD_DIR = Path(__file__).resolve().parent / 'build'
-SIMULATOR = 'ncsim' if 'FPGA_SERVER' not in os.environ else 'vivado'
+SIMULATOR = 'ncsim' if 'FPGA_SERVER' not in os.environ else 'iverilog'
+
+ABS_TOL = 0.02
 
 DELTA = 100e-9
 TPER = 1e-6
@@ -27,6 +30,7 @@ def test_chan_model(float_real):
         io = m.IO(
             in_=fault.RealIn,
             out=fault.RealOut,
+            out_valid=m.BitOut,
             dt_sig=fault.RealIn,
             clk=m.In(m.Clock),
             cke=m.BitIn,
@@ -36,12 +40,19 @@ def test_chan_model(float_real):
     # create the t
     t = fault.Tester(dut, dut.clk)
 
-    def cycle():
+    # utility function to cycle the clock in a way that produces more easily readable waveforms
+    def check_output(out=None, out_valid=None, abs_tol=ABS_TOL):
         t.delay(TPER/2 - DELTA)
         t.poke(dut.clk, 0)
         t.delay(TPER/2)
+        if out_valid is not None:
+            t.expect(dut.out_valid, out_valid)
         t.poke(dut.clk, 1)
         t.delay(DELTA)
+        if out is not None:
+            t.expect(dut.out, out, abs_tol=abs_tol)
+
+    # utility function to
 
     # initialize
     t.poke(dut.in_, 0.0)
@@ -77,60 +88,6 @@ def test_chan_model(float_real):
     dt7 = 8e-9
     dt8 = 9e-9
 
-    # action sequence
-    t.poke(dut.cke, 0)
-    t.poke(dut.dt_sig, dt0)
-    t.poke(dut.in_, 0.0)
-    cycle()
-
-    t.poke(dut.cke, 1)
-    t.poke(dut.dt_sig, dt1)
-    t.poke(dut.in_, 0.0)
-    cycle()
-    meas1 = t.get_value(dut.out)
-
-    t.poke(dut.cke, 0)
-    t.poke(dut.dt_sig, dt2)
-    t.poke(dut.in_, val1)
-    cycle()
-    meas2 = t.get_value(dut.out)
-
-    t.poke(dut.cke, 0)
-    t.poke(dut.dt_sig, dt3)
-    t.poke(dut.in_, val1)
-    cycle()
-    meas3 = t.get_value(dut.out)
-
-    t.poke(dut.cke, 1)
-    t.poke(dut.dt_sig, dt4)
-    t.poke(dut.in_, val1)
-    cycle()
-    meas4 = t.get_value(dut.out)
-
-    t.poke(dut.cke, 0)
-    t.poke(dut.dt_sig, dt5)
-    t.poke(dut.in_, val2)
-    cycle()
-    meas5 = t.get_value(dut.out)
-
-    t.poke(dut.cke, 1)
-    t.poke(dut.dt_sig, dt6)
-    t.poke(dut.in_, val2)
-    cycle()
-    meas6 = t.get_value(dut.out)
-
-    t.poke(dut.cke, 0)
-    t.poke(dut.dt_sig, dt7)
-    t.poke(dut.in_, val3)
-    cycle()
-    meas7 = t.get_value(dut.out)
-
-    t.poke(dut.cke, 0)
-    t.poke(dut.dt_sig, dt8)
-    t.poke(dut.in_, val3)
-    cycle()
-    meas8 = t.get_value(dut.out)
-
     # compute expected outputs
     chan = Filter.from_file(get_file('build/adapt_fir/chan.npy'))
     f = chan.interp
@@ -143,6 +100,52 @@ def test_chan_model(float_real):
     expt7 = (val1*(f(dt2+dt3+dt4+dt5+dt6+dt7)-f(dt5+dt6+dt7))
              + val2*(f(dt5+dt6+dt7)-f(dt7))
              + val3*f(dt7))
+
+    # action sequence
+    t.poke(dut.cke, 0)
+    t.poke(dut.dt_sig, dt0)
+    t.poke(dut.in_, 0.0)
+    check_output()
+
+    t.poke(dut.cke, 1)
+    t.poke(dut.dt_sig, dt1)
+    t.poke(dut.in_, 0.0)
+    check_output(expt1)
+
+    t.poke(dut.cke, 0)
+    t.poke(dut.dt_sig, dt2)
+    t.poke(dut.in_, val1)
+    check_output(expt2)
+
+    t.poke(dut.cke, 0)
+    t.poke(dut.dt_sig, dt3)
+    t.poke(dut.in_, val1)
+    check_output(expt3)
+
+    t.poke(dut.cke, 1)
+    t.poke(dut.dt_sig, dt4)
+    t.poke(dut.in_, val1)
+    check_output(expt4)
+
+    t.poke(dut.cke, 0)
+    t.poke(dut.dt_sig, dt5)
+    t.poke(dut.in_, val2)
+    check_output(expt5)
+
+    t.poke(dut.cke, 1)
+    t.poke(dut.dt_sig, dt6)
+    t.poke(dut.in_, val2)
+    check_output(expt6)
+
+    t.poke(dut.cke, 0)
+    t.poke(dut.dt_sig, dt7)
+    t.poke(dut.in_, val3)
+    check_output(expt7)
+
+    t.poke(dut.cke, 0)
+    t.poke(dut.dt_sig, dt8)
+    t.poke(dut.in_, val3)
+    check_output()
 
     # run the simulation
     defines = {}
@@ -159,19 +162,3 @@ def test_chan_model(float_real):
         defines=defines,
         disp_type='realtime'
     )
-
-    # check outputs
-    def check_output(name, meas, expct, abs_tol=0.02):
-        print(f'checking {name}: measured {meas.value}, expected {expct}')
-        if (expct-abs_tol) <= meas.value <= (expct+abs_tol):
-            print('OK')
-        else:
-            raise Exception('Failed')
-
-    check_output('expr1', meas1, expt1)
-    check_output('expr2', meas2, expt2)
-    check_output('expr3', meas3, expt3)
-    check_output('expr4', meas4, expt4)
-    check_output('expr5', meas5, expt5)
-    check_output('expr6', meas6, expt6)
-    check_output('expr7', meas7, expt7)

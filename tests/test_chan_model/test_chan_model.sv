@@ -3,6 +3,7 @@
 module test_chan_model (
     input real in_,
     output real out,
+    output out_valid,
     input real dt_sig,
     input clk,
     input cke,
@@ -28,6 +29,7 @@ module test_chan_model (
     ) chan_core_i (
         .in_(in_int),
         .out(out_int),
+        .out_valid(out_valid),
         .dt_sig(dt_int),
         .clk(clk),
         .cke(cke),

@@ -25,6 +25,7 @@ module chan (
         ) chan_core_i (
             .in_(data_ana_i.value),
             .out(data_ana_o.value),
+            .out_valid(data_ana_o.valid),
             .dt_sig(__emu_dt),
             .clk(__emu_clk),
             .rst(__emu_rst),

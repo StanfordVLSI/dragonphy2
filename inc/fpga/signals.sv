@@ -8,8 +8,9 @@ interface svreal #(
     `INTF_DECL_REAL(value)
 );
     `INTF_MAKE_REAL(value);
-    modport in(`MODPORT_IN_REAL(value));
-    modport out(`MODPORT_OUT_REAL(value));
+    logic valid;
+    modport in(`MODPORT_IN_REAL(value), input valid);
+    modport out(`MODPORT_OUT_REAL(value), output valid);
 endinterface
 
 // analog representation

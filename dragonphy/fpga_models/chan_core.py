@@ -40,6 +40,7 @@ def main():
     m = MixedSignalModel(module_name, dt=a.dt, build_dir=build_dir)
     m.add_analog_input('in_')
     m.add_analog_output('out')
+    m.add_digital_output('out_valid')
     m.add_analog_input('dt_sig')
     m.add_digital_input('clk')
     m.add_digital_input('cke')
@@ -99,8 +100,9 @@ def main():
             prod_sig = m.bind_name(f'prod_{k}', value_hist[k+1]*(step[k]-step[k-1]))
         prod.append(prod_sig)
 
-    # define model behavior
+    # set output (only valid if the current timestep is zero)
     m.set_this_cycle(m.out, sum_op(prod))
+    m.set_this_cycle(m.out_valid, m.dt_sig == 0)
 
     # generate the model
     m.compile_to_file(VerilogGenerator())
