@@ -3,7 +3,6 @@ from argparse import ArgumentParser
 
 from msdsl import MixedSignalModel, VerilogGenerator, to_sint, clamp_op
 from msdsl.expr.expr import array
-from msdsl.expr.extras import if_
 
 def main():
     module_name = Path(__file__).stem

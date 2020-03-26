@@ -19,7 +19,8 @@ SIMULATOR = 'ncsim' if 'FPGA_SERVER' not in os.environ else 'vivado'
 DELTA = 100e-9
 TPER = 1e-6
 
-def test_chan_model():
+@pytest.mark.parametrize('float_real', [False, True])
+def test_chan_model(float_real):
     # declare circuit
     class dut(m.Circuit):
         name = 'test_chan_model'
@@ -144,6 +145,9 @@ def test_chan_model():
              + val3*f(dt7))
 
     # run the simulation
+    defines = {}
+    if float_real:
+        defines['FLOAT_REAL'] = None
     t.compile_and_run(
         target='system-verilog',
         directory=BUILD_DIR,
@@ -152,6 +156,7 @@ def test_chan_model():
                   get_file('tests/test_chan_model/test_chan_model.sv')],
         inc_dirs=[get_svreal_header().parent, get_msdsl_header().parent],
         ext_model_file=True,
+        defines=defines,
         disp_type='realtime'
     )
 

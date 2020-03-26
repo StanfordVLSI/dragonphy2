@@ -22,6 +22,10 @@ module rx_adc #(
     // declare format for timestep
     `REAL_FROM_WIDTH_EXP(DT_FMT, `DT_WIDTH, `DT_EXPONENT);
 
+    // set maximum value for timestep
+    `REAL_FROM_WIDTH_EXP(dt_req_max, `DT_WIDTH, `DT_EXPONENT);
+    `ASSIGN_CONST_REAL(((2.0**((`DT_WIDTH)-1))-1.0)*2.0**(`DT_EXPONENT), dt_req_max);
+
     generate
         rx_adc_core #(
             `INTF_PASS_REAL(in_, in.value),
@@ -40,8 +44,7 @@ module rx_adc #(
             .emu_clk(__emu_clk),
             .emu_rst(__emu_rst),
             // additional input: maximum timestep
-            // TODO: clean this up because it is not compatible with the `FLOAT_REAL option
-            .dt_req_max({1'b0, {((`DT_WIDTH)-1){1'b1}}})
+            .dt_req_max(dt_req_max)
         );
     endgenerate
 endmodule
