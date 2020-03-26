@@ -3,6 +3,7 @@ from argparse import ArgumentParser
 
 from msdsl import MixedSignalModel, VerilogGenerator, to_sint, clamp_op
 from msdsl.expr.expr import array
+from msdsl.expr.extras import if_
 
 def main():
     module_name = Path(__file__).stem
@@ -28,6 +29,7 @@ def main():
     m = MixedSignalModel(module_name, dt=a.dt, build_dir=build_dir)
     # main I/O: input, output, and clock
     m.add_analog_input('in_')
+    m.add_digital_input('in_valid')
     m.add_digital_output('out', width=a.n, signed=True)
     m.add_digital_input('clk_val')
     # timestep control: DT request and response
@@ -41,26 +43,28 @@ def main():
     m.add_analog_input('dt_req_max')
 
     # determine when sampling should happen
-    m.add_digital_state('clk_val_prev')
-    m.set_next_cycle(m.clk_val_prev, m.clk_val, clk=m.emu_clk, rst=m.emu_rst)
+    m.add_digital_state('should_stall')
+    m.add_digital_state('armed')
 
-    # detect a rising edge on the clock
-    m.bind_name('pos_edge', m.clk_val & (~m.clk_val_prev))
+    # combo logic signals
+    m.bind_name('pos_edge_active', m.armed & m.clk_val)
+    m.bind_name('should_samp', m.pos_edge_active & m.in_valid)
 
-    # delay the positive edge signal
-    m.add_digital_state('pos_edge_prev', init=0)
-    m.set_next_cycle(m.pos_edge_prev, m.pos_edge, clk=m.emu_clk, rst=m.emu_rst)
+    # update states
+    m.set_next_cycle(m.should_stall, m.pos_edge_active & (~m.in_valid), clk=m.emu_clk, rst=m.emu_rst)
+    m.set_next_cycle(m.armed, if_(~m.clk_val, 1, if_(m.should_samp, 0, m.armed)),
+                     clk=m.emu_clk, rst=m.emu_rst)
 
     # sample channel value at the right time
     expr = ((m.in_-a.vn)/(a.vp-a.vn) * ((2**a.n)-1)) - (2**(a.n-1))
     expr = clamp_op(expr, -(2**(a.n-1)), (2**(a.n-1))-1)
     expr = to_sint(expr, width=a.n)
-    m.set_next_cycle(m.out, expr, clk=m.emu_clk, rst=m.emu_rst, ce=m.pos_edge_prev)
+    m.set_next_cycle(m.out, expr, clk=m.emu_clk, rst=m.emu_rst, ce=m.should_samp)
 
     # stall if needed
     dt_req_array = array(
         [m.dt_req_max, 0.0],
-        m.pos_edge_prev,
+        m.should_stall,
         real_range_hint=m.emu_dt.format_.range_,
         width=m.emu_dt.format_.width,
         exponent=m.emu_dt.format_.exponent

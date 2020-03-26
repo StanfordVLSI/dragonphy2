@@ -2,6 +2,7 @@
 
 module test_rx_adc (
     input real in_,
+    input wire logic in_valid,
     output wire logic signed [7:0] out,
     input wire logic clk_val,
     output real dt_req,
@@ -30,8 +31,9 @@ module test_rx_adc (
         `PASS_REAL(dt_req, dt_req_int),
         `PASS_REAL(dt_req_max, dt_req_max)
     ) rx_adc_core_i (
-        // main I/O: input, output, and clock
+        // main I/O: input (incl. valid indicator), output, and clock
         .in_(in_int),
+        .in_valid(in_valid),
         .out(out),
         .clk_val(clk_val),
         // timestep control: DT request and response

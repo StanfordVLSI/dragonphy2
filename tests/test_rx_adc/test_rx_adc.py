@@ -16,7 +16,7 @@ from msdsl import get_msdsl_header
 from dragonphy import get_file
 
 BUILD_DIR = Path(__file__).resolve().parent / 'build'
-SIMULATOR = 'ncsim' if 'FPGA_SERVER' not in os.environ else 'vivado'
+SIMULATOR = 'ncsim' if 'FPGA_SERVER' not in os.environ else 'iverilog'
 
 # Timestep options
 DT_WIDTH = 27
@@ -34,13 +34,14 @@ VP = +1.0
 TCLK = 1e-6
 DELTA = 0.1*TCLK
 
-@pytest.mark.parametrize('float_real', [False, True])
+@pytest.mark.parametrize('float_real', [True])
 def test_rx_adc(float_real):
     # declare circuit
     class dut(m.Circuit):
         name = 'test_rx_adc'
         io = m.IO(
             in_=fault.RealIn,
+            in_valid=m.BitIn,
             out=m.Out(m.SInt[N_BITS]),
             clk_val=m.BitIn,
             dt_req=fault.RealOut,
@@ -78,6 +79,7 @@ def test_rx_adc(float_real):
 
     # initialize
     t.poke(dut.in_, 0.0)
+    t.poke(dut.in_valid, 0)
     t.poke(dut.clk_val, 0)
     t.poke(dut.emu_clk, 0)
     t.poke(dut.emu_rst, 1)
@@ -87,6 +89,9 @@ def test_rx_adc(float_real):
     t.delay(TCLK/2)
     t.poke(dut.emu_clk, 0)
     t.delay(TCLK/2)
+
+    # check reset value
+    check_result(DT_MAX, 0)
 
     # clear reset
     t.poke(dut.emu_rst, 0)
@@ -100,58 +105,102 @@ def test_rx_adc(float_real):
     t.poke(dut.emu_clk, 1)
     t.delay(DELTA)
 
+    # test case: output is valid immediately
     t.poke(dut.clk_val, 1)
     t.poke(dut.in_, 0.123)
+    t.poke(dut.in_valid, 1)
     cycle()
+    check_result(DT_MAX, adc_model(0.123))
 
-    check_result(DT_MIN, 0)
-    t.poke(dut.clk_val, 1)
+    # check the output value is maintained when the clock goes low
+    t.poke(dut.clk_val, 0)
     t.poke(dut.in_, 0.234)
+    t.poke(dut.in_valid, 1)
     cycle()
+    check_result(DT_MAX, adc_model(0.123))
 
-    check_result(DT_MAX, adc_model(0.234))
+    # test case: output takes one cycle to become valid
     t.poke(dut.clk_val, 1)
     t.poke(dut.in_, 0.345)
+    t.poke(dut.in_valid, 0)
     cycle()
+    check_result(DT_MIN, adc_model(0.123))
+    t.poke(dut.in_, 0.456)
+    t.poke(dut.in_valid, 1)
+    cycle()
+    check_result(DT_MAX, adc_model(0.456))
 
+    # check the output value is maintained when the clock goes low for two cycles,
+    # independent of whether the in_valid signal is high or low
+    t.poke(dut.clk_val, 0)
+    t.poke(dut.in_, 0.567)
+    t.poke(dut.in_valid, 0)
+    cycle()
+    check_result(DT_MAX, adc_model(0.456))
+    t.poke(dut.in_, 0.678)
+    t.poke(dut.in_valid, 1)
+    cycle()
+    check_result(DT_MAX, adc_model(0.456))
+
+    # test case: output takes two cycles to become valid
+    t.poke(dut.clk_val, 1)
+    t.poke(dut.in_, 0.789)
+    t.poke(dut.in_valid, 0)
+    cycle()
+    check_result(DT_MIN, adc_model(0.456))
+    t.poke(dut.in_, 0.890)
+    t.poke(dut.in_valid, 0)
+    cycle()
+    check_result(DT_MIN, adc_model(0.456))
+    t.poke(dut.in_, 0.901)
+    t.poke(dut.in_valid, 1)
+    cycle()
+    check_result(DT_MAX, adc_model(0.901))
+
+    # check the output value is maintained when the clock goes low
+    t.poke(dut.clk_val, 0)
+    t.poke(dut.in_, 0.012)
+    t.poke(dut.in_valid, 1)
+    cycle()
+    check_result(DT_MAX, adc_model(0.901))
+
+    # test case: input takes one cycle to become valid, then clk_val
+    # remain high for an extra cycle after that
+    t.poke(dut.clk_val, 1)
+    t.poke(dut.in_, 0.123)
+    t.poke(dut.in_valid, 0)
+    cycle()
+    check_result(DT_MIN, adc_model(0.901))
+    t.poke(dut.in_, 0.234)
+    t.poke(dut.in_valid, 1)
+    cycle()
     check_result(DT_MAX, adc_model(0.234))
+    t.poke(dut.in_, 0.345)
+    t.poke(dut.in_valid, 1)
+    cycle()
+    check_result(DT_MAX, adc_model(0.234))
+
+    # check the output value is maintained when the clock goes low
     t.poke(dut.clk_val, 0)
     t.poke(dut.in_, 0.456)
+    t.poke(dut.in_valid, 1)
     cycle()
-
     check_result(DT_MAX, adc_model(0.234))
-    t.poke(dut.clk_val, 1)
-    t.poke(dut.in_, 0.567)
-    cycle()
-
-    check_result(DT_MIN, adc_model(0.234))
-    t.poke(dut.clk_val, 1)
-    t.poke(dut.in_, -0.678)
-    cycle()
-
-    check_result(DT_MAX, adc_model(-0.678))
-    t.poke(dut.clk_val, 0)
-    t.poke(dut.in_, 0.789)
-    cycle()
 
     # run through some values to exercise the transfer function
+    # for this part of the test, the "in_valid" signal is left high
     test_vals = [-1.2, -1.0, -0.567, 0, +0.123, +1.0, +1.2]
+    t.poke(dut.in_valid, 1)
     for test_val in test_vals:
-        # set clk_val high
-        t.poke(dut.clk_val, 1)
-        t.poke(dut.in_, 0)
-        cycle()
-        check_result(dt_req=DT_MIN)
-
-        # set test value input
+        # set the clock value "high"
         t.poke(dut.clk_val, 1)
         t.poke(dut.in_, test_val)
         cycle()
         check_result(DT_MAX, adc_model(test_val))
 
-        # set clk_val low
+        # set the clock value "low"
         t.poke(dut.clk_val, 0)
-        t.poke(dut.in_, 0)
+        t.poke(dut.in_, 0.0)
         cycle()
         check_result(DT_MAX, adc_model(test_val))
 
