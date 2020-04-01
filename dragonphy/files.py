@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 TOP_DIR = Path(__file__).resolve().parent.parent
@@ -18,3 +19,6 @@ def get_files_arr(paths):
 def get_dirs(*args):
     # alias for get_files
     return get_files(*args)
+
+def get_mlingua_dir():
+    return Path(os.environ['mLINGUA_DIR']).resolve()

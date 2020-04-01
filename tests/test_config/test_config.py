@@ -2,6 +2,17 @@ import msdsl, svreal
 from dragonphy import *
 
 
+def test_analog_core_config():
+    print('Test Analog Core Config')
+    deps = get_deps(
+        'analog_core',
+        view_order=['cpu_models', 'chip_src'],
+        includes=[get_dir('inc/cpu'), get_mlingua_dir() / 'samples'],
+        skip={'snh', 'MUX2D1BWP16P90ULVT', 'PI_delay_unit', 'del_PI'}
+    )
+    print(deps)
+
+
 def test_cpu_models_config():
     print('Test CPU Simulation Config')
     deps = get_deps(
