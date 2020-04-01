@@ -28,12 +28,12 @@ setup(
         # system-verilog parser
         'svinst==0.0.8',
         # magma ecosystem dependencies
-        'fault>=3.0.9',
-        'magma-lang>=2.0.21',
-        'coreir>=2.0.61',
-        'mantle>=2.0.7',
-        'hwtypes>=1.3.5',
-        'ast_tools>=0.0.14',
+        'fault==3.0.9',
+        'magma-lang==2.0.32',
+        'coreir==2.0.63',
+        'mantle==2.0.7',
+        'hwtypes==1.3.6',
+        'ast_tools==0.0.14',
         # general requirements
         'pexpect', 
         'pyyaml',
