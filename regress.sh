@@ -14,6 +14,10 @@ make all
 # install pytest
 pip install pytest pytest-cov
 
+# install DaVE
+git clone https://github.com/StanfordVLSI/DaVE.git
+export mLINGUA_DIR=`realpath DaVE/mLingua`
+
 # run tests
 pytest tests -s -v -r s --cov-report=xml --cov=dragonphy
 

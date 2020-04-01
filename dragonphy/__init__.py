@@ -18,7 +18,8 @@ from .ffe           import FFEHelper
 #from .ac  			import AdcAcChecker
 
 # For fpga emulation
-from .files import get_file, get_files, get_files_arr, get_dir, get_dirs, TOP_DIR
+from .files import (get_file, get_files, get_files_arr, get_dir, get_dirs,
+                    TOP_DIR, get_mlingua_dir)
 from .views import get_deps
 from .anasymod import AnasymodSourceConfig, AnasymodProjectConfig
 
