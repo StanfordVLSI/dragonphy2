@@ -21,6 +21,4 @@ wave.*
 .simvision*
 
 *_gpack.sv
-pack/
-*pack/
 build/
