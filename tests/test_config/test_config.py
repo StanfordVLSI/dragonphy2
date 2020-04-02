@@ -2,8 +2,20 @@ import msdsl, svreal
 from dragonphy import *
 
 
-def test_analog_core_config():
-    print('Test Analog Core Config')
+def test_old_chip_src_config():
+    print('Test Old Chip Source Config')
+    deps = get_deps(
+        'butterphy_top',
+        view_order=['old_cpu_models', 'old_chip_src'],
+        includes=[get_dir('inc/old_cpu'), get_mlingua_dir() / 'samples'],
+        skip={'acore_debug_intf', 'cdr_debug_intf', 'sram_debug_intf',
+              'dcore_debug_intf', 'raw_jtag_ifc_unq1', 'cfg_ifc_unq1'}
+    )
+    print(deps)
+
+
+def test_new_analog_core_config():
+    print('Test New Analog Core Config')
     deps = get_deps(
         'analog_core',
         view_order=['new_cpu_models', 'new_chip_src'],
