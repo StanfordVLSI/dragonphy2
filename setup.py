@@ -14,7 +14,7 @@ with open('README.md', 'r') as fh:
 requires_list = [
         # anasymod ecosystem
         'svreal==0.2.2',
-        'msdsl==0.2.2',
+        'msdsl==0.2.4',
         'anasymod==0.2.2',
         # system-verilog parser
         'svinst==0.0.8',

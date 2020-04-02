@@ -6,20 +6,30 @@ module rx (
     output wire logic clk_o,
     output wire logic data_o
 );
-    // Import packages needed for FFE
-    import weights_pack::*; 
-    import constant_gpack::*;
-
     // instantiate the clock
     // TODO: figure out a cleaner way to pass clk_o_val
-    logic clk_o_val;
+    logic clk_imm, clk_imm_val;
     osc_model rx_clk_i (
+        .clk_o(clk_imm),
+        .clk_o_val(clk_imm_val)
+    );
+
+    // delay the clock by an adjustable amount
+    // TODO: figure out a cleaner way to pass clk_o_val
+    logic [7:0] del_code;
+    logic clk_o_val;
+    //assign clk_o = clk_imm;
+    //assign clk_o_val = clk_imm_val;
+    clk_delay clk_delay_i (
+        .code(del_code),
+        .clk_i(clk_imm),
+        .clk_i_val(clk_imm_val),
         .clk_o(clk_o),
         .clk_o_val(clk_o_val)
     );
-    
+
     // instantiate the ADC
-    // FIXME: Fix this hack for channelized interface
+    // TODO: Fix this hack for channelized interface
     // TODO: figure out a cleaner way to pass clk_o_val
     logic signed [7:0] adc_o [0:0];
     rx_adc rx_adc_i (
@@ -30,9 +40,22 @@ module rx (
         .rst(~rstb)
     );
 
+    // Measure phase and adjust sampling point
+    // TODO: cleanup hierarchy
+    mm_pd mm_pd_i (
+        .clk(clk_o),
+        .rstb(rstb),
+        .data_i(adc_o[0]),
+        .pi_ctl(del_code)
+    );
+
+    // Import packages needed for FFE
+    import weights_pack::*;
+    import constant_gpack::*;
+
     // instantiate the FFE
-    logic signed [ffe_gpack::output_precision-1:0]  ffe_o  	        [ffe_gpack::width-1:0];
-    logic signed [ffe_gpack::weight_precision-1:0]  weights        [ffe_gpack::length-1:0][ffe_gpack::width-1:0];
+    logic signed [ffe_gpack::output_precision-1:0]  ffe_o [ffe_gpack::width-1:0];
+    logic signed [ffe_gpack::weight_precision-1:0]  weights [ffe_gpack::length-1:0][ffe_gpack::width-1:0];
     logic [ffe_gpack::shift_precision-1:0] shift_default = ffe_shift;
     logic [ffe_gpack::shift_precision-1:0] shift_index  [ffe_gpack::width-1:0];
 
@@ -42,7 +65,7 @@ module rx (
         .codeBitwidth(ffe_gpack::input_precision),
         .weightBitwidth(ffe_gpack::weight_precision),
         .resultBitwidth(ffe_gpack::output_precision),
-        .shiftBitwidth   (ffe_gpack::shift_precision )
+        .shiftBitwidth(ffe_gpack::shift_precision)
     ) ffe_inst (
         .clk(clk_o),
         // TODO: fixme
@@ -54,7 +77,7 @@ module rx (
     );
 
     // initialize weights and shift_index
-    genvar gi,gj;    
+    genvar gi,gj;
     generate
         for(gi=0; gi<ffe_gpack::length; gi=gi+1) begin
             for(gj=0; gj<ffe_gpack::width; gj=gj+1) begin
@@ -64,7 +87,7 @@ module rx (
         for(gj=0;gj<ffe_gpack::width;gj=gj+1) begin
             assign shift_index[gj] = shift_default;
         end
-    endgenerate 
+    endgenerate
 
     // create digital comparator
     logic cmp_o [ffe_gpack::width-1:0];
@@ -76,5 +99,4 @@ module rx (
 
     // sample comparator output
     assign data_o = cmp_o[0];
-
 endmodule
