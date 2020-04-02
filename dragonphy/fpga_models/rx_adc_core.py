@@ -2,6 +2,7 @@ from pathlib import Path
 from argparse import ArgumentParser
 
 from msdsl import MixedSignalModel, VerilogGenerator, to_sint, clamp_op
+from msdsl.expr.expr import array
 from msdsl.expr.extras import if_
 
 from dragonphy import Directory

@@ -1,6 +1,9 @@
 `include "signals.sv"
 
-module osc_model (
+module osc_model #(
+    parameter real t_lo=0.5e-9,
+    parameter real t_hi=0.5e-9
+) (
     output wire logic clk_o,
     output wire logic clk_o_val
 );
@@ -17,6 +20,10 @@ module osc_model (
 
     // instantiate MSDSL model, passing through format information
     osc_model_core #(
+        // pass through real-valued parameters
+        .t_lo(t_lo),
+        .t_hi(t_hi),
+        // pass formatting information
         `PASS_REAL(emu_dt, DT_FMT),
         `PASS_REAL(dt_req, DT_FMT)
     ) osc_model_core_i (
@@ -30,7 +37,6 @@ module osc_model (
     );
 
     // assign to __emu_clk_val
-    // TODO: clean this up since it's a particularly messy detail
-    // to have to expose
+    // TODO: clean this up; it's a particularly messy detail
     assign __emu_clk_val = clk_o_val;
 endmodule

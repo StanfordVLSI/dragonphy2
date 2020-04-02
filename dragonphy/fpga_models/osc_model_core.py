@@ -1,6 +1,8 @@
 from pathlib import Path
 from argparse import ArgumentParser
+from copy import deepcopy
 from msdsl import MixedSignalModel, VerilogGenerator
+from msdsl.expr.expr import array
 from msdsl.expr.extras import if_
 
 class OscModelCore:
@@ -49,3 +51,4 @@ class OscModelCore:
     @staticmethod
     def required_values():
         return ['dt', 'tlo', 'thi']
+
