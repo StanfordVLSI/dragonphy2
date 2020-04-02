@@ -1,6 +1,4 @@
-from os.path import dirname
-from os import chdir, getcwd
-from butterphy import make, abspath, read_logic, read_real, CmdLineParser, CustomConfig
+import pytest
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -32,30 +30,24 @@ def check_data(delay, pm):
 
         assert delta <= T_TOL, f'Phase measurement error of {delta*1e12} ps is out of spec.'
 
+@pytest.mark.skip(reason='still in the process of porting this test')
 def test_sim(nosim=False):
-    cwd = getcwd()
-    chdir(dirname(abspath(__file__)))
-
     if not nosim:
-        config = CustomConfig()
-        config.define('CLK_ASYNC_FREQ', CLK_ASYNC_FREQ)
-        config.define('CLK_REF_FREQ', CLK_REF_FREQ)
-        make('profile')
+        # config.define('CLK_ASYNC_FREQ', CLK_ASYNC_FREQ)
+        # config.define('CLK_REF_FREQ', CLK_REF_FREQ)
+        pass
 
     # read true delay
-    delay = np.array(read_real('delay.txt'), dtype=float)
+    # delay = np.array(read_real('delay.txt'), dtype=float)
+    delay = None
 
     # get PM estimate of delay
-    pm = np.array(read_logic('pm.txt'), dtype=float)
-    pm *= (1.0/CLK_ASYNC_FREQ)/(2**(N_PM+1))
+    # pm = np.array(read_logic('pm.txt'), dtype=float)
+    # pm *= (1.0/CLK_ASYNC_FREQ)/(2**(N_PM+1))
+    pm = None
+
     # plot results
     plot_data(delay=delay, pm=pm)
 
     # check the results
     check_data(delay=delay, pm=pm)
-
-    chdir(cwd)
-
-if __name__ == '__main__':
-    cmd = CmdLineParser()
-    cmd.call_with_args(test_sim)
