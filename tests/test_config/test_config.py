@@ -6,8 +6,8 @@ def test_analog_core_config():
     print('Test Analog Core Config')
     deps = get_deps(
         'analog_core',
-        view_order=['cpu_models', 'chip_src'],
-        includes=[get_dir('inc/cpu'), get_mlingua_dir() / 'samples'],
+        view_order=['new_cpu_models', 'new_chip_src'],
+        includes=[get_dir('inc/old_cpu'), get_mlingua_dir() / 'samples'],
         skip={'snh', 'MUX2D1BWP16P90ULVT', 'PI_delay_unit', 'del_PI'}
     )
     print(deps)
