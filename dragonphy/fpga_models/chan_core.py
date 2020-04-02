@@ -29,7 +29,7 @@ class ChannelCore:
         m.add_digital_input('rst')
 
         # read in the channel data
-        chan = Filter.from_file(get_file('build/adapt_fir/chan.npy')) #this needs to be turned into a parameter passed in by a config file?
+        chan = Filter.from_file(get_file('build/all/adapt_fir/chan.npy')) #this needs to be turned into a parameter passed in by a config file?
 
         # create a function
         domain = [chan.t_vec[0], chan.t_vec[-1]]
@@ -87,6 +87,8 @@ class ChannelCore:
 
         # generate the model
         m.compile_to_file(VerilogGenerator())
+
+        self.generated_files = [filename]
 
     @staticmethod
     def check_func_error(f):
