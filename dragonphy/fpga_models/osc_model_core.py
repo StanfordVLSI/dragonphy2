@@ -43,6 +43,9 @@ class OscModelCore:
         # generate the model
         m.compile_to_file(VerilogGenerator())
 
+        self.generated_files = [filename]
+
+
     @staticmethod
     def required_values():
         return ['dt', 'tlo', 'thi']

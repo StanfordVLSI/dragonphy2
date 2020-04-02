@@ -26,4 +26,4 @@ from .views import get_deps
 from .anasymod import AnasymodSourceConfig, AnasymodProjectConfig
 
 # Package generation
-from .adapt_fir import adapt_fir
+from .adapt_fir import AdaptFir

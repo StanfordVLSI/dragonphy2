@@ -15,11 +15,11 @@ def create_fpga_graph():
     graph.add_config('test_loopback_config', folders=['config'])
 
     #Add msdsl scripts to build list
-    graph.add_python('adapt_fir',       'adapt_fir',        'AdaptFir',     folders=['dragonphy'],                configs={'test_loopback_config'})
-    graph.add_python('chan_core',       'chan_core',        'ChannelCore',  folders=['dragonphy', 'fpga_models'], sources={'adapt_fir'}, configs={'chan'})
-    graph.add_python('osc_model_core',  'osc_model_core',   'OscModelCore', folders=['dragonphy', 'fpga_models'], configs={'osc_model'})
-    graph.add_python('rx_adc_core',     'rx_adc_core',      'RXAdcCore',    folders=['dragonphy', 'fpga_models'], configs={'rx_adc'})
-    graph.add_python('tx_core',         'tx_core',          'TXCore',       folders=['dragonphy', 'fpga_models'], configs={'tx'})
+    graph.add_python('adapt_fir',       'adapt_fir',        'AdaptFir',    view='all',  folders=['dragonphy'],                configs={'test_loopback_config'})
+    graph.add_python('chan_core',       'chan_core',        'ChannelCore', view='fpga',  folders=['dragonphy', 'fpga_models'], sources={'adapt_fir'}, configs={'chan'})
+    graph.add_python('osc_model_core',  'osc_model_core',   'OscModelCore', view='fpga',  folders=['dragonphy', 'fpga_models'], configs={'osc_model'})
+    graph.add_python('rx_adc_core',     'rx_adc_core',      'RXAdcCore', view='fpga',   folders=['dragonphy', 'fpga_models'], configs={'rx_adc'})
+    graph.add_python('tx_core',         'tx_core',          'TXCore',    view='fpga',   folders=['dragonphy', 'fpga_models'], configs={'tx'})
 
     return graph
 
@@ -28,7 +28,7 @@ def main():
     parser = ArgumentParser()
 
     parser.add_argument('-v', '--view', type=str, default=None)
-    parser.add_argument('--visualize', action='store_true')
+    parser.add_argument('--visualize', type=str, default='all')
     
     cmd_inputs = parser.parse_args()
 
@@ -43,7 +43,7 @@ def main():
         graph = create_cpu_graph()
 
     if cmd_inputs.visualize:
-        graph.visualize()
+        graph.visualize(cmd_inputs.visualize)
 
     graph.build()
 
