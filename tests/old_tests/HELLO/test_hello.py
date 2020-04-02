@@ -1,6 +1,7 @@
 # general imports
 import os
 from pathlib import Path
+from shutil import which
 
 # AHA imports
 import magma as m
@@ -8,7 +9,12 @@ import fault
 
 THIS_DIR = Path(__file__).parent.resolve()
 BUILD_DIR = THIS_DIR / 'build'
-SIMULATOR = 'ncsim' if 'FPGA_SERVER' not in os.environ else 'vivado'
+if which('iverilog') is not None:
+    SIMULATOR = 'iverilog'
+elif 'FPGA_SERVER' in os.environ:
+    SIMULATOR = 'vivado'
+else:
+    SIMULATOR = 'ncsim'
 
 def test_sim():
     class test(m.Circuit):
@@ -21,5 +27,6 @@ def test_sim():
         simulator=SIMULATOR,
         ext_srcs=[THIS_DIR / 'test.sv'],
         ext_test_bench=True,
-        disp_type='realtime'
+        disp_type='realtime',
+        directory=BUILD_DIR
     )

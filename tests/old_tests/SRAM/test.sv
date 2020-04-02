@@ -34,7 +34,7 @@ module test;
     logic in_record, out_record;
 
     sram_recorder #(
-        .filename("sram_in.txt")
+        .filename(`SRAM_IN_TXT)
     ) sram_in_recorder (
         .in(in[Nti+Nti_rep-1:0]),
         .clk(clk),
@@ -42,7 +42,7 @@ module test;
     );
 
     sram_recorder #(
-        .filename("sram_out.txt")
+        .filename(`SRAM_OUT_TXT)
     ) sram_out_recorder (
         .in(out[Nti+Nti_rep-1:0]),
         .clk(clk),
