@@ -1,5 +1,9 @@
-from .files import get_dir
+from pathlib import Path
+
+import msdsl, svreal
 from svinst import get_mod_defs
+
+from .files import get_dir, get_file, get_mlingua_dir
 
 def remove_dup(seq):
     # fast method to remove duplicates from a list while preserving order
@@ -51,10 +55,8 @@ def find_mod_def(cell_name, impl_file, includes, defines):
     else:
         return matches[0]
 
-def get_deps(cell_name, view_order=None, override=None, skip=None,
-             includes=None, defines=None):
-    print(f'Visiting cell_name={cell_name}')
-
+def get_deps(cell_name=None, view_order=None, override=None,
+             skip=None, includes=None, defines=None, impl_file=None):
     # set defaults
     if view_order is None:
         view_order = []
@@ -62,16 +64,26 @@ def get_deps(cell_name, view_order=None, override=None, skip=None,
         override = {}
     if skip is None:
         skip = set()
+    if cell_name is None:
+        if impl_file is not None:
+            cell_name = Path(impl_file).stem
+        else:
+            raise Exception('Must provide either cell_name or impl_file.')
+
+    print(f'Visiting cell_name={cell_name}')
 
     # find the most preferred implementation of this cell given
-    impl_file = find_preferred_impl(
-        cell_name=cell_name,
-        view_order=view_order,
-        override=override
-    )
+    if impl_file is None:
+        impl_file = find_preferred_impl(
+            cell_name=cell_name,
+            view_order=view_order,
+            override=override
+        )
 
     # find out what cells are instantiated by this module and descend into them
-    mod_def = find_mod_def(cell_name=cell_name, impl_file=impl_file, includes=includes, defines=defines)
+    mod_def = find_mod_def(
+        cell_name=cell_name, impl_file=impl_file, includes=includes, defines=defines
+    )
 
     # get a list of unique modules instantiated, preserving order
     submods = remove_dup([inst.mod_name for inst in mod_def.insts])
@@ -82,8 +94,8 @@ def get_deps(cell_name, view_order=None, override=None, skip=None,
     for submod in submods:
         if submod in skip:
             continue
-        deps += get_deps(cell_name=submod, view_order=view_order, override=override, skip=skip,
-                         includes=includes, defines=defines)
+        deps += get_deps(cell_name=submod, view_order=view_order, override=override,
+                         skip=skip, includes=includes, defines=defines)
 
     # add the current file to the end of the list
     deps += [impl_file]
@@ -91,4 +103,69 @@ def get_deps(cell_name, view_order=None, override=None, skip=None,
     # remove duplicates preserving order
     deps = remove_dup(deps)
 
+    return deps
+
+def get_deps_cpu_sim_old(cell_name=None, impl_file=None):
+    deps = []
+    deps += [get_mlingua_dir() / 'samples' / 'stim' / 'pulse.sv']
+    deps += [get_mlingua_dir() / 'samples' / 'stim' / 'clock.sv']
+    deps += list(get_dir('vlog/old_pack').glob('*.sv'))
+    deps += [get_file('vlog/old_chip_src/analog_core/acore_debug_intf.sv')]
+    deps += [get_file('vlog/old_chip_src/mm_cdr/cdr_debug_intf.sv')]
+    deps += [get_file('vlog/old_chip_src/sram/sram_debug_intf.sv')]
+    deps += [get_file('vlog/old_chip_src/digital_core/dcore_debug_intf.sv')]
+    deps += [get_file('vlog/old_chip_src/analog_core/acore_debug_intf.sv')]
+    deps += [get_file('vlog/old_chip_src/jtag/generate/raw_jtag_ifc_unq1.sv')]
+    deps += [get_file('vlog/old_chip_src/jtag/generate/cfg_ifc_unq1.sv')]
+    deps += [get_file('vlog/old_chip_src/jtag/jtag_intf.sv')]
+    deps += get_deps(
+        cell_name=cell_name,
+        impl_file=impl_file,
+        view_order=['old_tb', 'old_cpu_models', 'old_chip_src'],
+        includes=[get_dir('inc/old_cpu'), get_mlingua_dir() / 'samples'],
+        skip={'acore_debug_intf', 'cdr_debug_intf', 'sram_debug_intf',
+              'dcore_debug_intf', 'raw_jtag_ifc_unq1', 'cfg_ifc_unq1',
+              'jtag_intf', 'clock'}
+    )
+    return deps
+
+def get_deps_cpu_sim_new(cell_name=None, impl_file=None):
+    deps = []
+    deps += get_deps(
+        cell_name=cell_name,
+        impl_file=impl_file,
+        view_order=['new_cpu_models', 'new_chip_src'],
+        includes=[get_dir('inc/old_cpu'), get_mlingua_dir() / 'samples'],
+        skip={'snh', 'MUX2D1BWP16P90ULVT', 'PI_delay_unit', 'del_PI'}
+    )
+    return deps
+
+def get_deps_cpu_sim(cell_name=None, impl_file=None):
+    deps = []
+    deps += list(get_dir('build/adapt_fir').glob('*.sv'))
+    deps += get_deps(
+        cell_name=cell_name,
+        impl_file=impl_file,
+        view_order=['tb', 'cpu_models', 'chip_src'],
+        includes=[get_dir('inc/cpu')],
+        skip={'analog_if'}
+    )
+    return deps
+
+def get_deps_fpga_emu(cell_name=None, impl_file=None):
+    deps = []
+    deps += list(get_dir('build/adapt_fir').glob('*.sv'))
+    deps += get_deps(
+        cell_name=cell_name,
+        impl_file=impl_file,
+        view_order=['tb', 'fpga_models', 'chip_src'],
+        includes=[
+            get_dir('inc/fpga'),
+            svreal.get_svreal_header().parent,
+            msdsl.get_msdsl_header().parent
+        ],
+        defines={'DT_WIDTH': 27, 'DT_EXPONENT': -46},
+        skip={'svreal', 'assign_real', 'comp_real', 'add_sub_real', 'ite_real',
+              'dff_real', 'mul_real', 'mem_digital', 'sync_rom_real'}
+    )
     return deps
