@@ -1,5 +1,13 @@
 `define WAIT(x) #((1.0*x)/freq*1s)
 
+`ifndef SRAM_IN_TXT
+    `define SRAM_IN_TXT "sram_in.txt"
+`endif
+
+`ifndef SRAM_OUT_TXT
+    `define SRAM_OUT_TXT "sram_out.txt"
+`endif
+
 module test;
 
     import const_pack::*;

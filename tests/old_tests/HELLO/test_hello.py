@@ -3,9 +3,8 @@ import os
 from pathlib import Path
 from shutil import which
 
-# AHA imports
-import magma as m
-import fault
+# DragonPHY imports
+from dragonphy import *
 
 THIS_DIR = Path(__file__).parent.resolve()
 BUILD_DIR = THIS_DIR / 'build'
@@ -17,16 +16,9 @@ else:
     SIMULATOR = 'ncsim'
 
 def test_sim():
-    class test(m.Circuit):
-        name = 'test'
-        io = m.IO()
-
-    tester = fault.Tester(test)
-    tester.compile_and_run(
-        target='system-verilog',
-        simulator=SIMULATOR,
+    DragonTester(
         ext_srcs=[THIS_DIR / 'test.sv'],
-        ext_test_bench=True,
-        disp_type='realtime',
-        directory=BUILD_DIR
-    )
+        directory=BUILD_DIR,
+        top_module='test',
+        simulator=SIMULATOR
+    ).run()

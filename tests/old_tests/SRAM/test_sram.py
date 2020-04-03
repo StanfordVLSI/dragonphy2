@@ -2,10 +2,6 @@
 import os
 from pathlib import Path
 
-# AHA imports
-import magma as m
-import fault
-
 # DragonPHY imports
 from dragonphy import *
 
@@ -16,15 +12,7 @@ if 'FPGA_SERVER' in os.environ:
 else:
     SIMULATOR = 'ncsim'
 
-# test-specific parameters
-Nti = 18
-Nadc = 8
-
 def test_sim():
-    class test(m.Circuit):
-        name = 'test'
-        io = m.IO()
-
     def qwrap(s):
         return f'"{s}"'
     defines = {
@@ -33,29 +21,16 @@ def test_sim():
     }
 
     # determine the config
-    deps = []
-    cells = ['oneshot_memory', 'sram_recorder']
-    for cell in cells:
-        deps += get_deps(
-            cell,
-            view_order=['old_tb', 'old_cpu_models', 'old_chip_src'],
-            includes=[get_dir('inc/old_cpu'), get_mlingua_dir() / 'samples'],
-            skip={'acore_debug_intf', 'cdr_debug_intf', 'sram_debug_intf',
-                  'dcore_debug_intf', 'raw_jtag_ifc_unq1', 'cfg_ifc_unq1'}
-        )
-    deps = deps + [get_file('vlog/old_pack/const_pack.sv')]
+    deps = get_deps_cpu_sim_old(impl_file=THIS_DIR / 'test.sv')
     print(deps)
 
-    tester = fault.Tester(test)
-    tester.compile_and_run(
-        target='system-verilog',
-        simulator=SIMULATOR,
-        ext_srcs=deps+[THIS_DIR / 'test.sv'],
-        ext_test_bench=True,
+    DragonTester(
+        ext_srcs=deps,
+        directory=BUILD_DIR,
+        top_module='test',
         defines=defines,
-        disp_type='realtime',
-        directory=BUILD_DIR
-    )
+        simulator=SIMULATOR
+    ).run()
 
 def read_int_array(filename):
     with open(filename, 'r') as f:
@@ -69,7 +44,7 @@ def read_int_array(filename):
 
     return retval
 
-def check_sram():
+def check_sram(Nti=18):
     # read results
     in_ = read_int_array(BUILD_DIR / 'sram_in.txt')
     out = read_int_array(BUILD_DIR / 'sram_out.txt')
@@ -79,6 +54,3 @@ def check_sram():
 
     for k, (sram_in, sram_out) in enumerate(zip(in_[:len(out)], out)):
         assert sram_in == sram_out, f'Data mismatch on line {k//Nti}: {sram_in} != {sram_out}.'
-
-if __name__ == '__main__':
-    check_sram()
