@@ -114,7 +114,7 @@ def test_osc_model(float_real):
         target='system-verilog',
         directory=BUILD_DIR,
         simulator=SIMULATOR,
-        ext_srcs=[get_file('build/fpga_models/osc_model_core.sv'),
+        ext_srcs=[get_file('build/fpga_models/osc_model_core/osc_model_core.sv'),
                   get_file('tests/test_osc_model/test_osc_model.sv')],
         inc_dirs=[get_svreal_header().parent, get_msdsl_header().parent],
         ext_model_file=True,

@@ -5,35 +5,42 @@ from dragonphy import Channel, Wiener, Quantizer, Packager
 
 class AdaptFir:
     def __init__(self,  filename=None, **system_values):
-
         build_dir = Path(filename).parent
-        name      = Path(filename).stem
 
-        ffe_config      = system_values['generic']['ffe'] 
+        ffe_config      = system_values['generic']['ffe']
         constant_config = system_values['generic']
 
         # create channel model
-        chan = Channel(
-            channel_type='exponent',
-            tau=2e-9,
-            sampl_rate=1e9,
-            resp_depth=50
+        kwargs = dict(
+            channel_type='arctan',
+            tau=0.25e-9,
+            t_delay=4e-9,
+            sampl_rate=10e9,
+            resp_depth=500
         )
+        chan = Channel(**kwargs)
+
+        # create a channel model delayed such that the optimal
+        # cursor position is an integer
+        # TODO: clean this up
+        kwargs_d = kwargs.copy()
+        kwargs_d['t_delay'] += 0.5e-9
+        chan_d = Channel(**kwargs_d)
 
         # compute response of channel to codes
         iterations = 200000
-        ideal_codes = np.random.randint(2, size=iterations)*2 - 1
-        chan_out = chan.compute_output(ideal_codes)
+        ideal_codes = np.random.randint(2, size=iterations) * 2 - 1
+        chan_out = chan_d.compute_output(ideal_codes)
 
         # Adapt to the channel
-        cursor_pos = 3
+        cursor_pos = 5
         adapt = Wiener(
-            step_size = ffe_config['adaptation']['args']['mu'],
-            num_taps  = ffe_config['parameters']['length'],
+            step_size=ffe_config['adaptation']['args']['mu'],
+            num_taps=ffe_config['parameters']['length'],
             cursor_pos=cursor_pos
         )
-        for i in range(iterations-cursor_pos):
-            adapt.find_weights_pulse(ideal_codes[i-cursor_pos], chan_out[i])
+        for i in range(iterations - cursor_pos):
+            adapt.find_weights_pulse(ideal_codes[i - cursor_pos], chan_out[i])
         weights = adapt.weights
 
         # Uncomment this line for debugging purposes to
@@ -64,7 +71,7 @@ class AdaptFir:
 
         # Write impulse response to package
         step_dt = 0.1e-9
-        _, v_step = chan.get_step_resp(f_sig=1/step_dt)
+        _, v_step = chan.get_step_resp(f_sig=1 / step_dt, resp_depth=500)
         Packager(
             package_name='step_resp_pack',
             parameters={
@@ -88,11 +95,8 @@ class AdaptFir:
         # Write the step response data to a YAML file
         chan.to_file(build_dir / 'chan.npy')
         print(build_dir / 'chan.npy')
-        # Return a list of all packages created
-        #return list(build_dir.glob('*.sv'))
 
         self.generated_files = list(build_dir.glob('*.*'))
-
 
     @staticmethod
     def required_values():
