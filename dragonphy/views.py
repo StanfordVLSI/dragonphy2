@@ -108,7 +108,7 @@ def get_deps(cell_name=None, view_order=None, override=None,
 def get_deps_cpu_sim_old(cell_name=None, impl_file=None):
     deps = []
     deps += [get_mlingua_dir() / 'samples' / 'stim' / 'pulse.sv']
-    deps += [get_mlingua_dir() / 'samples' / 'stim' / 'clock.sv']
+    deps += [get_mlingua_dir() / 'samples' / 'stim' / 'clock.v']
     deps += list(get_dir('vlog/old_pack').glob('*.sv'))
     deps += [get_file('vlog/old_chip_src/analog_core/acore_debug_intf.sv')]
     deps += [get_file('vlog/old_chip_src/mm_cdr/cdr_debug_intf.sv')]

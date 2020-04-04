@@ -11,7 +11,7 @@ from svreal import get_svreal_header
 from msdsl import get_msdsl_header
 
 # DragonPHY imports
-from dragonphy import get_file, Filter
+from dragonphy import get_file, Filter, Directory
 
 BUILD_DIR = Path(__file__).resolve().parent / 'build'
 SIMULATOR = 'ncsim' if 'FPGA_SERVER' not in os.environ else 'vivado'
@@ -131,7 +131,7 @@ def test_chan_model():
     meas8 = t.get_value(dut.out)
 
     # compute expected outputs
-    chan = Filter.from_file(get_file('build/adapt_fir/chan.npy'))
+    chan = Filter.from_file(get_file('build/all/adapt_fir/chan.npy'))
     f = chan.interp
     expt1 = 0
     expt2 = val1*f(dt2)
@@ -148,7 +148,7 @@ def test_chan_model():
         target='system-verilog',
         directory=BUILD_DIR,
         simulator=SIMULATOR,
-        ext_srcs=[get_file('build/fpga_models/chan_core.sv'),
+        ext_srcs=[get_file('build/fpga_models/chan_core/chan_core.sv'),
                   get_file('tests/test_chan_model/test_chan_model.sv')],
         inc_dirs=[get_svreal_header().parent, get_msdsl_header().parent],
         ext_model_file=True,
