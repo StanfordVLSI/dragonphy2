@@ -7,7 +7,7 @@ SIMULATOR = 'ncsim' if 'FPGA_SERVER' not in os.environ else 'vivado'
 
 def test_loopback():
     # get list of packages
-    packages = list(get_dir('build/adapt_fir').glob('*.sv'))
+    packages = list(get_dir('build/all/adapt_fir').glob('*.sv'))
 
     # Get dependencies for simulation
     INC_DIR = get_dir('inc/cpu')
