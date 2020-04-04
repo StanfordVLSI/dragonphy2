@@ -1,6 +1,5 @@
 # Generic imports
 from pathlib import Path
-from argparse import ArgumentParser
 import numpy as np
 
 # FPGA-specific imports
@@ -11,14 +10,14 @@ from msdsl.expr.extras import if_
 # DragonPHY imports
 from dragonphy import Filter, get_file
 
-
 class ChannelCore:
     def __init__(self, filename=None, **system_values):
         module_name = Path(filename).stem
         build_dir   = Path(filename).parent
 
         #This is a wonky way of validating this.. :(
-        assert (all([req_val in system_values for req_val in self.required_values()])), f'Cannot build {module_name}, Missing parameter in config file'
+        assert (all([req_val in system_values for req_val in self.required_values()])), \
+            f'Cannot build {module_name}, Missing parameter in config file'
 
         m = MixedSignalModel(module_name, dt=system_values['dt'], build_dir=build_dir)
         m.add_analog_input('in_')
@@ -29,7 +28,7 @@ class ChannelCore:
         m.add_digital_input('rst')
 
         # read in the channel data
-        chan = Filter.from_file(get_file('build/all/adapt_fir/chan.npy')) #this needs to be turned into a parameter passed in by a config file?
+        chan = Filter.from_file(get_file('build/all/adapt_fir/chan.npy'))
 
         # create a function
         domain = [chan.t_vec[0], chan.t_vec[-1]]
@@ -40,7 +39,7 @@ class ChannelCore:
         # create a history of past inputs
         cke_d = m.add_digital_state('cke_d')
         m.set_next_cycle(cke_d, m.cke, clk=m.clk, rst=m.rst)
-        value_hist = m.make_history(m.in_, system_values['num_terms'] + 1, clk=m.clk, rst=m.rst, ce=cke_d)
+        value_hist = m.make_history(m.in_, system_values['num_terms']+1, clk=m.clk, rst=m.rst, ce=cke_d)
 
         # create a history times in the past when the input changed
         time_incr = []
@@ -97,7 +96,6 @@ class ChannelCore:
         exact = f.func(samp)
         err = np.sqrt(np.mean((exact-approx)**2))
         print(f'RMS error: {err}')
-
 
     @staticmethod
     def required_values():
