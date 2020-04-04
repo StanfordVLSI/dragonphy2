@@ -3,9 +3,12 @@ from .cmd 			import CmdLineParser
 from .packager      import Packager
 from .config 		import Configuration
 from .tester     	import DragonTester
+from .directory     import Directory
+from .graph.graph   import BuildGraph
 
 # Some analysis libraries
 from .analysis.histogram import Histogram
+
 
 # Some Python Verification Libraries
 from .channel   	import Channel, Filter
@@ -25,4 +28,4 @@ from .views import (get_deps, get_deps_cpu_sim_old, get_deps_cpu_sim_new,
 from .anasymod import AnasymodSourceConfig, AnasymodProjectConfig
 
 # Package generation
-from .adapt_fir import adapt_fir
+from .adapt_fir import AdaptFir

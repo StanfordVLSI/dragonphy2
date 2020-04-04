@@ -1,42 +1,30 @@
 from pathlib import Path
-from argparse import ArgumentParser
-
-from msdsl import MixedSignalModel, VerilogGenerator, sum_op
+from msdsl import MixedSignalModel, VerilogGenerator
 from msdsl.expr.extras import if_
 
-from dragonphy import Filter
-from dragonphy.files import get_file
+class TXCore:
+    def __init__(self, filename=None, **system_values):
+        module_name = Path(filename).stem
+        build_dir = Path(filename).parent
 
-def main():
-    module_name = Path(__file__).stem
-    print(f'Running model generator for {module_name}...')
+        #This is a wonky way of validating this.. :(
+        assert (all([req_val in system_values for req_val in self.required_values()])), \
+            f'Cannot build {module_name}, Missing parameter in config file'
 
-    # parse command line arguments
-    parser = ArgumentParser()
+        m = MixedSignalModel(module_name, dt=system_values['dt'], build_dir=build_dir)
+        m.add_digital_input('in_')
+        m.add_analog_output('out')
+        m.add_digital_input('clk')
 
-    # generic arguments
-    parser.add_argument('-o', '--output', type=str, default='.')
-    parser.add_argument('--dt', type=float, default=0.1e-6)
+        # define model behavior
+        vp, vn = system_values['vp'], system_values['vn']
+        m.set_next_cycle(m.out, if_(m.in_, vp, vn), clk=m.clk, rst="1'b0")
 
-    # model-specific arguments
-    parser.add_argument('--vp', type=float, default=+1.0)
-    parser.add_argument('--vn', type=float, default=-1.0)
+        # generate the model
+        m.compile_to_file(VerilogGenerator())
 
-    # parse arguments
-    a = parser.parse_args()
+        self.generated_files = [filename]
 
-    # define model pinout
-    build_dir = Path(a.output).resolve()
-    m = MixedSignalModel(module_name, dt=a.dt, build_dir=build_dir)
-    m.add_digital_input('in_')
-    m.add_analog_output('out')
-    m.add_digital_input('clk')
-
-    # define model behavior
-    m.set_next_cycle(m.out, if_(m.in_, a.vp, a.vn), clk=m.clk, rst="1'b0")
-
-    # generate the model
-    m.compile_to_file(VerilogGenerator())
-
-if __name__ == '__main__':
-    main()
+    @staticmethod
+    def required_values():
+        return ['dt', 'vp', 'vn']
