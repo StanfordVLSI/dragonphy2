@@ -30,6 +30,6 @@
 	
 	// nettype declaration
 	
-	nettype voltage_struct voltage with voltage_res;
+	// nettype voltage_struct voltage with voltage_res;
 
 `endif // `ifndef __VOLTAGE_NET_SV__

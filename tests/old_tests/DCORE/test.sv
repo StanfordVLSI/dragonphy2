@@ -27,9 +27,14 @@ module test;
 	);
 
 	initial begin
+	    // wait a little bit
 	    #(100ns);
-	    $finish;
+
+	    // declare success
 	    $display("Success!");
+
+	    // finish test
+	    $finish;
 	end
 endmodule
 

@@ -110,33 +110,29 @@ module test;
 		// Enable the input buffer
 		jtag_drv_i.write_tc_reg(en_inbuf, 'b1);
 
-
-
-
 		// Force data into SC domain
-		force top_i.iacore.adbg_intf_i.Qperi[0] = 'hF;
-		force top_i.iacore.adbg_intf_i.Qperi[1] = 'hA;
-		force top_i.iacore.adbg_intf_i.Qperi[2] = 'hC;
-		force top_i.iacore.adbg_intf_i.Qperi[3] = 'hE;
+		force top_i.iacore.adbg_intf_i.Qperi = '{'hE, 'hC, 'hA, 'hF};
 		#(10ns);
-		
+
 		// Read back data from SC domain
 		jtag_drv_i.read_sc_reg(Qperi[0], result);
 		assert (result == 'hF);
-				#(10ns);
+		#(10ns);
 
 		jtag_drv_i.read_sc_reg(Qperi[1], result);
 		assert (result == 'hA);
-				#(10ns);
+		#(10ns);
 
 		jtag_drv_i.read_sc_reg(Qperi[2], result);
 		assert (result == 'hC);
-				#(10ns);
+		#(10ns);
 
 		jtag_drv_i.read_sc_reg(Qperi[3], result);
 		assert (result == 'hE);
-				#(10ns);
+		#(10ns);
 
+        // Declare success
+        $display("Success!");
 
 		// Finish test
 		$finish;
