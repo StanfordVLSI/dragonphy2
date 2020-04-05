@@ -142,20 +142,46 @@ class JTAGDriver;
    /****************************/
    // task Reset, resets the jtag state machine and registers
    /****************************/
-   extern task Reset();
+   task Reset();
+      repeat (2) @(posedge this.ifc.Clk);
+      this.ifc.tck = 1'b0;
+      this.ifc.trst_n = 1'b0;
+      this.ifc.tms = 1'b1;
+
+      // wait a couple of jtag clocks
+      repeat (2) Next_tck();
+
+      // now un-reset
+      this.ifc.trst_n = 1'b1;
+      repeat (2) Next_tck();
+
+      // move to Run Test Idle
+      this.ifc.tms = 1'b0;
+      Next_tck();
+      reset_done = 1;
+   endtask
 
    /****************************/
    // read the dut ID code
    /****************************/
    extern task ReadID(jtag_regfile_trans_t new_trans);
 
-
-
-
    /****************************************************************************
     ************* Very low level tasks to manipulate the jtag state machine 
     ***************************************************************************/
-    extern task Next_edge();
+    task Next_edge();
+       // To make life simpler, tck is actually synchrionized as 1/4 Clk with a
+       // phase shift of 1 Clk:
+       // Clk: _|-|_|-|_|-|_|-|_|-|_|-|_|-|_|-|_|-
+       // tck: _|-------|_______|-------|_______|-
+       // tdi: aaaa><bbbbbb><cccccc><ddddddd><eeeeee
+
+       @(posedge this.ifc.Clk);
+       this.ifc.tck = tck_edge;
+       tck_edge = 1-tck_edge;
+       @(posedge this.ifc.Clk);
+    endtask
+
     extern task Next_pos_edge();
     extern task Next_neg_edge();
     extern task Next_tck();
@@ -260,29 +286,6 @@ endclass: JTAGDriver
       this.ifc.trst_n = 1'b0;
    endtask // Zero
 
-
-   /****************************/
-   // task Reset, resets the jtag state machine and registers
-   /****************************/
-   task JTAGDriver::Reset();
-      repeat (2) @(posedge this.ifc.Clk);
-      this.ifc.tck = 1'b0;
-      this.ifc.trst_n = 1'b0;
-      this.ifc.tms = 1'b1;
-
-      // wait a couple of jtag clocks
-      repeat (2) Next_tck();
-
-      // now un-reset
-      this.ifc.trst_n = 1'b1;
-      repeat (2) Next_tck();
-
-      // move to Run Test Idle
-      this.ifc.tms = 1'b0;
-      Next_tck();
-      reset_done = 1;
-   endtask // Reset
-
 /****************************/
 // read the dut ID code
 /****************************/
@@ -301,19 +304,6 @@ endtask // JTAGDriver::ReadID
    /****************************************************************************
     ************* Very low level tasks to manipulate the jtag state machine 
     ***************************************************************************/
-   task JTAGDriver::Next_edge();
-      // To make life simpler, tck is actually synchrionized as 1/4 Clk with a
-      // phase shift of 1 Clk:
-      // Clk: _|-|_|-|_|-|_|-|_|-|_|-|_|-|_|-|_|-
-      // tck: _|-------|_______|-------|_______|-
-      // tdi: aaaa><bbbbbb><cccccc><ddddddd><eeeeee
-
-      @(posedge this.ifc.Clk);
-      this.ifc.tck = tck_edge;
-      tck_edge = 1-tck_edge;
-      @(posedge this.ifc.Clk);
-   endtask // Reset
-
    task JTAGDriver::Next_pos_edge();
       if (tck_edge == 1)
 	Next_tck();
