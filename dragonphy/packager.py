@@ -44,25 +44,11 @@ class Packager():
 
         return new_lines
 
-<<<<<<< HEAD
-    def design_param_definition(self, parameter_name, parameter_default):
-        if isinstance(parameter_default, str):
-            parameter_type    = 'string'
-            parameter_default = "\"" + parameter_default + "\""
-        elif isinstance(parameter_default, int):
-            parameter_type    = 'integer'
-        else:
-            print(f'Cannot determine type for {parameter_name} (default: {parameter_default})')
-            exit()
-
-        return "localparam {} {} = {};".format(parameter_type, parameter_name, parameter_default)
-=======
     def generate_parameter_list(self):
         retval = []
         for name, value in self.parameters.items():
             retval += [self.design_param_definition(name, value)]
         return retval
->>>>>>> master
 
     def design_param_definition(self, parameter_name, parameter_default):
         if isinstance(parameter_default, (list, tuple, np.ndarray)):

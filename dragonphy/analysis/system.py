@@ -1,9 +1,5 @@
-from dragonphy import *
-<<<<<<< HEAD
-=======
 from verif.fir.fir import Fir
 from vlog.tb.mlsd.mlsd import MLSD
->>>>>>> master
 
 import numpy as np
 import matplotlib.pyplot as plt

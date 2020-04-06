@@ -1,9 +1,0 @@
-parameters:
-  num_of_codes: 100
-  ideal_code_filename: 'ideal_codes.txt'
-  test_codes_filename: 'test_codes.txt'
-  ffe_values_filename: 'ffe_values.txt'
-  cmp_thresh_filename: 'cmp_thresh.txt'
-  mlsd_values_filename: 'mlsd_values.txt'
-  output_filename: 'forward_path_results.txt'
-
