@@ -16,7 +16,7 @@ python make.py --view fpga
 pip install pytest pytest-cov
 
 # install DaVE
-git clone https://github.com/StanfordVLSI/DaVE.git
+git clone --single-branch --branch pli_workaround https://github.com/StanfordVLSI/DaVE.git
 export mLINGUA_DIR=`realpath DaVE/mLingua`
 
 # run tests
