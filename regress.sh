@@ -30,27 +30,6 @@ export mLINGUA_DIR=`realpath DaVE/mLingua`
 # install dragonphy
 pip install -e .
 
-# build JTAG
-# TODO: move into build flow
-export DRAGONPHY_TOP=`realpath .`
-mkdir -p $DRAGONPHY_TOP/build/jtag
-cd build/jtag
-python $JUSTAG_DIR/JusTAG.py $DRAGONPHY_TOP/md/reg/*.md $DRAGONPHY_TOP/vlog/old_pack/all/const_pack.sv
-export TOP_NAME=raw_jtag
-export PRIM_DIR=$JUSTAG_DIR/rtl/primitives
-export DIGT_DIR=$JUSTAG_DIR/rtl/digital
-export VERF_DIR=$JUSTAG_DIR/verif
-export SVP_FILES="${DIGT_DIR}/${TOP_NAME}.svp ${PRIM_DIR}/cfg_ifc.svp ${DIGT_DIR}/${TOP_NAME}_ifc.svp ${PRIM_DIR}/flop.svp ${DIGT_DIR}/tap.svp ${DIGT_DIR}/cfg_and_dbg.svp ${PRIM_DIR}/reg_file.svp"
-Genesis2.pl -parse -generate -top $TOP_NAME -input $SVP_FILES
-Genesis2.pl -parse -generate -top JTAGDriver -input $VERF_DIR/JTAGDriver.svp
-mkdir -p $DRAGONPHY_TOP/build/old_cpu_models/jtag
-mv jtag_reg_pack.sv $DRAGONPHY_TOP/build/old_cpu_models/jtag/.
-mkdir -p $DRAGONPHY_TOP/build/old_tb
-mv genesis_verif/JTAGDriver.sv $DRAGONPHY_TOP/build/old_tb/jtag_drv_pack.sv
-mkdir -p $DRAGONPHY_TOP/build/old_chip_src/jtag
-mv genesis_verif/* $DRAGONPHY_TOP/build/old_chip_src/jtag/.
-cd $DRAGONPHY_TOP
-
 # make dependencies for design
 # TODO: should other views be used as well?
 python make.py --view fpga
