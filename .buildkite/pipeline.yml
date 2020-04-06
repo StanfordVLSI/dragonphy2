@@ -1,107 +1,28 @@
 steps:
   - command: |
       # set up environment
-      export PATH=$$PATH:/usr/local/miniconda/bin:/usr/local/bin
-      echo $$PATH
-      export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:/usr/local/lib
-      echo $$LD_LIBRARY_PATH
-
-      # tool setup
       source /cad/modules/tcl/init/bash
       module load base xcelium
+      export DRAGONPHY_PYTHON=/usr/local/miniconda/bin/python3.7
+      export BUILD_VIEW=cpu
+      printenv
 
-      # create conda env
-      conda create -p ./conda_env -m -y pip python=3.7.4
-      export PATH=$$PWD/conda_env/bin:$$PATH
-
-      # install svreal
-      git clone https://github.com/sgherbst/svreal.git
-      cd svreal
-      git checkout v3
-      pip install -e .
-      cd ..
-
-      # install msdsl
-      git clone https://github.com/sgherbst/msdsl.git
-      cd msdsl
-      pip install -e .
-      cd ..
-
-      # install anasymod
-      git clone https://github.com/sgherbst/anasymod.git
-      cd anasymod
-      git checkout dragonphy_support
-      pip install -e .
-      cd ..
-
-      # install dragonphy
-      pip install -e .
-
-      # run tests
-      pip install pytest
-      pytest tests -xs
-
-      # simulate FPGA design
-      pytest emu/test_emu_build.py -xs
-      anasymod -i emu --sim --simulator_name xrun
+      # run regression script
+      source regress.sh
     label: "test"
     timeout_in_minutes: 60
     agents:
-      butterphy: "true"
+      fault2: "true"
   - command: |
       # set up environment
       source /etc/environment
-      echo $$PATH
+      export DRAGONPHY_PYTHON=python3.7
+      export FPGA_SERVER=1
+      export BUILD_VIEW=fpga
+      printenv
 
-      # activate virtual env
-      python3.7 -m venv venv
-      source venv/bin/activate
-
-      # install svreal
-      git clone https://github.com/sgherbst/svreal.git
-      cd svreal
-      git checkout v3
-      pip install -e .
-      cd ..
-
-      # install msdsl
-      git clone https://github.com/sgherbst/msdsl.git
-      cd msdsl
-      pip install -e .
-      cd ..
-
-      # install anasymod
-      git clone https://github.com/sgherbst/anasymod.git
-      cd anasymod
-      git checkout dragonphy_support
-      pip install -e .
-      cd ..
-
-      # install dragonphy
-      pip install -e .
-
-      # install pytest to allow tests to run
-      pip install pytest
-
-      # build file structure
-      pytest emu/test_emu_build.py -xs
-
-      # simulate FPGA design
-      anasymod -i emu --sim --simulator_name vivado
-
-      # build bitstream
-      anasymod -i emu --build
-
-      # show results of bitstream build
-      tree emu
-      cat emu/build/project/project.runs/synth_1/runme.log
-      cat emu/build/project/project.runs/impl_1/runme.log
-
-      # program FPGA and run test
-      pytest emu/test_emu_prog.py -xs
-
-      # deactivate virtual env
-      deactivate
+      # run regression script
+      source regress.sh
     label: "test_emu"
     timeout_in_minutes: 60
     agents:

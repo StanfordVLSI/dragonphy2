@@ -1,340 +1,155 @@
 import numpy as np
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
+
+from scipy.interpolate import interp1d
+from math import floor
 
 class Filter:
-    def __init__(self, sampl_rate=1):
-        self.sampl_rate = sampl_rate
+    def __init__(self, t_vec, v_vec):
+        # save time / voltage points of step response
+        self.t_vec = t_vec
+        self.v_vec = v_vec
+        self.interp = interp1d(t_vec, v_vec, bounds_error=False,
+                               fill_value=(v_vec[0], v_vec[-1]))
 
-    def __getitem__(self, ind):
-        return self.impulse_response[ind]
+    def get_step_resp(self, f_sig=1e9, resp_depth=50):
+        # truncate the response depth if needed
+        if self.t_vec[-1] < (resp_depth-1)/f_sig:
+            resp_depth = int(floor(self.t_vec[-1]*f_sig)) + 1
 
-    def __call__(self, symbols):
-        #Needs further analysis - do I need to drop leading and lagging samples?
-        return np.convolve(symbols, self.impulse_response, mode='full')
+        # compute times at which step reponse should be evaluated
+        t_step = np.linspace(0, (resp_depth-1)/f_sig, resp_depth)
 
-    def length(self):
-        return len(self.impulse_response)
+        # compute interpolated step response
+        v_step = self.interp(t_step)
+
+        return t_step, v_step
+
+    def get_pulse_resp(self, f_sig=1e9, resp_depth=50):
+        # compute interpolated step response
+        t_step, v_step = self.get_step_resp(f_sig=f_sig, resp_depth=resp_depth+1)
+
+        # take first difference to get pulse response
+        v_pulse = np.diff(v_step)
+
+        # return result (remembering the throw away the extra time point at the end)
+        return t_step[:-1], v_pulse
+
+    def compute_output(self, symbols, f_sig=1e9, resp_depth=50):
+        # get the pulse response
+        _, v_pulse = self.get_pulse_resp(f_sig=f_sig, resp_depth=resp_depth)
+
+        # convolve pulse response with symbols
+        # TODO: should samples at the beginning and end be dropped?
+        return np.convolve(symbols, v_pulse, mode='full')
+
+    def to_file(self, file):
+        arr = np.column_stack((self.t_vec, self.v_vec))
+        np.save(file, arr)
+
+    @classmethod
+    def from_file(cls, file):
+        arr = np.load(file)
+        return cls(t_vec=arr[:, 0], v_vec=arr[:, 1])
+
 
 class Channel(Filter):
-    def __init__(self, channel_type='perfect', resp_depth=10, cursor_pos=2, sampl_rate=1, save_impulse=False, **kwargs):
-        super().__init__(sampl_rate)
-        self.resp_depth       = resp_depth
-        self.cursor_pos       = cursor_pos
-        self.impulse_response = self.channel_generator[channel_type](self, resp_depth=self.resp_depth, **kwargs)
-        self.pulse_response = []
+    def __init__(self, channel_type='step', sampl_rate=1e9, resp_depth=50, **kwargs):
+        # determine vector of time points
+        t_vec = np.linspace(0, (resp_depth-1)/sampl_rate, resp_depth)
 
-        self.reset_cursor()
-        if save_impulse:
-            total_samples = len(self.impulse_response)
-            sample_times = np.arange(0, total_samples, 1)/self.sampl_rate
-            with open(kwargs["save_file_name"], 'w') as f:
-                for time, sample in zip(sample_times, self.impulse_response):
-                    f.write(f'{time}, {sample}\n')
+        if channel_type == 'step':
+            v_vec = step_channel(t_vec=t_vec, **kwargs)
+        elif channel_type == 'exponent':
+            v_vec = exponential_channel(t_vec=t_vec, **kwargs)
+        elif channel_type == 'arctan':
+            v_vec = arctan_channel(t_vec=t_vec, **kwargs)
+        else:
+            raise Exception(f'Unknown channel type: {channel_type}')
 
-    def __call__(self, symbols):
-        return super().__call__(symbols)*1.0/self.sampl_rate
-        
-    def normalize_area(self, unnormalized_array):
-        scale = 1/np.sum(unnormalized_array)*self.sampl_rate
-        return scale*unnormalized_array
+        # call the super constructor
+        super().__init__(t_vec=t_vec, v_vec=v_vec)
 
-    def normalize_energy(self, unnormalized_array):
-        scale = 1/np.sqrt(np.sum(np.square(unnormalized_array))*1.0/self.sampl_rate)
-        return scale*unnormalized_array
+def step_channel(t_vec, t_delay=2e-9):
+    return np.heaviside(t_vec - t_delay, 0)
 
-    def normalize_none(self, unnormalized_array):
-        return unnormalized_array
+def exponential_channel(t_vec, t_delay=2e-9, tau=2.0e-9):
+    return (1-np.exp(-(t_vec-t_delay)/tau))*np.heaviside(t_vec-t_delay, 0)
 
-    def reset_cursor(self):
-        self.cursor_pos = list(self.impulse_response).index(max(self.impulse_response))
+# Adapted from: The Physics of Transmission Lines at High and Very High Frequencies
+# Impulse response is h(t) = 1/(pi*k) * 1/(1+(t/k)^2)
+# Therefore the step response is proportional to arctan(t/k)
+def arctan_channel(t_vec, t_delay=2e-9, tau=2.0e-9):
+    return (1.0/np.pi)*(np.arctan((t_vec-t_delay)/tau) + (np.pi/2.0))
 
-    def perfect_channel(self, resp_depth=10, **kwargs):
-        return np.identity(resp_depth)[self.cursor_pos]
-
-    # From: The Physics of Transmission Lines at High and Very High Frequencies
-    # Continuous Model: h(t) = 1/(pi*k) * 1/(1+(t/k)^2)
-    def dielectric2_channel(self, resp_depth=10, normal='area', **kwargs):
-        try:
-            tau = kwargs['tau']
-        except KeyError as e:
-            print("Dielectric2 Effect Channel: {} not specified, defaulting to {}=2".format('tau','tau'))
-            tau = 2
-        
-        sample_per = 1.0/self.sampl_rate
-        
-        self.cursor_pos = int(resp_depth/2)
-
-        func_scale = 1.0/(np.pi*tau)
-        nT_over_tau = np.divide(range(-self.cursor_pos, resp_depth-self.cursor_pos), np.repeat(sample_per/tau, resp_depth))
-        
-        unscaled_array = 1.0/(1.0 + nT_over_tau**2)
-        return self.normal_select[normal](self, unscaled_array)
-
-    # From: Ryan Boesch Thesis
-    # Continuous Channel Model: h(t) = 1/(pi*k) * (1+t/k)/(1+(t/k)^2)
-    # Continuous Pulse Response: p(t) = rect(t/T) * h(t)
-    def dielectric1_pulse_channel(self, resp_depth=10, normal='area', **kwargs):
-        try:
-            tau = kwargs['tau']
-        except KeyError as e:
-            print("Dielectric1 Pulse Response Effect Channel: {} not specified, defaulting to {}=2".format('tau','tau'))
-            tau = 2
-        
-        sample_per = 1.0/self.sampl_rate
-       
-        func_scale = 1.0/(np.pi*tau)
-
-        T = sample_per
-        delta = T/100.
-        t = np.arange(-1./delta, resp_depth/delta, delta)
-        rect = np.where(np.abs(t) < T/2, 1., 0.)
-
-        t = np.arange(-1./delta, resp_depth/delta, delta)
-        t_over_k = np.divide(t, tau)
-        h = func_scale * np.divide((1. + t_over_k), (1. + t_over_k ** 2))
-        h = np.clip(h, 0, None)
-
-        plt.plot(rect)
-        plt.plot(h)
-        plt.show()
-
-        p = np.convolve(rect, h)
+# # From: Ryan Boesch Thesis
+# # Continuous Model: h(t) = 1/(pi*k) * (1+t/k)/(1+(t/k)^2)
+# def dielectric1_channel(self, t_vec, t_delay=2e-9, tau=2.5e-9):
+#     try:
+#         tau = kwargs['tau']
+#     except KeyError:
+#         print('Dielectric Effect Channel: tau not specified, defaulting to tau=2')
+#         tau = 2
+#
+#     sample_per = 1.0 / self.sampl_rate
+#
+#     nT_over_tau = np.divide(range(-int(1 / tau) - 1, resp_depth - int(1 / tau) - 1),
+#                             np.repeat(sample_per / tau, resp_depth))
+#
+#     unscaled_array = np.pad(np.clip((1.0 + nT_over_tau) / (1.0 + nT_over_tau ** 2), 0, None), (self.cursor_pos, 0),
+#                             'constant', constant_values=(0, 0))[0:resp_depth]
+#     return self.normal_select[normal](self, unscaled_array)
 
 
-        argmax_p = np.argmax(p)
-        print(argmax_p)
-        
-        start_n = argmax_p % int(T/delta)
-        p_n = p[start_n::int(T/delta)] 
+# # From: The Physics of Transmission Lines at High and Very High Frequencies
+# # Continuous Model:     h(t) = sqrt(tau)/(2*t*sqrt(pi*t)) * e^(-tau/4t)
+# # Discrete Model:       h(n) = sqrt(beta/pi) * e^(-beta/n)/n^(3/2)
+# def skineffect_channel(self, resp_depth=10, normal='area', **kwargs):
+#     try:
+#         tau = kwargs['tau']
+#     except KeyError:
+#         print("Skin Effect Channel: {} not specified, defaulting to {}=2".format('tau', 'tau'))
+#         tau = 2
+#
+#     sampl_per = 1.0 / self.sampl_rate
+#     # Let beta be tau/(4*T)
+#     beta = tau / (4 * sampl_per)
+#
+#     # func_scale = np.sqrt(beta/np.pi)
+#     expon_val = np.repeat(np.exp(-beta), resp_depth - 1)
+#     one_over_n = np.divide(np.ones((resp_depth - 1,)), range(1, resp_depth))
+#     expon_arr = np.power(expon_val, one_over_n)
+#     n_to_3_o_2 = np.power(range(1, resp_depth), 3.0 / 2.0)
+#
+#     # Shift is equivalent to convolving with a delayed impulse response. Delay by 1 more for n=0 (cannot divide by 0).
+#     unscaled_array = np.pad(np.divide(expon_arr, n_to_3_o_2), (self.cursor_pos, 0), 'constant',
+#                             constant_values=(0, 0))[0:resp_depth]
+#     return self.normal_select[normal](self, unscaled_array)
 
-        print(f'Length = {len(p_n)}')
-
-        start_nonzero = next((i for i, x in enumerate(p_n) if x), None) - 1
-
-        plt.plot(p)
-        plt.stem(start_n + np.arange(0, int(T/delta) * len(p_n), int(T/delta)), p_n)
-        plt.show()
-        p_n_crop = p_n[start_nonzero:start_nonzero + resp_depth]
-
-        return self.normal_select[normal](self, p_n_crop)
-    # From: Ryan Boesch Thesis
-    # Continuous Channel Model: h(t) = 1/(pi*k) * (1+t/k)/(1+(t/k)^2)
-    def dielectric1_channel(self, resp_depth=10, normal='area', **kwargs):
-        try:
-            tau = kwargs['tau']
-        except KeyError as e:
-            print("Dielectric1 Effect Channel: {} not specified, defaulting to {}=2".format('tau','tau'))
-            tau = 2
-        
-        sample_per = 1.0/self.sampl_rate
-        smp_prd_tm_rsp   = resp_depth/self.sampl_rate
-        smpl_prd_div_tau = 1.0/(self.sampl_rate*tau)      
-        func_scale = 1.0/(np.pi*tau)
-
-        sample_points = np.linspace(-smpl_prd_div_tau, -smpl_prd_div_tau + smp_prd_tm_rsp, resp_depth)
-        nT_over_tau = np.multiply(sample_points, np.repeat(smpl_prd_div_tau, resp_depth))
-
-        unscaled_array = np.pad(np.clip((1.0 + nT_over_tau)/(1.0 + nT_over_tau**2), 0, None), (self.cursor_pos, 0), 'constant', constant_values=(0,0))[0:int(resp_depth)]
-        return self.normal_select[normal](self, unscaled_array)
-
-    # From: The Physics of Transmission Lines at High and Very High Frequencies
-    # Continuous Model:     h(t) = sqrt(tau)/(2*t*sqrt(pi*t)) * e^(-tau/4t)
-    # Discrete Model:       h(n) = sqrt(beta/pi) * e^(-beta/n)/n^(3/2)
-    def skineffect_channel(self, resp_depth=10, normal='area', **kwargs):
-        try: 
-            tau = kwargs['tau']
-        except KeyError as e:
-            print("Skin Effect Channel: {} not specified, defaulting to {}=2".format('tau','tau'))
-            tau = 2
-
-        sampl_per = 1.0/self.sampl_rate
-        # Let beta be tau/(4*T)
-        beta = tau/(4*sampl_per)
-
-        # func_scale = np.sqrt(beta/np.pi)
-        expon_val = np.repeat(np.exp(-beta), resp_depth-1)
-        one_over_n = np.divide(np.ones((resp_depth-1,)), range(1,resp_depth))
-        expon_arr = np.power(expon_val, one_over_n)
-        n_to_3_o_2 = np.power(range(1,resp_depth), 3.0/2.0)
-
-        # Shift is equivalent to convolving with a delayed impulse response. Delay by 1 more for n=0 (cannot divide by 0).
-        unscaled_array = np.pad(np.divide(expon_arr,n_to_3_o_2),(self.cursor_pos,0),'constant', constant_values=(0,0))[0:resp_depth]
-        return self.normal_select[normal](self, unscaled_array)
-
-    # Combined skineffect and dielectric effect channel model
-    def combined_channel(self, resp_depth=10, normal='area', **kwargs):
-        try:
-            tau_skin = kwargs['tau1']
-            tau_diel = kwargs['tau2']
-        except KeyError as e:
-            print("Skin Effect Channel: {} not specified, defaulting to {}=2".format('tau1', 'tau1'))
-            print("Dielectric Channel: {} not specified, defaulting to {}=2".format('tau2', 'tau2'))
-            tau_skin = 2
-            tau_diel = 2
-
-        diel_resp = self.dielectric1_channel(resp_depth/2, normal, tau_diel)
-        skin_resp = self.skineffect_channel(resp_depth/2, normal, tau_skin)
-
-        unscaled_array = np.convolve(diel_resp, skin_resp)
-        return self.normal_select[normal](self, unscaled_array)
-
-
-    def exponential_channel(self, resp_depth=10, normal='area', **kwargs):
-        try: 
-            tau = kwargs['tau']
-        except KeyError:
-            print("Exponential Channel: {} not specified, defaulting to {}=2".format('tau','tau'))
-            tau = 2
-        expon_val = np.exp(-1.0/(tau*self.sampl_rate))
-        expon_val_sqrd = np.exp(-2.0/(tau*self.sampl_rate))
-        expon_normal_select = { 'area' : self.sampl_rate*(1-expon_val), 'energy' :  np.sqrt(self.sampl_rate*(1-expon_val_sqrd))}
-
-        return expon_normal_select[normal]*np.pad(np.power(np.repeat(expon_val, resp_depth-self.cursor_pos), range(resp_depth-self.cursor_pos)),(self.cursor_pos,0),'constant', constant_values=(0,0))
-
-    def modify_channel(self, channel_type, normal='area', resp_depth_ext=10, **kwargs):
-        modifier_response = self.channel_generator[channel_type](self, resp_depth=resp_depth_ext, normal=normal, **kwargs)
-        self.resp_depth=self.resp_depth+resp_depth_ext
-        self.impulse_response = self.normal_select[normal](self, np.convolve(self.impulse_response, modifier_response, mode='full')*1.0/self.sampl_rate)
-        self.reset_cursor()
-
-    def calculate_channel_area(self):
-        return np.sum(self.impulse_response)*1.0/self.sampl_rate
-
-    def calculate_channel_energy(self):
-        return np.sum(np.square(self.impulse_response))*1.0/self.sampl_rate
-
-    def calculate_settled_step_response(self):
-        return np.sum(self.impulse_response)*1.0/self.sampl_rate
-
-
-    channel_generator = { 'perfect' : perfect_channel, 'exponent' : exponential_channel, 'skineffect' : skineffect_channel, 'dielectric2' : dielectric2_channel, \
-                         'dielectric1' : dielectric1_channel, 'combined' : combined_channel, 'dielectric1_pulse' : dielectric1_pulse_channel}
-    normal_select     = { 'area' : normalize_area, 'energy' : normalize_energy, 'none': normalize_none}
-
-class PulseChannel(Channel):
-    def __init__(self, baud_rate=1, shift_sampling_point=0, channel_type='perfect', resp_depth=12500, cursor_pos=2, sampl_rate=100, save_impulse=False, **kwargs):
-        super().__init__(channel_type=channel_type, resp_depth=resp_depth, cursor_pos=cursor_pos, sampl_rate=sampl_rate, save_impulse=save_impulse, **kwargs)
-        self.baud_rate   = baud_rate
-        self.pulse_width = 1.0/baud_rate
-        self.osr         = int(self.sampl_rate*self.pulse_width)
-        self.shift_sampl_pos = shift_sampling_point
-        self.rect_pulse = self.create_rectangle_pulse()
-        self.sampled_time = []
-        self.pulse_response = super().__call__(self.rect_pulse)[int(self.osr/2):]
-
-    def move_sampl_pos(self, new_sampl_pos):
-        self.shift_sampl_pos = new_sampl_pos
-
-    def create_rectangle_pulse(self):
-        T = 1.0/self.sampl_rate
-        pw = self.pulse_width
-
-        return np.where(np.abs(np.arange(-pw, pw, T)) <= pw/2, 1, 0)
-
-    def downsample(self, samples):
-        num_samples = len(samples)
-        self.sampled_time = np.arange(1/2 + self.shift_sampl_pos, num_samples/self.osr, 1)
-        return samples[int(self.osr/2 + self.shift_sampl_pos*self.osr)::self.osr]
-
-    def upsample(self, samples):
-        upsamples = np.zeros(self.osr*len(samples)-1, dtype=samples.dtype)
-        upsamples[::self.osr] = samples
-        return upsamples
-    
-    def reset_pulse_cursor(self):
-        self.cursor_pos = list(self.pulse_response).index(max(self.pulse_response))
-
-    def __call__(self, symbols):
-        if isinstance(symbols, (list)):
-            symbols = np.array(symbols)
-
-        #Upsample the symbol input with a zero-order hold then convolute with the pulse response (pulse+channel) and then downsample
-        oversampled_values = np.convolve(self.upsample(symbols), self.pulse_response, mode='full')*1.0/self.baud_rate
-        return self.downsample(oversampled_values)
-
-    def real_time(self, sampling_window):
-        return np.arange(0, sampling_window, 1/(self.osr))
-    
-
-class JitterModel():
-    def __init__(self, jitter_type='gaussian', **kwargs):
-        self.jitter_model = self.jitter_generator[jitter_type](self, **kwargs)
-
-    def gaussian_jitter(self, **kwargs):
-        std = kwargs['std']
-        mean = kwargs['mean']
-
-        def jitter_model(size):
-            return np.random.normal(loc=mean, scale=std, size=size)
-
-        return jitter_model
-
-    def full_jitter(self, **kwargs):
-        rj_std = kwargs['rj_std']
-        rj_mean =kwargs['rj_mean']
-
-        dj_amp = kwargs['dj_amp']
-        dj_mean = kwargs['dj_mean']
-
-
-        def jitter_model(size):
-            return np.random.normal(loc=rj_mean, scale=rj_std, size=size) + dj_mean + dj_amp*np.sin(np.random.uniform(-np.pi, np.pi, size=size))
-
-        return jitter_model
-
-    def __call__(self, size):
-        return self.jitter_model(size=size)
-
-    jitter_generator = {'gaussian': gaussian_jitter, 'RJ+DJ': full_jitter}
-
-class JitterPulseChannel(PulseChannel):
-    def __init__(self, jitter_model, baud_rate=1, channel_type='perfect', resp_depth=12500, cursor_pos=2, sampl_rate=100, save_impulse=False, **kwargs):
-        super().__init__(baud_rate=baud_rate, channel_type=channel_type, resp_depth=resp_depth, cursor_pos=cursor_pos, sampl_rate=sampl_rate, save_impulse=save_impulse, **kwargs)
-        self.jitter_model = jitter_model
-
-    def downsample(self,samples):
-        if isinstance(samples, list):
-            samples = np.array(samples)
-
-        num_of_samples = int(len(samples)/self.osr)
-
-        #Generate timing jitter, remove possible negative index, scale jitter to fit oversampling rate and cast it into ints 
-        timing_jitter    = self.jitter_model(size=(num_of_samples,))
-        timing_jitter[0] = abs(timing_jitter[0])
-        timing_jitter    = (timing_jitter*self.osr).astype(dtype='int32')
-        timing_positions = np.arange(0,num_of_samples,1)*self.osr
-        total_timing     = int(self.osr/2 + self.shift_sampl_pos)+timing_jitter+timing_positions
-        total_timing     = np.where(total_timing >= num_of_samples*self.osr, num_of_samples*self.osr - 1, total_timing)
-        return samples[total_timing]
-
+# # Combined skineffect and dielectric effect channel model
+# def combined_channel(self, resp_depth=10, normal='area', **kwargs):
+#     try:
+#         tau_skin = kwargs['tau1']
+#     except KeyError:
+#         tau_skin = 2
+#         print(f'Skin Effect Channel: tau1 not specified, defaulting to tau1={tau_skin}')
+#     try:
+#         tau_diel = kwargs['tau2']
+#     except KeyError:
+#         tau_diel = 2
+#         print(f'Dielectric Channel: tau2 not specified, defaulting to tau2={tau_diel}')
+#
+#     diel_resp = self.dielectric1_channel(resp_depth / 2, normal, tau_diel)
+#     skin_resp = self.skineffect_channel(resp_depth / 2, normal, tau_skin)
+#
+#     unscaled_array = np.convolve(diel_resp, skin_resp)
+#     return self.normal_select[normal](self, unscaled_array)
 
 # Used for testing 
 if __name__ == "__main__":
-
-    j1 = JitterModel(jitter_type='RJ+DJ', rj_mean=0, rj_std=0.05, dj_amp=1, dj_mean=0)
-    print(0.0087/1e5)
-    #c6 = JitterPulseChannel(jitter_model=j1, channel_type='dielectric1', tau=0.0087, sampl_rate=100, resp_depth=12500)
-    c5 = PulseChannel(save_impulse=True, save_file_name='test.txt', baud_rate=1e5, channel_type='dielectric1', tau=0.0087/1e5, sampl_rate=100e5, resp_depth=125)
-    exit()
-    plt.plot(c5(np.array([1])))
-    c5.move_sampl_pos(0.1)
-    plt.plot(c5(np.array([1])))
-    plt.show()
-
-    exit()
-    c1 = Channel(channel_type='skineffect', sampl_rate=5, resp_depth=10)
-    c2 = Channel(channel_type='dielectric1', tau=0.87, sampl_rate=1, resp_depth=125)
-    c3 = Channel(channel_type='dielectric2', sampl_rate=5, resp_depth=125)
-    c4 = Channel(channel_type='dielectric1_pulse', tau=0.87, sampl_rate=1., resp_depth=100)
-
-    plt.plot(c1.impulse_response)
-    plt.show()
-
-    plt.stem(c2.impulse_response)
-    plt.show()
-
-    plt.stem(c4.impulse_response)
-    plt.show()
-
-    plt.plot(c3.impulse_response)
-    plt.show()
+    for channel_type in ['step', 'exponent', 'arctan']:
+        chan = Channel(channel_type=channel_type)
+        t_pulse, v_pulse = chan.get_pulse_resp()
+        print(v_pulse)
+        plt.plot(t_pulse, v_pulse)
+        plt.show()

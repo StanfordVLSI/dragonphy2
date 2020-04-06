@@ -1,84 +1,51 @@
-from pathlib import Path
-import subprocess
+import random
+import magma
+import fault
 
-class Tester:
-	def __init__(self, top = 'test', testbench=[], libraries=[], packages=[], flags=[], files=[], input_tcl=None, sim='xrun', build_dir='', overload_seed=False, seed=None, wave=False):
-		self.build_dir = build_dir
-		self.top 	   = top
-		self.testbench = [Path(tb).resolve() for tb in testbench]
-		self.libraries = [Path(library).resolve() for library in libraries]
-		self.packages  = [Path(package).resolve() for package in packages]
-		self.files 	   = [Path(file).resolve() for file in files]
-		self.wave = wave
-		self.flags 	   = flags
-		self.sim	   = sim
-		self.args 	   = []
-		self.cwd 	   = Path(self.build_dir)
-		self.returncode = None
+class DragonTester:
+	def __init__(self, top_module, ext_test_bench=True, disp_type='realtime',
+				 simulator='ncsim', overload_seed=False, seed=None, clean=True,
+				 flags=None, target='system-verilog', **kwargs):
+		# save kwargs
+		kwargs['top_module'] = top_module
+		kwargs['ext_test_bench'] = ext_test_bench
+		kwargs['disp_type'] = disp_type
+		kwargs['simulator'] = simulator
+		kwargs['target'] = target
+		self.kwargs = kwargs
 
-		if overload_seed and not seed:
-			with open('/dev/urandom', 'rb') as f:
-				self.seed = int.from_bytes(f.read(4), byteorder='big')
-		elif overload_seed:
-			self.seed = seed
+		# save flags argument -- this is treated as a special case because the
+		# flags that should be passed are simulator dependent.
+		flags = flags if flags is not None else []
+		self.flags = flags
 
-		self.cwd.mkdir(exist_ok=True)
+		# save custom arguments
+		self.clean = clean
+		self.seed = seed
 
-		if not input_tcl:
-			self.generate_input_tcl()
-		else:
-			self.input_tcl = input_tcl
-
-		self.generate_arguments()
-
+		# generate a random seed if needed
+		if overload_seed and (self.seed is None):
+			self.generate_new_seed()
 
 	def generate_new_seed(self):
-		with open('/dev/urandom', 'rb') as f:
-			self.seed = int.from_bytes(f.read(4), byteorder='big')
-
-	def generate_input_tcl(self):
-		input_path = Path(self.build_dir + '/hdl.tcl').resolve()
-		with open(input_path, 'w') as f:
-			if self.wave:
-				f.write(f'database -open waves.shm -into waves.shm -default\n')
-				f.write(f'probe -create {self.top} -depth 9\n')
-				f.write(f'probe -create {self.top} -depth 9 -all -memories\n')
-			f.write(f'run\n')
-			f.write(f'exit\n')
-		self.input_tcl = input_path
-
-	def execute(self):
-		self.generate_arguments()
-		self.cwd.mkdir(exist_ok=True)
-		print('\u001b[32;1mCOMMAND\u001b[0m: ' + " ".join(self.args))
-		self.returncode = subprocess.run(self.args, cwd=self.cwd).returncode
-
-	def generate_arguments(self):
-		self.args = []
-
-		self.args += [f'{self.sim}', '-clean']
-		if self.seed:
-			self.args += ['-seed', f'{self.seed}']
-		for flag in self.flags:
-			self.args += [f'{flag}']
-		self.args += ['-top', f'{self.top}']
-		for package in self.packages:
-			self.args += [f'{package}']
-		for tb in self.testbench:
-			self.args += [f'{tb}']
-
-		for library in self.libraries:
-			self.args += ['-v', f'{library}']
-		for file in self.files:
-			self.args += ['-f', f'{file}']
-
-		#Access is required for the probe to work
-		self.args += ['-input', f'{self.input_tcl}', '-access', 'r']
-
-	def check(self):
-		assert self.returncode == 0
-		print('\u001b[32:1mBUILD SUCCESFUL\u001b[0m')
+		self.seed = random.getrandbits(32)
 
 	def run(self):
-		self.execute()
-		self.check()
+		# declare magma circuit to represent the testbench
+		class DUT(magma.Circuit):
+			name = self.kwargs['top_module']
+			io = magma.IO()
+
+		# instantiate the tester
+		tester = fault.Tester(DUT)
+
+		# update flags for ncsim
+		flags = self.flags
+		if self.kwargs['simulator'] == 'ncsim':
+			if self.clean:
+				flags += ['-clean']
+			if self.seed is not None:
+				flags += ['-seed', self.seed]
+
+		# run the simulation
+		tester.compile_and_run(**self.kwargs, flags=flags)

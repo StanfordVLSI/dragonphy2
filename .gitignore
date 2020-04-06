@@ -1,12 +1,16 @@
 __pycache__
 
-*.idea
+.idea
+
 *.egg-info
 *.swp
 *.txt
 *.log
 *.jou
 *.str
+*.diag
+*.svg
+
 
 .Xil
 fpga_prj
@@ -21,3 +25,4 @@ wave.*
 *_gpack.sv
 pack/
 *pack/
+build/
