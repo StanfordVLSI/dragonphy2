@@ -20,7 +20,7 @@ def test_sim():
         ext_srcs=deps,
         directory=BUILD_DIR,
         top_module='test',
-        inc_dirs=[get_mlingua_dir() / 'samples'],
+        inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/old_cpu')],
         defines={'DAVE_TIMEUNIT': '1fs', 'NCVLOG': None},
         simulator=SIMULATOR
     ).run()
