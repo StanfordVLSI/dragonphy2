@@ -102,7 +102,7 @@ module test;
     // compute stimulus
 
     logic [Npi-1:0] pi_ctl_stim [Nout-1:0] [(2**Npi-1):0];
-    
+
     initial begin
     	// fill the pi_ctl_stim array
         for (int i=0; i<2**Npi; i=i+1) begin
@@ -111,12 +111,15 @@ module test;
             end
         end
 
-        // TODO: randomize
+        // TODO: shuffle
     end
 
     // Main test logic
 
-	logic [Npi-1:0] tmp;
+	logic [Npi-1:0] tmp3;
+	logic [Npi-1:0] tmp2;
+	logic [Npi-1:0] tmp1;
+	logic [Npi-1:0] tmp0;
 
     initial begin
     	test_start = 1'b0;
@@ -147,13 +150,13 @@ module test;
         for (int i=0; i<2**Npi; i=i+1) begin
         	$display("Trial %0d/%0d", i, 2**Npi);
 
-            // write PI codes
-            force top_i.idcore.ddbg_intf_i.ext_pi_ctl_offset = '{
-                pi_ctl_stim[3][i],
-                pi_ctl_stim[2][i],
-                pi_ctl_stim[1][i],
-                pi_ctl_stim[0][i]
-            };
+            // write PI codes (the temp variables are needed due to
+            // a limitation in a commercial simulator)
+            tmp3 = pi_ctl_stim[3][i];
+            tmp2 = pi_ctl_stim[2][i];
+            tmp1 = pi_ctl_stim[1][i];
+            tmp0 = pi_ctl_stim[0][i];
+            force top_i.idcore.ddbg_intf_i.ext_pi_ctl_offset = '{tmp3, tmp2, tmp1, tmp0};
 
             // wait
             #(10ns);
