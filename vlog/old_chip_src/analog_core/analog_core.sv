@@ -38,14 +38,20 @@ module analog_core import const_pack::*; #(
 
     acore_debug_intf.acore adbg_intf_i
 );
-    // assign clk_adc
-    logic clk_div_2=1'b0;
-    logic clk_div_4=1'b0;
+    // assign clk_in_pi
+    logic clk_in_pi=1'b0;
     always @(posedge ext_clkp) begin
-        clk_div_2 = ~clk_div_2;
+        clk_in_pi = ~clk_in_pi;
     end
-    always @(posedge clk_div_2) begin
-        clk_div_4 = ~clk_div_4;
+
+    // assign clk_adc
+    logic pi_div_2=1'b0;
+    logic pi_div_4=1'b0;
+    always @(posedge clk_in_pi) begin
+        pi_div_2 = ~pi_div_2;
     end
-    assign clk_adc = clk_div_4;
+    always @(posedge pi_div_2) begin
+        pi_div_4 = ~pi_div_4;
+    end
+    assign clk_adc = pi_div_4;
 endmodule

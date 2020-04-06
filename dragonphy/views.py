@@ -109,9 +109,11 @@ def get_deps(cell_name=None, view_order=None, override=None,
 def get_deps_cpu_sim_old(cell_name=None, impl_file=None):
     deps = []
     deps += [Path(os.environ['DW_TAP']).resolve()]
+    deps += [get_mlingua_dir() / 'samples' / 'meas' / 'meas_clock.v']
     deps += [get_mlingua_dir() / 'samples' / 'stim' / 'pulse.v']
     deps += [get_mlingua_dir() / 'samples' / 'stim' / 'clock.v']
     deps += [get_file('vlog/old_tb/jtag_drv_pack.sv')]
+    deps += [get_file('vlog/old_tb/checker_pack.sv')]
     deps += [get_file('vlog/old_cpu_models/jtag/jtag_reg_pack.sv')]
     deps += list(get_dir('vlog/old_pack').glob('*.sv'))
     deps += [get_file('vlog/old_chip_src/analog_core/acore_debug_intf.sv')]
@@ -129,7 +131,7 @@ def get_deps_cpu_sim_old(cell_name=None, impl_file=None):
         includes=[get_dir('inc/old_cpu'), get_mlingua_dir() / 'samples'],
         skip={'acore_debug_intf', 'cdr_debug_intf', 'sram_debug_intf',
               'dcore_debug_intf', 'raw_jtag_ifc_unq1', 'cfg_ifc_unq1',
-              'jtag_intf', 'clock', 'DW_tap'}
+              'jtag_intf', 'clock', 'DW_tap', 'meas_clock'}
     )
     return deps
 
