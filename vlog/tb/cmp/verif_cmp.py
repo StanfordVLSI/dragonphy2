@@ -1,12 +1,14 @@
 from dragonphy import *
+from dragonphy.analysis import *
+
 from pathlib import Path
 
 import numpy as np
 import matplotlib.pyplot as plt
 import yaml
 import math
-from verif.fir.fir import Fir
-from verif.analysis.histogram import *
+
+
 
 
 def write_files(parameters, codes, weights, path="."):
@@ -36,28 +38,9 @@ def perform_wiener(ideal_input, chan, chan_out, M = 11, u = 0.1, pos=2, iteratio
     for i in range(iterations-pos):
         adapt.find_weights_pulse(ideal_input[i-pos], chan_out[i])   
     
-#   pulse_weights = adapt.weights   
-#   for i in range(iterations-2):
-#       adapt.find_weights_error(ideal_input[i-pos], chan_out[i])   
-#   
-#   pulse2_weights = adapt.find_weights_pulse2()
 
-#   print(pulse_weights)
-#   print(adapt.weights)
-    
-    #plt.plot(adapt.weights)
-    #plt.show()
-
-    #print(f'Filter input: {adapt.filter_in}')
     print(f'Adapted Weights: {adapt.weights}')
 
-    #chan_out = chan_out[2:iterations+2]
-    
-    #deconvolve(adapt.weights, chan)
-
-    #plt.plot(chan(np.reshape(pulse_weights, len(pulse_weights))))
-    #plt.plot(chan(pulse2_weights[-1]))
-    #plt.show()
     return adapt.weights
 
 def execute_fir(ffe_config, quantized_weights, depth, quantized_chan_out):
@@ -79,7 +62,13 @@ def execute_fir(ffe_config, quantized_weights, depth, quantized_chan_out):
 def read_svfile(fname):
     with open(fname, "r") as f:
         f_lines = f.readlines()
-        return np.array([int(x) for x in f_lines])
+        values  = []
+        for line in f_lines:
+            try:
+                values += [int(line)]
+            except:
+                values += [-99]
+        return np.array(values)
 
 def convert_2s_comp(np_arr, width):
     signed_arr=[]
@@ -127,10 +116,48 @@ def main():
     # Get config parameters from system.yml file
     ffe_config = system_config['generic']['ffe']
 
+    pos  = 2
+    resp_len = 125
+    
+    depth = 2048
+    check_bits = 300
+
+    iterations  = 200000 # Number of iterations of Wiener Steepest Descent
+
+    chan = Channel(channel_type='skineffect', normal='area', tau=0.5, sampl_rate=3, cursor_pos=pos, resp_depth=resp_len)
+
+    #FFE Helper Class handles the ideal codes, channel output, weight generation
+    ffe_helper  = FFEHelper(ffe_config, chan, cursor_pos=pos, iterations=iterations)
+    ffe_shift, ffe_shift_bitwidth   = ffe_helper.calculate_shift();
+    ffe_config['parameters']['shift_precision'] = ffe_shift_bitwidth
+
     # Number of iterations of Wiener Steepest Descent
-    iterations  = 200000
-    depth = 1000
     test_config['parameters']['num_of_codes'] = depth
+
+    ideal_codes = ffe_helper.ideal_codes
+    quantized_chan_out = ffe_helper.quantized_channel_output
+    weights = ffe_helper.weights
+
+
+    chan_out = chan(ideal_codes)
+
+    #plot_adapt_input(ideal_codes, chan_out, 100)
+    qc = Quantizer(width=ffe_config["parameters"]["input_precision"], signed=True)
+
+    quantized_chan_out = quantized_chan_out[300:300+depth]
+
+    print(f'Quantized Chan: {quantized_chan_out}')
+    print(f'Chan: {chan_out}')
+    qw = Quantizer(width=ffe_config["parameters"]["weight_precision"], signed=True)
+    quantized_weights = qw.quantize_2s_comp(weights)
+
+    qffe_resp = Fir(len(quantized_weights), quantized_weights, ffe_config["parameters"]["width"]).impulse_response
+    system_config['generic']['parameters']['ffe_shift'] = ffe_shift
+    
+    print(f'Weights: {weights}')
+    print(f'Quantized Weights: {quantized_weights}')
+    write_files([depth, ffe_config['parameters']["length"], ffe_config["adaptation"]["args"]["mu"]], quantized_chan_out, quantized_weights, 'verif/fir/build_fir')   
+         
 
     #Create Package Generator Object 
     generic_packager   = Packager(package_name='constant', parameter_dict=system_config['generic']['parameters'], path=pack_dir)
@@ -157,33 +184,13 @@ def main():
         overload_seed = True
     )
 
-    # Cursor position with the most energy 
-    pos = 2
-    resp_len = 125
-
-    ideal_codes = np.random.randint(2, size=iterations)*2 - 1
-
-    chan = Channel(channel_type='skineffect', normal='area', tau=2, sampl_rate=5, cursor_pos=pos, resp_depth=resp_len)
-    chan_out = chan(ideal_codes)
-
-    #plot_adapt_input(ideal_codes, chan_out, 100)
-    qc = Quantizer(width=ffe_config["parameters"]["input_precision"], signed=True)
-    quantized_chan_out = qc.quantize_2s_comp(chan_out)
-
-    weights = []
-    if ffe_config["adaptation"]["type"] == "wiener":
-        weights = perform_wiener(ideal_codes, chan, chan_out, ffe_config['parameters']["length"], \
-            ffe_config["adaptation"]["args"]["mu"], pos, iterations, build_dir=build_dir)
-    else: 
-        print(f'Do Nothing')
 
     check_bits = 300
     quantized_chan_out_t = quantized_chan_out[check_bits:check_bits+depth]
 
     print(f'Quantized Chan: {quantized_chan_out}')
     print(f'Chan: {chan_out}')
-    qw = Quantizer(width=ffe_config["parameters"]["weight_precision"], signed=True)
-    quantized_weights = qw.quantize_2s_comp(weights)
+    quantized_weights = weights
     print(f'Weights: {weights}')
     print(f'Quantized Weights: {quantized_weights}')
     write_files([depth, ffe_config['parameters']["length"], ffe_config["adaptation"]["args"]["mu"]], quantized_chan_out_t, quantized_weights, 'verif/cmp/build_cmp')   
@@ -196,17 +203,18 @@ def main():
     #Execute ideal python FIR 
     py_arr = execute_fir(ffe_config, quantized_weights, depth, quantized_chan_out_t)
 
+    hist_helper = Histogram()
     # Plot a window of the ideal vs ffe output
-    plot_comparison(py_arr, ideal_codes, length=150, scale=50, delay_ffe=pos, delay_ideal=check_bits)
+    #hist_helper.plot_comparison(py_arr, ideal_codes, length=150, scale=50, delay_ffe=pos, delay_ideal=check_bits)
     # Histogram Plot
-    plot_histogram(py_arr, ideal_codes, delay_ffe=pos, delay_ideal=check_bits, save_dir=build_dir) 
+    #hist_helper.plot_histogram(py_arr, ideal_codes, delay_ffe=pos, delay_ideal=check_bits, save_dir=build_dir) 
     
     py_arr = np.array([1 if int(np.floor(py_val)) >= 0 else 0 for py_val in py_arr])
 
     # Read in the SV results file
     sv_arr = read_svfile('verif/cmp/build_cmp/cmp_results.txt')
     # Compare
-    sv_trim = (3+ffe_config['parameters']["length"]) * ffe_config["parameters"]["width"] - (ffe_config["parameters"]["length"]-1)
+    sv_trim = (4+ffe_config['parameters']["length"]) * ffe_config["parameters"]["width"] - (ffe_config["parameters"]["length"]-1)
     # This trim needs to be fixed - I think the current approach is ""hacky""
     comp_len = math.floor((depth - ffe_config["parameters"]["length"] + 1) \
         /ffe_config["parameters"]["width"]) * ffe_config["parameters"]["width"]

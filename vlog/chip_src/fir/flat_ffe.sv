@@ -17,7 +17,7 @@ module flat_ffe #(
 	output reg signed [resultBitwidth-1:0] results [numChannels-1:0]
 );
 
-localparam integer numFutureBuffers = $ceil(real'(ffeDepth-1)/real'(numChannels));
+localparam integer numFutureBuffers = (ffeDepth-1 + numChannels - 1)/numChannels;
 localparam integer bufferDepth = numFutureBuffers + 1;
 localparam integer centerBuffer = 0;
 
@@ -27,7 +27,10 @@ logic [shiftBitwidth-1:0]  shift_index [numChannels-1:0];
 
 
 wire logic [codeBitwidth-1:0] ucodes      [numChannels-1:0];
+wire logic [codeBitwidth-1:0] ucodes_buffer [numChannels-1:0][bufferDepth-1:0];
+
 wire logic [codeBitwidth-1:0] uflat_codes [numChannels*bufferDepth-1:0];
+
 logic signed [codeBitwidth-1:0]   flat_codes [numChannels*bufferDepth-1:0];
 
 wire logic signed [resultBitwidth-1:0] next_results [numChannels-1:0];
@@ -39,22 +42,31 @@ generate
 		assign ucodes[gi] = $unsigned(codes[gi]);
 	end
 
-	for(gi=0; gi<numChannels*bufferDepth; gi=gi+1) begin
+	for(gi=0; gi<numChannels*bufferDepth; gi=gi+1) begin 
 		assign flat_codes[gi] = $signed(uflat_codes[gi]);
 	end
 endgenerate
 
 
 // Range: 0 (oldest) to numChannels*depth (newest)
-flat_buffer #(
-	.numChannels(numChannels),
-	.bitwidth   (codeBitwidth),
-	.depth      (bufferDepth)
-) fb_i (
-	.in      (ucodes),
-	.clk     (clk),
-	.rstb    (rstb),
-	.flat_out(uflat_codes)
+buffer #(
+		.numChannels (constant_gpack::channel_width),
+		.bitwidth    (constant_gpack::code_precision),
+		.depth       (bufferDepth)
+) code_fb_i (
+		.in      (ucodes),
+		.clk     (clk),
+		.rstb    (rstb),
+		.buffer(ucodes_buffer)
+);
+
+flatten_buffer #(
+		.numChannels(constant_gpack::channel_width),
+		.bitwidth   (constant_gpack::code_precision),
+		.depth (bufferDepth)
+	) ffe_fb_i (
+		.buffer    (ucodes_buffer),
+		.flat_buffer(uflat_codes)
 );
 
 comb_ffe #(

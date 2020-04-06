@@ -1,10 +1,11 @@
 module shiftTestBench();
-	parameter integer channelWidth = 32;
+	parameter integer channelWidth = 16;
 	parameter integer codeBitwidth = 8;
 	parameter integer estBitwidth  = 8;
 	parameter integer estDepth     = 11;
-	parameter integer seqLength    = 10;
-
+	parameter integer seqLength    = 5;
+    parameter integer nbit         = 4;
+    parameter integer cbit         = 2;
 	parameter integer numPastBuffers  = $ceil(real'(estDepth-1)*1.0/channelWidth);
 	parameter integer numFutureBuffers = $ceil(real'(seqLength-1)*1.0/channelWidth);
 
@@ -29,27 +30,31 @@ module shiftTestBench();
     
     logic signed [1:0]               s_bits  	 [channelWidth*testLength-1:0];
     logic signed [codeBitwidth-1:0]  s_codes 	 [channelWidth*testLength-1:0];
-	logic signed [codeBitwidth-1:0]  est_seq_out [1:0][channelWidth-1:0][seqLength-1:0];
+	logic signed [codeBitwidth-1:0]  est_seq_out [2**nbit:0][channelWidth-1:0][seqLength-1:0];
 	logic 							 p_bits 		 [channelWidth-1:0];
 
-	logic signed [codeBitwidth-1:0] prev_mlsd_energy [1:0][channelWidth-1:0];
+	logic signed [codeBitwidth-1:0] prev_mlsd_energy [2**nbit-1:0][channelWidth-1:0];
+	logic signed [estBitwidth-1:0] precalc_seq_vals [2**nbit-1:0][channelWidth-1:0][seqLength-1:0];
 
 	flat_mlsd #(
 		.numChannels (channelWidth),
 		.codeBitwidth(codeBitwidth),
 		.estBitwidth (estBitwidth),
 		.estDepth    (estDepth),
-		.seqLength   (seqLength)
+		.seqLength   (seqLength),
+        .nbit(nbit),
+        .cbit(cbit) 
 	) flat_mlsd_i (
 		.codes         (data),
 		.channel_est   (channel_est),
+		.precalc_seq_vals(precalc_seq_vals),
 		.estimate_bits(bits),
 		.clk           (clk),
 		.rstb          (rstb),
 		.predict_bits  (p_bits)
 	);
 
-	integer ii, jj, kk, fid1, fid2, fid3;
+	integer ii, jj, kk, ll, fid1, fid2, fid3;
 	initial begin
 		start = 0;
 		clk   = 0;
@@ -66,6 +71,17 @@ module shiftTestBench();
 				channel_est[ii][jj] = estDepth - jj - 1;
 			end
 			channel_est[ii][0] = $floor((estDepth-1)/2.0);
+		end
+
+		for(ii=0; ii<channelWidth; ii=ii+1) begin
+			for(jj=0; jj<seqLength; jj=jj+1) begin
+				for(kk=0; kk<2**nbit; kk=kk+1) begin
+					precalc_seq_vals[kk][ii][jj] = 0;
+					for(ll=0; ll<nbit; ll=ll+1) begin
+						precalc_seq_vals[kk][ii][jj] = precalc_seq_vals[kk][ii][jj] + $signed((jj+cbit >= ll) ? ((((kk >> ll) & 1 == 1) ? 1 : -1)*channel_est[ii][jj+cbit-ll]): 0);
+					end
+				end
+			end
 		end
 
 		//Linearize the Bits from the Bit Stream
@@ -115,7 +131,10 @@ module shiftTestBench();
                 end
                 $fwrite(fid3, "| %d %d ", p_bits[jj], bitStream[jj][pos-4]);
                 $fwrite(fid3, "| %d %d", $signed(flat_mlsd_i.est_seq[bitStream[jj][pos-4]][jj][0]), $signed(flat_mlsd_i.ucodes[jj]));
-                $fwrite(fid3, "| %d %d", prev_mlsd_energy[0][jj], prev_mlsd_energy[1][jj]);
+                $fwrite(fid3, "|");
+                for(int kk =0; kk< 2**nbit; kk=kk+1) begin
+                    $fwrite(fid3, " %d", prev_mlsd_energy[kk][jj]);
+                end
                 $fwrite(fid3, "\n");
             end
             $fwrite(fid3, "-------------------------------------------------------------------------------------\n");
@@ -138,8 +157,9 @@ module shiftTestBench();
 		end
 
 		for(ii=0; ii<channelWidth; ii=ii+1) begin
-			prev_mlsd_energy[0][ii] = flat_mlsd_i.comb_mlsd_dec_i.error_energ[0][ii];
-			prev_mlsd_energy[1][ii] = flat_mlsd_i.comb_mlsd_dec_i.error_energ[1][ii];
+            for(int jj=0; jj < 2**nbit; jj=jj+1) begin
+			    prev_mlsd_energy[jj][ii] = flat_mlsd_i.comb_mlsd_dec_i.error_energ[jj][ii];
+            end
 		end
 	end
 
