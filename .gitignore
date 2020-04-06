@@ -9,6 +9,8 @@ __pycache__
 *.jou
 *.str
 *.diag
+*.svg
+
 
 .Xil
 fpga_prj

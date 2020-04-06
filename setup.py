@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 name = 'dragonphy'
-version = '0.1.2'
+version = '0.1.3'
 
 DESCRIPTION = '''\
 Open Source PHY v2\
@@ -9,6 +9,33 @@ Open Source PHY v2\
 
 with open('README.md', 'r') as fh:
     LONG_DESCRIPTION = fh.read()
+
+requires_list = [
+    # anasymod ecosystem
+    'svreal==0.2.2',
+    'msdsl==0.2.4',
+    'anasymod==0.2.2',
+    # system-verilog parser
+    'svinst==0.0.8',
+    # magma ecosystem dependencies
+    'fault==3.0.9',
+    'magma-lang==2.0.32',
+    'coreir==2.0.63',
+    'mantle==2.0.7',
+    'hwtypes==1.3.6',
+    'ast_tools==0.0.14',
+    'kratos==0.0.27',
+    # general requirements
+    'pexpect',
+    'pyyaml',
+    'numpy',
+    'matplotlib',
+    'pygraphviz',
+    # general requirements with special versions to prevent
+    # warnings that clutter pytest output
+    'jinja2>=2.11.1',
+    'pysmt>=0.8.1.dev93'
+]
 
 setup(
     name=name,
@@ -20,30 +47,7 @@ setup(
                 'high speed link', 'analog', 'mixed-signal', 'mixed signal',
                 'generator', 'ic', 'integrated circuit', 'chip'],
     packages=find_packages(exclude=['tests']),
-    install_requires=[
-        # anasymod ecosystem
-        'svreal==0.2.2',
-        'msdsl==0.2.4',
-        'anasymod==0.2.2',
-        # system-verilog parser
-        'svinst==0.0.8',
-        # magma ecosystem dependencies
-        'fault>=3.0.9',
-        'magma-lang>=2.0.21',
-        'coreir>=2.0.61',
-        'mantle>=2.0.7',
-        'hwtypes>=1.3.5',
-        'ast_tools>=0.0.14',
-        # general requirements
-        'pexpect', 
-        'pyyaml',
-        'numpy',
-        'matplotlib',
-        # general requirements with special versions to prevent
-        # warnings that clutter pytest output
-        'jinja2>=2.11.1',
-        'pysmt>=0.8.1.dev93'
-    ],
+    install_requires=requires_list,
     license='Apache License 2.0',
     url=f'https://github.com/StanfordVLSI/{name}',
     author='Stanford University',
