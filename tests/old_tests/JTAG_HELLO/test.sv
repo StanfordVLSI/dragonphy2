@@ -116,18 +116,22 @@ module test;
 
 		// Read back data from SC domain
 		jtag_drv_i.read_sc_reg(Qperi[0], result);
+		$display("Read 0x%0H from SC register 0x%0H", result, Qperi[0]);
 		assert (result == 'hF);
 		#(10ns);
 
 		jtag_drv_i.read_sc_reg(Qperi[1], result);
+		$display("Read 0x%0H from SC register 0x%0H", result, Qperi[1]);
 		assert (result == 'hA);
 		#(10ns);
 
 		jtag_drv_i.read_sc_reg(Qperi[2], result);
+		$display("Read 0x%0H from SC register 0x%0H", result, Qperi[2]);
 		assert (result == 'hC);
 		#(10ns);
 
 		jtag_drv_i.read_sc_reg(Qperi[3], result);
+		$display("Read 0x%0H from SC register 0x%0H", result, Qperi[3]);
 		assert (result == 'hE);
 		#(10ns);
 
