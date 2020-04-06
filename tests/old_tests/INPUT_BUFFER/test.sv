@@ -107,7 +107,6 @@ module test;
 		jtag_drv_i.write_tc_reg(en_inbuf, 'b1);
 		jtag_drv_i.write_tc_reg(int_rstb, 'b1);
 
-
 		// print results
 		$display("External period: ", ext_period.a);
 		$display("Internal period: ", int_period.a);

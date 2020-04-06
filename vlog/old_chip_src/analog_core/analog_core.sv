@@ -44,6 +44,10 @@ module analog_core import const_pack::*; #(
         clk_in_pi = ~clk_in_pi;
     end
 
+    // assign PI outputs
+    logic [(Nout-1):0] clk_interp_sw;
+    assign clk_interp_sw = {(Nout){clk_in_pi}};
+
     // assign clk_adc
     logic pi_div_2=1'b0;
     logic pi_div_4=1'b0;

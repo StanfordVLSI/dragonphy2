@@ -134,7 +134,6 @@ module test;
 		jtag_drv_i.write_tc_reg(en_v2t, 'b1);
 		jtag_drv_i.write_tc_reg(int_rstb, 'b1);
 
-
 		// Set up the output buffer
 		jtag_drv_i.write_tc_reg(sel_outbuff, 'd0);
 		jtag_drv_i.write_tc_reg(sel_trigbuff, 'd0);
