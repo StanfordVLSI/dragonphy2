@@ -6,7 +6,6 @@ source venv/bin/activate
 pip install -U pip
 
 # install Genesis2
-# TODO: simplify install
 git clone https://github.com/StanfordVLSI/Genesis2.git
 export GENESIS_HOME=`realpath Genesis2/Genesis2Tools`
 export PERL5LIB="$GENESIS_HOME/PerlLibs/ExtrasForOldPerlDistributions"
@@ -15,8 +14,7 @@ export PATH="$GENESIS_HOME/gui/bin:$PATH"
 /bin/rm -rf $GENESIS_HOME/PerlLibs/ExtrasForOldPerlDistributions/Compress
 
 # install JusTAG
-# TODO: install from pip as a dependency
-git clone --single-branch --branch dragonphy_integration https://github.com/StanfordVLSI/JusTAG.git
+git clone https://github.com/StanfordVLSI/JusTAG.git
 export JUSTAG_DIR=`realpath JusTAG`
 cd JusTAG
 pip install -e .
@@ -38,7 +36,7 @@ python make.py --view fpga
 pip install pytest pytest-cov
 
 # run tests
-pytest tests -x -s -v -r s --cov-report=xml --cov=dragonphy
+pytest tests -x -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
 
 # upload coverage
 bash <(curl -s https://codecov.io/bash)

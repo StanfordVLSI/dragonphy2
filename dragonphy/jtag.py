@@ -8,15 +8,17 @@ class JTAG:
     def __init__(self,  filename=None, **system_values):
         build_dir = Path(filename).parent
 
-        justag_input = []
-        justag_input += list(get_dir('md/reg').glob('*.md'))
-        justag_input += [get_file('vlog/old_pack/all/const_pack.sv')]
+        justag_inputs = []
+        justag_inputs += list(get_dir('md/reg').glob('*.md'))
+        justag_inputs += [get_file('vlog/old_pack/all/const_pack.sv')]
 
         # call JusTAG
-        JUSTAG_DIR = os.environ['JUSTAG_DIR']
-        call([sys.executable, f'{JUSTAG_DIR}/JusTAG.py'] + justag_input, cwd=build_dir)
+        self.justag(*justag_inputs, cwd=build_dir)
+
+        # generate JTAG for the chip source
 
         TOP_NAME='raw_jtag'
+        JUSTAG_DIR = os.environ['JUSTAG_DIR']
         PRIM_DIR=f'{JUSTAG_DIR}/rtl/primitives'
         DIGT_DIR=f'{JUSTAG_DIR}/rtl/digital'
         VERF_DIR=f'{JUSTAG_DIR}/verif'
@@ -32,11 +34,18 @@ class JTAG:
         ]
 
         self.genesis(TOP_NAME, *SVP_FILES, cwd=build_dir)
+
+        # generate the JTAG test harness
+
         self.genesis('JTAGDriver', f'{VERF_DIR}/JTAGDriver.svp', cwd=build_dir)
+
+        # move the package containing register numbers
 
         old_cpu_models = get_dir('build/old_cpu_models/jtag')
         old_cpu_models.mkdir(exist_ok=True, parents=True)
         (build_dir / 'jtag_reg_pack.sv').replace(old_cpu_models / 'jtag_reg_pack.sv')
+
+        # move the test harness and place inside a package
 
         old_tb = get_dir('build/old_tb')
         old_tb.mkdir(exist_ok=True, parents=True)
@@ -45,6 +54,8 @@ class JTAG:
                 new.write('package jtag_drv_pack;\n')
                 new.write(orig.read())
                 new.write('endpackage\n')
+
+        # move the generated source code for the JTAG implementation
 
         old_chip_src = get_dir('build/old_chip_src/jtag')
         old_chip_src.mkdir(exist_ok=True, parents=True)
@@ -57,13 +68,23 @@ class JTAG:
         self.generated_files += [get_file('build/old_cpu_models/jtag/jtag_reg_pack.sv')]
         self.generated_files += list(get_dir('build/old_chip_src/jtag').glob('*.sv'))
 
-    def genesis(self, top, *inputs, cwd=None):
+    @staticmethod
+    def justag(*inputs, cwd=None):
         args = []
+        args += [sys.executable]
+        args += [f'{os.environ["JUSTAG_DIR"]}/JusTAG.py']
+        args += list(inputs)
+        call(args, cwd=cwd)
+
+    @staticmethod
+    def genesis(top, *inputs, cwd=None):
+        args = []
+        args += ['Genesis2.pl']
         args += ['-parse']
         args += ['-generate']
         args += ['-top', top]
         args += ['-input'] + list(inputs)
-        call(['Genesis2.pl'] + args, cwd=cwd)
+        call(args, cwd=cwd)
 
     @staticmethod
     def required_values():
