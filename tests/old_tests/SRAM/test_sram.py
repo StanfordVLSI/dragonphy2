@@ -17,7 +17,9 @@ def test_sim():
         return f'"{s}"'
     defines = {
         'SRAM_IN_TXT': qwrap(BUILD_DIR / 'sram_in.txt'),
-        'SRAM_OUT_TXT': qwrap(BUILD_DIR / 'sram_out.txt')
+        'SRAM_OUT_TXT': qwrap(BUILD_DIR / 'sram_out.txt'),
+        'DAVE_TIMEUNIT': '1fs',
+        'NCVLOG': None
     }
 
     # determine the config

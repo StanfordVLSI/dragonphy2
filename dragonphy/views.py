@@ -146,7 +146,7 @@ def get_deps_cpu_sim_new(cell_name=None, impl_file=None):
 
 def get_deps_cpu_sim(cell_name=None, impl_file=None):
     deps = []
-    deps += list(get_dir('build/adapt_fir').glob('*.sv'))
+    deps += list(get_dir('build/all/adapt_fir').glob('*.sv'))
     deps += get_deps(
         cell_name=cell_name,
         impl_file=impl_file,
@@ -158,7 +158,7 @@ def get_deps_cpu_sim(cell_name=None, impl_file=None):
 
 def get_deps_fpga_emu(cell_name=None, impl_file=None):
     deps = []
-    deps += list(get_dir('build/adapt_fir').glob('*.sv'))
+    deps += list(get_dir('build/all/adapt_fir').glob('*.sv'))
     deps += get_deps(
         cell_name=cell_name,
         impl_file=impl_file,
