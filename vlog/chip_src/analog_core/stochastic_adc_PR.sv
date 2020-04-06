@@ -128,8 +128,8 @@ end
 
 wallace_adder  iadder (  .d_out(adder_out), .d_in(ff_out), .sign_out(sign_out), .sign_in(sign), .clk(clk_adder));
 
-MUX2D1BWP16P90ULVT ipm_mux1_dont_touch ( .I0(clk_v2t), .I1(v2t_out_p), .S(sel_pm_in[1]), .Z(ph_ref) );
-MUX2D1BWP16P90ULVT ipm_mux0_dont_touch ( .I0(clk_in), .I1(v2t_out_n), .S(sel_pm_in[0]), .Z(ph_in) );
+mux ipm_mux1_dont_touch ( .I0(clk_v2t), .I1(v2t_out_p), .S(sel_pm_in[1]), .Z(ph_ref) );
+mux ipm_mux0_dont_touch ( .I0(clk_in), .I1(v2t_out_n), .S(sel_pm_in[0]), .Z(ph_in) );
 phase_monitor  iPM ( .sel_sign(sel_pm_sign), .ph_in(ph_in), .ph_ref(ph_ref), .pm_out(pm_out), .clk_async(clk_async), .en_pm(en_pm));
 
  endmodule
