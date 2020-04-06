@@ -1,3 +1,4 @@
+`timescale 1fs / 1fs
 `include "mLingua_pwl.vh"
 
 `ifndef CLK_ASYNC_FREQ
@@ -8,10 +9,19 @@
     `define CLK_REF_FREQ 4e9
 `endif
 
+`ifndef PM_TXT
+    `define PM_TXT
+`endif
+
+`ifndef DELAY_TXT
+    `define DELAY_TXT
+`endif
+
+`ifndef N_TESTS
+    `define N_TESTS 10
+`endif
+
 module test;
-
-    localparam integer n_tests=100;
-
     logic ph_ref;
     logic ph_in;
     logic clk_async;
@@ -34,7 +44,7 @@ module test;
     ) i_ph_ref (
         .ckout(ph_ref),
         .ckoutb()
-    ); 
+    );
 
     // delay ph_in with respect to ph_ref (transport delay)
     real Tdelay = 0.0;
@@ -87,11 +97,10 @@ module test;
     endtask
 
     // Main test logic
+    real rand_0_to_1;
+    real test_delays [`N_TESTS];
 
-    real test_delays [n_tests];
-
-    // set the wait time to be 10% higher
-    // than the minimum amount
+    // set the wait time to be 10% higher than the minimum amount
     localparam real Twait = 1.1*(2.0**20-1)/(1.0*`CLK_REF_FREQ);
 
     initial begin
@@ -99,19 +108,19 @@ module test;
         record = 1'b0;
 
         // generate test delays
-        for (int i=0; i<n_tests; i=i+1) begin
-            test_delays[i] = (1.0*i)/(1.0*n_tests*`CLK_REF_FREQ);
+        for (int i=0; i<(`N_TESTS); i=i+1) begin
+            rand_0_to_1 = ($urandom % 1000000) / 1000000.0;
+            test_delays[i] = rand_0_to_1 / (`CLK_REF_FREQ);
         end
-        test_delays.shuffle();
 
-        foreach (test_delays[i]) begin
-            $display("Testing delay #%d/%d: %f ps", i+1, n_tests, 1e12*test_delays[i]);
+        for (int i=0; i<(`N_TESTS); i=i+1) begin
+            $display("Testing delay #%0d/%0d: %0f ps", i+1, `N_TESTS, 1e12*test_delays[i]);
             Tdelay = test_delays[i];
             reset_pm();
             #(Twait*1s);
             pulse_record();
         end
- 
+
         #(1ns);
         $finish;
     end
