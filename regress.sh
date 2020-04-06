@@ -20,7 +20,7 @@ git clone --single-branch --branch pli_workaround https://github.com/StanfordVLS
 export mLINGUA_DIR=`realpath DaVE/mLingua`
 
 # run tests
-pytest tests -s -v -r s --cov-report=xml --cov=dragonphy
+pytest tests -x -s -v -r s --cov-report=xml --cov=dragonphy
 
 # upload coverage
 bash <(curl -s https://codecov.io/bash)
