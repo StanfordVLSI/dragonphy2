@@ -18,7 +18,7 @@ module flat_ffe #(
 	output reg signed [resultBitwidth-1:0] results [numChannels-1:0]
 );
 
-localparam integer numFutureBuffers = $ceil(real'(ffeDepth-1)/real'(numChannels));
+localparam integer numFutureBuffers = (ffeDepth-1 + numChannels - 1)/numChannels;
 localparam integer bufferDepth = numFutureBuffers + 1;
 localparam integer centerBuffer = 0;
 
@@ -43,7 +43,7 @@ generate
 		assign ucodes[gi] = $unsigned(codes[gi]);
 	end
 
-	for(gi=0; gi<numChannels*bufferDepth; gi=gi+1) begin
+	for(gi=0; gi<numChannels*bufferDepth; gi=gi+1) begin 
 		assign flat_codes[gi] = $signed(uflat_codes[gi]);
 	end
 endgenerate
