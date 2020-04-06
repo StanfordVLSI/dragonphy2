@@ -9,7 +9,8 @@ pip install -U pip
 pip install -e .
 
 # make dependencies for design
-make all
+# TODO: should other views be used as well?
+python make.py --view fpga
 
 # install pytest
 pip install pytest pytest-cov
