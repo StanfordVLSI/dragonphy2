@@ -1,7 +1,5 @@
 `include "mLingua_pwl.vh"
 
-`default_nettype none
-
 `ifndef CLK_ASYNC_FREQ
     `define CLK_ASYNC_FREQ 0.501e9
 `endif
@@ -59,7 +57,7 @@ module test;
 
     logic_recorder #(
         .n(20),
-        .filename("pm.txt")
+        .filename(`PM_TXT)
     ) pm_recorder_i(
     	.in(pm_out),
     	.en(1'b1),
@@ -67,7 +65,7 @@ module test;
     );
 
     real_recorder #(
-        .filename("delay.txt")
+        .filename(`DELAY_TXT)
     ) delay_recorder_i(
     	.in(Tdelay),
     	.en(1'b1),
@@ -91,7 +89,10 @@ module test;
     // Main test logic
 
     real test_delays [n_tests];
-    localparam real Twait = 1.1*(2.0**20-1)/(1.0*`CLK_REF_FREQ); // i.e., 10% higher than the minimum amount
+
+    // set the wait time to be 10% higher
+    // than the minimum amount
+    localparam real Twait = 1.1*(2.0**20-1)/(1.0*`CLK_REF_FREQ);
 
     initial begin
         // initialization
@@ -116,5 +117,3 @@ module test;
     end
 
 endmodule
-
-`default_nettype wire

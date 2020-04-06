@@ -19,6 +19,7 @@ steps:
       source /etc/environment
       export DRAGONPHY_PYTHON=python3.7
       export FPGA_SERVER=1
+      export DW_TAP=/tools/synopsys/syn/L-2016.03-SP5-5/dw/sim_ver/DW_tap.v
       export BUILD_VIEW=fpga
       printenv
 
