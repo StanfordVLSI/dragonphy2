@@ -1,7 +1,7 @@
 
 module V2T_buffer #(
 parameter Nctl_dcdl_fine = 2,
-parameter buffer_delay = 40e-12;
+parameter buffer_delay = 40e-12
 ) (
 input clk_in, 
 input clk_div, 
