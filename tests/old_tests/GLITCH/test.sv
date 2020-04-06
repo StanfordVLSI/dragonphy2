@@ -3,8 +3,6 @@
 `include "mLingua_pwl.vh"
 `include "iotype.sv"
 
-`default_nettype none
-
 module test;
 
     import const_pack::*;
@@ -80,16 +78,18 @@ module test;
         .clk_out_n(clk_out_n),
         .clk_trig_p(clk_trig_p),
         .clk_trig_n(clk_trig_n),
+
         // dump control
         .ext_dump_start(dump_start),
         .ext_rstb(rstb),
+
         // JTAG
         .jtag_intf_i(jtag_intf_i)
     );
 
 
     clock #(
-        .freq(full_rate/2), //Depends on divider !
+        .freq(full_rate/2), // Depends on divider!
         .duty(0.5),
         .td(0)
     ) iEXTCLK (
@@ -111,10 +111,7 @@ module test;
             end
         end
 
-        // shuffle the PI codes for each channel
-        for (int j=0; j<Nout; j=j+1) begin
-        	pi_ctl_stim[j].shuffle();
-       	end 
+        // TODO: randomize
     end
 
     // Main test logic
@@ -148,15 +145,15 @@ module test;
 
         // run desired number of trials
         for (int i=0; i<2**Npi; i=i+1) begin
-        	$display("Trial %d / %d", i, 2**Npi);
+        	$display("Trial %0d/%0d", i, 2**Npi);
 
             // write PI codes
-            // loop unrolling and tmp variable unfortunately seem to be required here
-            // due to verilog syntax rules :-(
-			tmp = pi_ctl_stim[0][i]; force top_i.idcore.ddbg_intf_i.ext_pi_ctl_offset[0] = tmp;
-			tmp = pi_ctl_stim[1][i]; force top_i.idcore.ddbg_intf_i.ext_pi_ctl_offset[1] = tmp;
-			tmp = pi_ctl_stim[2][i]; force top_i.idcore.ddbg_intf_i.ext_pi_ctl_offset[2] = tmp;
-			tmp = pi_ctl_stim[3][i]; force top_i.idcore.ddbg_intf_i.ext_pi_ctl_offset[3] = tmp;
+            force top_i.idcore.ddbg_intf_i.ext_pi_ctl_offset = '{
+                pi_ctl_stim[3][i],
+                pi_ctl_stim[2][i],
+                pi_ctl_stim[1][i],
+                pi_ctl_stim[0][i]
+            };
 
             // wait
             #(10ns);
@@ -181,5 +178,3 @@ module test;
     end
 
 endmodule
-
-`default_nettype wire
