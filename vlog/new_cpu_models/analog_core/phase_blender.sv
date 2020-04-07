@@ -112,8 +112,4 @@ always @(*) begin
     end
 end
 
-//always @(del, td, jit) begin
-//	assert ( Nblender==0 || del+jit > td || $realtime*TU < 100e-9 ) else $warning("%m: del+jit (%f [psec]) is less than td(%f [psec]) at %f [nsec]", (del+jit)/1e-12, td/1e-12, $realtime*TU*1e9);
-//end
-
 endmodule

@@ -80,8 +80,4 @@ always @(ph_lead) begin
     end
 end
 
-//always @(del, tdiff, jit) begin
-//	assert ( Nblender==0 || del+jit > tdiff || `get_time < 100e-9 ) else $warning("%m: del+jit (%f [psec]) is less than tdiff(%f [psec]) at %f [nsec]", (del+jit)/1e-12, tdiff/1e-12, $realtime*TU*1e9);
-//end
-
 endmodule
