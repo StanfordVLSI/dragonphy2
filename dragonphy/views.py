@@ -2,7 +2,8 @@ from pathlib import Path
 
 import os
 import msdsl, svreal
-from svinst import get_mod_defs
+from svinst import get_defs
+from svinst.defchk import ModDef, ModInst, PkgInst
 
 from .files import get_dir, get_file, get_mlingua_dir
 
@@ -19,9 +20,16 @@ def find_preferred_impl(cell_name, view_order, override):
     # walk through the view names in order, checking to see if there are any matches in each
     for view_name in view_order:
         matches = []
-        for dir_name in ['vlog', 'build']:
-            view_folder = get_dir(dir_name) / view_name
-            matches += list(view_folder.rglob(f'{cell_name}.*v'))
+        if view_name == 'dw_tap':
+            matches += list(Path(os.environ['DW_TAP']).parent.rglob(f'{cell_name}.*v'))
+        elif view_name == 'mlingua':
+            for dir_name in ['meas', 'misc', 'prim', 'stim']:
+                view_folder = Path(os.environ['mLINGUA_DIR']) / 'samples' / dir_name
+                matches += list(view_folder.rglob(f'{cell_name}.*v'))
+        else:
+            for dir_name in ['vlog', 'build']:
+                view_folder = get_dir(dir_name) / view_name
+                matches += list(view_folder.rglob(f'{cell_name}.*v'))
         if len(matches) == 0:
             continue
         elif len(matches) == 1:
@@ -38,9 +46,9 @@ def find_preferred_impl(cell_name, view_order, override):
     print(f'using override={override}')
     raise Exception('Build failed due to a missing cell definition.')
 
-def find_mod_def(cell_name, impl_file, includes, defines):
-    mod_defs = get_mod_defs(impl_file, includes=includes, defines=defines)
-    matches = [elem for elem in mod_defs if elem.name == cell_name]
+def find_def(cell_name, impl_file, includes, defines):
+    defs = get_defs(impl_file, includes=includes, defines=defines)
+    matches = [def_ for def_ in defs if def_.name == cell_name]
     if len(matches) == 0:
         print(f'Found no matches for cell_name={cell_name}:')
         print(f'using impl_file={impl_file}')
@@ -82,13 +90,25 @@ def get_deps(cell_name=None, view_order=None, override=None,
         )
 
     # find out what cells are instantiated by this module and descend into them
-    mod_def = find_mod_def(
+    def_ = find_def(
         cell_name=cell_name, impl_file=impl_file, includes=includes, defines=defines
     )
 
     # get a list of unique modules instantiated, preserving order
-    submods = remove_dup([inst.mod_name for inst in mod_def.insts])
-    print(f'Found the following dependencies: {submods}')
+    submods = []
+
+    if isinstance(def_ , ModDef):
+        for inst in def_.insts:
+            if isinstance(inst, ModInst):
+                submods.append(inst.mod_name)
+            elif isinstance(inst, PkgInst):
+                submods.append(inst.name)
+            else:
+                raise Exception(f'Unknown instance: {inst}')
+
+    if len(submods) > 0:
+        submods = remove_dup(submods)
+        print(f'Found the following dependencies: {submods}')
 
     # recurse into dependencies
     deps = []
@@ -108,30 +128,12 @@ def get_deps(cell_name=None, view_order=None, override=None,
 
 def get_deps_cpu_sim_old(cell_name=None, impl_file=None):
     deps = []
-    deps += [Path(os.environ['DW_TAP']).resolve()]
-    deps += [get_mlingua_dir() / 'samples' / 'meas' / 'meas_clock.v']
-    deps += [get_mlingua_dir() / 'samples' / 'stim' / 'pulse.v']
-    deps += [get_mlingua_dir() / 'samples' / 'stim' / 'clock.v']
-    deps += [get_file('build/old_tb/jtag_drv_pack.sv')]
-    deps += [get_file('vlog/old_tb/checker_pack.sv')]
-    deps += [get_file('build/old_cpu_models/jtag/jtag_reg_pack.sv')]
-    deps += list(get_dir('vlog/old_pack/all').glob('*.sv'))
-    deps += [get_file('vlog/old_chip_src/analog_core/acore_debug_intf.sv')]
-    deps += [get_file('vlog/old_chip_src/mm_cdr/cdr_debug_intf.sv')]
-    deps += [get_file('vlog/old_chip_src/sram/sram_debug_intf.sv')]
-    deps += [get_file('vlog/old_chip_src/digital_core/dcore_debug_intf.sv')]
-    deps += [get_file('vlog/old_chip_src/analog_core/acore_debug_intf.sv')]
-    deps += [get_file('build/old_chip_src/jtag/raw_jtag_ifc_unq1.sv')]
-    deps += [get_file('build/old_chip_src/jtag/cfg_ifc_unq1.sv')]
-    deps += [get_file('vlog/old_chip_src/jtag/jtag_intf.sv')]
     deps += get_deps(
         cell_name=cell_name,
         impl_file=impl_file,
-        view_order=['old_tb', 'old_cpu_models', 'old_chip_src'],
+        view_order=['dw_tap', 'mlingua', 'old_pack', 'old_tb', 'old_cpu_models', 'old_chip_src'],
         includes=[get_dir('inc/old_cpu'), get_mlingua_dir() / 'samples'],
-        skip={'acore_debug_intf', 'cdr_debug_intf', 'sram_debug_intf',
-              'dcore_debug_intf', 'raw_jtag_ifc_unq1', 'cfg_ifc_unq1',
-              'jtag_intf', 'clock', 'DW_tap', 'meas_clock'}
+        defines={'DAVE_TIMEUNIT': '1fs', 'NCVLOG': None}
     )
     return deps
 
@@ -140,19 +142,19 @@ def get_deps_cpu_sim_new(cell_name=None, impl_file=None):
     deps += get_deps(
         cell_name=cell_name,
         impl_file=impl_file,
-        view_order=['new_cpu_models', 'new_chip_src'],
+        view_order=['dw_tap', 'mlingua', 'old_pack', 'new_cpu_models', 'new_chip_src', 'old_cpu_models'],
         includes=[get_dir('inc/old_cpu'), get_mlingua_dir() / 'samples'],
-        skip={'snh', 'MUX2D1BWP16P90ULVT', 'PI_delay_unit', 'del_PI'}
+        defines={'DAVE_TIMEUNIT': '1fs', 'NCVLOG': None}
     )
     return deps
 
 def get_deps_cpu_sim(cell_name=None, impl_file=None):
     deps = []
-    deps += list(get_dir('build/all/adapt_fir').glob('*.sv'))
+    deps += [get_file('build/all/adapt_fir/ffe_gpack.sv')]
     deps += get_deps(
         cell_name=cell_name,
         impl_file=impl_file,
-        view_order=['tb', 'cpu_models', 'chip_src'],
+        view_order=['all', 'tb', 'cpu_models', 'chip_src'],
         includes=[get_dir('inc/cpu')],
         skip={'analog_if'}
     )
@@ -160,11 +162,11 @@ def get_deps_cpu_sim(cell_name=None, impl_file=None):
 
 def get_deps_fpga_emu(cell_name=None, impl_file=None):
     deps = []
-    deps += list(get_dir('build/all/adapt_fir').glob('*.sv'))
+    deps += [get_file('build/all/adapt_fir/ffe_gpack.sv')]
     deps += get_deps(
         cell_name=cell_name,
         impl_file=impl_file,
-        view_order=['tb', 'fpga_models', 'chip_src'],
+        view_order=['all', 'tb', 'fpga_models', 'chip_src'],
         includes=[
             get_dir('inc/fpga'),
             svreal.get_svreal_header().parent,
