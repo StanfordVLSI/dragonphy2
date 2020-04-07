@@ -1,8 +1,9 @@
 /********************************************************************
-filename: phase_blender.sv
+filename: phase_blender_1bit.sv
 
 Description: 
-multi-bit phase blender.
+1-bit phase blender.
+It either takes the leading clock edge or mid-phase between clocks
 
 Assumptions:
 
@@ -10,24 +11,18 @@ Todo:
 
 ********************************************************************/
 
-module phase_blender #(
-  parameter integer Nblender = 4,      // # of control bits
-  parameter real del_nom = 100e-12,    // intrinsic delay
-  parameter real del_std = 0e-12,
-  parameter real jit_rms = 0e-15
-) (
-    input wire logic [1:0] ph_in,                   // two clocks being interpolated
-    input wire logic [2**Nblender-1:0] thm_sel_bld, // interpolation weight (thermometer coded)
-    output reg ph_out                               // blended clock
+module phase_blender_1b (
+    input wire logic [1:0] ph_in,    // clocks being interpolated
+    input wire logic en_mixer,       // '1': phase blend, '0': bypass leading clock
+    output reg ph_out                // blended phase
 );
 
 timeunit 1fs;
 timeprecision 1fs;
 
-import model_pack::PIParameter;
+import model_pack::*;
 
-//----- VARIABLE/SIGNAL DECLARATION -----
-integer sel_bld_bin;         // binary value of thm_sel_bld
+//----- SIGNAL DECLARATION -----
 real t_lead;
 real tdiff;                  // time difference b/t two clock phases
 real tout;                   // phase interpolated delay
@@ -36,27 +31,6 @@ real td, rj;                 // delay of this cell, random jitter
 logic sign;                  // indicates which clock leads the other
 logic ph_lead;               // selected clock that leads the other
 logic ph_in0_d, ph_in1_d;    // delayed signal of ph_in[0], ph_in[1]
-real lut [17];               // interpolation weight LUT
-
-initial begin
-    lut[0]=0.0;
-    lut[1]=0.0625;
-    lut[2]=0.125;
-    lut[3]=0.1875;
-    lut[4]=0.25;
-    lut[5]=0.3125;
-    lut[6]=0.375;
-    lut[7]=0.4375;
-    lut[8]=0.5;
-    lut[9]=0.5625;
-    lut[10]=0.625;
-    lut[11]=0.6875;
-    lut[12]=0.75;
-    lut[13]=0.8125;
-    lut[14]=0.875;
-    lut[15]=0.9375;
-    lut[16]=1.0;
-end
 
 //----- FUNCTIONAL DESCRIPTION -----
 
@@ -65,17 +39,11 @@ PIParameter pi_obj;
 
 initial begin
     pi_obj = new();
-    td = pi_obj.td_mixermb;
+    td = pi_obj.td_mixer1b;
 end
 
 // phase interpolation weight
-assign sel_bld_bin = $countones(thm_sel_bld) ;
-
-`ifdef LUT
-    assign wgt = real'(lut[sel_bld_bin]) ;
-`else
-    assign wgt = real'(sel_bld_bin)/2.0**Nblender ;
-`endif
+assign wgt = en_mixer ? 0.5 : 0.0;
 
 // delay two inputs
 always @(ph_in[0]) begin
@@ -103,8 +71,8 @@ always @(ph_in) begin
 end
 
 // phase interpolation
-always @(*) begin
-    rj = pi_obj.get_rj_mixermb();
+always @(ph_lead) begin
+    rj = pi_obj.get_rj_mixer1b();
     if (sign) begin
         ph_out <= #((tout+rj)*1s) ph_in0_d;
     end else begin
@@ -112,8 +80,8 @@ always @(*) begin
     end
 end
 
-//always @(del, td, jit) begin
-//	assert ( Nblender==0 || del+jit > td || $realtime*TU < 100e-9 ) else $warning("%m: del+jit (%f [psec]) is less than td(%f [psec]) at %f [nsec]", (del+jit)/1e-12, td/1e-12, $realtime*TU*1e9);
+//always @(del, tdiff, jit) begin
+//	assert ( Nblender==0 || del+jit > tdiff || `get_time < 100e-9 ) else $warning("%m: del+jit (%f [psec]) is less than tdiff(%f [psec]) at %f [nsec]", (del+jit)/1e-12, tdiff/1e-12, $realtime*TU*1e9);
 //end
 
 endmodule

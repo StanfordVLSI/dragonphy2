@@ -1,7 +1,5 @@
 `include "mLingua_pwl.vh"
 
-`default_nettype none
-
 module test;
 	import const_pack::*;
 	import test_pack::*;
@@ -37,5 +35,3 @@ module test;
 	    $finish;
 	end
 endmodule
-
-`default_nettype wire
