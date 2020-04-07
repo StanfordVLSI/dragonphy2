@@ -42,7 +42,7 @@ PWLMethod pm=new;
 
 // design parameter class instantiation, initialization
 
-V2TParameter v2t_obj = new();
+V2TParameter v2t_obj = new;
 
 real Cs_eff;    // effective capacitance considering gain error due to parasitic cap
 real Vdch_cm;
@@ -50,7 +50,7 @@ real td_v2t_offset;
 
 initial begin
     `ifdef RANDOMIZE
-        td_v2t_offset = v2t_obj.get_Td_V2T_offset();
+        td_v2t_offset = v2t_obj.Td_V2T_offset;
     `else
         td_v2t_offset = TD_V2T_OFFSET;
     `endif
@@ -80,8 +80,11 @@ always @(negedge clk_v2t) begin
 end
 
 // precharge Vdch to VDD
-always @(clk_v2t_e) 
-    if (clk_v2t_e) v2t_out <= 1'b0;
+always @(clk_v2t_e) begin
+    if (clk_v2t_e) begin
+        v2t_out <= 1'b0;
+    end
+end
 
 // create a pulse 
 always @(posedge clk_v2t_lb) begin // ramp down

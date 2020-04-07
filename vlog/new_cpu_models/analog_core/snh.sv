@@ -49,7 +49,7 @@ real snh_obj_skew;
 initial begin
     snh_obj = new();
     `ifdef RANDOMIZE
-        snh_obj_skew = snh_obj.get_skew();
+        snh_obj_skew = snh_obj.skew;
     `else
         snh_obj_skew = 0.0;
     `endif

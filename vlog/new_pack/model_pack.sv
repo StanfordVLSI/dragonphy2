@@ -35,6 +35,7 @@ package model_pack;
         const real TD  = 5e-12;         // input delay (must be non-negative)
 
         // constraints on random params
+        real skew;
         const real skew_min = (TD < 5e-12) ? -TD : -5e-12;
         const real skew_max = (TD < 5e-12) ? +TD : +5e-12;
 
@@ -42,13 +43,9 @@ package model_pack;
 
         function new();
             seed = $urandom();
+            skew = skew_min + (($dist_uniform(seed, 0, 1000)/1000.0) *
+                               (skew_max - skew_min));
         endfunction
-
-        function real get_skew();
-            get_skew = skew_min + (($dist_uniform(seed, 0, 1000)/1000.0) *
-                                   (skew_max - skew_min));
-        endfunction
-
     endclass: SnHParameter
 
     class TDCParameter; // TDC circuit params
@@ -126,7 +123,8 @@ package model_pack;
         // static parameters (bisagen)
         const real Iunit = 13.0e-6;       // target ramp current of a unit cell
 
-        // constraint
+        // Td_V2T_offset
+        real Td_V2T_offset;
         const real Td_V2T_offset_min = -10e-12;
         const real Td_V2T_offset_max = +10e-12;
 
@@ -140,6 +138,9 @@ package model_pack;
             this.Gm = Gm_nom + Gm_std*$dist_normal(seed, 0, 1000)/1000.0;
             this.Vt = Vt_nom + Vt_std*$dist_normal(seed, 0, 1000)/1000.0;
             this.Vlth = Vlth_nom + Vlth_std*$dist_normal(seed, 0, 1000)/1000.0;
+            this.Td_V2T_offset = Td_V2T_offset_min +
+                                 (($dist_uniform(seed, 0, 1000)/1000.0) *
+                                  (Td_V2T_offset_max - Td_V2T_offset_min));
         endfunction
 
         function real get_current(input real Vg); // get current for given gate voltage
@@ -156,12 +157,6 @@ package model_pack;
 
         function real get_V2T_jitter;
             return Td_std*$dist_normal(seed, 0, 1000)/1000.0;
-        endfunction
-
-        function real get_Td_V2T_offset();
-            get_Td_V2T_offset = Td_V2T_offset_min +
-                                (($dist_uniform(seed, 0, 1000)/1000.0) *
-                                 (Td_V2T_offset_max - Td_V2T_offset_min));
         endfunction
     endclass: V2TParameter
 
