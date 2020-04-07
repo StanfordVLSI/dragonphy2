@@ -24,15 +24,15 @@ assign nor_out1 = ~(clk_divb|clk_div_sampled);
 assign nor_out2 = ~(clk_divb|clk_div_sampled_d); 
 assign nor_out3 = ~(clk_divb|clk_div_sampled_dd); 
 
-assign clk_v2t_eb ~clk_v2t_e;
-assign clk_v2tb ~clk_v2t;
-assign clk_v2t_lb ~clk_v2t_l;
+assign clk_v2t_eb = ~clk_v2t_e;
+assign clk_v2tb = ~clk_v2t;
+assign clk_v2t_lb = ~clk_v2t_l;
 
 reg clk_div_sampled;
 
 always @(posedge clk_in or negedge CDN or negedge SDN) begin
 	if(!CDN) clk_div_sampled <=0;
-	elseif(!SDN) clk_div_sampled <=1;
+	else if(!SDN) clk_div_sampled <=1;
 	else clk_div_sampled <= #(buffer_delay*1s) clk_div;
 end 
 
