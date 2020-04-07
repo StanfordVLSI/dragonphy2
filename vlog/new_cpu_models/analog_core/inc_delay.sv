@@ -12,7 +12,7 @@ Todo:
 
 `default_nettype none
 
-module delay_pi import const_pack::*; (
+module inc_delay import const_pack::*; (
     input wire logic in,        // input signal
     input wire logic del_inc,	// (Act. high) increse the delay by a factor of gain
     output reg out              // delayed output signal
