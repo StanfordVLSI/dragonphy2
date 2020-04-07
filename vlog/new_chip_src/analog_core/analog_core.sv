@@ -1,4 +1,3 @@
-
 `include "iotype.sv"
 
 //`default_nettype none
@@ -36,13 +35,6 @@
     
 	acore_debug_intf.acore adbg_intf_i
 );
-
-
-
-// synopsys translate_off
- `get_timeunit
-  PWLMethod pm=new;
-// synopsys translate_on
 
 // internal signals
  	`pwl_t VinP_slice [Nout-1:0];
