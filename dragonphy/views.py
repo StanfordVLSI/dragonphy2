@@ -114,17 +114,6 @@ def get_deps(cell_name=None, view_order=None, override=None,
 
     return deps
 
-def get_deps_cpu_sim_old(cell_name=None, impl_file=None):
-    deps = []
-    deps += get_deps(
-        cell_name=cell_name,
-        impl_file=impl_file,
-        view_order=['dw_tap', 'mlingua', 'old_pack', 'old_tb', 'old_cpu_models', 'old_chip_src'],
-        includes=[get_dir('inc/old_cpu'), get_mlingua_dir() / 'samples'],
-        defines={'DAVE_TIMEUNIT': '1fs', 'NCVLOG': None}
-    )
-    return deps
-
 def get_deps_cpu_sim_new(cell_name=None, impl_file=None):
     deps = []
     deps += get_deps(
