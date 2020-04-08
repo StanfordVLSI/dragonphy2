@@ -129,7 +129,7 @@ class BuildStatus(Directory):
             else:
                 old_time_stamp = self.state_dict[node_type][src_name]['time_stamp']
                 old_view       = self.state_dict[node_type][src_name]['view']
-                return ((old_time_stamp - time_stamp) != 0.0) and (old_view != src_view), { 'time_stamp' : time_stamp, 'loc' : src_path, 'view' : src_view}
+                return ((old_time_stamp - time_stamp) != 0.0) or (old_view != src_view), { 'time_stamp' : time_stamp, 'loc' : src_path, 'view' : src_view}
 
         self.state_dict['inputs'] = {} if self.state_dict['inputs'] is None else self.state_dict['inputs']
         self.state_dict['outputs'] = {} if self.state_dict['outputs'] is None else self.state_dict['outputs']
@@ -154,6 +154,7 @@ class BuildStatus(Directory):
             file_exists = Path(src_path).is_file()
             if file_exists:
                 node_changed, node_state = check_node(src_path, src_name, src_view=src_view, node_type='inputs')
+                print(src_name, node_changed)
                 if node_changed:
                     self.state_dict['inputs'][src_name] = node_state
                     update_set = update_set | {src_name}
@@ -387,21 +388,29 @@ class BuildGraph(Directory):
             print(f'NOTHING TO BUILD')
             return
 
-        new_outputs = {}
+
 
         for node_name_list in self.depend_graph:
             for node_name in node_name_list & target_node_list:
                 node = self.depend_graph[node_name]
                 src_nodes = [self.depend_graph[src_name] for src_name in node.sources]
                 print(f'BUILDING: {node_name}')
-                new_outputs[node_name] = (node.build(src_nodes), node.view)
+                new_outputs = {}
+                try:
+                    new_outputs[node_name] = (node.build(src_nodes), node.view)
+                except:
+                    print(f'FAILED BUILDING: {node_name}')
+                else:
+                    build_status.update_graph_state(new_outputs=new_outputs)
+                    build_status.save()
+
+
                 built_list, view = new_outputs[node_name]
                 if not built_list is None:
                     for item in built_list:
                         print(f'BUILT: {item}')
                 target_node_list = target_node_list | node['sinks']
 
-        build_status.update_graph_state(new_outputs=new_outputs)
         build_status.save()
 
 
