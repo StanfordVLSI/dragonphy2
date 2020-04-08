@@ -70,6 +70,8 @@ pwl_delay_prim i_delay_n ( .delay(td_n), .in(in_n), .out(in_n_d));
 
 // wire+switch RC
 
+/*
+
 defparam i_filt_p.filter = 1;    // 1 for 2-pole LPF
 defparam i_filt_n.filter = 1;
 defparam i_filt_p.etol = ETOL_SNH;
@@ -88,6 +90,8 @@ pwl_filter_real_w_reset i_filt_n (
     .fp1(fp1),
     .fp2(fp2)
 );
+
+*/
 
 // first stage sample and hold
 

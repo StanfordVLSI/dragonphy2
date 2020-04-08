@@ -119,7 +119,7 @@ def get_deps_cpu_sim_new(cell_name=None, impl_file=None):
     deps += get_deps(
         cell_name=cell_name,
         impl_file=impl_file,
-        view_order=['dw_tap', 'mlingua', 'new_pack', 'new_cpu_models', 'new_chip_src'],
+        view_order=['dw_tap', 'mlingua', 'new_pack', 'new_tb', 'new_cpu_models', 'new_chip_src'],
         includes=[get_dir('inc/new_cpu'), get_mlingua_dir() / 'samples'],
         defines={'DAVE_TIMEUNIT': '1fs', 'NCVLOG': None}
     )
