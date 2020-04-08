@@ -1,7 +1,6 @@
 `timescale 1fs/1fs
 
 `include "mLingua_pwl.vh"
-`include "iotype.sv"
 
 module test;
 
@@ -13,9 +12,9 @@ module test;
     localparam `real_t v_cm = 0.40;
 
     // Analog inputs
-    `pwl_t ch_outp;
-    `pwl_t ch_outn;
-    `voltage_t v_cal;
+    pwl ch_outp;
+    pwl ch_outn;
+    real v_cal;
 
     // clock inputs 
     logic clk_async;

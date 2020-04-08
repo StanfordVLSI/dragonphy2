@@ -7,7 +7,7 @@ module dragonphy_top import const_pack::*; (
 	input `pwl_t ext_rx_inp,
 	input `pwl_t ext_rx_inn,
 	input `real_t ext_Vcm,
-	inout `voltage_t ext_Vcal,
+	input `real_t ext_Vcal,
 	input `pwl_t ext_rx_inp_test,
 	input `pwl_t ext_rx_inn_test,
 
@@ -22,7 +22,6 @@ module dragonphy_top import const_pack::*; (
 	input wire logic ext_clkp,
 	input wire logic ext_clkn,
 
-
 	// clock outputs
 	output wire logic clk_out_p,
 	output wire logic clk_out_n,
@@ -31,8 +30,10 @@ module dragonphy_top import const_pack::*; (
 
 	//Reset Logic
 	input wire logic ext_rstb,
+
 	// dump control
 	input wire logic ext_dump_start,
+
 	// JTAG
 	jtag_intf.target jtag_intf_i
 );

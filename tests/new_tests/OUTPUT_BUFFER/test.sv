@@ -1,6 +1,4 @@
 `include "mLingua_pwl.vh"
-`include "iotype.sv"
-`default_nettype none
 
 module test;
 
@@ -13,7 +11,7 @@ module test;
 	pwl ch_outp;
 	pwl ch_outn;
 	real v_cm;
-	`voltage_t v_cal;
+	real v_cal;
 
 	// clock inputs 
 	logic clk_async;
@@ -165,5 +163,3 @@ module test;
 	end
 
 endmodule
-
-`default_nettype wire

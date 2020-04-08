@@ -1,5 +1,3 @@
-`default_nettype none
-
 module test;
 
 	jtag_intf jtag_intf_i ();
@@ -17,5 +15,3 @@ module test;
 	end
 
 endmodule
-
-`default_nettype wire
