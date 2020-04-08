@@ -3,7 +3,7 @@ from pathlib import Path
 import os
 import msdsl, svreal
 from svinst import get_defs
-from svinst.defchk import ModDef, ModInst, PkgInst
+from svinst.defchk import ModDef, ModInst, PkgInst, IntfDef, PkgDef
 
 from .files import get_dir, get_file, get_mlingua_dir
 
@@ -95,20 +95,9 @@ def get_deps(cell_name=None, view_order=None, override=None,
     )
 
     # get a list of unique modules instantiated, preserving order
-    submods = []
-
-    if isinstance(def_ , ModDef):
-        for inst in def_.insts:
-            if isinstance(inst, ModInst):
-                submods.append(inst.mod_name)
-            elif isinstance(inst, PkgInst):
-                submods.append(inst.name)
-            else:
-                raise Exception(f'Unknown instance: {inst}')
-
-    if len(submods) > 0:
-        submods = remove_dup(submods)
-        print(f'Found the following dependencies: {submods}')
+    submods = [inst.name for inst in def_.insts]
+    submods = remove_dup(submods)
+    print(f'Found the following dependencies: {submods}')
 
     # recurse into dependencies
     deps = []
