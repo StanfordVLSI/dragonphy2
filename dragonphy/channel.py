@@ -70,6 +70,7 @@ class Channel(Filter):
         # call the super constructor
         super().__init__(t_vec=t_vec, v_vec=v_vec)
 
+
 def step_channel(t_vec, t_delay=2e-9):
     return np.heaviside(t_vec - t_delay, 0)
 

@@ -1,5 +1,5 @@
 # Some Quality Of Life Libraries
-from .cmd 			import CmdLineParser
+from .cmdparser		import CmdLineParser
 from .packager      import Packager
 from .config 		import Configuration
 from .tester     	import DragonTester
