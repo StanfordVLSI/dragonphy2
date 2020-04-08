@@ -46,6 +46,9 @@ class DragonTester:
 				flags += ['-clean']
 			if self.seed is not None:
 				flags += ['-seed', self.seed]
+			# need "-sv" flag because not all files
+			# in DaVE have a ".sv" extension
+			flags += ['-sv']
 
 		# run the simulation
 		tester.compile_and_run(**self.kwargs, flags=flags)
