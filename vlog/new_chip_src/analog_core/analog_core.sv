@@ -24,7 +24,7 @@
 	input wire logic [Npi-1:0] ctl_pi[Nout-1:0],         			    // PI control code (from DCORE)
  
 
-	inout `voltage_t Vcal,										// bias voltage for V2T (from pad)
+	input `real_t Vcal,										// bias voltage for V2T (from pad)
 	
 	output wire logic clk_adc,                              // clock for retiming adc data assigned from ADC_0 (to DCORE)
     output wire logic [Nadc-1:0] adder_out [Nti-1:0],   	// adc output (to DCORE)

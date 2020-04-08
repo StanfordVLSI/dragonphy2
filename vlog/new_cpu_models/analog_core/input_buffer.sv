@@ -1,7 +1,4 @@
-`default_nettype none
-
-module input_buffer import const_pack::* ; #(
-) (
+module input_buffer (
 	input wire logic inp,
 	input wire logic inn,
 	input wire logic en,
@@ -14,8 +11,5 @@ module input_buffer import const_pack::* ; #(
 	output wire logic out,
 	output wire logic out_meas
 );
-
 	assign out = inp;
 endmodule
-
-`default_nettype wire

@@ -1,3 +1,5 @@
+`include "iotype.sv"
+
 module stochastic_adc_PR #(
 parameter Nctl_v2t = 5,
 parameter Nctl_TDC = 5,
@@ -6,8 +8,8 @@ parameter Nctl_dcdl_fine = 2,
 parameter Nadc = 8
 )(
 input clk_in,
-input VinN, 
-input VinP, 
+input `pwl_t VinN,
+input `pwl_t VinP,
 input Vcal, 
 input rstb,
 //input clk_v2t_prev, 
@@ -46,6 +48,7 @@ wire  [(2**Nctl_v2t)-2:0]  thm_ctl_v2t_n;
 wire  [(2**Nctl_v2t)-2:0]  thm_ctl_v2t_p;
 wire  [(2**Nadc)-2:0] ff_out;
 reg en_TDC_phase_reverse_sampled;
+reg clk_TDC_phase_reverse;
 
 bin2thm_5b  ib2tn ( .bin(ctl_v2t_n), .thm(thm_ctl_v2t_n) );
 bin2thm_5b  ib2tp ( .bin(ctl_v2t_p), .thm(thm_ctl_v2t_p) );
@@ -128,8 +131,8 @@ end
 
 wallace_adder  iadder (  .d_out(adder_out), .d_in(ff_out), .sign_out(sign_out), .sign_in(sign), .clk(clk_adder));
 
-mux ipm_mux1_dont_touch ( .I0(clk_v2t), .I1(v2t_out_p), .S(sel_pm_in[1]), .Z(ph_ref) );
-mux ipm_mux0_dont_touch ( .I0(clk_in), .I1(v2t_out_n), .S(sel_pm_in[0]), .Z(ph_in) );
+mux ipm_mux1_dont_touch ( .in0(clk_v2t), .in1(v2t_out_p), .sel(sel_pm_in[1]), .out(ph_ref) );
+mux ipm_mux0_dont_touch ( .in0(clk_in), .in1(v2t_out_n), .sel(sel_pm_in[0]), .out(ph_in) );
 phase_monitor  iPM ( .sel_sign(sel_pm_sign), .ph_in(ph_in), .ph_ref(ph_ref), .pm_out(pm_out), .clk_async(clk_async), .en_pm(en_pm));
 
  endmodule

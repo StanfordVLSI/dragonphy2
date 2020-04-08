@@ -11,13 +11,13 @@ Todo:
 
 ********************************************************************/
 
-`include "voltage_net.sv"
-
-module biasgen import const_pack::*; (
-    input wire logic en,    		// enable this block
-    input wire logic [Nbias-1:0] ctl,		// control current
-    output voltage Vbias      		// gate bias voltage
+module biasgen import const_pack::Nbias; (
+    input wire logic en,                 // enable this block
+    input wire logic [Nbias-1:0] ctl,    // control current
+    input real Vbias                     // gate bias voltage
 );
+
+import model_pack::V2TParameter;
 
 // effective resistance when on/off
 // TODO: update these values to match the design!
@@ -28,18 +28,14 @@ localparam r_off = 1e7;
 // design parameter class instantiation, initialization
 
 V2TParameter v2t_obj;
-real Iunit; // unit ramp current source
+real Iunit;    // unit ramp current source
 
 initial begin
 	v2t_obj = new();
-	`ifdef RANDOMIZE
-		void'(v2t_obj.randomize());
-	`endif
 	Iunit = v2t_obj.Iunit;
 end
 
 // Model body
-
-assign Vbias = '{v2t_obj.get_voltage(Iunit), (en == 1'b1) ? r_on : r_off};
+// TODO: re-implement impedance modeling
 
 endmodule
