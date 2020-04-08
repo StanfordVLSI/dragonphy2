@@ -16,6 +16,10 @@ module V2T_buffer #(
     output clk_v2t_lb,
     output clk_divb
 );
+    logic clk_div_sampled;
+    logic clk_div_sampled_d;
+    logic clk_div_sampled_dd;
+
     assign clk_divb = ~clk_div;
 
     assign nor_out1 = ~(clk_divb|clk_div_sampled);
@@ -25,8 +29,6 @@ module V2T_buffer #(
     assign clk_v2t_eb = ~clk_v2t_e;
     assign clk_v2tb = ~clk_v2t;
     assign clk_v2t_lb = ~clk_v2t_l;
-
-    reg clk_div_sampled;
 
     always @(posedge clk_in or negedge CDN or negedge SDN) begin
         if (!CDN) begin
