@@ -3,7 +3,6 @@ from pathlib import Path
 import os
 import msdsl, svreal
 from svinst import get_defs
-from svinst.defchk import ModDef, ModInst, PkgInst, IntfDef, PkgDef
 
 from .files import get_dir, get_file, get_mlingua_dir
 
