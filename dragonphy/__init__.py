@@ -25,7 +25,7 @@ from .cdr           import Cdr
 # For fpga emulation
 from .files import (get_file, get_files, get_files_arr, get_dir, get_dirs,
                     TOP_DIR, get_mlingua_dir)
-from .views import (get_deps, get_deps_cpu_sim_old, get_deps_cpu_sim_new,
+from .views import (get_deps, get_deps_cpu_sim_new,
                     get_deps_cpu_sim, get_deps_fpga_emu)
 from .anasymod import AnasymodSourceConfig, AnasymodProjectConfig
 
