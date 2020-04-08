@@ -75,6 +75,8 @@ class JTAG:
     def justag(*inputs, cwd=None):
         args = []
         args += [f'justag']
+        #args += [sys.executable]
+        #args += ['/home/zamyers/Development/JusTAG/justag/JusTAG.py']
         args += list(inputs)
         call(args, cwd=cwd)
 

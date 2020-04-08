@@ -31,7 +31,7 @@ requires_list = [
     'numpy',
     'matplotlib',
     'pygraphviz',
-    'justag==0.0.2.8',
+    'justag==0.0.2.9',
     # general requirements with special versions to prevent
     # warnings that clutter pytest output
     'jinja2>=2.11.1',
