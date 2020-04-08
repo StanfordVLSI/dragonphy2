@@ -8,9 +8,7 @@ from dragonphy import *
 
 THIS_DIR = Path(__file__).parent.resolve()
 BUILD_DIR = THIS_DIR / 'build'
-if which('iverilog') is not None:
-    SIMULATOR = 'iverilog'
-elif 'FPGA_SERVER' in os.environ:
+if 'FPGA_SERVER' in os.environ:
     SIMULATOR = 'vivado'
 else:
     SIMULATOR = 'ncsim'

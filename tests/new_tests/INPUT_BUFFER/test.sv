@@ -1,5 +1,8 @@
 `include "mLingua_pwl.vh"
 
+`define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
+`define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
+
 module test;
 
 	import const_pack::*;
@@ -93,17 +96,36 @@ module test;
 	// Main test
 
 	initial begin
+		// Uncomment to save key signals
+	    // $dumpfile("out.vcd");
+	    // $dumpvars(1, top_i);
+	    // $dumpvars(1, top_i.iacore);
+        // $dumpvars(1, top_i.iacore.iinbuf);
+
 		// Toggle reset
+		$display("Toggling reset...");
 		rstb = 1'b0;
 		#(20ns);
 		rstb = 1'b1;
 
 		// Initialize JTAG
+        $display("Initializing JTAG...");
 		jtag_drv_i.init();
 
 		// Enable the input buffer
-		jtag_drv_i.write_tc_reg(en_inbuf, 'b1);
-		jtag_drv_i.write_tc_reg(int_rstb, 'b1);
+		$display("Setting control signals...");
+		`FORCE_ADBG(bypass_inbuf_div, 0);
+		#(1ns);
+        `FORCE_ADBG(sel_inbuf_in, 1);
+        #(1ns);
+        `FORCE_ADBG(en_inbuf, 1);
+        #(1ns);
+        `FORCE_DDBG(int_rstb, 1);
+        #(1ns);
+
+        // Wait a little while
+        $display("Waiting for period measurement to complete...");
+        #(100ns);
 
 		// print results
 		$display("External period: ", ext_period.a);

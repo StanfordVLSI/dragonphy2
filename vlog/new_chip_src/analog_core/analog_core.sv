@@ -56,7 +56,7 @@ module analog_core import const_pack::*; #(
 	
 	assign clk_adc = clk_div[0];
 
-    //termination
+    // termination
 	termination iterm(
 		.VinP(rx_inp),
 		.VinN(rx_inn),
@@ -74,9 +74,8 @@ module analog_core import const_pack::*; #(
     );
 
     // 16-way TI ADC
-    genvar k;
     generate
-        for (k=0;k<Nti;k++) begin:iADC
+        for (genvar k=0; k<Nti; k=k+1) begin:iADC
             stochastic_adc_PR iADC (
                 //inputs
                 .VinP(VinP_slice[k/Nout]),
@@ -119,7 +118,7 @@ module analog_core import const_pack::*; #(
     logic [3:0] inv_del_out_pi;
     // 4ch. PI
     generate
-        for (k=0;k<Nout;k++) begin: iPI
+        for (genvar k=0; k<Nout; k=k+1) begin: iPI
             phase_interpolator iPI(
                  //inputs
                 .rstb(adbg_intf_i.rstb),
@@ -228,7 +227,7 @@ module analog_core import const_pack::*; #(
 
     // bias generator
     generate
-        for (k=0; k<4; k++) begin:iBG
+        for (genvar k=0; k<4; k=k+1) begin:iBG
             biasgen iBG (
                 //inputs
                 .en(adbg_intf_i.en_biasgen[k]),
@@ -239,8 +238,8 @@ module analog_core import const_pack::*; #(
     endgenerate
 
     // input clock buffer
-	input_buffer iinbuf(
-	    //inputs
+	input_buffer iinbuf (
+	    // inputs
 		.inp(ext_clkp),
 		.inn(ext_clkn),
 		.in_aux(ext_clk_aux),
@@ -249,7 +248,7 @@ module analog_core import const_pack::*; #(
 		.bypass_div(adbg_intf_i.bypass_inbuf_div),
 		.ndiv(adbg_intf_i.inbuf_ndiv),
 		.en_meas(adbg_intf_i.en_inbuf_meas),
-	    //outputs
+	    // outputs
 		.out(clk_in_pi),
 		.out_meas(adbg_intf_i.inbuf_out_meas)
 	);
