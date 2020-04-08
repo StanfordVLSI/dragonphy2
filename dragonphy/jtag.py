@@ -3,6 +3,7 @@ import os
 from subprocess import call
 from pathlib import Path
 from dragonphy.files import get_file, get_dir
+from justag import jtag_directory
 
 class JTAG:
     def __init__(self,  filename=None, **system_values):
@@ -12,17 +13,18 @@ class JTAG:
         justag_inputs += list(get_dir('md/reg').glob('*.md'))
         justag_inputs += [get_file('vlog/old_pack/all/const_pack.sv')]
 
+
         # call JusTAG
         self.justag(*justag_inputs, cwd=build_dir)
 
         # generate JTAG for the chip source
 
         TOP_NAME='raw_jtag'
-        JUSTAG_DIR = os.environ['JUSTAG_DIR']
+        JUSTAG_DIR = jtag_directory()
+
         PRIM_DIR=f'{JUSTAG_DIR}/rtl/primitives'
         DIGT_DIR=f'{JUSTAG_DIR}/rtl/digital'
         VERF_DIR=f'{JUSTAG_DIR}/verif'
-
         SVP_FILES = [
             f'{DIGT_DIR}/{TOP_NAME}.svp',
             f'{PRIM_DIR}/cfg_ifc.svp',
@@ -32,6 +34,7 @@ class JTAG:
             f'{DIGT_DIR}/cfg_and_dbg.svp',
             f'{PRIM_DIR}/reg_file.svp'
         ]
+
 
         self.genesis(TOP_NAME, *SVP_FILES, cwd=build_dir)
 
@@ -71,8 +74,7 @@ class JTAG:
     @staticmethod
     def justag(*inputs, cwd=None):
         args = []
-        args += [sys.executable]
-        args += [f'{os.environ["JUSTAG_DIR"]}/JusTAG.py']
+        args += [f'justag']
         args += list(inputs)
         call(args, cwd=cwd)
 
