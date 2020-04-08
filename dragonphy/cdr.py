@@ -1,5 +1,5 @@
 import numpy as np
-from dragonphy.channel import *
+from dragonphy import Channel
 
 import matplotlib.pyplot as plt
 
@@ -28,52 +28,33 @@ class Cdr:
 if __name__ == "__main__":
     cdr = Cdr()
 
+    chan = Channel(
+                            channel_type='arctan', sampl_rate=1e9, resp_depth=50, tau=1.0e-9, t_delay=8.1e-9
+                            )
 
-    #chan = JitterPulseChannel(
-    #                            JitterModel(jitter_type='RJ+DJ', rj_mean=0.1, rj_std=0, dj_amp=1, dj_mean=0),
-    #                            channel_type='dielectric1', shift_sampling_point=0, tau=0.0087, sampl_rate=100, resp_depth=12500
-    #                        )
+    time, pulse_resp = chan.get_pulse_resp()
 
-    chan = PulseChannel(
-                            channel_type='dielectric1', shift_sampling_point=0, tau=0.0087, sampl_rate=100, resp_depth=12500
-                        )
+    data = np.random.randint(2, size=(50000,))*2-1
+    code = chan.compute_output(data)[8:-50+10]
 
-    result1 = chan.pulse_response/chan.sampl_rate
-    time1   = chan.real_time(len(chan.pulse_response)/chan.osr)
-
-
-    training_rate = [0.5, 0.5, 0.25, 0.25, 0.125, 0.0625, 0.125, 0.0625]
-    tr_pos = -1
-
-    data = chan(np.random.randint(2, size=(16,))*2-1)
-
-    sampling_points = []
-
-    new_sampling_point = -sum(cdr.calculate_timing_error(data))/10
-
-    for ii in range(800):
-        if ii % 100 == 0:
-            tr_pos += 1
-
-        data = chan(np.random.randint(2, size=(64,))*2-1)
-
-        chan.move_sampl_pos(new_sampling_point)
-        te = sum(cdr.calculate_timing_error(data))/2
-        new_sampling_point -= te*training_rate[tr_pos]
-        sampling_points += [new_sampling_point]
+#    plt.stem(data, use_line_collection=True)
+#    plt.plot(code, 'r')
+#    plt.show()
 
 
+    cdr_partial_estimates = cdr.calculate_timing_error(code)
+    cdr_bit_estimates     = cdr.cal_perfect_mm_timing_error(code, data)
 
-    plt.plot(sampling_points)
+    plt.stem(time, pulse_resp, use_line_collection=True)
     plt.show()
 
-    result2 = chan(np.array([0, 1,0,0,0,0,0]))
-    time2 = chan.sampled_time
+#    plt.plot(code[1:-1])
+#    plt.stem(cdr_partial_estimates, use_line_collection=True)
+#    plt.stem(cdr_bit_estimates, use_line_collection=True, linefmt='r-')
+#    plt.show()
 
-    plt.plot(time2, result2)
-    chan.move_sampl_pos(0)
-    result3 = chan(np.array([0, 1,0,0,0,0,0]))
-    time3 = chan.sampled_time
-    plt.plot(time3, result3)
-    plt.plot(time1 + 1, result1)
-    plt.show()
+    #Average the points together 
+    print(np.sum(cdr_partial_estimates)/50000)
+    print(np.sum(cdr_bit_estimates)/50000)
+    print(pulse_resp[7] - pulse_resp[9])
+
