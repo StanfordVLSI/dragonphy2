@@ -13,12 +13,6 @@ export PATH="$GENESIS_HOME/bin:$PATH"
 export PATH="$GENESIS_HOME/gui/bin:$PATH"
 /bin/rm -rf $GENESIS_HOME/PerlLibs/ExtrasForOldPerlDistributions/Compress
 
-# install JusTAG
-git clone https://github.com/StanfordVLSI/JusTAG.git
-export JUSTAG_DIR=`realpath JusTAG`
-cd JusTAG
-pip install -e .
-cd ..
 
 # install DaVE
 # TODO: install from master branch
