@@ -64,7 +64,8 @@ def find_def(cell_name, impl_file, includes, defines):
         return matches[0]
 
 def get_deps(cell_name=None, view_order=None, override=None,
-             skip=None, includes=None, defines=None, impl_file=None):
+             skip=None, includes=None, defines=None, impl_file=None,
+             no_descend=None, visited=None):
     # set defaults
     if view_order is None:
         view_order = []
@@ -77,10 +78,21 @@ def get_deps(cell_name=None, view_order=None, override=None,
             cell_name = Path(impl_file).stem
         else:
             raise Exception('Must provide either cell_name or impl_file.')
+    if no_descend is None:
+        no_descend = set()
+    if visited is None:
+        visited = set()
 
+    # skip if we have already visited this cell
+    if cell_name in visited:
+        return []
+
+    # otherwise add the cell to the list of visited cells
     print(f'Visiting cell_name={cell_name}')
+    visited.add(cell_name)
 
     # find the most preferred implementation of this cell given
+    # (unless the user has already provided an implementation file)
     if impl_file is None:
         impl_file = find_preferred_impl(
             cell_name=cell_name,
@@ -88,7 +100,13 @@ def get_deps(cell_name=None, view_order=None, override=None,
             override=override
         )
 
-    # find out what cells are instantiated by this module and descend into them
+    # if we should not descend into this block, just return a list with
+    # the implementation file for this block
+    if cell_name in no_descend:
+        return [impl_file]
+
+    # otherwise, find out what cells are instantiated by
+    # this module and descend into them
     def_ = find_def(
         cell_name=cell_name, impl_file=impl_file, includes=includes, defines=defines
     )
@@ -104,7 +122,8 @@ def get_deps(cell_name=None, view_order=None, override=None,
         if submod in skip:
             continue
         deps += get_deps(cell_name=submod, view_order=view_order, override=override,
-                         skip=skip, includes=includes, defines=defines)
+                         skip=skip, includes=includes, defines=defines,
+                         no_descend=no_descend, visited=visited)
 
     # add the current file to the end of the list
     deps += [impl_file]
@@ -151,6 +170,8 @@ def get_deps_fpga_emu(cell_name=None, impl_file=None):
         ],
         defines={'DT_WIDTH': 27, 'DT_EXPONENT': -46},
         skip={'svreal', 'assign_real', 'comp_real', 'add_sub_real', 'ite_real',
-              'dff_real', 'mul_real', 'mem_digital', 'sync_rom_real'}
+              'dff_real', 'mul_real', 'mem_digital', 'sync_rom_real'},
+        no_descend={'chan_core', 'tx_core', 'osc_model_core', 'clk_delay_core',
+                    'rx_adc_core'}
     )
     return deps
