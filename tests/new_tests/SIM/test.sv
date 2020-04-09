@@ -1,8 +1,8 @@
 module test;
-    acore_debug_intf adbg_intf_i();
+	jtag_intf jtag_intf_i ();
 
-	analog_core acore_i (
-	    .adbg_intf_i(adbg_intf_i)
+	dragonphy_top top_i (
+	    .jtag_intf_i(jtag_intf_i)
 	);
 
 	initial begin

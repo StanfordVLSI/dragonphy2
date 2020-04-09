@@ -5,13 +5,15 @@ import fault
 class DragonTester:
 	def __init__(self, top_module, ext_test_bench=True, disp_type='realtime',
 				 simulator='ncsim', overload_seed=False, seed=None, clean=True,
-				 flags=None, target='system-verilog', **kwargs):
+				 flags=None, target='system-verilog', dump_waveforms=False,
+				 **kwargs):
 		# save kwargs
 		kwargs['top_module'] = top_module
 		kwargs['ext_test_bench'] = ext_test_bench
 		kwargs['disp_type'] = disp_type
 		kwargs['simulator'] = simulator
 		kwargs['target'] = target
+		kwargs['dump_waveforms'] = dump_waveforms
 		self.kwargs = kwargs
 
 		# save flags argument -- this is treated as a special case because the

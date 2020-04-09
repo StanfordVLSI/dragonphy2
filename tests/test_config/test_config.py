@@ -1,13 +1,9 @@
 from dragonphy import *
 
 
-def test_old_chip_src_config():
-    print('Test Old Chip Source Config')
-    print(get_deps_cpu_sim_old('butterphy_top'))
-
-def test_new_analog_core_config():
-    print('Test New Analog Core Config')
-    print(get_deps_cpu_sim_new('analog_core'))
+def test_new_chip_src_config():
+    print('Test New Chip Source Config')
+    print(get_deps_cpu_sim_new('dragonphy_top'))
 
 def test_cpu_models_config():
     print('Test CPU Simulation Config')
