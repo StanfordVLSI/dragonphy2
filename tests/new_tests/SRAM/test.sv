@@ -13,7 +13,8 @@ module test;
     import const_pack::*;
 
     localparam real freq = 1e9;
-    localparam integer Nwrite = (2**N_mem_addr)*10; // write more data than SRAM can hold to make sure we capture just the beginning
+    localparam integer Nwrite = (2**N_mem_addr)*10;    // write more data than SRAM can hold
+                                                       // to make sure we capture just the beginning
     localparam integer Nread = (2**N_mem_addr);
 
     // local signals

@@ -1,5 +1,4 @@
 module test;
-
 	jtag_intf jtag_intf_i ();
 
 	dragonphy_top top_i (
@@ -13,5 +12,4 @@ module test;
 	    // finish test
 	    $finish;
 	end
-
 endmodule

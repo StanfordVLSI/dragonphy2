@@ -1,7 +1,5 @@
 `timescale 1fs / 1fs
 
-`include "mLingua_pwl.vh"
-
 `ifndef CLK_ASYNC_FREQ
     `define CLK_ASYNC_FREQ 0.501e9
 `endif
