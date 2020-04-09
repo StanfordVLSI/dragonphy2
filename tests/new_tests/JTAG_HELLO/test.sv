@@ -1,5 +1,8 @@
 `include "mLingua_pwl.vh"
 
+`define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
+`define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
+
 module test;
 	
 	import const_pack::*;
@@ -81,9 +84,9 @@ module test;
 	logic [31:0] result;
 
 	initial begin
-	    // Uncomment to save signals at analog top-level
+	    // Uncomment to save key signals
 	    // $dumpfile("out.vcd");
-	    // $dumpvars(1, top_i.iacore);
+	    // $dumpvars(2, top_i.iacore);
 
 		// Toggle reset
 		$display("Toggling reset.");
@@ -94,15 +97,13 @@ module test;
 		// Toggle en_gf
 		// TODO: remove this!
 		$display("Toggling en_gf.");
-		force top_i.iacore.adbg_intf_i.en_gf = 1'b0;
+		`FORCE_ADBG(en_v2t, 0);
 		#(20ns);
-		force top_i.iacore.adbg_intf_i.en_gf = 1'b1;
+		`FORCE_ADBG(en_v2t, 1);
 
 		// Initialize JTAG
 		$display("Initializing JTAG.");
 		jtag_drv_i.init();
-		$display("De-asserting int_rstb.");
-		jtag_drv_i.write_tc_reg(int_rstb, 'b1);
 
 		// ID read test
 		$display("Reading the JTAG ID.");
@@ -117,15 +118,20 @@ module test;
 		$display("Read 0x%0H from TC register 0x%0H.", result, pd_offset_ext);
 		assert (result == 'hCAFE);
 
-		// Enable V2T
-		// TODO: why is this needed?
-		$display("Writing TC register 0x%0H...", en_v2t);
+        // Set up clock as needed for SC
+        $display("Clearing bypass_inbuf_div...", bypass_inbuf_div);
+    	jtag_drv_i.write_tc_reg(bypass_inbuf_div, 0);
+    	$display("Enabling input buffer", en_inbuf);
+    	jtag_drv_i.write_tc_reg(en_inbuf, 1);
+		$display("De-asserting int_rstb.");
+		jtag_drv_i.write_tc_reg(int_rstb, 'b1);
+	    $display("Setting en_v2t...", en_v2t);
 		jtag_drv_i.write_tc_reg(en_v2t, 'b1);
 
 		// Force data into SC domain
 		$display("Writing data to Qperi...");
-		force top_i.iacore.adbg_intf_i.Qperi = '{'hE, 'hC, 'hA, 'hF};
-		#(10ns);
+		`FORCE_ADBG(Qperi, '{'hE, 'hC, 'hA, 'hF});
+		#(100ns);
 
 		// Read back data from SC domain
 		$display("Reading SC register 0x%0H...", Qperi[0]);

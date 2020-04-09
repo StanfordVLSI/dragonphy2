@@ -100,7 +100,7 @@ module test;
 	    // $dumpfile("out.vcd");
 	    // $dumpvars(1, top_i);
 	    // $dumpvars(1, top_i.iacore);
-        // $dumpvars(1, top_i.iacore.iinbuf);
+        // $dumpvars(3, top_i.iacore.iinbuf);
 
 		// Toggle reset
 		$display("Toggling reset...");
@@ -109,6 +109,7 @@ module test;
 		rstb = 1'b1;
 
 		// Initialize JTAG
+		// TODO: is this needed?
         $display("Initializing JTAG...");
 		jtag_drv_i.init();
 
@@ -116,8 +117,6 @@ module test;
 		$display("Setting control signals...");
 		`FORCE_ADBG(bypass_inbuf_div, 0);
 		#(1ns);
-        `FORCE_ADBG(sel_inbuf_in, 1);
-        #(1ns);
         `FORCE_ADBG(en_inbuf, 1);
         #(1ns);
         `FORCE_DDBG(int_rstb, 1);
@@ -125,7 +124,7 @@ module test;
 
         // Wait a little while
         $display("Waiting for period measurement to complete...");
-        #(100ns);
+        #(1us);
 
 		// print results
 		$display("External period: ", ext_period.a);
