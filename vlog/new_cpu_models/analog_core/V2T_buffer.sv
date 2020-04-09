@@ -16,6 +16,9 @@ module V2T_buffer #(
     output clk_v2t_lb,
     output clk_divb
 );
+    timeunit 1fs;
+    timeprecision 1fs;
+
     logic clk_div_sampled;
     logic clk_div_sampled_d;
     logic clk_div_sampled_dd;

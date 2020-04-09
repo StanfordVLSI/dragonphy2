@@ -15,7 +15,7 @@
 | ctl_dcdl_late              |         | 1:0                    | Nti-1:0      | Test         | out      |   0       |
 | ctl_dcdl_early             |         | 1:0                    | Nti-1:0      | Test         | out      |   0       |
 | ctl_dcdl_TDC               |         | 4:0                    | Nti-1:0      | Test         | out      |   0       |
-| en_gf                      |         |                        |              | Test         | out      |   1       |
+| en_gf                      |         |                        |              | Test         | out      |   0       |
 | en_arb_pi                  |         | Nout-1:0               |              | Test         | out      |   'hF     |
 | en_delay_pi                |         | Nout-1:0               |              | Test         | out      |   'hF     |
 | en_ext_Qperi               |         | Nout-1:0               |              | Test         | out      |   0       |

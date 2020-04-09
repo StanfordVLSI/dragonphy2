@@ -11,7 +11,7 @@ class JTAG:
 
         justag_inputs = []
         justag_inputs += list(get_dir('md/reg').glob('*.md'))
-        justag_inputs += [get_file('vlog/old_pack/all/const_pack.sv')]
+        justag_inputs += [get_file('vlog/new_pack/all/const_pack.sv')]
 
 
         # call JusTAG
@@ -44,32 +44,32 @@ class JTAG:
 
         # move the package containing register numbers
 
-        old_cpu_models = get_dir('build/old_cpu_models/jtag')
-        old_cpu_models.mkdir(exist_ok=True, parents=True)
-        (build_dir / 'jtag_reg_pack.sv').replace(old_cpu_models / 'jtag_reg_pack.sv')
+        new_cpu_models = get_dir('build/new_cpu_models/jtag')
+        new_cpu_models.mkdir(exist_ok=True, parents=True)
+        (build_dir / 'jtag_reg_pack.sv').replace(new_cpu_models / 'jtag_reg_pack.sv')
 
         # move the test harness and place inside a package
 
-        old_tb = get_dir('build/old_tb')
-        old_tb.mkdir(exist_ok=True, parents=True)
+        new_tb = get_dir('build/new_tb')
+        new_tb.mkdir(exist_ok=True, parents=True)
         with open(build_dir / 'genesis_verif' / 'JTAGDriver.sv', 'r') as orig:
-            with open(old_tb / 'jtag_drv_pack.sv', 'w') as new:
+            with open(new_tb / 'jtag_drv_pack.sv', 'w') as new:
                 new.write('package jtag_drv_pack;\n')
                 new.write(orig.read())
                 new.write('endpackage\n')
 
         # move the generated source code for the JTAG implementation
 
-        old_chip_src = get_dir('build/old_chip_src/jtag')
-        old_chip_src.mkdir(exist_ok=True, parents=True)
+        new_chip_src = get_dir('build/new_chip_src/jtag')
+        new_chip_src.mkdir(exist_ok=True, parents=True)
         for file in (build_dir / 'genesis_verif').glob('*.sv'):
-            file.replace(old_chip_src / file.name)
+            file.replace(new_chip_src / file.name)
 
         # specify the generated files
         self.generated_files = []
-        self.generated_files += [get_file('build/old_tb/jtag_drv_pack.sv')]
-        self.generated_files += [get_file('build/old_cpu_models/jtag/jtag_reg_pack.sv')]
-        self.generated_files += list(get_dir('build/old_chip_src/jtag').glob('*.sv'))
+        self.generated_files += [get_file('build/new_tb/jtag_drv_pack.sv')]
+        self.generated_files += [get_file('build/new_cpu_models/jtag/jtag_reg_pack.sv')]
+        self.generated_files += list(get_dir('build/new_chip_src/jtag').glob('*.sv'))
 
     @staticmethod
     def justag(*inputs, cwd=None):
