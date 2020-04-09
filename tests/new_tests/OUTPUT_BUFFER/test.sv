@@ -5,21 +5,10 @@
 
 module test;
 
-	import const_pack::*;
 	import test_pack::*;
 	import checker_pack::*;
-	import jtag_reg_pack::*;
 
-	// Analog inputs
-	pwl ch_outp;
-	pwl ch_outn;
-	real v_cm;
-	real v_cal;
-
-	// clock inputs 
-	logic clk_async;
-	logic clk_jm_p;
-	logic clk_jm_n;
+	// clock inputs
 	logic ext_clkp;
 	logic ext_clkn;
 
@@ -28,40 +17,28 @@ module test;
 	logic clk_out_n;
 	logic clk_trig_p;
 	logic clk_trig_n;
-	logic clk_retime;
-	logic clk_slow;
 
 	// dump control
 	logic dump_start;
 
-	// JTAG
-	jtag_intf jtag_intf_i();
-
 	// reset
 	logic rstb;
 
+	// JTAG driver
+	jtag_intf jtag_intf_i ();
+	jtag_drv jtag_drv_i (jtag_intf_i);
+
 	// instantiate top module
 	dragonphy_top top_i (
-		// analog inputs
-		.ext_rx_inp(ch_outp),
-		.ext_rx_inn(ch_outn),
-		.ext_Vcm(v_cm),
-		.ext_Vcal(v_cal),
-
-		// clock inputs 
 		.ext_clkp(ext_clkp),
 		.ext_clkn(ext_clkn),
-
-		// clock outputs
 		.clk_out_p(clk_out_p),
 		.clk_out_n(clk_out_n),
 		.clk_trig_p(clk_trig_p),
 		.clk_trig_n(clk_trig_n),
-		// dump control
-		.ext_dump_start(dump_start),
         .ext_rstb(rstb),
-		// JTAG
 		.jtag_intf_i(jtag_intf_i)
+		// other I/O not used..
 	);
 
 
@@ -75,10 +52,6 @@ module test;
 		.ckout(ext_clkp),
 		.ckoutb(ext_clkn)
 	); 
-
-	// JTAG driver
-
-	jtag_drv jtag_drv_i (jtag_intf_i);
 
 	// Frequency measurement
 
@@ -130,6 +103,10 @@ module test;
         // $dumpvars(2, top_i.idcore.out_buff_i);
         // $dumpvars(1, top_i.idcore.buffered_signals);
 
+		// Initialize pins
+		$display("Initializing pins...");
+		jtag_drv_i.init();
+
 		// Toggle reset
 		$display("Toggling reset...");
         #(20ns);
@@ -137,19 +114,10 @@ module test;
 		#(20ns);
 		rstb = 1'b1;
 
-		// Toggle en_gf
-		// TODO: remove this!
-		$display("Toggling en_gf.");
-		`FORCE_ADBG(en_v2t, 0);
-		#(20ns);
-		`FORCE_ADBG(en_v2t, 1);
-
-		// Initialize JTAG
-		// TODO: is this needed?
-		jtag_drv_i.init();
-
 		// Enable the input buffer
 		$display("Set up the input buffer...");
+		`FORCE_ADBG(en_gf, 1);
+        #(1ns);
 		`FORCE_ADBG(bypass_inbuf_div, 0);
 		#(1ns);
         `FORCE_ADBG(en_inbuf, 1);

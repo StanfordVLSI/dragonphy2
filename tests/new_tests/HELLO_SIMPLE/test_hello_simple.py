@@ -1,7 +1,6 @@
 # general imports
 import os
 from pathlib import Path
-from shutil import which
 
 # DragonPHY imports
 from dragonphy import *

@@ -1,68 +1,30 @@
 `include "mLingua_pwl.vh"
 
-`define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
-`define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
-
 module test;
 	
 	import const_pack::*;
 	import test_pack::*;
 	import jtag_reg_pack::*;
 
-	// Analog inputs
-	pwl ch_outp;
-	pwl ch_outn;
-	real v_cm;
-	real v_cal;
-
-	// clock inputs 
-	logic clk_async;
-	logic clk_jm_p;
-	logic clk_jm_n;
+	// clock inputs
 	logic ext_clkp;
 	logic ext_clkn;
-
-	// clock outputs
-	logic clk_out_p;
-	logic clk_out_n;
-	logic clk_trig_p;
-	logic clk_trig_n;
-	logic clk_retime;
-	logic clk_slow;
-
-	// dump control
-	logic dump_start;
-
-	// JTAG
-	jtag_intf jtag_intf_i();
 
 	// reset
 	logic rstb;
 
+	// JTAG
+	jtag_intf jtag_intf_i();
+    jtag_drv jtag_drv_i (jtag_intf_i);
+
 	// instantiate top module
 	dragonphy_top top_i (
-		// analog inputs
-		.ext_rx_inp(ch_outp),
-		.ext_rx_inn(ch_outn),
-		.ext_Vcm(v_cm),
-		.ext_Vcal(v_cal),
-
-		// clock inputs 
 		.ext_clkp(ext_clkp),
 		.ext_clkn(ext_clkn),
-
-		// clock outputs
-		.clk_out_p(clk_out_p),
-		.clk_out_n(clk_out_n),
-		.clk_trig_p(clk_trig_p),
-		.clk_trig_n(clk_trig_n),
-		// dump control
-		.ext_dump_start(dump_start),
         .ext_rstb(rstb),
-		// JTAG
 		.jtag_intf_i(jtag_intf_i)
+		// other I/O not used...
 	);
-
 
 	// External clock
 
@@ -74,10 +36,6 @@ module test;
 		.ckout(ext_clkp),
 		.ckoutb(ext_clkn)
 	);
-
-	// JTAG driver
-
-	jtag_drv jtag_drv_i (jtag_intf_i);
 
 	// Main test
 
@@ -93,13 +51,6 @@ module test;
 		rstb = 1'b0;
 		#(20ns);
 		rstb = 1'b1;		
-
-		// Toggle en_gf
-		// TODO: remove this!
-		$display("Toggling en_gf.");
-		`FORCE_ADBG(en_v2t, 0);
-		#(20ns);
-		`FORCE_ADBG(en_v2t, 1);
 
 		// Initialize JTAG
 		$display("Initializing JTAG.");
@@ -119,6 +70,8 @@ module test;
 		assert (result == 'hCAFE);
 
         // Set up clock as needed for SC
+        $display("Setting en_gf...", en_gf);
+    	jtag_drv_i.write_tc_reg(en_gf, 1);
         $display("Clearing bypass_inbuf_div...", bypass_inbuf_div);
     	jtag_drv_i.write_tc_reg(bypass_inbuf_div, 0);
     	$display("Enabling input buffer", en_inbuf);
@@ -130,7 +83,7 @@ module test;
 
 		// Force data into SC domain
 		$display("Writing data to Qperi...");
-		`FORCE_ADBG(Qperi, '{'hE, 'hC, 'hA, 'hF});
+		force top_i.iacore.adbg_intf_i.Qperi = '{'hE, 'hC, 'hA, 'hF};
 		#(100ns);
 
 		// Read back data from SC domain

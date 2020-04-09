@@ -107,10 +107,10 @@ module test;
 
     initial begin
     	// Uncomment to save key signals
-	    $dumpfile("out.vcd");
-	    $dumpvars(1, top_i);
-	    $dumpvars(1, top_i.iacore);
-        $dumpvars(3, top_i.iacore.iinbuf);
+	    // $dumpfile("out.vcd");
+	    // $dumpvars(1, top_i);
+	    // $dumpvars(1, top_i.iacore);
+        // $dumpvars(3, top_i.iacore.iinbuf);
 
         // initialize control signals
     	test_start = 1'b0;
@@ -122,12 +122,6 @@ module test;
 		rstb = 1'b0;
 		#(20ns);
 		rstb = 1'b1;
-
-		// Clear en_gf
-		// TODO: remove this!
-		$display("Clearing en_gf...");
-		`FORCE_ADBG(en_gf, 0);
-        #(20ns);
 
         // Initialize JTAG
         // TODO: is this needed?
