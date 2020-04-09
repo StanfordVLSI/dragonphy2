@@ -45,7 +45,7 @@ module test;
     sram_recorder #(
         .filename(`SRAM_IN_TXT)
     ) sram_in_recorder (
-        .in(in[Nti+Nti_rep-1:0]),
+        .in(in),
         .clk(clk),
         .en(in_record)
     );
@@ -53,7 +53,7 @@ module test;
     sram_recorder #(
         .filename(`SRAM_OUT_TXT)
     ) sram_out_recorder (
-        .in(out[Nti+Nti_rep-1:0]),
+        .in(out),
         .clk(clk),
         .en(out_record)
     );
@@ -78,11 +78,15 @@ module test;
     // generate the stimulus
 
     initial begin
+        // Uncomment to record key signals
+        // $dumpfile("out.vcd");
+        // $dumpvars(2, test);
+
         // initialize and wait for a bit
 
         in_record = 1'b0;
         out_record = 1'b0;
-        
+
         start = 1'b0;
         addr = 'd0;
 
