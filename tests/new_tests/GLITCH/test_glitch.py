@@ -1,6 +1,7 @@
 # general imports
 import os
 from pathlib import Path
+import pytest
 
 # DragonPHY imports
 from dragonphy import *
@@ -12,6 +13,7 @@ if 'FPGA_SERVER' in os.environ:
 else:
     SIMULATOR = 'ncsim'
 
+@pytest.mark.skip(reason='This test is too slow to include in the main regression.')
 def test_sim():
     deps = get_deps_cpu_sim_new(impl_file=THIS_DIR / 'test.sv')
     print(deps)

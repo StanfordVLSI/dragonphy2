@@ -33,16 +33,16 @@ import model_pack::ETOL_SNH;
 SnHParameter snh_obj;
 
 // variables
-genvar i;
 
-real fp1, fp2;
-real td_p, td_n;  // input delays
+real fp1, fp2;      // filter poles
+real td_p, td_n;    // input delays
 
 // wires
-pwl in_p_d; // delayed input (+) modeling skew
-pwl in_n_d; // delayed input (-) modeling skew
-pwl filt_p; // RC filtered (+) input
-pwl filt_n; // RC filtered (-) input
+
+pwl in_p_d;    // delayed input (+) modeling skew
+pwl in_n_d;    // delayed input (-) modeling skew
+pwl filt_p;    // RC filtered (+) input
+pwl filt_n;    // RC filtered (-) input
 
 // initialize class parameters
 real snh_obj_skew;
@@ -65,12 +65,19 @@ end
 
 // input skew: delay in_n by `skew`
 
-pwl_delay_prim i_delay_p ( .delay(td_p), .in(in_p), .out(in_p_d));
-pwl_delay_prim i_delay_n ( .delay(td_n), .in(in_n), .out(in_n_d));
+pwl_delay_prim i_delay_p (
+    .delay(td_p),
+    .in(in_p),
+    .out(in_p_d)
+);
+
+pwl_delay_prim i_delay_n (
+    .delay(td_n),
+    .in(in_n),
+    .out(in_n_d)
+);
 
 // wire+switch RC
-
-/*
 
 defparam i_filt_p.filter = 1;    // 1 for 2-pole LPF
 defparam i_filt_n.filter = 1;
@@ -91,12 +98,10 @@ pwl_filter_real_w_reset i_filt_n (
     .fp2(fp2)
 );
 
-*/
-
 // first stage sample and hold
 
 generate
-    for (i=0;i<Nout;i++) begin: genblk1
+    for (genvar i=0; i<Nout; i=i+1) begin: genblk1
         snh_1st uSNH ( 
             .inp(filt_p), 
             .inn(filt_n), 
@@ -107,20 +112,5 @@ generate
         
     end
 endgenerate
-
-// 2nd-level switch s&h stages
-
-// localparam integer Nsub = Nti/Nout; // # of S&Hs at the 2nd level
-//generate
-//    for (i=0; i<Nout; i=i+1) begin: genblk1
-//        group_sampler group_sampler_i (
-//            .in_p(filt_p),
-//            .in_n(filt_n),
-//            .out_p(out_p[(i+1)*Nsub-1:i*Nsub]),
-//            .out_n(out_n[(i+1)*Nsub-1:i*Nsub]),
-//            .clk(clk[i])
-//        );
-//    end
-//endgenerate
 
 endmodule

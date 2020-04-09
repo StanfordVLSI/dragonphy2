@@ -51,7 +51,7 @@ def test_sim():
         'DELAY_TXT': qwrap(BUILD_DIR / 'delay.txt'),
         'CLK_ASYNC_FREQ': CLK_ASYNC_FREQ,
         'CLK_REF_FREQ': CLK_REF_FREQ,
-        'N_TESTS': 10,
+        'N_TESTS': 100,
         'DAVE_TIMEUNIT': '1fs',
         'NCVLOG': None
     }
