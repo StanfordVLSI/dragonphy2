@@ -10,14 +10,14 @@ package checker_pack;
 		end
 
 		assert (((expected - delta) <= measured) && (measured <= (expected + delta)))
-			else $fatal("Got %f, expected %f", measured, expected);
+			else $error("Got %0e, expected %0e", measured, expected);
 	endtask
 
 	task check_abs_tol(real measured, real expected, real tol);
 		real delta;
 
 		assert (((expected - tol) <= measured) && (measured <= (expected + tol)))
-			else $fatal("Got %f, expected %f", measured, expected);
+			else $error("Got %0e, expected %0e", measured, expected);
 	endtask
 
 endpackage

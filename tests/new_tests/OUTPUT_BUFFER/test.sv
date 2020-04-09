@@ -1,5 +1,8 @@
 `include "mLingua_pwl.vh"
 
+`define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
+`define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
+
 module test;
 
 	import const_pack::*;
@@ -63,9 +66,9 @@ module test;
 
 
 	// External clock
-
+    localparam real ext_clk_freq = full_rate/2;
 	clock #(
-		.freq(full_rate/2), // This depends on the frequency divider in the ACORE's input buffer
+		.freq(ext_clk_freq),
 		.duty(0.5),
 		.td(0)
 	) iEXTCLK (
@@ -118,46 +121,69 @@ module test;
 	// Main test
 
 	initial begin
+		// Uncomment to save key signals
+	    // $dumpfile("out.vcd");
+	    // $dumpvars(1, top_i);
+	    // $dumpvars(1, top_i.iacore);
+	    // $dumpvars(3, top_i.iacore.iinbuf);
+        // $dumpvars(1, top_i.idcore);
+        // $dumpvars(2, top_i.idcore.out_buff_i);
+        // $dumpvars(1, top_i.idcore.buffered_signals);
+
 		// Toggle reset
+		$display("Toggling reset...");
         #(20ns);
 		rstb = 1'b0;
 		#(20ns);
 		rstb = 1'b1;
 
+		// Toggle en_gf
+		// TODO: remove this!
+		$display("Toggling en_gf.");
+		`FORCE_ADBG(en_v2t, 0);
+		#(20ns);
+		`FORCE_ADBG(en_v2t, 1);
+
 		// Initialize JTAG
+		// TODO: is this needed?
 		jtag_drv_i.init();
 
 		// Enable the input buffer
-		jtag_drv_i.write_tc_reg(en_inbuf, 'b1);
-		jtag_drv_i.write_tc_reg(en_v2t, 'b1);
-		jtag_drv_i.write_tc_reg(int_rstb, 'b1);
+		$display("Set up the input buffer...");
+		`FORCE_ADBG(bypass_inbuf_div, 0);
+		#(1ns);
+        `FORCE_ADBG(en_inbuf, 1);
+        #(1ns);
+        `FORCE_ADBG(en_v2t, 1);
+        #(1ns);
+        `FORCE_DDBG(int_rstb, 1);
+        #(1ns);
 
 		// Set up the output buffer
-		jtag_drv_i.write_tc_reg(sel_outbuff, 'd0);
-		jtag_drv_i.write_tc_reg(sel_trigbuff, 'd0);
-		jtag_drv_i.write_tc_reg(en_outbuff, 'b1);
-		jtag_drv_i.write_tc_reg(en_outbuff, 'b1);
-		jtag_drv_i.write_tc_reg(Ndiv_outbuff, 'd0);
-		jtag_drv_i.write_tc_reg(Ndiv_trigbuff, 'd0);
+		$display("Set up the output buffer...");
+		`FORCE_DDBG(en_outbuff, 'b1);
+        #(1ns);
+        `FORCE_DDBG(en_trigbuff, 'b1);
+        #(1ns);
 
-		// Wait a little bit
+		// Wait a little bit to measure frequencies
 		#(100ns);
 
 		// run assertions
 		$display("Testing input clock");
 		$display("External period: ", clk_in_period_p.a);
-		check_rel_tol(1.0/clk_in_period_p.a, 8e9, 0.01);
-		check_rel_tol(1.0/clk_in_period_n.a, 8e9, 0.01);
+		check_rel_tol(1.0/clk_in_period_p.a, ext_clk_freq, 0.01);
+		check_rel_tol(1.0/clk_in_period_n.a, ext_clk_freq, 0.01);
 
 		$display("Testing output clock");
 		$display("CLK_OUT period: ", clk_out_period_p.a);
-		check_rel_tol(1.0/clk_out_period_p.a, 1e9, 0.01);
-		check_rel_tol(1.0/clk_out_period_n.a, 1e9, 0.01);
+		check_rel_tol(1.0/clk_out_period_p.a, ext_clk_freq/256, 0.01);
+		check_rel_tol(1.0/clk_out_period_n.a, ext_clk_freq/256, 0.01);
 
 		$display("Testing trigger clock");
 		$display("TRIG_OUT period: ", trig_out_period_p.a);
-		check_rel_tol(1.0/trig_out_period_p.a, 1e9, 0.01);
-		check_rel_tol(1.0/trig_out_period_n.a, 1e9, 0.01);
+		check_rel_tol(1.0/trig_out_period_p.a, ext_clk_freq/256, 0.01);
+		check_rel_tol(1.0/trig_out_period_n.a, ext_clk_freq/256, 0.01);
 		
 		$finish;
 	end

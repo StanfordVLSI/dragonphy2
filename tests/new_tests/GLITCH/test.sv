@@ -1,6 +1,8 @@
 `timescale 1fs/1fs
-
 `include "mLingua_pwl.vh"
+
+`define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
+`define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
 
 module test;
 
@@ -9,7 +11,7 @@ module test;
     import checker_pack::*;
     import jtag_reg_pack::*;
 
-    localparam `real_t v_cm = 0.40;
+    localparam real v_cm = 0.40;
 
     // Analog inputs
     pwl ch_outp;
@@ -22,7 +24,6 @@ module test;
     logic clk_jm_n;
     logic ext_clkp;
     logic ext_clkn;
-    logic signed [Nadc-1:0] adcout_conv_signed [Nti-1:0];
 
     // clock outputs
     logic clk_out_p;
@@ -40,7 +41,7 @@ module test;
     // JTAG
     jtag_intf jtag_intf_i();
 
-    // Instantiate blocks per output
+    // instantiate glitch testers
 
     logic test_start, test_stop;
 
@@ -86,7 +87,6 @@ module test;
         .jtag_intf_i(jtag_intf_i)
     );
 
-
     clock #(
         .freq(full_rate/2), // Depends on divider!
         .duty(0.5),
@@ -98,21 +98,6 @@ module test;
 
     jtag_drv jtag_drv_i (jtag_intf_i);
 
-    // compute stimulus
-
-    logic [Npi-1:0] pi_ctl_stim [Nout-1:0] [(2**Npi-1):0];
-
-    initial begin
-    	// fill the pi_ctl_stim array
-        for (int i=0; i<2**Npi; i=i+1) begin
-            for (int j=0; j<Nout; j=j+1) begin
-                pi_ctl_stim[j][i] = i;
-            end
-        end
-
-        // TODO: shuffle
-    end
-
     // Main test logic
 
 	logic [Npi-1:0] tmp3;
@@ -121,26 +106,45 @@ module test;
 	logic [Npi-1:0] tmp0;
 
     initial begin
+    	// Uncomment to save key signals
+	    $dumpfile("out.vcd");
+	    $dumpvars(1, top_i);
+	    $dumpvars(1, top_i.iacore);
+        $dumpvars(3, top_i.iacore.iinbuf);
+
+        // initialize control signals
     	test_start = 1'b0;
     	test_stop = 1'b0;
-        rstb = 1'b0;
+
+		// Toggle reset
+		$display("Toggling reset...");
         #(20ns);
-        rstb = 1'b1;
+		rstb = 1'b0;
+		#(20ns);
+		rstb = 1'b1;
+
+		// Clear en_gf
+		// TODO: remove this!
+		$display("Clearing en_gf...");
+		`FORCE_ADBG(en_gf, 0);
         #(20ns);
 
         // Initialize JTAG
+        // TODO: is this needed?
         jtag_drv_i.init();
 
         // Enable the input buffer
-        force top_i.idcore.ddbg_intf_i.Ndiv_clk_cdr = 'd1;
-        $display("Enabling input buffer.");
-        force top_i.idcore.ddbg_intf_i.int_rstb = 'b1;       
-        force top_i.idcore.adbg_intf_i.en_inbuf = 'b1;
-         $display("Disabling internal reset.");
-        $display("Enabling V2T.");
-        force top_i.idcore.adbg_intf_i.en_v2t = 'b1;
-        $display("Enabling glitch-free operation.");
-        force top_i.idcore.adbg_intf_i.en_gf = 'b1;
+        $display("Enabling the input buffer...");
+        `FORCE_ADBG(bypass_inbuf_div, 0);
+		#(1ns);
+        `FORCE_ADBG(en_inbuf, 1);
+        #(1ns);
+        `FORCE_ADBG(en_v2t, 1);
+        #(1ns);
+        `FORCE_ADBG(en_gf, 1);
+        #(1ns);
+        `FORCE_DDBG(int_rstb, 1);
+        #(1ns);
 
         // wait a bit
         #(100ns);
@@ -151,11 +155,11 @@ module test;
 
             // write PI codes (the temp variables are needed due to
             // a limitation in a commercial simulator)
-            tmp3 = pi_ctl_stim[3][i];
-            tmp2 = pi_ctl_stim[2][i];
-            tmp1 = pi_ctl_stim[1][i];
-            tmp0 = pi_ctl_stim[0][i];
-            force top_i.idcore.ddbg_intf_i.ext_pi_ctl_offset = '{tmp3, tmp2, tmp1, tmp0};
+            tmp3 = i;
+            tmp2 = i;
+            tmp1 = i;
+            tmp0 = i;
+            `FORCE_DDBG(ext_pi_ctl_offset, '{tmp3, tmp2, tmp1, tmp0});
 
             // wait
             #(10ns);
