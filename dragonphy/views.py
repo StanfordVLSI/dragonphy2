@@ -133,6 +133,19 @@ def get_deps(cell_name=None, view_order=None, override=None,
 
     return deps
 
+def get_deps_new_asic(cell_name=None, impl_file=None):
+    deps = []
+    deps += get_deps(
+        cell_name=cell_name,
+        impl_file=impl_file,
+        view_order=['new_pack', 'new_chip_src'],
+        includes=[get_dir('inc/new_asic')],
+        skip={'termination', 'inv_skewed', 'inv_xc', 'inv_4', 'inv_3', 'ff',
+              'inv_2', 'inc_delay', 'phase_blender', 'biasgen',
+              'input_buffer'}
+    )
+    return deps
+
 def get_deps_cpu_sim_new(cell_name=None, impl_file=None):
     deps = []
     deps += get_deps(
