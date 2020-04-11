@@ -1,5 +1,6 @@
 # general imports
 import os
+import re
 import pytest
 from pathlib import Path
 
@@ -33,12 +34,18 @@ def tcl_list(vals):
 
 @pytest.mark.skipif('FPGA_SERVER' in os.environ,
                     reason='This test cannot run on FPGA servers.')
-def test_sim(run_tcl='run.tcl'):
-    src_files = get_deps_new_asic(impl_file=THIS_DIR / 'test.sv')
-    src_files = [src_file for src_file in src_files]
+def test_sim(top_cell='dragonphy_top', run_tcl='run.tcl'):
+    src_files = []
+
+    # manually add JTAG interface because it is not instantiated
+    # anywhere (only appears in I/O specifications)
+    src_files += [get_file('vlog/new_chip_src/jtag/jtag_intf.sv')]
+
+    # add the rest of the files
+    src_files += get_deps_new_asic(top_cell)
 
     inc_dirs = [get_dir('inc/new_asic')]
-    top_name = 'test'
+    top_name = top_cell
 
     BUILD_DIR.mkdir(exist_ok=True, parents=True)
     with open(BUILD_DIR / run_tcl, 'w') as f:
@@ -59,4 +66,5 @@ def test_sim(run_tcl='run.tcl'):
     args += ['-no_gui']
     args += ['-no_log']
 
-    subprocess_run(args, cwd=BUILD_DIR, err_str='error')
+    err_str = re.compile('(error)|(^Error:)')
+    subprocess_run(args, cwd=BUILD_DIR, err_str=err_str)
