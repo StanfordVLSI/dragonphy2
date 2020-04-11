@@ -1,4 +1,5 @@
 # Some Quality Of Life Libraries
+from.subprocess_run import subprocess_run
 from .cmdparser		import CmdLineParser
 from .packager      import Packager
 from .config 		import Configuration
