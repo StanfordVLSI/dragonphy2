@@ -2,7 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from scipy.interpolate import interp1d
+from scipy.special import erfc
 from math import floor
+
+def calculate_channel_loss(channel):
+    one_zero_pattern = np.tile([-1,1], (10*channel.resp_depth))
+    result = np.ptp(channel.compute_output(one_zero_pattern)[2*channel.resp_depth:-2*channel.resp_depth])
+    return np.log10(result)*20
 
 class Filter:
     def __init__(self, t_vec, v_vec):
@@ -16,7 +22,6 @@ class Filter:
         # truncate the response depth if needed
         if self.t_vec[-1] < (resp_depth-1)/f_sig:
             resp_depth = int(floor(self.t_vec[-1]*f_sig)) + 1
-
         # compute times at which step reponse should be evaluated
         t_step = np.linspace(0, (resp_depth-1)/f_sig, resp_depth)
 
@@ -57,18 +62,54 @@ class Channel(Filter):
     def __init__(self, channel_type='step', sampl_rate=1e9, resp_depth=50, **kwargs):
         # determine vector of time points
         t_vec = np.linspace(0, (resp_depth-1)/sampl_rate, resp_depth)
-
         if channel_type == 'step':
-            v_vec = step_channel(t_vec=t_vec, **kwargs)
+            self.chan_func = step_channel
         elif channel_type == 'exponent':
-            v_vec = exponential_channel(t_vec=t_vec, **kwargs)
+            self.chan_func = exponential_channel
         elif channel_type == 'arctan':
-            v_vec = arctan_channel(t_vec=t_vec, **kwargs)
+            self.chan_func = arctan_channel
+        elif channel_type == 'skineffect':
+            self.chan_func = skineffect_channel
+        elif channel_type == 'boesch':
+            self.chan_func = boesch_channel
         else:
             raise Exception(f'Unknown channel type: {channel_type}')
 
+        v_vec = self.chan_func(t_vec=t_vec, **kwargs)
         # call the super constructor
         super().__init__(t_vec=t_vec, v_vec=v_vec)
+
+    def compute_output(self, symbols, f_sig=1e9, resp_depth=50):
+        return super().compute_output(symbols, f_sig=f_sig, resp_depth=resp_depth)
+
+
+class DelayChannel(Channel):
+    def __init__(self, channel_type='step', sampl_rate=1e9, resp_depth=50, t_delay=2e-9, **kwargs):
+        self.sampl_rate = sampl_rate
+        self.resp_depth = resp_depth
+        self.kwargs     = kwargs
+        super().__init__(channel_type=channel_type, sampl_rate=sampl_rate, resp_depth=resp_depth, t_delay=t_delay, **kwargs)
+
+    def adjust_delay(self, t_delay):
+        t_vec = np.linspace(0, (self.resp_depth-1)/self.sampl_rate, self.resp_depth)
+        v_vec = self.chan_func(t_vec=self.t_vec, t_delay=t_delay, **self.kwargs)
+        self.interp = interp1d(t_vec, v_vec, bounds_error=False,
+                               fill_value=(v_vec[0], v_vec[-1]))
+
+        self.t_vec = t_vec
+        self.v_vec = v_vec
+
+    def get_step_resp(self, f_sig=1e9, resp_depth=None):
+        resp_depth = self.resp_depth if resp_depth is None else resp_depth
+        return super().get_step_resp(f_sig=f_sig, resp_depth=resp_depth)
+
+    def get_pulse_resp(self, f_sig=1e9, resp_depth=None):
+        resp_depth = self.resp_depth if resp_depth is None else resp_depth
+        return super().get_pulse_resp(f_sig=f_sig, resp_depth=resp_depth)
+
+    def compute_output(self, symbols, f_sig=1e9, resp_depth=None):
+        resp_depth = self.resp_depth if resp_depth is None else resp_depth 
+        return super().compute_output(symbols, f_sig=f_sig, resp_depth=resp_depth)
 
 
 def step_channel(t_vec, t_delay=2e-9):
@@ -82,6 +123,23 @@ def exponential_channel(t_vec, t_delay=2e-9, tau=2.0e-9):
 # Therefore the step response is proportional to arctan(t/k)
 def arctan_channel(t_vec, t_delay=2e-9, tau=2.0e-9):
     return (1.0/np.pi)*(np.arctan((t_vec-t_delay)/tau) + (np.pi/2.0))
+
+# Adapted from: High-speed Signal Propagation: Advanced Black Magic
+# Step Response is s(t) = u(t) * erfc(1/2 * sqrt(tau/ t))
+# Need to low bound the time value to avoid issues with imaginary erfc and nan
+def skineffect_channel(t_vec, t_delay=2e-9, tau=2.0e-9):
+    delayed_t_vec = t_vec - t_delay
+    bound_delayed_t_vec = np.clip(delayed_t_vec, tau/100, None)
+
+    return erfc(1/2*np.sqrt(np.divide(tau,(bound_delayed_t_vec))))*np.heaviside(bound_delayed_t_vec, 0)
+
+#Adapted from: Ryan Boesch's Thesis
+#Step Response is s(t) = (2*arctan(t/k) + log(k^2 + t^2))/(2*pi)
+def boesch_channel(t_vec, t_delay=2e-9, tau=2.0e-9):
+    delayed_t_vec = t_vec-t_delay
+    bd_t_vec = np.clip(delayed_t_vec, tau/100, None)
+
+    return 2*np.pi + (np.log(tau**2 + bd_t_vec**2) + 2.0*np.arctan(bd_t_vec/tau))/(2*np.pi)
 
 # # From: Ryan Boesch Thesis
 # # Continuous Model: h(t) = 1/(pi*k) * (1+t/k)/(1+(t/k)^2)
@@ -99,32 +157,6 @@ def arctan_channel(t_vec, t_delay=2e-9, tau=2.0e-9):
 #
 #     unscaled_array = np.pad(np.clip((1.0 + nT_over_tau) / (1.0 + nT_over_tau ** 2), 0, None), (self.cursor_pos, 0),
 #                             'constant', constant_values=(0, 0))[0:resp_depth]
-#     return self.normal_select[normal](self, unscaled_array)
-
-
-# # From: The Physics of Transmission Lines at High and Very High Frequencies
-# # Continuous Model:     h(t) = sqrt(tau)/(2*t*sqrt(pi*t)) * e^(-tau/4t)
-# # Discrete Model:       h(n) = sqrt(beta/pi) * e^(-beta/n)/n^(3/2)
-# def skineffect_channel(self, resp_depth=10, normal='area', **kwargs):
-#     try:
-#         tau = kwargs['tau']
-#     except KeyError:
-#         print("Skin Effect Channel: {} not specified, defaulting to {}=2".format('tau', 'tau'))
-#         tau = 2
-#
-#     sampl_per = 1.0 / self.sampl_rate
-#     # Let beta be tau/(4*T)
-#     beta = tau / (4 * sampl_per)
-#
-#     # func_scale = np.sqrt(beta/np.pi)
-#     expon_val = np.repeat(np.exp(-beta), resp_depth - 1)
-#     one_over_n = np.divide(np.ones((resp_depth - 1,)), range(1, resp_depth))
-#     expon_arr = np.power(expon_val, one_over_n)
-#     n_to_3_o_2 = np.power(range(1, resp_depth), 3.0 / 2.0)
-#
-#     # Shift is equivalent to convolving with a delayed impulse response. Delay by 1 more for n=0 (cannot divide by 0).
-#     unscaled_array = np.pad(np.divide(expon_arr, n_to_3_o_2), (self.cursor_pos, 0), 'constant',
-#                             constant_values=(0, 0))[0:resp_depth]
 #     return self.normal_select[normal](self, unscaled_array)
 
 # # Combined skineffect and dielectric effect channel model
