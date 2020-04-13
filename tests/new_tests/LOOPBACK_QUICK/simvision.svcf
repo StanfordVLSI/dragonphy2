@@ -1,0 +1,91 @@
+# SimVision Command Script (Thu Jun 13 02:11:53 PM PDT 2019)
+#
+# Version 19.03.s003
+#
+# You can restore this configuration with:
+#
+#     simvision -input simvision.svcf
+#  or simvision -input simvision.svcf database1 database2 ...
+#
+
+
+#
+# Preferences
+#
+preferences set plugin-enable-svdatabrowser-new 1
+preferences set toolbar-Standard-WaveWindow {
+  usual
+  position -pos 1
+}
+preferences set plugin-enable-groupscope 0
+preferences set plugin-enable-interleaveandcompare 0
+preferences set plugin-enable-waveformfrequencyplot 0
+preferences set whats-new-dont-show-at-startup 1
+
+#
+# Databases
+#
+array set dbNames ""
+set dbNames(realName1) [ database require waves -hints {
+	file ./waves.shm/waves.trn
+	file /home/sherbst/Code/ButterPHY/sim/LOOPBACK/waves.shm/waves.trn
+}]
+if {$dbNames(realName1) == ""} {
+    set dbNames(realName1) waves
+}
+
+#
+# Mnemonic Maps
+#
+mmap new  -reuse -name {Boolean as Logic} -radix %b -contents {{%c=FALSE -edgepriority 1 -shape low}
+{%c=TRUE -edgepriority 1 -shape high}}
+mmap new  -reuse -name {Example Map} -radix %x -contents {{%b=11???? -bgcolor orange -label REG:%x -linecolor yellow -shape bus}
+{%x=1F -bgcolor red -label ERROR -linecolor white -shape EVENT}
+{%x=2C -bgcolor red -label ERROR -linecolor white -shape EVENT}
+{%x=* -label %x -linecolor gray -shape bus}}
+
+#
+# Waveform windows
+#
+if {[catch {window new WaveWindow -name "Waveform 1" -geometry 1748x675+0+174}] != ""} {
+    window geometry "Waveform 1" 1748x675+0+174
+}
+window target "Waveform 1" on
+waveform using {Waveform 1}
+waveform sidebar select designbrowser
+waveform set \
+    -primarycursor TimeA \
+    -signalnames name \
+    -signalwidth 175 \
+    -units ns \
+    -valuewidth 75
+waveform baseline set -time 1276.159ns
+
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {test.top_i.v_in_n}]}
+	} ]]
+waveform hierarchy expand $id
+set id2 [lindex [waveform hierarchy content $id] 0]
+waveform format $id2 -trace analogLinear
+set id2 [lindex [waveform hierarchy content $id] 1]
+waveform format $id2 -trace analogLinear
+set id2 [lindex [waveform hierarchy content $id] 2]
+waveform format $id2 -trace analogLinear
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {test.top_i.v_in_p}]}
+	} ]]
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {test.top_i.iacore.clk_interp_sw[3:0]}]}
+	} ]]
+waveform hierarchy expand $id
+
+waveform xview limits 1275.757762ns 1277.00403ns
+
+#
+# Waveform Window Links
+#
+
+#
+# Layout selection
+#
+
