@@ -1,6 +1,7 @@
 # general imports
 import os
 import pytest
+import pickle
 from pathlib import Path
 
 # DragonPHY imports
@@ -15,7 +16,17 @@ else:
 
 @pytest.mark.wip
 def test_sim():
-    deps = get_deps_cpu_sim_new(impl_file=THIS_DIR / 'test.sv')
+    deps = None
+    if (THIS_DIR / 'pickle.txt').is_file():
+        try:
+            deps = pickle.load(open(THIS_DIR / 'pickle.txt', 'rb'))
+        except:
+            print('Could not read pickle file.')
+
+    if deps is None:
+        deps = get_deps_cpu_sim_new(impl_file=THIS_DIR / 'test.sv')
+        pickle.dump(deps, open(THIS_DIR / 'pickle.txt', 'wb'))
+
     print(deps)
 
     DragonTester(
@@ -25,4 +36,5 @@ def test_sim():
         inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/new_cpu')],
         defines={'DAVE_TIMEUNIT': '1fs', 'NCVLOG': None},
         simulator=SIMULATOR
+        #dump_waveforms=True
     ).run()
