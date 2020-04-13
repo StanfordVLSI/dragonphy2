@@ -31,8 +31,8 @@ module test;
 
     // stimulus parameters
 
-	localparam real v_diff_min = -0.4;
-	localparam real v_diff_max = +0.4;
+	localparam real v_diff_min = -0.05;
+	localparam real v_diff_max = +0.05;
 	localparam real v_diff_step = 0.01;
 	localparam real v_cm = 0.40;
 
@@ -102,6 +102,10 @@ module test;
 	// Main test
 
 	initial begin
+	    // Uncomment to save key signals
+		$dumpfile("out.vcd");
+	    $dumpvars(3, top_i.iacore);
+
 		// Initialize pins
 		$display("Initializing pins...");
 		jtag_drv_i.init();
@@ -125,9 +129,6 @@ module test;
         #(1ns);
         `FORCE_DDBG(int_rstb, 1);
         #(1ns);
-
-		// Wait a little bit to measure frequencies
-		#(100ns);
 
         // Walk through differential input voltages
 		for (real v_diff = v_diff_min;
