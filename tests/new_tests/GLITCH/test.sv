@@ -1,5 +1,4 @@
 `timescale 1fs/1fs
-`include "mLingua_pwl.vh"
 
 `define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
 `define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
@@ -9,45 +8,29 @@ module test;
     import const_pack::*;
     import test_pack::*;
     import checker_pack::*;
-    import jtag_reg_pack::*;
 
-    localparam real v_cm = 0.40;
+    // external clock inputs
+    logic ext_clkp, ext_clkn;
+    clock #(
+        .freq(full_rate/2),
+        .duty(0.5),
+        .td(0)
+    ) iEXTCLK (
+        .ckout(ext_clkp),
+        .ckoutb(ext_clkn)
+    );
 
-    // Analog inputs
-    pwl ch_outp;
-    pwl ch_outn;
-    real v_cal;
-
-    // clock inputs 
-    logic clk_async;
-    logic clk_jm_p;
-    logic clk_jm_n;
-    logic ext_clkp;
-    logic ext_clkn;
-
-    // clock outputs
-    logic clk_out_p;
-    logic clk_out_n;
-    logic clk_trig_p;
-    logic clk_trig_n;
-    logic clk_retime;
-    logic clk_slow;
+    // reset signal
     logic rstb;
-
-    // dump control
-    logic dump_start;
-    logic clk_cdr;
 
     // JTAG
     jtag_intf jtag_intf_i();
+    jtag_drv jtag_drv_i (jtag_intf_i);
 
     // instantiate glitch testers
-
     logic test_start, test_stop;
-
-    genvar i;
     generate
-        for (i=0; i<Nout; i=i+1) begin : glitch_test_gen
+        for (genvar i=0; i<Nout; i=i+1) begin : glitch_test_gen
             glitch_test #(
             	.freq(4e9),
             	.freq_tol(0.05),
@@ -63,48 +46,19 @@ module test;
 
     // instantiate top module
     dragonphy_top top_i (
-        // analog inputs
-        .ext_rx_inp(ch_outp),
-        .ext_rx_inn(ch_outn),
-        .ext_Vcm(v_cm),
-        .ext_Vcal(v_cal),
-
         // clock inputs 
         .ext_clkp(ext_clkp),
         .ext_clkn(ext_clkn),
 
-        // clock outputs
-        .clk_out_p(clk_out_p),
-        .clk_out_n(clk_out_n),
-        .clk_trig_p(clk_trig_p),
-        .clk_trig_n(clk_trig_n),
-
-        // dump control
-        .ext_dump_start(dump_start),
+        // reset
         .ext_rstb(rstb),
 
         // JTAG
         .jtag_intf_i(jtag_intf_i)
     );
 
-    clock #(
-        .freq(full_rate/2), // Depends on divider!
-        .duty(0.5),
-        .td(0)
-    ) iEXTCLK (
-        .ckout(ext_clkp),
-        .ckoutb(ext_clkn)
-    ); 
-
-    jtag_drv jtag_drv_i (jtag_intf_i);
-
     // Main test logic
-
-	logic [Npi-1:0] tmp3;
-	logic [Npi-1:0] tmp2;
-	logic [Npi-1:0] tmp1;
-	logic [Npi-1:0] tmp0;
-
+    logic [(Npi-1):0] pi_codes [Nout];
     initial begin
     	// Uncomment to save key signals
 	    // $dumpfile("out.vcd");
@@ -143,17 +97,15 @@ module test;
         // wait a bit
         #(100ns);
 
-        // run desired number of trials
+        // walk through all PI codes
         for (int i=0; i<2**Npi; i=i+1) begin
         	$display("Trial %0d/%0d", i, 2**Npi);
 
-            // write PI codes (the temp variables are needed due to
-            // a limitation in a commercial simulator)
-            tmp3 = i;
-            tmp2 = i;
-            tmp1 = i;
-            tmp0 = i;
-            `FORCE_DDBG(ext_pi_ctl_offset, '{tmp3, tmp2, tmp1, tmp0});
+            // write PI codes
+            for (int j=0; j<Nout; j=j+1) begin
+                pi_codes[j] = i;
+            end
+            `FORCE_DDBG(ext_pi_ctl_offset, pi_codes);
 
             // wait
             #(10ns);

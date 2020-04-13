@@ -1,5 +1,6 @@
 # general imports
 import os
+import pytest
 from pathlib import Path
 
 # DragonPHY imports
@@ -12,6 +13,7 @@ if 'FPGA_SERVER' in os.environ:
 else:
     SIMULATOR = 'ncsim'
 
+@pytest.mark.parametrize((), [pytest.param(marks=pytest.mark.slow) if SIMULATOR=='vivado' else ()])
 def test_sim():
     deps = get_deps_cpu_sim_new(impl_file=THIS_DIR / 'test.sv')
     print(deps)
