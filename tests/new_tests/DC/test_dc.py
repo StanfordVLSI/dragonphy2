@@ -36,5 +36,4 @@ def test_sim():
         inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/new_cpu')],
         defines={'DAVE_TIMEUNIT': '1fs', 'NCVLOG': None},
         simulator=SIMULATOR
-        #dump_waveforms=True
     ).run()
