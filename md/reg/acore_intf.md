@@ -62,6 +62,7 @@
 | ctl_biasgen                |         | Nbias-1:0              | 3:0          | Test         | out      |   7       |
 | sel_del_out_pi             |         |                        |              | Test         | out      |   0       |
 | en_del_out_pi              |         |                        |              | Test         | out      |   0       |
+| en_TDC_phase_reverse       |         |                        |              | Test         | out      |   0       |
 | pm_out                     |         | 19:0                   | Nti-1:0      | System       | in       |           |
 | pm_out_pi                  |         | 19:0                   | Nout-1:0     | System       | in       |           |
 | cal_out_pi                 |         | Nout-1:0               |              | System       | in       |           |
