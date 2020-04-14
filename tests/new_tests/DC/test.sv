@@ -31,9 +31,9 @@ module test;
 
     // stimulus parameters
 
-	localparam real v_diff_min = -0.05;
-	localparam real v_diff_max = +0.05;
-	localparam real v_diff_step = 0.01;
+	localparam real v_diff_min = -0.4;
+	localparam real v_diff_max = +0.4;
+	localparam real v_diff_step = 0.1;
 	localparam real v_cm = 0.40;
 
 	// mLingua initialization
@@ -52,7 +52,7 @@ module test;
 		.ext_rx_inp(ch_outp),
 		.ext_rx_inn(ch_outn),
 		.ext_Vcm(v_cm),
-	    .ext_Vcal(0.6),
+	    .ext_Vcal(0.23),
 
 		// clock inputs
 		.ext_clkp(ext_clkp),
@@ -102,10 +102,6 @@ module test;
 	// Main test
 
 	initial begin
-	    // Uncomment to save key signals
-		$dumpfile("out.vcd");
-	    $dumpvars(3, top_i.iacore);
-
 		// Initialize pins
 		$display("Initializing pins...");
 		jtag_drv_i.init();

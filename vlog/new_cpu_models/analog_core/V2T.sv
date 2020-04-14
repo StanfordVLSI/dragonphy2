@@ -14,6 +14,7 @@ Todo:
 ********************************************************************/
 
 `include "mLingua_pwl.vh"
+`timescale 1fs / 1fs
 
 module V2T import const_pack::*; #(
     parameter real TD_V2T_OFFSET = 0.0
