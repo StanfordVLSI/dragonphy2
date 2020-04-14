@@ -36,10 +36,10 @@ module clock #(
     output reg clk
 );
     initial begin
-        #delay clk = 0;
+        int_clk = 0;
     end
 
     always
-        #(period/2) clk = !clk;
+        #(period/2) int_clk = !int_clk;
 
 endmodule : clock
