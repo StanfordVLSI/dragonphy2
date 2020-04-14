@@ -13,20 +13,17 @@ module digital_pd #(
     typedef enum logic [1:0] {COUNT_UP, RESET, COUNT_DOWN} pd_state_t;
     pd_state_t pd_state;
 
-    logic count_up =  clk_p  && !clk_n;
-    logic count_dn = !clk_p  &&  clk_p;
-
-    always_ff @(posedge clk_p or negedge rstb) begin
+    always_ff @(posedge clk or posedge clk_p or posedge clk_n or negedge rstb) begin
         if(~rstb) begin
             pd_state <= RESET;
             pd_out <= 0;
         end else begin
             case (pd_state)
                 RESET : begin
-                    if (count_up) begin
+                    if (clk_p) begin
                         pd_out <= 1;
                         pd_state <= COUNT_UP;
-                    end else if(count_dn) begin
+                    end else if(clk_n) begin
                         pd_out <= -1;
                         pd_state <= COUNT_DOWN;
                     end else begin
@@ -35,12 +32,22 @@ module digital_pd #(
                     end
                 end
                 COUNT_UP : begin
-                    pd_out <= pd_out + 1;
-                    pd_state <= clk_n ? RESET : COUNT_UP;
+                    if(clk_n) begin
+                        pd_out <= 0;
+                        pd_state <= RESET
+                    end else begin
+                        pd_out <= pd_out + 1;
+                        pd_state <= COUNT_UP;
+                    end
                 end
                 COUNT_DOWN: begin
-                    pd_out <= pd_out - 1;
-                    pd_state <= clk_p ? RESET : COUNT_DOWN;
+                    if(clk_p) begin
+                        pd_out <= 0;
+                        pd_state <= RESET
+                    end else begin
+                        pd_out <= pd_out - 1;
+                        pd_state <= COUNT_DOWN;
+                    end
                 end
             endcase
         end
