@@ -48,19 +48,20 @@ package model_pack;
         endfunction
     endclass: SnHParameter
 
-    class TDCParameter; // TDC circuit params
+    class TDCParameter;    // TDC circuit params
         integer seed;
         Delay invd_obj;
 
         // static parameters
 
-        const real td_ff_ck_q = 40e-12 ;   // clk to q delay of a f/f in TDC delay chain
-        const real td_inv_nom = 15e-12;   // nominal delay of an inverter in TDC delay chain
+        const real td_ff_ck_q = 40e-12;    // clk to q delay of a f/f in TDC delay chain
+        const real td_inv_nom = 15e-12;    // nominal delay of an inverter in TDC delay chain
         const real td_inv_std = 0.1e-12;   // nominal delay of an inverter in TDC delay chain
-        const real rj_rms = 0.1e-12 ; // rms of random jitter
+        const real rj_rms = 0.1e-12 ;      // rms of random jitter
 
         // variables
-        real td_inv;    // nominal delay of an inverter
+
+        real td_inv;                       // nominal delay of an inverter
 
         function new();
             this.invd_obj = new(td_inv_nom, td_inv_std);
@@ -70,7 +71,7 @@ package model_pack;
         function real get_rj();
             return this.invd_obj.get_rj(rj_rms);
         endfunction
-    endclass: TDCParameter
+    endclass : TDCParameter
 
     class PFDParameter; // PFD parameters including an arbiter in it
         // static parameters
