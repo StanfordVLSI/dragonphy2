@@ -12,9 +12,6 @@ module analog_core import const_pack::*; #(
     
 	input wire logic ext_clk,                           // (+) 4GHz clock input (from pad)
 
-	input wire logic ext_clk_aux,                        // aux clock input from secondary input buffer
-	                                                     // (optional/reserved)
-
 	input wire logic ext_clk_test0,                      // (+) 4GHz clock input (from pad)
     input wire logic ext_clk_test1,                      // (-) 4GHz clock input (from pad)
     	
