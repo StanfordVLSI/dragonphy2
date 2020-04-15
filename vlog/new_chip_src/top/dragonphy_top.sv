@@ -41,8 +41,8 @@ module dragonphy_top import const_pack::*; (
 	// analog core debug interface
 	acore_debug_intf adbg_intf_i ();
 
+	wire logic clk_main;
 	wire logic clk_async;
-	wire logic ext_clk_aux;
 	wire logic ext_clk_test0;
 	wire logic ext_clk_test1;
 
@@ -54,11 +54,11 @@ module dragonphy_top import const_pack::*; (
 		.clk(clk_async)
 	);
 
-	input_buffer_inv ibuf_aux (
+	input_buffer_inv ibuf_main (
 		.inp(ext_clkp),
 		.inm(ext_clkn),
 		.pd(adbg_intf_i.disable_ibuf_aux),
-		.clk(ext_clk_aux)
+		.clk(clk_main)
 	);
 
 	input_buffer_inv ibuf_test0 (
@@ -96,9 +96,7 @@ module dragonphy_top import const_pack::*; (
 		.rx_inp_test(ext_rx_inp_test),
 		.rx_inn_test(ext_rx_inn_test),
 
-		.ext_clkp(ext_clkp),					// External clock (+)
-		.ext_clkn(ext_clkn),					// External clock (-)
-		.ext_clk_aux(ext_clk_aux),
+		.ext_clk(clk_main),					// External clock (+)
 		.ext_clk_test0(ext_clk_test0),
 		.ext_clk_test1(ext_clk_test1),
 		.clk_cdr(clk_cdr),						// CDR clock
