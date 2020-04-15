@@ -26,7 +26,7 @@
  
  a_nd ia_nd_dont_touch (  .in2(en_meas), .in1(out), .Z(net3) );
  inv iinv_6_dont_touch (  .I(net3), .out(net4) );
- inv_iinv_7_dont_touch (  .I(net4), .out(out_meas) );
+ inv iinv_7_dont_touch (  .I(net4), .out(out_meas) );
 
  endmodule
 
