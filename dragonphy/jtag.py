@@ -10,8 +10,8 @@ class JTAG:
         build_dir = Path(filename).parent
 
         justag_inputs = []
-        justag_inputs += list(get_dir('md/reg').glob('*.md'))
-        justag_inputs += [get_file('vlog/new_pack/all/const_pack.sv')]
+        justag_inputs += list(get_dir('md').glob('*.md'))
+        justag_inputs += [get_file('vlog/new_pack/const_pack.sv')]
 
 
         # call JusTAG
@@ -75,8 +75,6 @@ class JTAG:
     def justag(*inputs, cwd=None):
         args = []
         args += [f'justag']
-        #args += [sys.executable]
-        #args += ['/home/zamyers/Development/JusTAG/justag/JusTAG.py']
         args += list(inputs)
         call(args, cwd=cwd)
 

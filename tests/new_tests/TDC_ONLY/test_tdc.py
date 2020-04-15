@@ -16,13 +16,13 @@ if 'FPGA_SERVER' in os.environ:
 else:
     SIMULATOR = 'ncsim'
 
-@pytest.mark.wip
+@pytest.mark.parametrize((), [pytest.param(marks=pytest.mark.slow) if SIMULATOR=='vivado' else ()])
 def test_sim():
     def qwrap(s):
         return f'"{s}"'
     defines = {
-        'TI_ADC_TXT': qwrap(BUILD_DIR / 'ti_adc.txt'),
-        'RX_INPUT_TXT': qwrap(BUILD_DIR / 'rx_input.txt'),
+        'DELAY_TXT': qwrap(BUILD_DIR / 'delay.txt'),
+        'ADDER_TXT': qwrap(BUILD_DIR / 'adder.txt'),
         'DAVE_TIMEUNIT': '1fs',
         'NCVLOG': None
     }
@@ -40,8 +40,8 @@ def test_sim():
         flags=['-unbuffered']
     ).run()
 
-    x = np.loadtxt(BUILD_DIR / 'rx_input.txt', dtype=float)
-    y = np.loadtxt(BUILD_DIR / 'ti_adc.txt', dtype=int, delimiter=',')
+    x = np.loadtxt(BUILD_DIR / 'delay.txt', dtype=float)
+    y = np.loadtxt(BUILD_DIR / 'adder.txt', dtype=int, delimiter=',')
     y = y.flatten()
 
     # make sure that length of y is an integer multiple of length of x
@@ -59,16 +59,16 @@ def test_sim():
     check_data(x, y)
 
 def plot_data(x, y):
-    plt.plot(x, y, '*')
-    plt.xlabel('Differential input voltage')
-    plt.ylabel('ADC Code')
+    plt.plot(1e12*x, y, '*')
+    plt.xlabel('Delay (ps)')
+    plt.ylabel('Adder output')
 
-    plt.savefig(BUILD_DIR / 'dc.eps')
+    plt.savefig(BUILD_DIR / 'tdc.eps')
 
     plt.cla()
     plt.clf()
 
-def check_data(x, y, inl_limit=5, offset_limit=5, gain_bnds=(250, 300)):
+def check_data(x, y, inl_limit=5, offset_limit=5, gain_bnds=(0.23, 0.28)):
     # compute linear regression
     regr = linear_model.LinearRegression()
     regr.fit(x[:, np.newaxis], y)
@@ -85,6 +85,6 @@ def check_data(x, y, inl_limit=5, offset_limit=5, gain_bnds=(250, 300)):
     print(f'Offset OK: {offset}')
 
     # gain
-    gain = regr.coef_[0]
-    assert min(gain_bnds) <= gain <= max(gain_bnds), f'Gain out of spec: {gain} LSB/Volt.'
-    print(f'Gain OK: {gain} LSB/Volt.')
+    gain = regr.coef_[0] * 1e-12
+    assert min(gain_bnds) <= gain <= max(gain_bnds), f'Gain out of spec: {gain} LSB/ps.'
+    print(f'Gain OK: {gain} LSB/ps.')

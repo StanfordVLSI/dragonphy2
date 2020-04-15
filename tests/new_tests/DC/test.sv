@@ -14,6 +14,8 @@
 module test;
 	import test_pack::*;
 	import checker_pack::*;
+    import const_pack::Nti;
+    import const_pack::Nadc;
 
 	// clock inputs
 
@@ -31,9 +33,9 @@ module test;
 
     // stimulus parameters
 
-	localparam real v_diff_min = -0.4;
-	localparam real v_diff_max = +0.4;
-	localparam real v_diff_step = 0.1;
+	localparam real v_diff_min = -0.40;
+	localparam real v_diff_max = +0.40;
+	localparam real v_diff_step = 0.0025;
 	localparam real v_cm = 0.40;
 
 	// mLingua initialization
@@ -100,7 +102,7 @@ module test;
 	);
 
 	// Main test
-
+    logic [Nadc-1:0] tmp_ext_pfd_offset [Nti-1:0];
 	initial begin
 		// Initialize pins
 		$display("Initializing pins...");
@@ -126,6 +128,14 @@ module test;
         `FORCE_DDBG(int_rstb, 1);
         #(1ns);
 
+        // Set up the PFD offset
+        // TODO: why does this have to be set to zero?
+        for (int idx=0; idx<Nti; idx=idx+1) begin
+            tmp_ext_pfd_offset[idx] = 0;
+        end
+        `FORCE_DDBG(ext_pfd_offset, tmp_ext_pfd_offset);
+        #(1ns);
+
         // Walk through differential input voltages
 		for (real v_diff = v_diff_min;
 		     v_diff <= v_diff_max + v_diff_step;
@@ -135,7 +145,6 @@ module test;
 			ch_outn = pm.write(v_cm-v_diff/2.0, 0, 0);
 
 			$display("Differential input: %0.3f V", ch_outp.a-ch_outn.a);
-
 			#(15ns);
 
 			record = 1'b1;
