@@ -4,7 +4,7 @@ module testbench;
     logic clk_p;
     logic clk_n;
     logic clk;
-    logic rstb = 1; 
+    logic rstb = 0; 
 
     digital_pd #(.width(8)) dig_pd (
         .clk_p (clk_p),
@@ -17,12 +17,12 @@ module testbench;
 
         );
 
-    clock #(.period(1000ps)) sys_clk_gen (.clk(clk));
-    clock #(.delay(100ps), .period(100ns)) clk_p_gen (.clk(clk_p));
-    clock #(.delay(5ns), .period(100ns))   clk_n_gen(.clk(clk_n));
+    clock #(.period(1ns)) sys_clk_gen (.clk(clk));
+    clock #(.delay(164ns), .period(128ns)) clk_p_gen (.clk(clk_p));
+    clock #(.delay(100ns), .period(128ns))   clk_n_gen(.clk(clk_n));
 
     initial begin
-        #500ps rstb = 0;
+        #200ns rstb = 1;
     end
 
 
@@ -31,15 +31,17 @@ endmodule : testbench
 
 module clock #(
     parameter real delay=0ps,
-    parameter real period=1000ps
+    parameter real period=10ns
 ) (
     output reg clk
 );
+
     initial begin
-        int_clk = 0;
+        clk = 0;
+        #delay
+        forever begin #(period/2.0) clk = ~clk; end
     end
 
-    always
-        #(period/2) int_clk = !int_clk;
+    
 
 endmodule : clock
