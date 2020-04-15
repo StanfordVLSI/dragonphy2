@@ -12,7 +12,7 @@
  ff_c_rn  iff_c_rn_dont_touch (  .CDN(en), .CP(in), .D(div2), .Q(ff_out) );
  inv iinv_1_dont_touch (  .in(ff_out), .out(div2) );
  
- mux imux_1_dont_touch ( .S(bypass_div2), .in2(in), .in1(div2), .out(mux1_out) );
+ mux imux_1_dont_touch ( .sel(bypass_div2), .in1(in), .in0(div2), .out(mux1_out) );
 
  inv iinv_2_dont_touch (  .in(mux1_out), .out(net1) );
  inv iinv_3_dont_touch (  .in(net1), .out(mux1_out_buff) );
