@@ -239,8 +239,7 @@ module analog_core import const_pack::*; #(
     // input clock buffer
 	input_divider iindiv (
 	    // inputs
-		.inn(ext_clk),
-		.in_aux(ext_clk_aux),
+		.in(ext_clk),
   		.en(adbg_intf_i.en_inbuf),
 		.bypass_div(adbg_intf_i.bypass_inbuf_div),
 		.bypass_div2(adbg_intf_i.bypass_inbuf_div2),
