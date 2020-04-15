@@ -28,14 +28,14 @@ module digital_pd #(
                 end
                 COUNT_UP : begin
                     if(clk_n) begin
-                        pd_state <= RESET
+                        pd_state <= RESET;
                     end else begin
                         pd_state <= COUNT_UP;
                     end
                 end
                 COUNT_DOWN: begin
                     if(clk_p) begin
-                        pd_state <= RESET
+                        pd_state <= RESET;
                     end else begin
                         pd_state <= COUNT_DOWN;
                     end
