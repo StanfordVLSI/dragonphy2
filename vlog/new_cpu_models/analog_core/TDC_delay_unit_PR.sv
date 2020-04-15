@@ -11,6 +11,8 @@ Todo:
 
 ********************************************************************/
 
+`timescale 1fs/1fs
+
 module TDC_delay_unit_PR (
     input inv_in,
     output reg inv_out,
@@ -37,6 +39,7 @@ module TDC_delay_unit_PR (
     initial begin
         tdc_obj = new();
         td0_inv = tdc_obj.td_inv;
+        $display(td0_inv);
         td_ff = tdc_obj.td_ff_ck_q;
     end
 
