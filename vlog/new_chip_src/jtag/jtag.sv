@@ -82,6 +82,8 @@ module jtag (
 	assign adbg_intf_i.sel_del_out_pi = rjtag_intf_i.sel_del_out_pi;
 	assign adbg_intf_i.en_del_out_pi  = rjtag_intf_i.en_del_out_pi;
 
+    assign adbg_intf_i.en_TDC_phase_reverse = rjtag_intf_i.en_TDC_phase_reverse;
+
 	//Analog Output
 
 	assign rjtag_intf_i.pm_out = adbg_intf_i.pm_out;
