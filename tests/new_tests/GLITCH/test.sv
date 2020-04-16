@@ -83,6 +83,10 @@ module test;
 
         // Enable the input buffer
         $display("Enabling the input buffer...");
+        `FORCE_ADBG(en_inbuf, 0);
+		#(1ns);
+        `FORCE_ADBG(en_inbuf, 1);
+		#(1ns);
         `FORCE_ADBG(bypass_inbuf_div, 0);
 		#(1ns);
         `FORCE_ADBG(en_inbuf, 1);
