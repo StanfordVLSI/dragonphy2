@@ -10,14 +10,14 @@ Todo:
 
 ********************************************************************/
 
-module n_and #(
+module n_or #(
     parameter real td_nom = 0.0,    // nominal delay in sec
     parameter real td_std = 0.0,    // std dev of nominal delay variation in sec
     parameter real rj_rms = 0.0     // rms random jitter in sec
 ) (
     input wire logic in1,           // input signal
     input wire logic in2,           // input signal
-    output reg out                  // delayed output signal
+    output wire out                 // delayed output signal
 );
 
 timeunit 1fs;
@@ -44,10 +44,13 @@ end
 // Model Body
 ///////////////////////////
 
-// delay behavior from `in` to `out`
+// compute new jitter
 always @(in1 or in2) begin
     rj = dly_obj.get_rj(rj_rms);
-    out <= #((td+rj)*1s) ~(in1|in2) ;
 end
+
+// assign to the output using an inertial delay
+// ref: http://www-inst.eecs.berkeley.edu/~cs152/fa06/handouts/CummingsHDLCON1999_BehavioralDelays_Rev1_1.pdf
+assign #((td+rj)*1s) out = ~(in1|in2);
 
 endmodule
