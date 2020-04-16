@@ -30,6 +30,7 @@ requires_list = [
     'pyyaml',
     'numpy',
     'matplotlib',
+    'sklearn',
     'pygraphviz',
     'justag==0.0.2.9',
     # general requirements with special versions to prevent

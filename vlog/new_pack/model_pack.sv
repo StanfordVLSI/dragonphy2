@@ -1,6 +1,7 @@
 package model_pack;
-    // error tolerance
-    localparam real ETOL_SNH = 0.01;    // filters in s&h circuit
+    // error tolerance for filters in sample and hold circuit
+    // set to be at least 10x more precise than the ADC resolution
+    localparam real ETOL_SNH = 0.0003;
 
     ////////////////////
     // Some general class
@@ -48,19 +49,20 @@ package model_pack;
         endfunction
     endclass: SnHParameter
 
-    class TDCParameter; // TDC circuit params
+    class TDCParameter;    // TDC circuit params
         integer seed;
         Delay invd_obj;
 
         // static parameters
 
-        const real td_ff_ck_q = 40e-12 ;   // clk to q delay of a f/f in TDC delay chain
-        const real td_inv_nom = 15e-12;   // nominal delay of an inverter in TDC delay chain
+        const real td_ff_ck_q = 40e-12;    // clk to q delay of a f/f in TDC delay chain
+        const real td_inv_nom = 15e-12;    // nominal delay of an inverter in TDC delay chain
         const real td_inv_std = 0.1e-12;   // nominal delay of an inverter in TDC delay chain
-        const real rj_rms = 0.1e-12 ; // rms of random jitter
+        const real rj_rms = 0.1e-12 ;      // rms of random jitter
 
         // variables
-        real td_inv;    // nominal delay of an inverter
+
+        real td_inv;                       // nominal delay of an inverter
 
         function new();
             this.invd_obj = new(td_inv_nom, td_inv_std);
@@ -70,7 +72,7 @@ package model_pack;
         function real get_rj();
             return this.invd_obj.get_rj(rj_rms);
         endfunction
-    endclass: TDCParameter
+    endclass : TDCParameter
 
     class PFDParameter; // PFD parameters including an arbiter in it
         // static parameters
@@ -104,7 +106,6 @@ package model_pack;
         const real Td_buf = 50e-12; // buffer delay
         const real Tpw_clk_prstb = 50e-12;  // pulse width of F/F present signal
         const real Td_comp = 200e-12;   // time delay of the comparator + post buffer in V2T
-
 
         // static parameters (S&H + Ramp Gen)
         const real Gm_nom = 100e-6;     // nominal value of ramp current source TR transconductance
