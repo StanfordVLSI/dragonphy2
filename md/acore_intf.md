@@ -31,8 +31,8 @@
 | en_meas_pi                 |         | Nout-1:0               |              | Test         | out      |   0       |
 | sel_meas_pi                |         | Nout-1:0               |              | Test         | out      |   0       |
 | en_slice_rep               |         | 1:0                    |              | Test         | out      |   0       |
-| ctl_v2tn_rep               |         | Nv2t-1:0               | 1:0          | Test         | out      |   16      |
-| ctl_v2tp_rep               |         | Nv2t-1:0               | 1:0          | Test         | out      |   16      |
+| ctl_v2tn_rep               |         | Nv2t-1:0               | 1:0          | Test         | out      |   6       |
+| ctl_v2tp_rep               |         | Nv2t-1:0               | 1:0          | Test         | out      |   6       |
 | init_rep                   |         | $clog2(Nout)-1:0       | 1:0          | Test         | out      |   0       |
 | ALWS_ON_rep                |         | 1:0                    |              | Test         | out      |   0       |
 | sel_pm_sign_rep            |         | 1:0                    | 1:0          | Test         | out      |   0       |
@@ -62,6 +62,7 @@
 | ctl_biasgen                |         | Nbias-1:0              | 3:0          | Test         | out      |   7       |
 | sel_del_out_pi             |         |                        |              | Test         | out      |   0       |
 | en_del_out_pi              |         |                        |              | Test         | out      |   0       |
+| en_TDC_phase_reverse       |         |                        |              | Test         | out      |   0       |
 | pm_out                     |         | 19:0                   | Nti-1:0      | System       | in       |           |
 | pm_out_pi                  |         | 19:0                   | Nout-1:0     | System       | in       |           |
 | cal_out_pi                 |         | Nout-1:0               |              | System       | in       |           |
