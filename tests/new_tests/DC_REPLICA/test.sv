@@ -15,6 +15,10 @@
     `define TI_ADC_TXT
 `endif
 
+`ifndef EXT_PFD_OFFSET
+    `define EXT_PFD_OFFSET 14
+`endif
+
 module test;
 	import test_pack::*;
 	import checker_pack::*;
@@ -160,7 +164,7 @@ module test;
 
         // Set up the PFD offset
         for (int idx=0; idx<Nti_rep; idx=idx+1) begin
-            tmp_ext_pfd_offset_rep[idx] = 16;
+            tmp_ext_pfd_offset_rep[idx] = `EXT_PFD_OFFSET;
         end
         `FORCE_DDBG(ext_pfd_offset_rep, tmp_ext_pfd_offset_rep);
         #(1ns);
