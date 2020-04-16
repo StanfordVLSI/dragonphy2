@@ -7,6 +7,10 @@
     `define RX_INPUT_TXT
 `endif
 
+`ifndef WIDTH_TXT
+    `define WIDTH_TXT
+`endif
+
 `ifndef TI_ADC_TXT
     `define TI_ADC_TXT
 `endif
@@ -80,6 +84,17 @@ module test;
 		.ckoutb(ext_clkn)
 	);
 
+    // Measuring the width of the PFD output
+    real width [Nti];
+    generate
+        for (genvar k=0; k<Nti; k=k+1) begin
+            width_meas_ideal width_meas_inst (
+                .in(top_i.iacore.iADC[k].iADC.pfd_out),
+                .width(width[k])
+            );
+        end
+    endgenerate
+
     // Data recording
 
     logic record;
@@ -93,6 +108,15 @@ module test;
 		.en(1'b1)
 	);
 
+    real_array_recorder #(
+        .n(Nti),
+        .filename(`WIDTH_TXT)
+    ) width_recorder_i (
+		.in(width),
+		.clk(record),
+		.en(1'b1)
+	);
+
     ti_adc_recorder #(
         .filename(`TI_ADC_TXT)
     ) ti_adc_recorder_i (
@@ -102,7 +126,7 @@ module test;
 	);
 
 	// Main test
-    logic [Nadc-1:0] tmp_ext_pfd_offset [Nti-1:0];
+	logic [Nadc-1:0] tmp_ext_pfd_offset [Nti-1:0];
 	initial begin
 		// Initialize pins
 		$display("Initializing pins...");
@@ -129,9 +153,8 @@ module test;
         #(1ns);
 
         // Set up the PFD offset
-        // TODO: why does this have to be set to zero?
         for (int idx=0; idx<Nti; idx=idx+1) begin
-            tmp_ext_pfd_offset[idx] = 0;
+            tmp_ext_pfd_offset[idx] = 16;
         end
         `FORCE_DDBG(ext_pfd_offset, tmp_ext_pfd_offset);
         #(1ns);

@@ -31,8 +31,8 @@
 | en_meas_pi                 |         | Nout-1:0               |              | Test         | out      |   0       |
 | sel_meas_pi                |         | Nout-1:0               |              | Test         | out      |   0       |
 | en_slice_rep               |         | 1:0                    |              | Test         | out      |   0       |
-| ctl_v2tn_rep               |         | Nv2t-1:0               | 1:0          | Test         | out      |   16      |
-| ctl_v2tp_rep               |         | Nv2t-1:0               | 1:0          | Test         | out      |   16      |
+| ctl_v2tn_rep               |         | Nv2t-1:0               | 1:0          | Test         | out      |   6       |
+| ctl_v2tp_rep               |         | Nv2t-1:0               | 1:0          | Test         | out      |   6       |
 | init_rep                   |         | $clog2(Nout)-1:0       | 1:0          | Test         | out      |   0       |
 | ALWS_ON_rep                |         | 1:0                    |              | Test         | out      |   0       |
 | sel_pm_sign_rep            |         | 1:0                    | 1:0          | Test         | out      |   0       |
