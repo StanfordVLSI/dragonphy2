@@ -14,6 +14,7 @@ Todo:
 ********************************************************************/
 
 `include "mLingua_pwl.vh"
+`timescale 1fs/1fs
 
 module V2T import const_pack::*; #(
     parameter real TD_V2T_OFFSET = 0.0
@@ -73,7 +74,7 @@ assign Iunit = v2t_obj.get_current(Vcal);
 assign Iramp = Iunit*$countones(ctl);
 
 real Vdch;
-// sample&hold 
+// sample&hold
 always @(negedge clk_v2t) begin
     Vin_s = pm.eval(Vin, `get_time);
     Vdch = v2t_obj.Vgain*(Vin_s - VSupl + Vdch_cm) - Vdch_cm;
