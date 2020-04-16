@@ -33,7 +33,7 @@ module oneshot_multimemory import const_pack::*; #(
     genvar gk;
     generate
         for(gk=0; gk<N_mem_tiles; gk=gk+1) begin
-            tile_select_decoder[gk] = ~(1 << gk);
+            assign tile_select_decoder[gk] = ~(1 << gk);
         end
     endgenerate
 
@@ -51,7 +51,7 @@ module oneshot_multimemory import const_pack::*; #(
     generate
         for (j=0; j<(N_mem_width); j=j+1) begin
             assign concat_data_in[(j+1)*Nadc-1:j*Nadc] = in_bytes[j];
-            assign out_data[j] = concat_data_out[(j+1)*Nadc-1:j*Nadc][tile_mux];
+            assign out_data[j] = concat_data_out[tile_mux][(j+1)*Nadc-1:j*Nadc];
         end
     endgenerate
 
