@@ -5,13 +5,13 @@ module oneshot_multimemory import const_pack::*; #(
     ) (
     input wire logic clk,
     input wire logic rstb,
-    input wire logic signed [Nadc-1:0] in_bytes [N_mem_width >> 3 - 1:0],
+    input wire logic signed [Nadc-1:0] in_bytes [N_mem_width-1:0],
 
     input wire logic in_start_write,
 
     input wire logic [N_mem_addr + $clog2(N_mem_tiles)-1:0] in_addr,
 
-    output wire logic signed [Nadc-1:0] out_data [N_mem_width >> 3 - 1:0],
+    output wire logic signed [Nadc-1:0] out_data [N_mem_width-1:0],
     output wire logic [N_mem_addr + $clog2(N_mem_tiles)-1:0] addr
 );
 
@@ -25,7 +25,7 @@ module oneshot_multimemory import const_pack::*; #(
     logic [sys_addr-1:0] write_addr;
 
     logic [$clog2(N_mem_tiles)-1:0] tile_mux;
-    logic [N_mem_addr-1:0] tile_addr;
+    logic [N_mem_addr-1:0] tile_addr [N_mem_tiles-1:0];
 
     logic [N_mem_tiles-1:0] tile_select_decoder [N_mem_tiles-1:0];
     logic [N_mem_tiles-1:0] tile_select;
