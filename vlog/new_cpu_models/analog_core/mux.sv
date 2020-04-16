@@ -18,7 +18,7 @@ module mux #(
     input wire logic in0,           // input signal
     input wire logic in1,           // input signal
     input wire logic sel,           // selection signal
-    output reg out                  // delayed output signal
+    output wire out                 // delayed output signal
 );
 
 timeunit 1fs;
@@ -45,10 +45,13 @@ end
 // Model Body
 ///////////////////////////
 
-// delay behavior from `in` to `out`
+// compute new jitter
 always @(in0 or in1 or sel) begin
     rj = dly_obj.get_rj(rj_rms);
-    out <= #((td+rj)*1s) sel ? in1 : in0;
 end
+
+// assign to the output using an inertial delay
+// ref: http://www-inst.eecs.berkeley.edu/~cs152/fa06/handouts/CummingsHDLCON1999_BehavioralDelays_Rev1_1.pdf
+assign #((td+rj)*1s) out = sel ? in1 : in0;
 
 endmodule
