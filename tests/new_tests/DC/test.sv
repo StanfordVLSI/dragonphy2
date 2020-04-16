@@ -15,6 +15,10 @@
     `define TI_ADC_TXT
 `endif
 
+`ifndef EXT_PFD_OFFSET
+    `define EXT_PFD_OFFSET 14
+`endif
+
 module test;
 	import test_pack::*;
 	import checker_pack::*;
@@ -37,8 +41,8 @@ module test;
 
     // stimulus parameters
 
-	localparam real v_diff_min = -0.40;
-	localparam real v_diff_max = +0.40;
+	localparam real v_diff_min = -0.4;
+	localparam real v_diff_max = +0.4;
 	localparam real v_diff_step = 0.0025;
 	localparam real v_cm = 0.40;
 
@@ -154,7 +158,7 @@ module test;
 
         // Set up the PFD offset
         for (int idx=0; idx<Nti; idx=idx+1) begin
-            tmp_ext_pfd_offset[idx] = 16;
+            tmp_ext_pfd_offset[idx] = `EXT_PFD_OFFSET;
         end
         `FORCE_DDBG(ext_pfd_offset, tmp_ext_pfd_offset);
         #(1ns);
