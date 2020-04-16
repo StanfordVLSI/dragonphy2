@@ -47,28 +47,28 @@ module dragonphy_top import const_pack::*; (
 	wire logic ext_clk_test1;
 
 	// Signal declaration
-	input_buffer_inv ibuf_async (
+	input_buffer ibuf_async (
 		.inp(ext_clk_async_p),
 		.inm(ext_clk_async_n),
 		.pd(adbg_intf_i.disable_ibuf_async),
 		.clk(clk_async)
 	);
 
-	input_buffer_inv ibuf_main (
+	input_buffer ibuf_main (
 		.inp(ext_clkp),
 		.inm(ext_clkn),
 		.pd(adbg_intf_i.disable_ibuf_main),
 		.clk(clk_main)
 	);
 
-	input_buffer_inv ibuf_test0 (
+	input_buffer ibuf_test0 (
 		.inp(ext_clk_test0_p),
 		.inm(ext_clk_test0_n),
 		.pd(adbg_intf_i.disable_ibuf_test0),
 		.clk(ext_clk_test0)
 	);
 
-	input_buffer_inv ibuf_test1 (
+	input_buffer ibuf_test1 (
 		.inp(ext_clk_test1_p),
 		.inm(ext_clk_test1_n),
 		.pd(adbg_intf_i.disable_ibuf_test1),
