@@ -1,6 +1,7 @@
 package model_pack;
-    // error tolerance
-    localparam real ETOL_SNH = 0.01;    // filters in s&h circuit
+    // error tolerance for filters in sample and hold circuit
+    // set to be at least 10x more precise than the ADC resolution
+    localparam real ETOL_SNH = 0.0003;
 
     ////////////////////
     // Some general class
@@ -105,7 +106,6 @@ package model_pack;
         const real Td_buf = 50e-12; // buffer delay
         const real Tpw_clk_prstb = 50e-12;  // pulse width of F/F present signal
         const real Td_comp = 200e-12;   // time delay of the comparator + post buffer in V2T
-
 
         // static parameters (S&H + Ramp Gen)
         const real Gm_nom = 100e-6;     // nominal value of ramp current source TR transconductance

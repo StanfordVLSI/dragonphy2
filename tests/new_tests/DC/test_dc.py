@@ -16,13 +16,14 @@ if 'FPGA_SERVER' in os.environ:
 else:
     SIMULATOR = 'ncsim'
 
-@pytest.mark.wip
+@pytest.mark.parametrize((), [pytest.param(marks=pytest.mark.slow) if SIMULATOR=='vivado' else ()])
 def test_sim():
     def qwrap(s):
         return f'"{s}"'
     defines = {
         'TI_ADC_TXT': qwrap(BUILD_DIR / 'ti_adc.txt'),
         'RX_INPUT_TXT': qwrap(BUILD_DIR / 'rx_input.txt'),
+        'WIDTH_TXT': qwrap(BUILD_DIR / 'width.txt'),
         'DAVE_TIMEUNIT': '1fs',
         'NCVLOG': None
     }
@@ -41,8 +42,12 @@ def test_sim():
     ).run()
 
     x = np.loadtxt(BUILD_DIR / 'rx_input.txt', dtype=float)
+
     y = np.loadtxt(BUILD_DIR / 'ti_adc.txt', dtype=int, delimiter=',')
     y = y.flatten()
+
+    widths = np.loadtxt(BUILD_DIR / 'width.txt', dtype=float, delimiter=',')
+    widths = widths.flatten()
 
     # make sure that length of y is an integer multiple of length of x
     assert len(y) % len(x) == 0, \
@@ -55,20 +60,25 @@ def test_sim():
     assert len(x) == len(y), \
         'Lengths of x and y should match at this point.'
 
-    plot_data(x, y)
+    plot_data(x, y, widths)
     check_data(x, y)
 
-def plot_data(x, y):
+def plot_data(x, y, widths):
     plt.plot(x, y, '*')
     plt.xlabel('Differential input voltage')
     plt.ylabel('ADC Code')
-
     plt.savefig(BUILD_DIR / 'dc.eps')
-
     plt.cla()
     plt.clf()
 
-def check_data(x, y, inl_limit=5, offset_limit=5, gain_bnds=(250, 300)):
+    plt.plot(x, widths*1e12, '*')
+    plt.xlabel('Differential input voltage')
+    plt.ylabel('PFD Out Width (ps)')
+    plt.savefig(BUILD_DIR / 'widths.eps')
+    plt.cla()
+    plt.clf()
+
+def check_data(x, y, inl_limit=7.5, offset_limit=2.5, gain_bnds=(250, 290)):
     # compute linear regression
     regr = linear_model.LinearRegression()
     regr.fit(x[:, np.newaxis], y)
