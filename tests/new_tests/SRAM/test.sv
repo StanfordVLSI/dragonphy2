@@ -12,11 +12,11 @@ module test;
 
     import const_pack::*;
 
-    localparam real freq = 1e9;
-    localparam integer Nwrite = (2**N_mem_addr)*10;    // write more data than SRAM can hold
+    localparam real freq = 10e9;
+    localparam integer N_mem_tiles = 4;
+    localparam integer Nwrite = (2**(N_mem_addr+$clog2(N_mem_tiles)))*4;    // write more data than SRAM can hold
                                                        // to make sure we capture just the beginning
-    localparam integer Nread = (2**N_mem_addr);
-
+    localparam integer Nread = (2**(N_mem_addr+$clog2(N_mem_tiles)));
     // local signals
 
     logic signed [Nadc-1:0] in [Nti+Nti_rep-1:0];
@@ -25,11 +25,11 @@ module test;
     logic rstb;
     logic clk;
     logic start;
-    logic [N_mem_addr-1:0] addr;
+    logic [N_mem_addr+$clog2(N_mem_tiles)-1:0] addr;
 
     // instantiate the memory
 
-    oneshot_memory oneshot_memory_i (
+    oneshot_multimemory oneshot_memory_i #(.N_mem_tiles(4)) (
         .clk(clk),
         .rstb(rstb),
         .in_data(in),
