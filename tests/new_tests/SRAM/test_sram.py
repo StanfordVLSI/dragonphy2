@@ -63,3 +63,6 @@ def read_int_array(filename):
         retval += tokens
 
     return retval
+
+if __name__ == "__main__":
+    test_sim()

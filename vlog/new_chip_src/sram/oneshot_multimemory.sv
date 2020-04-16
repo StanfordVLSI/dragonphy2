@@ -1,6 +1,6 @@
 `default_nettype none
 
-module oneshot_memory import const_pack::*; #(
+module oneshot_multimemory import const_pack::*; #(
         parameter integer N_mem_tiles=4
     ) (
     input wire logic clk,
