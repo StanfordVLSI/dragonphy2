@@ -53,7 +53,7 @@
 | disable_ibuf_aux           |         |                        |              | Test         | out      |   1       |
 | disable_ibuf_test0         |         |                        |              | Test         | out      |   1       |
 | disable_ibuf_test1         |         |                        |              | Test         | out      |   1       |
-| en_inbuf                   |         |                        |              | Test         | out      |   0       |
+| en_inbuf                   |         |                        |              | Test         | out      |   1       |
 | bypass_inbuf_div           |         |                        |              | Test         | out      |   1       |
 | bypass_inbuf_div2          |         |                        |              | Test         | out      |   0       |
 | inbuf_ndiv                 |         | 2:0                    |              | Test         | out      |   0       |
