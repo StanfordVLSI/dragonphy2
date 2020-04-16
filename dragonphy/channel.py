@@ -18,21 +18,21 @@ class Filter:
         self.interp = interp1d(t_vec, v_vec, bounds_error=False,
                                fill_value=(v_vec[0], v_vec[-1]))
 
-    def get_step_resp(self, f_sig=1e9, resp_depth=50):
+    def get_step_resp(self, f_sig=1e9, resp_depth=50, t_delay=0):
         # truncate the response depth if needed
         if self.t_vec[-1] < (resp_depth-1)/f_sig:
             resp_depth = int(floor(self.t_vec[-1]*f_sig)) + 1
         # compute times at which step reponse should be evaluated
-        t_step = np.linspace(0, (resp_depth-1)/f_sig, resp_depth)
+        t_step = np.linspace(0, (resp_depth-1)/f_sig, resp_depth) - t_delay
 
         # compute interpolated step response
         v_step = self.interp(t_step)
 
         return t_step, v_step
 
-    def get_pulse_resp(self, f_sig=1e9, resp_depth=50):
+    def get_pulse_resp(self, f_sig=1e9, resp_depth=50, t_delay=0):
         # compute interpolated step response
-        t_step, v_step = self.get_step_resp(f_sig=f_sig, resp_depth=resp_depth+1)
+        t_step, v_step = self.get_step_resp(f_sig=f_sig, resp_depth=resp_depth+1, t_delay=t_delay)
 
         # take first difference to get pulse response
         v_pulse = np.diff(v_step)
@@ -99,13 +99,13 @@ class DelayChannel(Channel):
         self.t_vec = t_vec
         self.v_vec = v_vec
 
-    def get_step_resp(self, f_sig=1e9, resp_depth=None):
+    def get_step_resp(self, f_sig=1e9, resp_depth=None, t_delay=0):
         resp_depth = self.resp_depth if resp_depth is None else resp_depth
-        return super().get_step_resp(f_sig=f_sig, resp_depth=resp_depth)
+        return super().get_step_resp(f_sig=f_sig, resp_depth=resp_depth, t_delay=t_delay)
 
-    def get_pulse_resp(self, f_sig=1e9, resp_depth=None):
+    def get_pulse_resp(self, f_sig=1e9, resp_depth=None, t_delay=0):
         resp_depth = self.resp_depth if resp_depth is None else resp_depth
-        return super().get_pulse_resp(f_sig=f_sig, resp_depth=resp_depth)
+        return super().get_pulse_resp(f_sig=f_sig, resp_depth=resp_depth, t_delay=t_delay)
 
     def compute_output(self, symbols, f_sig=1e9, resp_depth=None):
         resp_depth = self.resp_depth if resp_depth is None else resp_depth 
