@@ -57,7 +57,7 @@ module dragonphy_top import const_pack::*; (
 	input_buffer_inv ibuf_main (
 		.inp(ext_clkp),
 		.inm(ext_clkn),
-		.pd(adbg_intf_i.disable_ibuf_aux),
+		.pd(adbg_intf_i.disable_ibuf_main),
 		.clk(clk_main)
 	);
 
