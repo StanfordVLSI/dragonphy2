@@ -174,7 +174,7 @@ module test;
 			ch_outn = pm.write(v_cm-v_diff/2.0, 0, 0);
 
 			$display("Differential input: %0.3f V", ch_outp.a-ch_outn.a);
-			#(15ns);
+			#(20ns);
 
 			record = 1'b1;
 			#(1ns);
