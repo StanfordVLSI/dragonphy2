@@ -25,7 +25,7 @@ module oneshot_multimemory import const_pack::*; #(
     logic [sys_addr-1:0] write_addr;
 
     logic [$clog2(N_mem_tiles)-1:0] tile_mux;
-    logic [N_mem_addr-1:0] tile_addr [N_mem_tiles-1:0];
+    logic [N_mem_addr-1:0] tile_addr;
 
     logic [N_mem_tiles-1:0] tile_select_decoder [N_mem_tiles-1:0];
     logic [N_mem_tiles-1:0] tile_select;

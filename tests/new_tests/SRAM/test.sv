@@ -12,9 +12,9 @@ module test;
 
     import const_pack::*;
 
-    localparam real freq = 10e9;
+    localparam real freq = 1e9;
     localparam integer N_mem_tiles = 4;
-    localparam integer Nwrite = (2**(N_mem_addr+$clog2(N_mem_tiles)))*4;    // write more data than SRAM can hold
+    localparam integer Nwrite = (2**(N_mem_addr+$clog2(N_mem_tiles)))*2;    // write more data than SRAM can hold
                                                        // to make sure we capture just the beginning
     localparam integer Nread = (2**(N_mem_addr+$clog2(N_mem_tiles)));
     // local signals
@@ -28,11 +28,13 @@ module test;
     logic [N_mem_addr+$clog2(N_mem_tiles)-1:0] addr;
 
     // instantiate the memory
-
-    oneshot_multimemory oneshot_memory_i #(.N_mem_tiles(4)) (
+    initial begin
+        $shm_open("waves.shm"); $shm_probe("AS");
+    end
+    oneshot_multimemory #(.N_mem_tiles(4))  oneshot_memory_i (
         .clk(clk),
         .rstb(rstb),
-        .in_data(in),
+        .in_bytes(in),
         .in_start_write(start),
         .in_addr(addr),
         .out_data(out)
@@ -89,7 +91,7 @@ module test;
 
         start = 1'b0;
         addr = 'd0;
-
+        
         for(int i=0; i<Nti+Nti_rep; i=i+1) begin
             in[i] = $signed($random%(2**Nadc));
         end
@@ -105,13 +107,14 @@ module test;
 
         in_record = 1'b1;
 
+        $display("Writing Memory Tile");
         for (int j=0; j<Nwrite; j=j+1) begin
             for(int i=0; i<Nti+Nti_rep; i=i+1) begin
                 in[i] = $signed($random%(2**Nadc));
             end
             `WAIT(1.0);
         end
-
+        $display("Finished Writing");
         in_record = 1'b0;
 
         // wait a bit so that we're definitely in the WRITE_DONE state

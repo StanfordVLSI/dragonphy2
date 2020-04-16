@@ -20,5 +20,5 @@ package const_pack;
     localparam integer prop_width = 8;
     localparam integer intg_width = 8;
     localparam integer phase_est_shift = 8;
-
+    localparam integer N_mem_width = 18;
 endpackage

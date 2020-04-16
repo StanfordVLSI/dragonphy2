@@ -35,7 +35,8 @@ def test_sim():
         top_module='test',
         inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/new_cpu')],
         defines=defines,
-        simulator=SIMULATOR
+        simulator=SIMULATOR,
+        dump_waveforms=True
     ).run()
 
     # check the results
