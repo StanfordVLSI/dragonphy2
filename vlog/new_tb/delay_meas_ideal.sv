@@ -1,11 +1,8 @@
-
 module delay_meas_ideal (
 	input wire logic ref_in,
 	input wire logic in,
 	output real delay 
 );
-
-	`get_timeunit
 
 	logic start;
 	real t0, t1;
@@ -18,11 +15,11 @@ module delay_meas_ideal (
 	// make sure tdi > tout
 	always @(posedge ref_in) begin
 		start = 1'b1;
-		t0 = `get_time;
+		t0 = ($realtime / 1s);
 	end
 
 	always @(posedge in) begin
-		t1 = `get_time;
+		t1 = ($realtime / 1s);
 		if (start == 1'b1) begin
 			delay = t1- t0;
 		end

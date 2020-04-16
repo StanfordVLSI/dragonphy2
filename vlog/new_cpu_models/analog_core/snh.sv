@@ -79,19 +79,20 @@ pwl_delay_prim i_delay_n (
 
 // wire+switch RC
 
-defparam i_filt_p.filter = 1;    // 1 for 2-pole LPF
-defparam i_filt_n.filter = 1;
-defparam i_filt_p.etol = ETOL_SNH;
-defparam i_filt_n.etol = ETOL_SNH;
-
-pwl_filter_real_w_reset i_filt_p (
+pwl_filter_real_w_reset #(
+    .filter(1), // i.e., 2-pole LPF
+    .etol(ETOL_SNH)
+) i_filt_p (
     .in(in_p_d),
     .out(filt_p),
     .fp1(fp1),
     .fp2(fp2)
 );
 
-pwl_filter_real_w_reset i_filt_n (
+pwl_filter_real_w_reset  #(
+    .filter(1), // i.e., 2-pole LPF
+    .etol(ETOL_SNH)
+) i_filt_n (
     .in(in_n_d),
     .out(filt_n),
     .fp1(fp1),
