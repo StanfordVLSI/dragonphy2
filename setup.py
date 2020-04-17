@@ -32,7 +32,8 @@ requires_list = [
     'matplotlib',
     'sklearn',
     'pygraphviz',
-    'lxml',
+    'html5lib',
+    'BeautifulSoup4',
     'justag==0.0.2.9',
     # general requirements with special versions to prevent
     # warnings that clutter pytest output
