@@ -51,7 +51,7 @@ interface acore_debug_intf import const_pack::*; (
     	logic [4:0] ctl_dcdl_TDC_rep[1:0];					// from JTAG (all 0) x
 		// Input Buffers
         logic disable_ibuf_async;
-        logic disable_ibuf_aux;
+        logic disable_ibuf_main;
         logic disable_ibuf_test0;
         logic disable_ibuf_test1;
 
@@ -64,8 +64,8 @@ interface acore_debug_intf import const_pack::*; (
 		
 		//input clock buffer
 		logic en_inbuf;										// xfrom JTAG (1)
-		logic sel_inbuf_in;									// xfrom JTAG (0)
 		logic bypass_inbuf_div;								// xfrom JTAG (1)
+		logic bypass_inbuf_div2;							// xfrom JTAG (1)
         logic [2:0] inbuf_ndiv;								// xfrom JTAG (0)
         logic en_inbuf_meas;								// xfrom JTAG (0)
 		//biasgen
@@ -150,13 +150,13 @@ interface acore_debug_intf import const_pack::*; (
     	input ctl_dcdl_TDC_rep,
 
         input disable_ibuf_async,
-        input disable_ibuf_aux,
+        input disable_ibuf_main,
         input disable_ibuf_test0,
         input disable_ibuf_test1,
 
 		input en_inbuf,
-        input sel_inbuf_in,
 		input bypass_inbuf_div,
+		input bypass_inbuf_div2,
 		input inbuf_ndiv,
         input en_inbuf_meas,
 		
@@ -241,13 +241,13 @@ interface acore_debug_intf import const_pack::*; (
         output ctl_dcdl_TDC_rep,
         
         output disable_ibuf_async,
-        output disable_ibuf_aux,
+        output disable_ibuf_main,
         output disable_ibuf_test0,
         output disable_ibuf_test1,
 
         output en_inbuf,
-        output sel_inbuf_in,
         output bypass_inbuf_div,
+        output bypass_inbuf_div2,
         output inbuf_ndiv,
         output en_inbuf_meas,
         
