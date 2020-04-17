@@ -177,6 +177,7 @@ module test;
 			$display("Differential input: %0.3f V", ch_outp.a-ch_outn.a);
 			#(15ns);
 
+			$display("ADC outpuy: %d ",top_i.idcore.adcout_unfolded[0]);
 			record = 1'b1;
 			#(1ns);
 			record = 1'b0;
