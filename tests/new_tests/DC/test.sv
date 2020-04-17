@@ -145,13 +145,13 @@ module test;
 
 		// Enable the input buffer
 		$display("Set up the input buffer...");
-		`FORCE_ADBG(en_gf, 1);
-        #(1ns);
-		`FORCE_ADBG(bypass_inbuf_div, 1);
-		#(1ns);
         `FORCE_ADBG(en_inbuf, 0);
         #(1ns);
         `FORCE_ADBG(en_inbuf, 1);
+        #(1ns);
+		`FORCE_ADBG(bypass_inbuf_div, 1);
+		#(1ns);
+		`FORCE_ADBG(en_gf, 1);
         #(1ns);
         `FORCE_ADBG(en_v2t, 1);
         #(1ns);
@@ -174,7 +174,7 @@ module test;
 			ch_outn = pm.write(v_cm-v_diff/2.0, 0, 0);
 
 			$display("Differential input: %0.3f V", ch_outp.a-ch_outn.a);
-			#(20ns);
+			#(15ns);
 
 			record = 1'b1;
 			#(1ns);
