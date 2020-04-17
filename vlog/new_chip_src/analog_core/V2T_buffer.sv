@@ -3,7 +3,7 @@ module V2T_buffer #(parameter Nctl_dcdl_fine = 2) (input clk_in, input clk_div, 
 
 inv_3 iinv_clk_divb (.in(clk_div), .out(clk_divb));
 
-ff clk_div_sampled_reg (.D(clk_div), .CPN(clk_in), .Q(clk_div_sampled), .CDN(CDN), .SDN(SDN));
+ff_cn_sn_rn clk_div_sampled_reg (.D(clk_div), .CPN(clk_in), .Q(clk_div_sampled), .CDN(CDN), .SDN(SDN));
 
 dcdl_fine idcdl_fine1 (.in(clk_div_sampled), .ctl(ctl_dcdl_early), .out(clk_div_sampled_d), .en(1'b1), .disable_state(1'b0));
 dcdl_fine idcdl_fine2 (.in(clk_div_sampled_d), .ctl(ctl_dcdl_late), .out(clk_div_sampled_dd), .en(1'b1), .disable_state(1'b0));

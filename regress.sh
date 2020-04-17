@@ -30,7 +30,7 @@ python make.py --view fpga
 pip install pytest pytest-cov
 
 # run tests
-pytest tests -x -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
+pytest tests -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
 
 # upload coverage
 bash <(curl -s https://codecov.io/bash)
