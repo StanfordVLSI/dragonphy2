@@ -11,14 +11,38 @@ module prbs_generator #(
     // internal variables
     logic [(n_prbs-1):0] data;
 
-    // TODO: update equation for newbit based on n_prbs
-    // this could be done with a generate statement
+    // Set PRBS polynomial
+    // ref: https://www.xilinx.com/support/documentation/application_notes/xapp884_PRBS_GeneratorChecker.pdf
     logic next_bit;
-    assign next_bit = data[6] ^ data[5];
+    generate
+        if (n_prbs == 7) begin
+            assign next_bit = data[6] ^ data[5];
+        end else if (n_prbs == 9) begin
+            assign next_bit = data[8] ^ data[4];
+        end else if (n_prbs == 11) begin
+            assign next_bit = data[10] ^ data[8];
+        end else if (n_prbs == 15) begin
+            assign next_bit = data[14] ^ data[13];
+        end else if (n_prbs == 17) begin
+            assign next_bit = data[16] ^ data[13];
+        end else if (n_prbs == 20) begin
+            assign next_bit = data[19] ^ data[2];
+        end else if (n_prbs == 23) begin
+            assign next_bit = data[22] ^ data[17];
+        end else if (n_prbs == 29) begin
+            assign next_bit = data[28] ^ data[26];
+        end else if (n_prbs == 31) begin
+            assign next_bit = data[30] ^ data[27];
+        end else begin
+            initial begin
+                $error("Invalid value for n_prbs: %0d", n_prbs);
+            end
+        end
+    endgenerate
 
     // shift previous data and append the new bit
     logic [(n_prbs-1):0] next_data;
-    assign next_data = {data[(n_prbs-1):0], next_data};
+    assign next_data = {data[(n_prbs-2):0], next_bit};
 
     // state update
     always @(posedge clk) begin
