@@ -35,8 +35,7 @@ def test_sim():
         top_module='test',
         inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/new_cpu')],
         defines=defines,
-        simulator=SIMULATOR,
-        dump_waveforms=True
+        simulator=SIMULATOR
     ).run()
 
     # check the results
@@ -49,8 +48,7 @@ def check_sram(Nti=18):
 
     # make sure that input is at least as long as output
     assert len(in_) >= len(out), 'Recorded SRAM input should be at least as long as SRAM output.'
-    print(len(in_))
-    print(len(out))
+
     for k, (sram_in, sram_out) in enumerate(zip(in_[:len(out)], out)):
         assert sram_in == sram_out, f'Data mismatch on line {k//Nti}: {sram_in} != {sram_out}.'
 
@@ -65,6 +63,3 @@ def read_int_array(filename):
         retval += tokens
 
     return retval
-
-if __name__ == "__main__":
-    test_sim()
