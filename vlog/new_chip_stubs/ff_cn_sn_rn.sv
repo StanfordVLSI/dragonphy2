@@ -1,8 +1,8 @@
-module ff(
+module ff_cn_sn_rn(
     input D,
     input CPN,
-    output Q,
     input CDN,
-    input SDN
+    input SDN,
+    output Q
 );
 endmodule
