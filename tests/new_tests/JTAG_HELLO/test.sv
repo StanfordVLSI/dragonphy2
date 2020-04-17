@@ -72,8 +72,10 @@ module test;
         // Set up clock as needed for SC
         $display("Setting en_gf...", en_gf);
     	jtag_drv_i.write_tc_reg(en_gf, 1);
-        $display("Clearing bypass_inbuf_div...", bypass_inbuf_div);
-    	jtag_drv_i.write_tc_reg(bypass_inbuf_div, 0);
+        $display("setting bypass_inbuf_div...", bypass_inbuf_div);
+    	jtag_drv_i.write_tc_reg(bypass_inbuf_div, 1);
+    	$display("Disabling input buffer", en_inbuf);
+    	jtag_drv_i.write_tc_reg(en_inbuf, 0);
     	$display("Enabling input buffer", en_inbuf);
     	jtag_drv_i.write_tc_reg(en_inbuf, 1);
 		$display("De-asserting int_rstb.");

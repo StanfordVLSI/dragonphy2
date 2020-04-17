@@ -10,11 +10,7 @@ module analog_core import const_pack::*; #(
     input `pwl_t rx_inp_test,                            // RX input (+) for replica ADC (from pad)
     input `pwl_t rx_inn_test,                            // RX input (-) for replica ADC (from pad)
     
-	input wire logic ext_clkp,                           // (+) 4GHz clock input (from pad)
-    input wire logic ext_clkn,                           // (-) 4GHz clock input (from pad)
-
-	input wire logic ext_clk_aux,                        // aux clock input from secondary input buffer
-	                                                     // (optional/reserved)
+	input wire logic ext_clk,                           // (+) 4GHz clock input (from pad)
 
 	input wire logic ext_clk_test0,                      // (+) 4GHz clock input (from pad)
     input wire logic ext_clk_test1,                      // (-) 4GHz clock input (from pad)
@@ -238,14 +234,12 @@ module analog_core import const_pack::*; #(
     endgenerate
 
     // input clock buffer
-	input_buffer iinbuf (
+	input_divider iindiv (
 	    // inputs
-		.inp(ext_clkp),
-		.inn(ext_clkn),
-		.in_aux(ext_clk_aux),
+		.in(ext_clk),
   		.en(adbg_intf_i.en_inbuf),
-		.sel_in(adbg_intf_i.sel_inbuf_in),
 		.bypass_div(adbg_intf_i.bypass_inbuf_div),
+		.bypass_div2(adbg_intf_i.bypass_inbuf_div2),
 		.ndiv(adbg_intf_i.inbuf_ndiv),
 		.en_meas(adbg_intf_i.en_inbuf_meas),
 	    // outputs
@@ -260,4 +254,3 @@ module analog_core import const_pack::*; #(
     assign adbg_intf_i.del_out_pi = del_out & adbg_intf_i.en_del_out_pi;
 
 endmodule
-

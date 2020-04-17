@@ -67,13 +67,13 @@ module jtag (
 	assign adbg_intf_i.sel_del_out      = rjtag_intf_i.sel_del_out;
 
 	assign adbg_intf_i.disable_ibuf_async = rjtag_intf_i.disable_ibuf_async;
-	assign adbg_intf_i.disable_ibuf_aux   = rjtag_intf_i.disable_ibuf_aux;
+	assign adbg_intf_i.disable_ibuf_main   = rjtag_intf_i.disable_ibuf_main;
 	assign adbg_intf_i.disable_ibuf_test0 = rjtag_intf_i.disable_ibuf_test0;
 	assign adbg_intf_i.disable_ibuf_test1 = rjtag_intf_i.disable_ibuf_test1;
 
 	assign adbg_intf_i.en_inbuf = rjtag_intf_i.en_inbuf;
-	assign adbg_intf_i.sel_inbuf_in = rjtag_intf_i.sel_inbuf_in;
 	assign adbg_intf_i.bypass_inbuf_div = rjtag_intf_i.bypass_inbuf_div;
+	assign adbg_intf_i.bypass_inbuf_div2 = rjtag_intf_i.bypass_inbuf_div2;
 	assign adbg_intf_i.inbuf_ndiv = rjtag_intf_i.inbuf_ndiv;
 	assign adbg_intf_i.en_inbuf_meas = rjtag_intf_i.en_inbuf_meas;
 	assign adbg_intf_i.en_biasgen = rjtag_intf_i.en_biasgen;
