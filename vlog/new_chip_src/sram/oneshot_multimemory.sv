@@ -11,7 +11,7 @@ module oneshot_multimemory import const_pack::*; #(
 
     input wire logic [N_mem_addr + $clog2(N_mem_tiles)-1:0] in_addr,
 
-    output wire logic signed [Nadc-1:0] out_data [N_mem_width-1:0],
+    output logic signed [Nadc-1:0] out_data [N_mem_width-1:0],
     output wire logic [N_mem_addr + $clog2(N_mem_tiles)-1:0] addr
 );
 
@@ -30,6 +30,7 @@ module oneshot_multimemory import const_pack::*; #(
     logic [N_mem_tiles-1:0] tile_select_decoder [N_mem_tiles-1:0];
     logic [N_mem_tiles-1:0] tile_select;
 
+    logic signed [Nadc-1:0] int_out_data [N_mem_width-1:0];
     genvar gk;
     generate
         for(gk=0; gk<N_mem_tiles; gk=gk+1) begin
@@ -37,8 +38,17 @@ module oneshot_multimemory import const_pack::*; #(
         end
     endgenerate
 
+    //always@(posedge clk) begin 
+    //    tile_addr   = (WEB == 1'b0) ? write_addr[N_mem_addr-1:0] : in_addr[N_mem_addr-1:0];
+    //    tile_mux    = (WEB == 1'b0) ? write_addr[sys_addr-1:N_mem_addr] : in_addr[sys_addr-1:N_mem_addr];
+    //end
+
+
     assign tile_addr   = (WEB == 1'b0) ? write_addr[N_mem_addr-1:0] : in_addr[N_mem_addr-1:0];
     assign tile_mux    = (WEB == 1'b0) ? write_addr[sys_addr-1:N_mem_addr] : in_addr[sys_addr-1:N_mem_addr];
+    //always@(posedge clk) begin
+    //    tile_select <= tile_select_decoder[tile_mux];
+    //end
     assign tile_select = tile_select_decoder[tile_mux];
 
     // SRAM data I/O
@@ -47,11 +57,15 @@ module oneshot_multimemory import const_pack::*; #(
     //logic [(N_mem_width)*Nadc-1:0] concat_data_out;
     logic [(N_mem_width)*Nadc-1:0] concat_data_out [N_mem_tiles-1:0];
 
+   // always@(posedge clk) begin
+    assign  out_data = int_out_data;
+   // end
+
     genvar j;
     generate
         for (j=0; j<(N_mem_width); j=j+1) begin
             assign concat_data_in[(j+1)*Nadc-1:j*Nadc] = in_bytes[j];
-            assign out_data[j] = concat_data_out[tile_mux][(j+1)*Nadc-1:j*Nadc];
+            assign int_out_data[j] = concat_data_out[tile_mux][(j+1)*Nadc-1:j*Nadc];
         end
     endgenerate
 
@@ -101,7 +115,7 @@ module oneshot_multimemory import const_pack::*; #(
                 .DAT_BITS((N_mem_width)*Nadc)
             ) sram_i (
                 .CLK(clk),
-                .CEB(tile_select[gi]),
+                .CEB(1'b0),
                 .WEB(tile_select[gi] || WEB),
                 .A(tile_addr),
                 .D(concat_data_in),
