@@ -50,12 +50,12 @@
 | en_pfd_inn_meas            |         |                        |              | Test         | out      |   0       |
 | sel_del_out                |         |                        |              | Test         | out      |   0       |
 | disable_ibuf_async         |         |                        |              | Test         | out      |   1       |
-| disable_ibuf_aux           |         |                        |              | Test         | out      |   1       |
+| disable_ibuf_main          |         |                        |              | Test         | out      |   0       |
 | disable_ibuf_test0         |         |                        |              | Test         | out      |   1       |
 | disable_ibuf_test1         |         |                        |              | Test         | out      |   1       |
-| en_inbuf                   |         |                        |              | Test         | out      |   0       |
-| sel_inbuf_in               |         |                        |              | Test         | out      |   0       |
+| en_inbuf                   |         |                        |              | Test         | out      |   1       |
 | bypass_inbuf_div           |         |                        |              | Test         | out      |   1       |
+| bypass_inbuf_div2          |         |                        |              | Test         | out      |   0       |
 | inbuf_ndiv                 |         | 2:0                    |              | Test         | out      |   0       |
 | en_inbuf_meas              |         |                        |              | Test         | out      |   0       |
 | en_biasgen                 |         | 3:0                    |              | Test         | out      |   1       |

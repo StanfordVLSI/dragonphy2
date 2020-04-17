@@ -74,11 +74,11 @@ module test;
 
 		// Enable the input buffer
 		$display("Setting control signals...");
-		`FORCE_ADBG(en_gf, 1);
+        `FORCE_ADBG(en_inbuf, 0);
         #(1ns);
-		`FORCE_ADBG(bypass_inbuf_div, 0);
-		#(1ns);
         `FORCE_ADBG(en_inbuf, 1);
+        #(1ns);
+		`FORCE_ADBG(en_gf, 1);
         #(1ns);
         `FORCE_DDBG(int_rstb, 1);
         #(1ns);
