@@ -132,6 +132,7 @@ module test;
 	// Main test
 	logic [Nadc-1:0] tmp_ext_pfd_offset [Nti-1:0];
 	initial begin
+		record = 1'b0;
 		// Initialize pins
 		$display("Initializing pins...");
 		jtag_drv_i.init();
