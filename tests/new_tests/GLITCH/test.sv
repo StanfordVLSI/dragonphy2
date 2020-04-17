@@ -87,8 +87,6 @@ module test;
 		#(1ns);
         `FORCE_ADBG(en_inbuf, 1);
 		#(1ns);
-        `FORCE_ADBG(bypass_inbuf_div, 1);
-		#(1ns);
         `FORCE_ADBG(en_v2t, 1);
         #(1ns);
         `FORCE_ADBG(en_gf, 1);

@@ -20,5 +20,6 @@ output out
   n_and in_and_chain_2_dont_touch[2**Nbit-2:0] ( .in1({1'b1,thm_b[2**Nbit-2:1]}), .in2(df), .out(dm) );
   n_and in_and_chain_3_dont_touch[2**Nbit-2:0] ( .in1({1'b1,dr}), .in2(dm), .out({dr,dr0}) );
     
+  inv iinv_dont_touch[2**Nbit-2:0] (.in(thm), .out(thm_b));
 endmodule
 

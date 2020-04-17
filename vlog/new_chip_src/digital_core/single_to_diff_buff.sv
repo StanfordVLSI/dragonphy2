@@ -1,5 +1,5 @@
 
-module singe_to_diff_buff ( OUTN, OUTP, IN );
+module single_to_diff_buff ( OUTN, OUTP, IN );
   input IN;
   output OUTN, OUTP;
   wire   net9, net12, net10;

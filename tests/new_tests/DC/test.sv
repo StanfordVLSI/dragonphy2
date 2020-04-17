@@ -129,17 +129,10 @@ module test;
 		.en(1'b1)
 	);
 
-	integer clk_count;
-	always @(posedge top_i.iacore.clk_interp_sw[0]) begin
-		clk_count = clk_count+1;
-	end
-
 
 	// Main test
 	logic [Nadc-1:0] tmp_ext_pfd_offset [Nti-1:0];
 	initial begin
-		clk_count = 0;
-		record = 1'b0;
 		// Initialize pins
 		$display("Initializing pins...");
 		jtag_drv_i.init();
@@ -157,8 +150,6 @@ module test;
         #(1ns);
         `FORCE_ADBG(en_inbuf, 1);
         #(1ns);
-		`FORCE_ADBG(bypass_inbuf_div, 1);
-		#(1ns);
 		`FORCE_ADBG(en_gf, 1);
         #(1ns);
         `FORCE_ADBG(en_v2t, 1);
@@ -184,7 +175,7 @@ module test;
 			$display("Differential input: %0.3f V", ch_outp.a-ch_outn.a);
 			#(15ns);
 
-			$display("clk_count: %d", clk_count);
+			$display("ADC out: %d",top_i.idcore.adcout_unfolded[0] );
 			record = 1'b1;
 			#(1ns);
 			record = 1'b0;
