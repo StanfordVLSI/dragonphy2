@@ -1,14 +1,17 @@
+`timescale 1s/1ps
+
 module test_prbs_checker_core #(
     parameter integer n_prbs=7,
     parameter integer n_channels=16,
     parameter integer n_shift_bits=$clog2(n_channels)
 ) (
-    input wire logic clk,
     input wire logic rst,
     input wire logic prbs_cke,
-    input wire logic [(n_channels-1):0] rx_bits,
+    input wire logic [7:0] prbs_del,
     input wire logic [(n_shift_bits-1):0] rx_shift,
-    output wire logic match
+    output wire logic match,
+    output reg clk_div,
+    input wire logic clk_bogus
 );
     // assign the initial values for the PRBS generators
     // only valid for n_prbs=7 and n_channels=16
@@ -36,13 +39,72 @@ module test_prbs_checker_core #(
         end
     end
 
+    // fast and slow clock
+    // note that the period of the fast clock is actually "2us" due to a limit in fault
+    logic clk;
+    integer k;
+    always begin
+        for (k = 0; k <= (n_channels-1); k=k+1) begin
+            clk = 1'b0;
+            clk_div = 1'b0;
+            #(1us);
+            clk = 1'b1;
+            if (k == 0) begin
+                clk_div = 1'b1;
+            end else begin
+                clk_div = 1'b0;
+            end
+            #(1us);
+        end
+    end
+
+    // instantiate the PRBS generator
+    logic prbs_out;
+    prbs_generator #(
+        .n_prbs(n_prbs)
+    ) prbs_gen_i (
+        .clk(clk),
+        .rst(rst),
+        .cke(1'b1),
+        .init_val(1),
+        .out(prbs_out)
+    );
+
+    // store up a history of PRBS bits
+    logic [269:0] prbs_mem;
+    always @(posedge clk) begin
+        if (rst == 1'b1) begin
+            prbs_mem <= 0;
+        end else begin
+            prbs_mem <= {prbs_out, prbs_mem[269:1]};
+        end
+    end
+
+    // add current PRBS bit to the history
+    logic [270:0] prbs_concat;
+    assign prbs_concat = {prbs_out, prbs_mem};
+
+    // select a delayed slice of those PRBS bits
+    logic [(n_channels-1):0] rx_bits_imm;
+    logic [(n_channels-1):0] rx_bits;
+
+    assign rx_bits_imm = prbs_concat[(270-prbs_del) -: n_channels];
+
+    always @(posedge clk_div) begin
+        if (rst == 1'b1) begin
+            rx_bits <= 0;
+        end else begin
+            rx_bits <= rx_bits_imm;
+        end
+    end
+
     // instantiate the checker core
     prbs_checker_core #(
         .n_prbs(n_prbs),
         .n_channels(n_channels),
         .n_shift_bits(n_shift_bits)
     ) prbs_checker_core_i (
-        .clk(clk),
+        .clk(clk_div),
         .rst(rst),
         .prbs_cke(prbs_cke),
         .prbs_init_vals(prbs_init_vals),
