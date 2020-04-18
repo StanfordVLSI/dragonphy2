@@ -3,7 +3,7 @@
 module mm_cdr import const_pack::*; #(
     parameter integer prop_width = 8,
     parameter integer intg_width = 8,
-    parameter integer phase_est_shift = 8,
+    parameter integer phase_est_shift = 8
 ) (
     input wire logic signed [Nadc-1:0] din[Nti-1:0],    // adc outputs
 
