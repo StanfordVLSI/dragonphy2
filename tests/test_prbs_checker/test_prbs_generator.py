@@ -58,8 +58,7 @@ def test_sim(n_prbs=7):
         ext_libs=[get_file('vlog/new_chip_src/prbs/prbs_generator.sv')],
         parameters={'n_prbs': n_prbs},
         ext_model_file=True,
-        disp_type='realtime',
-        dump_waveforms=False
+        disp_type='realtime'
     )
 
     # get output values (uncomment lines below to generate balanced, but non-random data)

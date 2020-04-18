@@ -9,27 +9,29 @@ module prbs_checker_core #(
     input wire logic [(n_prbs-1):0] prbs_init_vals [n_channels],
     input wire logic [(n_channels-1):0] rx_bits,
     input wire logic [(n_shift_bits-1):0] rx_shift,
-    output wire logic match
+    output reg match
 );
     // store previous sets of rx_bits
-
-    logic [(n_channels-1):0] rx_bits_prev;
+    logic [(n_channels-1):0] rx_bits_prev_1;
+    logic [(n_channels-1):0] rx_bits_prev_2;
 
     always @(posedge clk) begin
         if (rst == 1'b1) begin
-            rx_bits_prev <= 0;
+            rx_bits_prev_1 <= 0;
+            rx_bits_prev_2 <= 0;
         end else begin
-            rx_bits_prev <= rx_bits;
+            rx_bits_prev_1 <= rx_bits;
+            rx_bits_prev_2 <= rx_bits_prev_1;
         end
     end
 
     // store output bits of the PRBS
-
     logic [(n_channels-1):0] prbs_bits;
 
+    genvar k;
     generate
-        for (genvar k=0; k<n_channels; k=k+1) begin
-            module prbs_generator #(
+        for (k=0; k<n_channels; k=k+1) begin
+            prbs_generator #(
                 .n_prbs(n_prbs)
             ) prbs_gen_i (
                 .clk(clk),
@@ -42,13 +44,33 @@ module prbs_checker_core #(
     endgenerate
 
     // concatenate input bits
-    logic [((2*n_prbs)-1):0] rx_bits_concat;
-    assign rx_bits_concat = {rx_bits, rx_bits_prev};
+    logic [((2*n_channels)-1):0] rx_bits_concat;
+    assign rx_bits_concat = {rx_bits_prev_1, rx_bits_prev_2};
 
     // select input bits based on the user-provided shift
-    logic [(n_prbs-1):0] rx_bits_select;
-    assign rx_bits_select = rx_bits_concat[((2*n_prbs)-1-rx_shift) -: n_prbs];
+    logic [(n_channels-1):0] rx_bits_select_imm;
+    logic [(n_channels-1):0] rx_bits_select;
+
+    assign rx_bits_select_imm = rx_bits_concat[((2*n_channels)-1-rx_shift) -: n_channels];
+
+    always @(posedge clk) begin
+        if (rst == 1'b1) begin
+            rx_bits_select <= 0;
+        end else begin
+            rx_bits_select <= rx_bits_select_imm;
+        end
+    end
 
     // compare the selected bits against the prbs output
-    assign match = (rx_bits_shifted == prbs_bits);
+    logic match_imm;
+
+    assign match_imm = (rx_bits_select == prbs_bits);
+
+    always @(posedge clk) begin
+        if (rst == 1'b1) begin
+            match <= 0;
+        end else begin
+            match <= match_imm;
+        end
+    end
 endmodule
