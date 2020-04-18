@@ -21,83 +21,50 @@ elif 'FPGA_SERVER' in os.environ:
 else:
     SIMULATOR = 'ncsim'
 
-class PRBS:
-    def __init__(self, val):
-        self.val = val
-
-    def get_next(self):
-        out = (self.val >> 6) & 1
-        newbit = ((self.val >> 6) ^ (self.val >> 5)) & 1
-        self.val = ((self.val << 1) | newbit) & 0x7f
-        return out
-
-    def get_seq(self, num):
-        return [self.get_next() for _ in range(num)]
-
-def bv2int(bv):
-    # msb first, lsb last
-    retval = 0
-    for k, bit in enumerate(bv):
-        retval |= bit << (len(bv) - 1 - k)
-    return retval
-
 if SIMULATOR == 'vivado':
     pytest_params = [pytest.param(0, marks=pytest.mark.slow)]
 else:
-    pytest_params = [elem for elem in range(32)]
+    pytest_params = [k for k in range(32)]
 @pytest.mark.parametrize('n_delay', pytest_params)
 def test_sim(n_delay, n_prbs=7, n_channels=16, n_shift_bits=4):
     # declare circuit
     class dut(m.Circuit):
         name = 'test_prbs_checker_core'
         io = m.IO(
-            clk=m.ClockIn,
+            clk_bogus=m.ClockIn,  # need to have clock signal in order to wait on posedges (possible fault bug?)
+            clk_div=m.BitOut,
             rst=m.BitIn,
             prbs_cke=m.BitIn,
-            rx_bits=m.In(m.Bits[n_channels]),
+            prbs_del=m.In(m.Bits[8]),
             rx_shift=m.In(m.Bits[n_shift_bits]),
             match=m.BitOut
         )
 
     # create tester
-    t = fault.Tester(dut, dut.clk)
-
-    # create PRBS generator
-    prbs = PRBS(1)
-
-    # initialize with given delay
-    for _ in range((1<<n_prbs) - 1 - n_delay):
-        prbs.get_next()
-
-    # convenient function to get a block of values
-    def get_next_block():
-        retval = prbs.get_seq(n_channels)
-        retval = retval[::-1]
-        return bv2int(retval)
+    t = fault.Tester(dut, dut.clk_bogus)
 
     # compute delay strategy
-    n_delay_tot = n_delay + 2*n_channels
+    n_delay_tot = n_delay + 3*n_channels
     n_cyc_cke_0 = int(ceil(n_delay_tot / n_channels))
+    print(n_cyc_cke_0)
 
     # initialize with given delay
-    t.poke(dut.clk, 0)
     t.poke(dut.rst, 1)
     t.poke(dut.prbs_cke, 0)
-    t.poke(dut.rx_bits, get_next_block())
+    t.poke(dut.prbs_del, n_delay)
     t.poke(dut.rx_shift, n_cyc_cke_0*n_channels - n_delay_tot)
-    t.step(2)
+    t.wait_until_posedge(dut.clk_div)
 
-    # stall PRBS generator for two cycles to account for lag in input
+    # stall PRBS generator to account for lag in input
     t.poke(dut.rst, 0)
     for _ in range(n_cyc_cke_0):
-        t.step(2)
-        t.poke(dut.rx_bits, get_next_block())
+        t.wait_until_posedge(dut.clk_div)
 
     # release PRBS generator from stall
     t.poke(dut.prbs_cke, 1)
     for k in range((1<<n_prbs)-1):
-        t.step(2)
-        t.poke(dut.rx_bits, get_next_block())
+        t.wait_until_posedge(dut.clk_div)
+        t.eval()  # need to eval because the "match" output is available right after the clock edge
         t.expect(dut.match, 1)
 
     # run the test
