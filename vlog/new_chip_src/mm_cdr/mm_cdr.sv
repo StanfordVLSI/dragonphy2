@@ -1,9 +1,9 @@
 `default_nettype none
 
 module mm_cdr import const_pack::*; #(
-    parameter integer prop_width = 8,
-    parameter integer intg_width = 8,
-    parameter integer phase_est_shift = 8,
+    parameter integer prop_width = 6,
+    parameter integer intg_width = 6,
+    parameter integer phase_est_shift = 6
 ) (
     input wire logic signed [Nadc-1:0] din[Nti-1:0],    // adc outputs
 
@@ -20,8 +20,8 @@ module mm_cdr import const_pack::*; #(
     typedef enum  logic [1:0] {SAMPLE, WAIT, READY} sampler_state_t;
     sampler_state_t sampler_state;
 
-    logic signed [prop_width-1:0] Kp = cdbg_intf_i.proportional_gain;
-    logic signed [intg_width-1:0] Ki = cdbg_intf_i.integral_gain;
+    logic signed [prop_width-1:0] Kp = cdbg_intf_i.Kp;
+    logic signed [intg_width-1:0] Ki = cdbg_intf_i.Ki;
 
     logic signed [Nadc+1:0] phase_error;
     logic signed [Nadc+1+phase_est_shift:0] phase_est_d, phase_est_q, freq_est_d, freq_est_q;
@@ -38,13 +38,13 @@ module mm_cdr import const_pack::*; #(
     );
 
     always @* begin
-        freq_est_update  = freq_est_q + Ki*phase_error;
+        freq_est_update  = freq_est_q + (phase_error << Ki);
         freq_est_d       = cdbg_intf_i.en_freq_est ? freq_est_update : 0;
-        phase_est_d      = phase_est_q + Kp*phase_error + freq_est_q;
+        phase_est_d      = phase_est_q + (phase_error << Kp) + freq_est_q;
         phase_est_out    = phase_est_q >> phase_est_shift;
     end
 
-    always_ff @(posedge clk or negedge ext_rstb) 
+    always_ff @(posedge clk or negedge ext_rstb) begin 
         if(~ext_rstb) begin
             phase_est_q <= 0;
             freq_est_q  <= 0;
