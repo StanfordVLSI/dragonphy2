@@ -1,22 +1,21 @@
 `timescale 1s/1ps
 
-module test_prbs_checker_core #(
+module test_prbs_checker #(
     parameter integer n_prbs=7,
     parameter integer n_channels=16,
-    parameter integer n_shift_bits=$clog2(n_channels),
-    parameter integer n_match_bits=$clog2(n_channels)+1
+    parameter integer n_shift_bits=$clog2(n_channels)
 ) (
-    // checker core inputs
+    // checker inputs
     input wire logic rst,
-    input wire logic prbs_cke,
-    // stimulus inputs
+    input wire logic [1:0] checker_mode,
+    // stimulus configuration
     input wire logic [(n_prbs-1):0] prbs_init,
     input wire logic [7:0] prbs_del,
-    input wire logic [(n_shift_bits-1):0] rx_shift,
     // outputs
-    output wire logic match,
-    output wire logic [(n_match_bits-1):0] match_bits,
     output reg clk_div,
+    output wire logic [63:0] total_bits,
+    output wire logic [63:0] correct_bits,
+    output wire logic [(n_shift_bits-1):0] rx_shift,
     // bogus input needed for fault
     input wire logic clk_bogus
 );
@@ -105,19 +104,19 @@ module test_prbs_checker_core #(
         end
     end
 
-    // instantiate the checker core
-    prbs_checker_core #(
+    // instantiate the checker
+    prbs_checker #(
         .n_prbs(n_prbs),
         .n_channels(n_channels),
         .n_shift_bits(n_shift_bits)
-    ) prbs_checker_core_i (
+    ) prbs_checker_i (
         .clk(clk_div),
         .rst(rst),
-        .prbs_cke(prbs_cke),
         .prbs_init_vals(prbs_init_vals),
         .rx_bits(rx_bits),
-        .rx_shift(rx_shift),
-        .match(match),
-        .match_bits(match_bits)
+        .checker_mode(checker_mode),
+        .correct_bits(correct_bits),
+        .total_bits(total_bits),
+        .rx_shift(rx_shift)
     );
 endmodule
