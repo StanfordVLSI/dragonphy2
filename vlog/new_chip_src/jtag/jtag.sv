@@ -96,8 +96,8 @@ module jtag (
 	assign rjtag_intf_i.pm_out_rep = adbg_intf_i.pm_out_rep;
 
 	//Digital Input
-	assign ddbg_intf_i.ext_pi_ctl_offset =rjtag_intf_i.ext_pi_ctl_offset;
-	assign ddbg_intf_i.en_ext_pfd_offset=rjtag_intf_i.en_ext_pfd_offset;
+	assign ddbg_intf_i.ext_pi_ctl_offset = rjtag_intf_i.ext_pi_ctl_offset;
+	assign ddbg_intf_i.en_ext_pfd_offset = rjtag_intf_i.en_ext_pfd_offset;
 	assign ddbg_intf_i.ext_pfd_offset=rjtag_intf_i.ext_pfd_offset;
 	assign ddbg_intf_i.en_ext_pfd_offset_rep=rjtag_intf_i.en_ext_pfd_offset_rep;
 	assign ddbg_intf_i.ext_pfd_offset_rep=rjtag_intf_i.ext_pfd_offset_rep;
@@ -149,6 +149,7 @@ module jtag (
 	assign cdbg_intf_i.Ki    = rjtag_intf_i.Ki;
 	assign cdbg_intf_i.Kp 	 = rjtag_intf_i.Kp;
 	assign cdbg_intf_i.en_ext_pi_ctl = rjtag_intf_i.en_ext_pi_ctl;
+	assign cdbg_intf_i.ext_pi_ctl = rjtag_intf_i.ext_pi_ctl;
 	assign cdbg_intf_i.en_freq_est   = rjtag_intf_i.en_freq_est;
 	assign cdbg_intf_i.sample_state = rjtag_intf_i.sample_state;
 
