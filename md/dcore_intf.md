@@ -1,6 +1,6 @@
 | Name                       | Signed? | Packed Dim             | Unpacked Dim     | Clock Domain | JTAG Dir | Reset Val |
 |----------------------------|---------|------------------------|------------------|--------------|----------|-----------|
-| ext_pi_ctl_offset          |         | Npi-1:0                | Nout-1:0         | Test         | out      | 0&135&270&405|
+| ext_pi_ctl_offset          |         | Npi-1:0                | Nout-1:0         | Test         | out      | 0&65&135&200|
 | en_ext_pfd_offset          |         |                        |                  | Test         | out      | 'b1       |
 | ext_pfd_offset             |         | Nadc-1:0               | Nti-1:0          | Test         | out      | 'd47      |
 | en_ext_pfd_offset_rep      |         |                        |                  | Test         | out      | 'b1       |
