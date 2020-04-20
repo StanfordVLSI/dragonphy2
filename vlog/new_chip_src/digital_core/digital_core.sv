@@ -152,7 +152,6 @@ module digital_core import const_pack::*; (
 
     mm_cdr iMM_CDR (
         .din(adcout_unfolded[Nti-1:0]),
-        .pi_ctl_ext(ddbg_intf_i.ext_pi_ctl_cdr),
         .clk(clk_adc),
         .ext_rstb(cdr_rstb),
         .pi_ctl(pi_ctl_cdr),
