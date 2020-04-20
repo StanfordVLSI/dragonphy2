@@ -26,7 +26,7 @@ if SIMULATOR == 'vivado':
 else:
     pytest_params = [k for k in range(32)]
 @pytest.mark.parametrize('n_delay', pytest_params)
-def test_sim(n_delay, n_prbs=7, n_channels=16, n_shift_bits=4):
+def test_sim(n_delay, n_prbs=7, n_channels=16, n_shift_bits=4, n_match_bits=5):
     # declare circuit
     class dut(m.Circuit):
         name = 'test_prbs_checker_core'
@@ -35,9 +35,11 @@ def test_sim(n_delay, n_prbs=7, n_channels=16, n_shift_bits=4):
             clk_div=m.BitOut,
             rst=m.BitIn,
             prbs_cke=m.BitIn,
+            prbs_init=m.In(m.Bits[n_prbs]),
             prbs_del=m.In(m.Bits[8]),
             rx_shift=m.In(m.Bits[n_shift_bits]),
-            match=m.BitOut
+            match=m.BitOut,
+            match_bits=m.Out(m.Bits[n_match_bits])
         )
 
     # create tester
@@ -51,6 +53,7 @@ def test_sim(n_delay, n_prbs=7, n_channels=16, n_shift_bits=4):
     # initialize with given delay
     t.poke(dut.rst, 1)
     t.poke(dut.prbs_cke, 0)
+    t.poke(dut.prbs_init, 1)
     t.poke(dut.prbs_del, n_delay)
     t.poke(dut.rx_shift, n_cyc_cke_0*n_channels - n_delay_tot)
     t.wait_until_posedge(dut.clk_div)
@@ -66,6 +69,7 @@ def test_sim(n_delay, n_prbs=7, n_channels=16, n_shift_bits=4):
         t.wait_until_posedge(dut.clk_div)
         t.eval()  # need to eval because the "match" output is available right after the clock edge
         t.expect(dut.match, 1)
+        t.expect(dut.match_bits, n_channels)
 
     # run the test
     t.compile_and_run(
@@ -76,7 +80,12 @@ def test_sim(n_delay, n_prbs=7, n_channels=16, n_shift_bits=4):
             get_file('vlog/new_chip_src/prbs/prbs_checker_core.sv'),
             THIS_DIR / 'test_prbs_checker_core.sv'
         ],
-        parameters={'n_prbs': n_prbs, 'n_channels': n_channels, 'n_shift_bits': n_shift_bits},
+        parameters={
+            'n_prbs': n_prbs,
+            'n_channels': n_channels,
+            'n_shift_bits': n_shift_bits,
+            'n_match_bits': n_match_bits
+        },
         ext_model_file=True,
         disp_type='realtime',
         dump_waveforms=False
