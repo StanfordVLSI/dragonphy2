@@ -8,6 +8,7 @@ interface cdr_debug_intf;
 	logic signed [Nadc+1+phase_est_shift:0] Ki;
 	logic signed [Nadc+1+phase_est_shift:0] Kp;
 	logic en_ext_pi_ctl;
+	logic signed [Npi-1:0] ext_pi_ctl;
 	logic en_freq_est;
 	logic signed [Npi+1+phase_est_shift:0] phase_est;
     logic signed [Npi+1+phase_est_shift:0] freq_est;
@@ -18,6 +19,7 @@ interface cdr_debug_intf;
 	 input  Ki,
 	 input  Kp,
 	 input en_ext_pi_ctl,
+	 input ext_pi_ctl,
 	 input en_freq_est,
 	 output phase_est,
 	 output freq_est,
@@ -29,6 +31,7 @@ interface cdr_debug_intf;
 	 output Ki,
 	 output Kp,
 	 output en_ext_pi_ctl,
+	 output ext_pi_ctl,
 	 output en_freq_est,
 	 input phase_est,
      input freq_est,
