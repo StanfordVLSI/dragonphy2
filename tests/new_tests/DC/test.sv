@@ -34,6 +34,11 @@ module test;
 
 	logic rstb;
 
+    //outputs for debugging
+    initial begin
+        $shm_open("waves.shm"); $shm_probe("ACT");
+    end
+
 	// JTAG driver
 
 	jtag_intf jtag_intf_i ();
