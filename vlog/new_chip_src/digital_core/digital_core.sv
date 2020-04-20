@@ -51,7 +51,7 @@ module digital_core import const_pack::*; (
     assign cdr_rstb         = ddbg_intf_i.cdr_rstb  && ext_rstb;
     //assign adbg_intf_i.rstb = rstb;
 
-    assign clk_cdr = clk_cdr_in;
+    assign clk_cdr = clk_adc;
 
     assign buffered_signals[0]  = clk_adc;
     assign buffered_signals[1]  = adbg_intf_i.del_out_pi;
