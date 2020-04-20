@@ -11,7 +11,7 @@ module prbs_checker #(
     // initial values for LFSRs used in PRBS
     // these have to be picked in a certain way
     // to ensure the right phase relationship
-    input wire logic [(n_prbs-1):0] prbs_init_vals [n_channels],
+    input wire logic [(n_prbs-1):0] prbs_init_vals [(n_channels-1):0],
 
     // recovered data from ADC, FFE, MLSD, etc.
     input wire logic [(n_channels-1):0] rx_bits,
