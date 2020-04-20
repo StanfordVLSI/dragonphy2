@@ -7,7 +7,7 @@ module prbs_checker_core #(
     input wire logic clk,
     input wire logic rst,
     input wire logic prbs_cke,
-    input wire logic [(n_prbs-1):0] prbs_init_vals [n_channels],
+    input wire logic [(n_prbs-1):0] prbs_init_vals [(n_channels-1):0],
     input wire logic [(n_channels-1):0] rx_bits,
     input wire logic [(n_shift_bits-1):0] rx_shift,
     output reg [(n_match_bits-1):0] match_bits,
