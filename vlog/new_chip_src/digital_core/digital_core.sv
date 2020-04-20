@@ -151,13 +151,10 @@ module digital_core import const_pack::*; (
     // CDR
 
     mm_cdr iMM_CDR (
-        .clk_data(clk_adc),
-        .clk_cdr(clk_cdr_in),
         .din(adcout_unfolded[Nti-1:0]),
-        .ext_rstb(cdr_rstb),
-        .sel_ext(ddbg_intf_i.en_ext_pi_ctl_cdr),
         .pi_ctl_ext(ddbg_intf_i.ext_pi_ctl_cdr),
-        .Nlog_sample(ddbg_intf_i.Ndiv_clk_cdr),
+        .clk(clk_adc),
+        .ext_rstb(cdr_rstb),
         .pi_ctl(pi_ctl_cdr),
         .cdbg_intf_i(cdbg_intf_i)
     );
