@@ -9,8 +9,9 @@ interface cdr_debug_intf;
 	logic signed [Nadc+1+phase_est_shift:0] Kp;
 	logic en_ext_pi_ctl;
 	logic en_freq_est;
-	logic signed [Npi-1:0] phase_out;
-	logic sample_phase_out;
+	logic signed [Npi+1+phase_est_shift:0] phase_est;
+    logic signed [Npi+1+phase_est_shift:0] freq_est;
+	logic sample_state;
 
 	modport cdr (
 	 input  pd_offset_ext,
@@ -18,8 +19,9 @@ interface cdr_debug_intf;
 	 input  Kp,
 	 input en_ext_pi_ctl,
 	 input en_freq_est,
-	 output phase_out,
-	 input sample_phase_out
+	 output phase_est,
+	 output freq_est,
+	 input sample_state
 	);
 
 	modport jtag (
@@ -28,8 +30,9 @@ interface cdr_debug_intf;
 	 output Kp,
 	 output en_ext_pi_ctl,
 	 output en_freq_est,
-	 input phase_out,
-	 output sample_phase_out
+	 input phase_est,
+     input freq_est,
+	 output sample_state
 	);
 
 endinterface
