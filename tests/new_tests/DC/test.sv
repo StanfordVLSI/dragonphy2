@@ -138,7 +138,7 @@ module test;
 	// Main test
 	logic [Nadc-1:0] tmp_ext_pfd_offset [Nti-1:0];
 	initial begin
-        rstb = 1'b1;
+        rstb = 1'b0;
 
         #(10ns);
 		// Initialize pins
