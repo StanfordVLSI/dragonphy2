@@ -189,6 +189,8 @@ module dsp_backend (
 		.estBitwidth (mlsd_gpack::estimate_precision),
 		.codeBitwidth(mlsd_gpack::code_precision),
 		.numChannels (mlsd_gpack::width),
+		.nbit(1),
+		.cbit(0),
 		.bufferDepth (cmp_pipeline_depth),
 		.centerBuffer(mlsd_bit_centerBuffer)
 	) comb_pt_cg_i (
@@ -197,7 +199,6 @@ module dsp_backend (
 
 		.est_seq_out(est_seq)
 	);
-
 
 	wire logic   	  [mlsd_gpack::code_precision-1:0] flat_ucodes_mlsd [mlsd_gpack::width*mlsd_code_pipeline_depth-1:0];
 	flatten_buffer_slice #(
@@ -225,7 +226,9 @@ module dsp_backend (
 		.shiftWidth  (mlsd_gpack::shift_precision),
 		.numChannels(constant_gpack::channel_width),
 		.bufferDepth (mlsd_code_pipeline_depth),
-		.centerBuffer(mlsd_code_centerBuffer)
+		.centerBuffer(mlsd_code_centerBuffer),
+		.nbit(1),
+		.cbit(0)
 	) comb_mlsd_dec_i (
 		.flat_codes  (flat_codes_mlsd),
 		.est_seq     (est_seq),
