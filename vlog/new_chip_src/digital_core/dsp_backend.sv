@@ -35,7 +35,7 @@ module dsp_backend (
 	wire logic [constant_gpack::code_precision-1:0] ucodes_buffer  [constant_gpack::channel_width-1:0][code_pipeline_depth-1:0];
 
 	wire logic 					  cmp_out_buffer [constant_gpack::channel_width-1:0][cmp_pipeline_depth-1:0];
-	wire logic 					  pb_buffer      [constant_gpack::channel_width-1:0][0:0];
+	wire logic 					  pb_buffer      [constant_gpack::channel_width-1:0][2**nbit-1:0];
 	
     logic signed [ffe_gpack::weight_precision-1:0] weights [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0];
     logic signed [mlsd_gpack::estimate_precision-1:0]    channel_est [constant_gpack::channel_width-1:0][mlsd_gpack::estimate_depth-1:0];
@@ -262,7 +262,7 @@ module dsp_backend (
 	);
 	generate
 		for(gi=0; gi<mlsd_gpack::width; gi=gi+1) begin
-			assign checked_bits[gi] = pb_buffer[gi][0:0];
+			assign checked_bits[gi] = pb_buffer[gi][0];
 		end
 	endgenerate
 
