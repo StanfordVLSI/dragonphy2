@@ -4,7 +4,7 @@ module dsp_backend (
 	input logic clk,
 	input logic rstb,
 
-	output logic signed [constant_gpack::code_precision-1:0] estimated_bits [constant_gpack::channel_width-1:0],
+	output logic signed [ffe_gpack::output_precision-1:0] estimated_bits [constant_gpack::channel_width-1:0],
 	output logic [mlsd_gpack::bit_length-1:0] checked_bits [constant_gpack::channel_width-1:0],
 
 	dsp_debug_intf.dsp dsp_dbg_intf_i
@@ -131,11 +131,11 @@ module dsp_backend (
 	);
 
 	//If the buffer is smaller than size 1, pass through
-	wire logic signed [constant_gpack::code_precision-1:0] estimated_bits_q [constant_gpack::channel_width-1:0];
+	wire logic signed [ffe_gpack::output_precision-1:0] estimated_bits_q [constant_gpack::channel_width-1:0];
 
 	generate
 		if(ffe_pipeline_depth > 0) begin
-			wire logic [constant_gpack::code_precision-1:0] estimated_ubits [constant_gpack::channel_width-1:0];
+			wire logic [ffe_gpack::output_precision-1:0] estimated_ubits [constant_gpack::channel_width-1:0];
 			wire logic [ffe_gpack::output_precision-1:0] estimated_bits_buffer [constant_gpack::channel_width-1:0][ffe_pipeline_depth-1:0];
 			buffer #(
 				.numChannels(constant_gpack::channel_width),
