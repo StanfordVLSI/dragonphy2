@@ -42,7 +42,7 @@ module dsp_backend (
     logic signed [cmp_gpack::thresh_precision-1:0] thresh [constant_gpack::channel_width-1:0];
     logic [ffe_gpack::shift_precision-1:0] ffe_shift [constant_gpack::channel_width-1:0];
     logic [mlsd_gpack::shift_precision-1:0] mlsd_shift [constant_gpack::channel_width-1:0]; 
-    logic disable_product [constant_gpack::channel_width-1:0][ffe_gpack::length-1:0];
+    logic disable_product [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0];
 
     always_ff @(posedge clk or negedge rstb) begin
         integer ii, jj;
@@ -56,7 +56,7 @@ module dsp_backend (
                 end
                 for(jj=0; jj<ffe_gpack::length; jj=jj+1) begin
             	    weights[jj][ii] <= 0;
-            	    disable_product[ii][jj] <=0;
+            	    disable_product[jj][ii] <=0;
                 end
 
             end
@@ -135,20 +135,24 @@ module dsp_backend (
 
 	generate
 		if(ffe_pipeline_depth > 0) begin
-			wire logic [ffe_gpack::output_precision-1:0] estimated_bits_buffer [constant_gpack::channel_width-1:0][ffe_code_pipeline_depth-1:0];
+			wire logic [constant_gpack::code_precision-1:0] estimated_ubits [constant_gpack::channel_width-1:0];
+			wire logic [ffe_gpack::output_precision-1:0] estimated_bits_buffer [constant_gpack::channel_width-1:0][ffe_pipeline_depth-1:0];
 			buffer #(
 				.numChannels(constant_gpack::channel_width),
 				.bitwidth   (ffe_gpack::output_precision),
 				.depth      (ffe_pipeline_depth)
 			) ffe_reg_i (
-				.in (estimated_bits),
+				.in (estimated_ubits),
 				.clk(clk),
 				.rstb(rstb),
 				.buffer(estimated_bits_buffer)
 			);
 			for(gi=0; gi<constant_gpack::channel_width; gi=gi+1) begin
-				assign estimated_bits_q[gi] = estimated_bits_buffer[gi][ffe_pipeline_depth-1];
+				assign estimated_bits_q[gi] = $signed(estimated_bits_buffer[gi][ffe_pipeline_depth-1]);
+				assign estimated_ubits[gi] = $unsigned(estimated_bits[gi]);
 			end
+
+
 		end else begin
 			for(gi=0; gi<constant_gpack::channel_width; gi=gi+1) begin
 				assign estimated_bits_q[gi] = estimated_bits[gi];
