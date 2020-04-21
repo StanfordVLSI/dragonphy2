@@ -176,7 +176,7 @@ module digital_core import const_pack::*; (
 
     dsp_backend dsp_i(
         .codes(adcout_unfolded),
-        .clk(clk),
+        .clk(clk_adc),
         .rstb(rstb),
         .estimated_bits(estimated_bits),
         .checked_bits(checked_bits),
