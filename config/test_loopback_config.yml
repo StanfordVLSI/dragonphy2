@@ -8,7 +8,9 @@ parameter_list:
   - &estimate_precision 8
   - &sequence_length 5
   - &decision_shift_precision 4
-  - &ffe_shift_precision 4
+  - &ffe_shift_precision 5
+  - &mlsd_bit_length 1
+  - &mlsd_est_cursor_pos 0
 
 generic:
   parameters:
