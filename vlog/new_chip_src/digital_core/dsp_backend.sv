@@ -37,8 +37,8 @@ module dsp_backend (
 	wire logic 					  cmp_out_buffer [constant_gpack::channel_width-1:0][cmp_pipeline_depth-1:0];
 	wire logic 					  pb_buffer      [constant_gpack::channel_width-1:0][0:0];
 	
-    logic [ffe_gpack::weight_precision-1:0] weights [constant_gpack::channel_width-1:0][ffe_gpack::length-1:0];
-    logic [mlsd_gpack::estimate_precision-1:0]    channel_est [constant_gpack::channel_width-1:0][mlsd_gpack::estimate_depth-1:0];
+    logic signed [ffe_gpack::weight_precision-1:0] weights [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0];
+    logic signed [mlsd_gpack::estimate_precision-1:0]    channel_est [constant_gpack::channel_width-1:0][mlsd_gpack::estimate_depth-1:0];
     logic [cmp_gpack::thresh_precision-1:0] thresh [constant_gpack::channel_width-1:0];
     logic [ffe_gpack::shift_precision-1:0] ffe_shift [constant_gpack::channel_width-1:0];
     logic [mlsd_gpack::shift_precision-1:0] mlsd_shift [constant_gpack::channel_width-1:0]; 
@@ -55,7 +55,7 @@ module dsp_backend (
                     channel_est[ii][jj] <= 0;
                 end
                 for(jj=0; jj<ffe_gpack::length; jj=jj+1) begin
-            	    weights[ii][jj] <= 0;
+            	    weights[jj][ii] <= 0;
             	    disable_product[ii][jj] <=0;
                 end
 
@@ -70,7 +70,7 @@ module dsp_backend (
                 end
 
                 for(jj=0; jj<ffe_gpack::length; jj=jj+1) begin
-                	weights[ii][jj] <= (dsp_dbg_intf_i.update_weights[ii][jj]) ? (dsp_dbg_intf_i.new_weights[ii][jj]) : weights[ii][jj];
+                	weights[jj][ii] <= (dsp_dbg_intf_i.update_weights[jj][ii]) ? (dsp_dbg_intf_i.new_weights[jj][ii]) : weights[jj][ii];
                 end
             end
         end
@@ -158,7 +158,7 @@ module dsp_backend (
 
 
 	comb_comp #(
-		.numChannels(constant_gpack::channel_width),
+		.numChannels(cmp_gpack::channel_width),
 		.inputBitwidth(cmp_gpack::input_precision),
 		.thresholdBitwidth (cmp_gpack::thresh_precision),
 		.confidenceBitwidth(cmp_gpack::conf_precision)
