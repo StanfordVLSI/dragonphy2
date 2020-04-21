@@ -22,7 +22,7 @@ module dsp_backend (
 	localparam integer mlsd_code_centerBuffer     = 0;
 
 	localparam integer ffe_pipeline_depth         = 1;
-	localparam integer ffe_code_pipeline_depth    = ffe_code_numPastBuffer + ffe_code_numFutureBuffers + 1 
+	localparam integer ffe_code_pipeline_depth    = ffe_code_numPastBuffer + ffe_code_numFutureBuffers + 1;
 	localparam integer cmp_pipeline_depth         = mlsd_bit_numPastBuffers + mlsd_bit_numFutureBuffers + 1;
 	localparam integer code_pipeline_depth        = ffe_code_pipeline_depth + ffe_pipeline_depth + cmp_pipeline_depth;
 	localparam integer mlsd_code_pipeline_depth   = mlsd_code_numPastBuffers + mlsd_code_numFutureBuffers + 1;
