@@ -5,7 +5,7 @@ module dsp_backend (
 	input logic rstb,
 
 	output logic signed [constant_gpack::code_precision-1:0] estimated_bits [constant_gpack::channel_width-1:0],
-	output logic checked_bits [constant_gpack::channel_width-1:0],
+	output logic [mlsd_gpack::bit_length-1:0] checked_bits [constant_gpack::channel_width-1:0],
 
 	dsp_debug_intf.dsp dsp_dbg_intf_i
 );
@@ -35,7 +35,7 @@ module dsp_backend (
 	wire logic [constant_gpack::code_precision-1:0] ucodes_buffer  [constant_gpack::channel_width-1:0][code_pipeline_depth-1:0];
 
 	wire logic 					  cmp_out_buffer [constant_gpack::channel_width-1:0][cmp_pipeline_depth-1:0];
-	wire logic 					  pb_buffer      [constant_gpack::channel_width-1:0][0:0];
+	wire logic [mlsd_gpack::bit_length-1:0] pb_buffer      [constant_gpack::channel_width-1:0][0:0];
 	
     logic signed [ffe_gpack::weight_precision-1:0] weights [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0];
     logic signed [mlsd_gpack::estimate_precision-1:0]    channel_est [constant_gpack::channel_width-1:0][mlsd_gpack::estimate_depth-1:0];
@@ -196,15 +196,15 @@ module dsp_backend (
 		.flat_buffer(flat_bits)
 	);
 
-	logic signed [mlsd_gpack::code_precision-1:0] est_seq [1:0][constant_gpack::channel_width-1:0][mlsd_gpack::length-1:0];
+	logic signed [mlsd_gpack::code_precision-1:0] est_seq [2**mlsd_gpack::bit_length-1:0][constant_gpack::channel_width-1:0][mlsd_gpack::length-1:0];
 	comb_potential_codes_gen #(
 		.seqLength   (mlsd_gpack::length),
 		.estDepth    (mlsd_gpack::estimate_depth),
 		.estBitwidth (mlsd_gpack::estimate_precision),
 		.codeBitwidth(mlsd_gpack::code_precision),
 		.numChannels (mlsd_gpack::width),
-		.nbit(1),
-		.cbit(0),
+		.nbit(mlsd_gpack::bit_length),
+		.cbit(mlsd_gpack::est_center),
 		.bufferDepth (cmp_pipeline_depth),
 		.centerBuffer(mlsd_bit_centerBuffer)
 	) comb_pt_cg_i (
@@ -233,7 +233,7 @@ module dsp_backend (
 		end
 	endgenerate
 
-	wire logic predict_bits [mlsd_gpack::width-1:0];
+	wire logic [mlsd_gpack::bit_length-1:0] predict_bits [mlsd_gpack::width-1:0];
 	comb_mlsd_decision #(
 		.seqLength(mlsd_gpack::length),
 		.codeBitwidth(mlsd_gpack::code_precision),
@@ -241,8 +241,8 @@ module dsp_backend (
 		.numChannels(constant_gpack::channel_width),
 		.bufferDepth (mlsd_code_pipeline_depth),
 		.centerBuffer(mlsd_code_centerBuffer),
-		.nbit(1),
-		.cbit(0)
+		.nbit(mlsd_gpack::bit_length),
+		.cbit(mlsd_gpack::est_center)
 	) comb_mlsd_dec_i (
 		.flat_codes  (flat_codes_mlsd),
 		.est_seq     (est_seq),
@@ -252,7 +252,7 @@ module dsp_backend (
 
 	buffer #(
 		.numChannels(mlsd_gpack::width),
-		.bitwidth   (1),
+		.bitwidth   (mlsd_gpack::bit_length),
 		.depth      (1)
 	) pb_buff_i (
 		.in(predict_bits),
