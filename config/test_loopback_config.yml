@@ -45,4 +45,5 @@ generic:
       estimate_precision: *estimate_precision
       estimate_depth: *estimate_depth
       shift_precision: *decision_shift_precision
-
+      bit_length: *mlsd_bit_length
+      est_center: *mlsd_est_cursor_pos
