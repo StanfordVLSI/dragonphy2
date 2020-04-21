@@ -35,9 +35,9 @@ module test;
 	logic rstb;
 
     //outputs for debugging
-    initial begin
-        $shm_open("waves.shm"); $shm_probe("ACT");
-    end
+//    initial begin
+//        $shm_open("waves.shm"); $shm_probe("ACT");
+//    end
 
 	// JTAG driver
 
@@ -160,7 +160,7 @@ module test;
         #(1ns);
         `FORCE_DDBG(int_rstb, 1);
         #(1ns);
-		`FORCE_ADBG(en_gf, 0);
+		`FORCE_ADBG(en_gf, 1);
         #(1ns);
         `FORCE_ADBG(en_v2t, 1);
         #(1ns);
