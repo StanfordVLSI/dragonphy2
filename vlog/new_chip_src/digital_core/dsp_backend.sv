@@ -10,8 +10,8 @@ module dsp_backend (
 	dsp_debug_intf.dsp dsp_dbg_intf_i
 );
 	localparam integer ffe_code_centerBuffer      = 0;
-	localparam integer ffe_code_numPastBuffer     = $ceil(real'(ffe_gpack::length-1)/real'(constant_gpack::channel_width));
-	localparam integer ffe_code_numFutureBuffer   = 0;
+	localparam integer ffe_code_numPastBuffers     = $ceil(real'(ffe_gpack::length-1)/real'(constant_gpack::channel_width));
+	localparam integer ffe_code_numFutureBuffers   = 0;
 
 	localparam integer mlsd_bit_numPastBuffers    = $ceil(real'(mlsd_gpack::estimate_depth-1)*1.0/constant_gpack::channel_width);
 	localparam integer mlsd_bit_numFutureBuffers  = $ceil(real'(mlsd_gpack::length-1)*1.0/constant_gpack::channel_width);
@@ -23,7 +23,7 @@ module dsp_backend (
 	localparam integer mlsd_code_centerBuffer     = 0;
 
 	localparam integer ffe_pipeline_depth         = 1;
-	localparam integer ffe_code_pipeline_depth    = ffe_code_numPastBuffer + ffe_code_numFutureBuffers + 1;
+	localparam integer ffe_code_pipeline_depth    = ffe_code_numPastBuffers + ffe_code_numFutureBuffers + 1;
 	localparam integer cmp_pipeline_depth         = mlsd_bit_numPastBuffers + mlsd_bit_numFutureBuffers + 1;
 	localparam integer code_pipeline_depth        = ffe_code_pipeline_depth + ffe_pipeline_depth + cmp_pipeline_depth;
 	localparam integer mlsd_code_pipeline_depth   = mlsd_code_numPastBuffers + mlsd_code_numFutureBuffers + 1;
@@ -138,7 +138,7 @@ module dsp_backend (
 				.buffer(estimated_bits_buffer)
 			);
 			for(gi=0; gi<constant_gpack::channel_width; gi=gi+1) begin
-				assign estimated_bits_q[gi] = estimated_bits_buffer[gi][depth-1];
+				assign estimated_bits_q[gi] = estimated_bits_buffer[gi][ffe_pipeline_depth-1];
 			end
 		end else begin
 			for(gi=0; gi<constant_gpack::channel_width; gi=gi+1) begin
