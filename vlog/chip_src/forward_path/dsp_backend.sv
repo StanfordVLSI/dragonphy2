@@ -1,45 +1,23 @@
-module dsp_backend #(
-	parameter integer numChannels  = 32,	
-	parameter integer codeBitwidth = 8,
-    parameter integer weightBitwidth = 11,
-    parameter integer ffeDepth=5,
-    parameter integer thresholdBitwidth=8,
-	parameter integer estBitwidth  = 8,
-	parameter integer estDepth     = 11,
-	parameter integer seqLength    = 5
-) (
-	input wire logic signed [codeBitwidth-1:0]   codes [numChannels-1:0],
-    
-    input wire logic signed [weightBitwidth-1:0] new_weights [numChannels-1:0],
-    input wire logic                             update_weights[numChannels-1:0],
-
-    input wire logic signed [ffe_shiftBitwidth-1:0] new_ffe_shift [numChannels-1:0],    
-    input wire logic                                update_ffe_shift [numChannels-1:0],   
-
-    input wire logic signed [threshBitwidth-1:0] new_thresh  [numChannels-1:0],
-    input wire logic                             update_thresh[numChannels-1:0],
-	
-    input wire logic signed [estBitwidth-1:0] new_channel_est [numChannels-1:0][estDepth-1:0],
-    input wire logic                          update_channel_est [numChannels-1:0][estDepth-1:0],
-
-    input wire logic signed [mlsd_shiftBitwidth-1:0] new_mlsd_shift [numChannels-1:0],    
-    input wire logic        update_mlsd_shift[numChannels-1:0],
+module dsp_backend (
+	input wire logic signed [constant_gpack::code_precision-1:0]   codes [constant_gpack::channel_width-1:0],
 
 	input wire logic clk,
 	input wire logic rstb,
 
+	output logic signed [constant_gpack::code_precision-1:0] estimated_bits [constant_gpack::channel_width-1:0],
+	output logic checked_bits [constant_gpack::channel_width-1:0]
 
-	output logic checked_bits [numChannels-1:0]
+	dsp_debug_intf.dsp dsp_dbg_intf_i
 );
 	localparam integer ffe_code_centerBuffer      = 0;
-	localparam integer ffe_code_numPastBuffer     = $ceil(real'(ffe_gpack::length-1)/real'(numChannels));
+	localparam integer ffe_code_numPastBuffer     = $ceil(real'(ffe_gpack::length-1)/real'(constant_gpack::channel_width));
 	localparam integer ffe_code_numFutureBuffer   = 0;
 
 	localparam integer mlsd_bit_centerBuffer      = mlsd_bit_numPastBuffers;
-	localparam integer mlsd_bit_numPastBuffers    = $ceil(real'(estDepth-1)*1.0/numChannels);
-	localparam integer mlsd_bit_numFutureBuffers  = $ceil(real'(seqLength-1)*1.0/numChannels);
+	localparam integer mlsd_bit_numPastBuffers    = $ceil(real'(mlsd_gpack::estimate_depth-1)*1.0/constant_gpack::channel_width);
+	localparam integer mlsd_bit_numFutureBuffers  = $ceil(real'(mlsd_gpack::length-1)*1.0/constant_gpack::channel_width);
 
-	localparam integer mlsd_code_numPastBuffers   = $ceil(real'(seqLength-1)*1.0/numChannels);
+	localparam integer mlsd_code_numPastBuffers   = $ceil(real'(mlsd_gpack::length-1)*1.0/constant_gpack::channel_width);
 	localparam integer mlsd_code_numFutureBuffers = 0;
 	localparam integer mlsd_code_centerBuffer     = 0;
 
@@ -53,46 +31,47 @@ module dsp_backend #(
 	localparam integer mlsd_code_start 			  = ffe_pipeline_depth + ffe_pipeline_depth + (cmp_pipeline_depth-mlsd_code_pipeline_depth);
 
 	//Connecting Wires
-	wire logic [codeBitwidth-1:0] ucodes_buffer  [numChannels-1:0][code_pipeline_depth-1:0];
-	wire logic 					  cmp_out_buffer [numChannels-1:0][cmp_pipeline_depth-1:0];
-	wire logic 					  pb_buffer      [numChannels-1:0][0:0];
+	wire logic [constant_gpack::code_precision-1:0] ucodes_buffer  [constant_gpack::channel_width-1:0][code_pipeline_depth-1:0];
+
+	wire logic 					  cmp_out_buffer [constant_gpack::channel_width-1:0][cmp_pipeline_depth-1:0];
+	wire logic 					  pb_buffer      [constant_gpack::channel_width-1:0][0:0];
 	
-    logic [weightBitwidth-1:0] weights [numChannels-1:0];
-    logic [estBitwidth-1:0]    channel_est [numChannels-1:0][estDepth-1:0];
-    logic [threshBitwidth-1:0] thresh [numChannels-1:0];
-    logic [ffe_shiftBitwidth-1:0] ffe_shift [numChannels-1:0];
-    logic [mlsd_shiftBitwidth-1:0] mlsd_shift [numChannels-1:0]; 
+    logic [ffe_gpack::weight_precision-1:0] weights [constant_gpack::channel_width-1:0];
+    logic [mlsd_gpack::estimate_precision-1:0]    channel_est [constant_gpack::channel_width-1:0][mlsd_gpack::estimate_depth-1:0];
+    logic [cmp_gpack::thresh_precision-1:0] thresh [constant_gpack::channel_width-1:0];
+    logic [ffe_gpack::shift_precision-1:0] ffe_shift [constant_gpack::channel_width-1:0];
+    logic [mlsd_gpack::shift_precision-1:0] mlsd_shift [constant_gpack::channel_width-1:0]; 
 
     always_ff(posedge clk or negedge rstb) begin
         integer ii, jj;
         if(!rstb) begin
-            for(ii=0; ii<numChannels; ii=ii+1) begin
+            for(ii=0; ii<constant_gpack::channel_width; ii=ii+1) begin
                 weights[ii] <= 0;
                 thresh[ii]  <= 0;
                 ffe_shift[ii] <= 0;
                 mlsd_shift[ii] <= 0;
-                for(jj=0; jj<estDepth; jj=jj+1) begin
+                for(jj=0; jj<mlsd_gpack::estimate_depth; jj=jj+1) begin
                     channel_est[ii][jj] <= 0;
                 end
             end
         end else begin
-            for(ii=0; ii<numChannels; ii=ii+1) begin
-                weights[ii] <= update_weights[ii] ? new_weights[ii] : weights[ii];
-                thresh[ii]  <= update_thresh[ii] ? new_thresh[ii] : thresh[ii];
-                ffe_shift[ii] <= update_ffe_shift[ii] ? new_ffe_shift[ii] : ffe_shift[ii];
-                mlsd_shift[ii] <= update_mlsd_shift[ii] ? new_mlsd_shift[ii] : mlsd_shift[ii];
-                for(jj=0; jj<estDepth; jj=jj+1) begin
-                    channel_est[ii][jj] <= update_channel_est[ii][jj] ? new_channel_est[ii][jj] : channel_est[ii][jj];
+            for(ii=0; ii<constant_gpack::channel_width; ii=ii+1) begin
+                weights[ii] <= dsp_dbg_intf_i.update_weights[ii] ? dsp_dbg_intf_i.new_weights[ii] : weights[ii];
+                thresh[ii]  <= dsp_dbg_intf_i.update_thresh[ii] ? dsp_dbg_intf_i.new_thresh[ii] : thresh[ii];
+                ffe_shift[ii] <= dsp_dbg_intf_i.update_ffe_shift[ii] ? dsp_dbg_intf_i.new_ffe_shift[ii] : ffe_shift[ii];
+                mlsd_shift[ii] <= dsp_dbg_intf_i.update_mlsd_shift[ii] ? dsp_dbg_intf_i.new_mlsd_shift[ii] : mlsd_shift[ii];
+                for(jj=0; jj<mlsd_gpack::estimate_depth; jj=jj+1) begin
+                    channel_est[ii][jj] <= dsp_dbg_intf_i.update_channel_est[ii][jj] ? dsp_dbg_intf_i.new_channel_est[ii][jj] : channel_est[ii][jj];
                 end
             end
         end
     end
 
 
-	wire logic   [codeBitwidth-1:0]  ucodes		[numChannels-1:0];
+	wire logic   [mlsd_gpack::code_precision-1:0]  ucodes		[constant_gpack::channel_width-1:0];
 	genvar gi;
 	generate
-		for(gi=0; gi<numChannels; gi=gi+1) begin
+		for(gi=0; gi<constant_gpack::channel_width; gi=gi+1) begin
 			assign ucodes[gi] = $unsigned(codes[gi]);
 		end
 	endgenerate
@@ -109,8 +88,8 @@ module dsp_backend #(
 	);
 
 	flatten_buffer_slice #(
-		.numChannels(numChannels),
-		.bitwidth   (codeBitwidth),
+		.numChannels(constant_gpack::channel_width),
+		.bitwidth   (mlsd_gpack::code_precision),
 		.buff_depth (code_pipeline_depth),
 		.slice_depth(ffe_code_pipeline_depth),
 		.start      (ffe_code_start)
@@ -119,10 +98,10 @@ module dsp_backend #(
 		.flat_slice(flat_ucodes_ffe)
 	);
 
-	wire logic        [codeBitwidth-1:0] flat_ucodes_ffe [numChannels*ffe_code_pipeline_depth-1:0];
-	wire logic signed [codeBitwidth-1:0] flat_codes_ffe  [numChannels*ffe_code_pipeline_depth-1:0];
+	wire logic        [mlsd_gpack::code_precision-1:0] flat_ucodes_ffe [constant_gpack::channel_width*ffe_code_pipeline_depth-1:0];
+	wire logic signed [mlsd_gpack::code_precision-1:0] flat_codes_ffe  [constant_gpack::channel_width*ffe_code_pipeline_depth-1:0];
 	generate
-		for(gi=0; gi<numChannels*ffe_code_pipeline_depth; gi=gi+1) begin
+		for(gi=0; gi<constant_gpack::channel_width*ffe_code_pipeline_depth; gi=gi+1) begin
 			assign flat_codes_ffe[gi] = $signed(flat_ucodes_ffe[gi]);
 		end
 	endgenerate
@@ -133,7 +112,7 @@ module dsp_backend #(
 		.resultBitwidth(ffe_gpack::output_precision),
 		.shiftBitwidth(ffe_gpack::shift_precision),
 		.ffeDepth(ffe_gpack::length),
-		.numChannels(numChannels),
+		.numChannels(constant_gpack::channel_width),
 		.numBuffers    (ffe_code_pipeline_depth),
 		.centerBuffer  (ffe_code_centerBuffer)
 	) cffe_i (
@@ -146,9 +125,9 @@ module dsp_backend #(
 	//If the buffer is smaller than size 1, pass through
 	generate
 		if(ffe_pipeline_depth > 0) begin
-			wire logic [ffe_gpack::output_precision-1:0] estimated_bits_buffer [numChannels-1:0][ffe_code_pipeline_depth-1:0];
+			wire logic [ffe_gpack::output_precision-1:0] estimated_bits_buffer [constant_gpack::channel_width-1:0][ffe_code_pipeline_depth-1:0];
 			buffer #(
-				.numChannels(numChannels),
+				.numChannels(constant_gpack::channel_width),
 				.bitwidth   (ffe_gpack::output_precision),
 				.depth      (ffe_pipeline_depth)
 			) ffe_reg_i (
@@ -157,11 +136,11 @@ module dsp_backend #(
 				.rstb(rstb),
 				.buffer(estimated_bits_buffer)
 			);
-			for(gi=0; gi<numChannels; gi=gi+1) begin
+			for(gi=0; gi<constant_gpack::channel_width; gi=gi+1) begin
 				assign estimated_bits_q[gi] = estimated_bits_buffer[gi][depth-1];
 			end
 		end else begin
-			for(gi=0; gi<numChannels; gi=gi+1) begin
+			for(gi=0; gi<constant_gpack::channel_width; gi=gi+1) begin
 				assign estimated_bits_q[gi] = estimated_bits[gi];
 			end
 		end
@@ -169,20 +148,20 @@ module dsp_backend #(
 
 
 	comb_comp #(
-		.numChannels(numChannels),
+		.numChannels(constant_gpack::channel_width),
 		.inputBitwidth(cmp_gpack::input_precision),
 		.thresholdBitwidth (cmp_gpack::thresh_precision),
 		.confidenceBitwidth(cmp_gpack::conf_precision)
 	) ccmp_i (
 		.codes(estimated_bits_q),
-		.new_thresh(new_thresh),
+		.thresh(thresh),
 		.clk       (clk),
 		.rstb      (rstb),
 		.bit_out   (cmp_out)
 	);
 
 	buffer #(
-		.numChannels(numChannels),
+		.numChannels(constant_gpack::channel_width),
 		.bitwidth   (1),
 		.depth      (cmp_pipeline_depth)
 	) cmp_reg_i (
@@ -194,7 +173,7 @@ module dsp_backend #(
 
 	wire logic 	flat_bits 	[numChannels*cmp_pipeline_depth-1:0];
 	flatten_buffer #(
-		.numChannels(numChannels),
+		.numChannels(constant_gpack::channel_width),
 		.bitwidth   (1),
 		.depth      (cmp_pipeline_depth)
 	) fb_i (
@@ -202,7 +181,7 @@ module dsp_backend #(
 		.flat_buffer(flat_bits)
 	);
 
-	logic signed [codeBitwidth-1:0] est_seq [1:0][numChannels-1:0][seqLength-1:0];
+	logic signed [mlsd_gpack::code_precision-1:0] est_seq [1:0][constant_gpack::channel_width-1:0][mlsd_gpack::length-1:0];
 	comb_potential_codes_gen #(
 		.seqLength   (mlsd_gpack::length),
 		.estDepth    (mlsd_gpack::estimate_depth),
