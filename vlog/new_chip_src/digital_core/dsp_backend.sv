@@ -56,12 +56,12 @@ module dsp_backend (
             end
         end else begin
             for(ii=0; ii<constant_gpack::channel_width; ii=ii+1) begin
-                weights[ii] <= dsp_dbg_intf_i.update_weights[ii] ? dsp_dbg_intf_i.new_weights[ii] : weights[ii];
-                thresh[ii]  <= dsp_dbg_intf_i.update_thresh[ii] ? dsp_dbg_intf_i.new_thresh[ii] : thresh[ii];
-                ffe_shift[ii] <= dsp_dbg_intf_i.update_ffe_shift[ii] ? dsp_dbg_intf_i.new_ffe_shift[ii] : ffe_shift[ii];
-                mlsd_shift[ii] <= dsp_dbg_intf_i.update_mlsd_shift[ii] ? dsp_dbg_intf_i.new_mlsd_shift[ii] : mlsd_shift[ii];
+                weights[ii] <= (dsp_dbg_intf_i.update_weights[ii]) ? (dsp_dbg_intf_i.new_weights[ii]) : weights[ii];
+                thresh[ii]  <= (dsp_dbg_intf_i.update_thresh[ii]) ? (dsp_dbg_intf_i.new_thresh[ii]) : thresh[ii];
+                ffe_shift[ii] <= (dsp_dbg_intf_i.update_ffe_shift[ii]) ? (dsp_dbg_intf_i.new_ffe_shift[ii] ): ffe_shift[ii];
+                mlsd_shift[ii] <= (dsp_dbg_intf_i.update_mlsd_shift[ii]) ? (dsp_dbg_intf_i.new_mlsd_shift[ii]) : mlsd_shift[ii];
                 for(jj=0; jj<mlsd_gpack::estimate_depth; jj=jj+1) begin
-                    channel_est[ii][jj] <= dsp_dbg_intf_i.update_channel_est[ii][jj] ? dsp_dbg_intf_i.new_channel_est[ii][jj] : channel_est[ii][jj];
+                    channel_est[ii][jj] <= (dsp_dbg_intf_i.update_channel_est[ii][jj]) ? (dsp_dbg_intf_i.new_channel_est[ii][jj]) : channel_est[ii][jj];
                 end
             end
         end
@@ -248,4 +248,4 @@ module dsp_backend (
 		end
 	endgenerate
 
-endmodule : flat_mlsd
+endmodule : dsp_backend
