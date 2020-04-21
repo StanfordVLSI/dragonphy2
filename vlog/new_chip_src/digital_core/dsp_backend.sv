@@ -13,9 +13,10 @@ module dsp_backend (
 	localparam integer ffe_code_numPastBuffer     = $ceil(real'(ffe_gpack::length-1)/real'(constant_gpack::channel_width));
 	localparam integer ffe_code_numFutureBuffer   = 0;
 
-	localparam integer mlsd_bit_centerBuffer      = mlsd_bit_numPastBuffers;
 	localparam integer mlsd_bit_numPastBuffers    = $ceil(real'(mlsd_gpack::estimate_depth-1)*1.0/constant_gpack::channel_width);
 	localparam integer mlsd_bit_numFutureBuffers  = $ceil(real'(mlsd_gpack::length-1)*1.0/constant_gpack::channel_width);
+	localparam integer mlsd_bit_centerBuffer      = mlsd_bit_numPastBuffers;
+
 
 	localparam integer mlsd_code_numPastBuffers   = $ceil(real'(mlsd_gpack::length-1)*1.0/constant_gpack::channel_width);
 	localparam integer mlsd_code_numFutureBuffers = 0;
@@ -86,6 +87,7 @@ module dsp_backend (
 		.buffer(ucodes_buffer)
 	);
 
+	wire logic        [mlsd_gpack::code_precision-1:0] flat_ucodes_ffe [constant_gpack::channel_width*ffe_code_pipeline_depth-1:0];
 	flatten_buffer_slice #(
 		.numChannels(constant_gpack::channel_width),
 		.bitwidth   (mlsd_gpack::code_precision),
@@ -96,8 +98,6 @@ module dsp_backend (
 		.buffer    (ucodes_buffer),
 		.flat_slice(flat_ucodes_ffe)
 	);
-
-	wire logic        [mlsd_gpack::code_precision-1:0] flat_ucodes_ffe [constant_gpack::channel_width*ffe_code_pipeline_depth-1:0];
 	wire logic signed [mlsd_gpack::code_precision-1:0] flat_codes_ffe  [constant_gpack::channel_width*ffe_code_pipeline_depth-1:0];
 	generate
 		for(gi=0; gi<constant_gpack::channel_width*ffe_code_pipeline_depth; gi=gi+1) begin
@@ -122,6 +122,8 @@ module dsp_backend (
 	);
 
 	//If the buffer is smaller than size 1, pass through
+	wire logic signed [constant_gpack::code_precision-1:0] estimated_bits_q [constant_gpack::channel_width-1:0];
+
 	generate
 		if(ffe_pipeline_depth > 0) begin
 			wire logic [ffe_gpack::output_precision-1:0] estimated_bits_buffer [constant_gpack::channel_width-1:0][ffe_code_pipeline_depth-1:0];
@@ -170,7 +172,7 @@ module dsp_backend (
 		.buffer(cmp_out_buffer)
 	);
 
-	wire logic 	flat_bits 	[numChannels*cmp_pipeline_depth-1:0];
+	wire logic 	flat_bits 	[constant_gpack::channel_width*cmp_pipeline_depth-1:0];
 	flatten_buffer #(
 		.numChannels(constant_gpack::channel_width),
 		.bitwidth   (1),
@@ -197,6 +199,8 @@ module dsp_backend (
 		.est_seq_out(est_seq)
 	);
 
+
+	wire logic   	  [mlsd_gpack::code_precision-1:0] flat_ucodes_mlsd [mlsd_gpack::width*mlsd_code_pipeline_depth-1:0];
 	flatten_buffer_slice #(
 		.numChannels(mlsd_gpack::width),
 		.bitwidth   (mlsd_gpack::code_precision),
@@ -208,7 +212,6 @@ module dsp_backend (
 		.flat_slice(flat_ucodes_mlsd)
 	);
 
-	wire logic   	  [mlsd_gpack::code_precision-1:0] flat_ucodes_mlsd [mlsd_gpack::width*mlsd_code_pipeline_depth-1:0];
 	wire logic signed [mlsd_gpack::code_precision-1:0] flat_codes_mlsd  [mlsd_gpack::width*mlsd_code_pipeline_depth-1:0];
 	generate
 		for(gi=0;gi<mlsd_gpack::width*mlsd_code_pipeline_depth; gi=gi+1) begin
