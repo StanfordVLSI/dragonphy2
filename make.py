@@ -49,7 +49,7 @@ def create_asic_graph():
 
     # Add msdsl scripts to build list
     graph.add_python('adapt_fir', 'adapt_fir', 'AdaptFir', view='all',
-                     folders=['dragonphy'], configs={'test_loopback_config'})
+                     folders=['dragonphy'], configs={'system'})
     graph.add_python('jtag', 'jtag', 'JTAG', view='all',
                      folders=['dragonphy'], configs={'jtag_config'})
     graph.add_python('chan_core', 'chan_core', 'ChannelCore', view='fpga_models',
