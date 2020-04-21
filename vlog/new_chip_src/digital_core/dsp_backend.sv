@@ -1,11 +1,11 @@
 module dsp_backend (
-	input wire logic signed [constant_gpack::code_precision-1:0]   codes [constant_gpack::channel_width-1:0],
+	input logic signed [constant_gpack::code_precision-1:0]   codes [constant_gpack::channel_width-1:0],
 
-	input wire logic clk,
-	input wire logic rstb,
+	input logic clk,
+	input logic rstb,
 
 	output logic signed [constant_gpack::code_precision-1:0] estimated_bits [constant_gpack::channel_width-1:0],
-	output logic checked_bits [constant_gpack::channel_width-1:0]
+	output logic checked_bits [constant_gpack::channel_width-1:0],
 
 	dsp_debug_intf.dsp dsp_dbg_intf_i
 );
