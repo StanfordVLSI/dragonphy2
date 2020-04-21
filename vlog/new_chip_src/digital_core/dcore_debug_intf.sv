@@ -43,6 +43,7 @@ interface dcore_debug_intf import const_pack::*; (
     	logic bypass_out;
     	logic sram_rstb;
     	logic cdr_rstb;
+    	logic prbs_rstb;
 
     modport dcore ( 	
 		input en_ext_pi_ctl_cdr,
@@ -75,6 +76,7 @@ interface dcore_debug_intf import const_pack::*; (
 		input bypass_out,
 		input sram_rstb,
 		input cdr_rstb,
+		input prbs_rstb,
 
 		output adcout_avg ,
 		output adcout_sum,
@@ -118,6 +120,7 @@ interface dcore_debug_intf import const_pack::*; (
 		output bypass_out,
 		output sram_rstb,
 		output cdr_rstb,
+		output prbs_rstb,
 
 		input adcout_avg ,
 		input adcout_sum,

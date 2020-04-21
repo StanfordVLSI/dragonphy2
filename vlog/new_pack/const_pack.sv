@@ -17,5 +17,6 @@ package const_pack;
     localparam integer Ndepth = 20;
     localparam integer Ndiv = 4;        // samples are accumulated for 2**Ndiv cycles
     localparam integer Ncdr_avg = 128;
+    localparam integer Nprbs = 7;       // length of LFSR used in PRBS checker
 
 endpackage
