@@ -1,7 +1,7 @@
 interface dsp_debug_intf import const_pack::*; ();
-    
+
     logic signed [ffe_gpack::weight_precision-1:0] new_weights [constant_gpack::channel_width-1:0];
-    logic signed [ffe_gpack::shift_precision-1:0] new_ffe_shift [constant_gpack::channel_width-1:0]
+    logic signed [ffe_gpack::shift_precision-1:0] new_ffe_shift [constant_gpack::channel_width-1:0];
     logic signed [cmp_gpack::thresh_precision-1:0] new_thresh  [constant_gpack::channel_width-1:0];
     logic signed [mlsd_gpack::estimate_precision-1:0] new_channel_est [constant_gpack::channel_width-1:0][mlsd_gpack::estimate_depth-1:0];
     logic signed [mlsd_gpack::shift_precision-1:0] new_mlsd_shift [constant_gpack::channel_width-1:0];   
