@@ -43,7 +43,10 @@ module digital_core import const_pack::*; (
     wire logic [Npi-1:0] scale_value [Nout-1:0];
     wire logic [Npi-1:0] unscaled_pi_ctl [Nout-1:0];
     wire logic [Npi+Npi-1:0] scaled_pi_ctl [Nout-1:0];
-
+    
+    initial begin
+        $shm_probe(pi_ctl_cdr);
+    end
 
 
     assign rstb             = ddbg_intf_i.int_rstb  && ext_rstb; //combine external reset with JTAG reset\
@@ -51,7 +54,7 @@ module digital_core import const_pack::*; (
     assign cdr_rstb         = ddbg_intf_i.cdr_rstb  && ext_rstb;
     //assign adbg_intf_i.rstb = rstb;
 
-    assign clk_cdr = clk_adc;
+    assign clk_cdr = clk_cdr_in;
 
     assign buffered_signals[0]  = clk_adc;
     assign buffered_signals[1]  = adbg_intf_i.del_out_pi;
@@ -169,7 +172,7 @@ module digital_core import const_pack::*; (
     // SRAM
 
     oneshot_memory oneshot_memory_i (
-        .clk(clk_adc),
+        .clk(clk_cdr_in),
         .rstb(sram_rstb),
         
         .in_data(adcout_unfolded),

@@ -99,3 +99,6 @@ def check_data(x, y, inl_limit=5, offset_limit=2.5, gain_bnds=(250, 290)):
     gain = regr.coef_[0]
     assert min(gain_bnds) <= gain <= max(gain_bnds), f'Gain out of spec: {gain} LSB/Volt.'
     print(f'Gain OK: {gain} LSB/Volt.')
+
+if __name__ == "__main__":
+    test_sim()
