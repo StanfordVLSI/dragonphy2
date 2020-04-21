@@ -9,6 +9,7 @@ class AdaptFir:
 
         ffe_config      = system_values['generic']['ffe']
         constant_config = system_values['generic']
+        mlsd_config     = system_values['generic']['mlsd']
 
         # create channel model
         kwargs = dict(
@@ -68,6 +69,14 @@ class AdaptFir:
             parameters=ffe_config['parameters'],
             dir=build_dir
         ).create_package()
+
+        # Create MLSD package
+        Packager(
+            package_name='mlsd_gpack',
+            parameters=mlsd_config['parameters'],
+            dir=build_dir
+        ).create_package()
+
 
         # Write impulse response to package
         step_dt = 0.1e-9
