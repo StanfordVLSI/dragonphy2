@@ -95,7 +95,7 @@ module dsp_backend (
 		.slice_depth(ffe_code_pipeline_depth),
 		.start      (ffe_code_start)
 	) ffe_fb_i (
-		.buffer    (ucodes_buffer)
+		.buffer    (ucodes_buffer),
 		.flat_slice(flat_ucodes_ffe)
 	);
 
