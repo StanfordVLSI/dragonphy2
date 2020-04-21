@@ -158,7 +158,7 @@ module dsp_backend (
 
 
 	comb_comp #(
-		.numChannels(cmp_gpack::channel_width),
+		.numChannels(cmp_gpack::width),
 		.inputBitwidth(cmp_gpack::input_precision),
 		.thresholdBitwidth (cmp_gpack::thresh_precision),
 		.confidenceBitwidth(cmp_gpack::conf_precision)
