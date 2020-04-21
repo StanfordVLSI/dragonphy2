@@ -38,8 +38,8 @@ def test_sim():
         inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/new_cpu')],
         defines=defines,
         simulator=SIMULATOR,
-        flags=['-unbuffered'],
-        dump_waveforms=True
+        flags=['-unbuffered']
+#        dump_waveforms=True
     ).run()
 
     x = np.loadtxt(BUILD_DIR / 'rx_input.txt', dtype=float)
