@@ -10,7 +10,7 @@ class AdaptFir:
         ffe_config      = system_values['generic']['ffe']
         constant_config = system_values['generic']
         mlsd_config     = system_values['generic']['mlsd']
-
+        comp_config      = system_values['generic']['comp']
         # create channel model
         kwargs = dict(
             channel_type='arctan',
@@ -77,6 +77,12 @@ class AdaptFir:
             dir=build_dir
         ).create_package()
 
+        # Create Comp package
+        Packager(
+            package_name='cmp_gpack',
+            parameters=comp_config['parameters'],
+            dir=build_dir
+        ).create_package()
 
         # Write impulse response to package
         step_dt = 0.1e-9
