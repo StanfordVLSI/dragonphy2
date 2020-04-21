@@ -39,7 +39,7 @@ module dsp_backend (
 	
     logic signed [ffe_gpack::weight_precision-1:0] weights [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0];
     logic signed [mlsd_gpack::estimate_precision-1:0]    channel_est [constant_gpack::channel_width-1:0][mlsd_gpack::estimate_depth-1:0];
-    logic [cmp_gpack::thresh_precision-1:0] thresh [constant_gpack::channel_width-1:0];
+    logic signed [cmp_gpack::thresh_precision-1:0] thresh [constant_gpack::channel_width-1:0];
     logic [ffe_gpack::shift_precision-1:0] ffe_shift [constant_gpack::channel_width-1:0];
     logic [mlsd_gpack::shift_precision-1:0] mlsd_shift [constant_gpack::channel_width-1:0]; 
     logic disable_product [constant_gpack::channel_width-1:0][ffe_gpack::length-1:0];
