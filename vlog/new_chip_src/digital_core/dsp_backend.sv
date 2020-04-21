@@ -67,8 +67,6 @@ module dsp_backend (
         end
     end
 
-    alwa
-
 	wire logic   [mlsd_gpack::code_precision-1:0]  ucodes		[constant_gpack::channel_width-1:0];
 	genvar gi;
 	generate
