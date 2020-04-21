@@ -158,13 +158,17 @@ module test;
         #(1ns);
         `FORCE_ADBG(en_inbuf, 1);
         #(1ns);
-		`FORCE_ADBG(en_gf, 1);
+        `FORCE_DDBG(int_rstb, 1);
+        #(1ns);
+		`FORCE_ADBG(en_gf, 0);
         #(1ns);
         `FORCE_ADBG(en_v2t, 1);
         #(1ns);
-        `FORCE_DDBG(int_rstb, 1);
-        #(1ns);
-
+        #(10ns);
+        `FORCE_DDBG(ext_pi_ctl_offset[0], 0);
+        `FORCE_DDBG(ext_pi_ctl_offset[1], 130);
+        `FORCE_DDBG(ext_pi_ctl_offset[2], 265);
+        `FORCE_DDBG(ext_pi_ctl_offset[3], 400);
         // Set up the PFD offset
         for (int idx=0; idx<Nti; idx=idx+1) begin
             tmp_ext_pfd_offset[idx] = `EXT_PFD_OFFSET;
