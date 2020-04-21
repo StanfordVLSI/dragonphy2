@@ -194,8 +194,7 @@ module dsp_backend (
 	) comb_pt_cg_i (
 		.flat_bits  (flat_bits),
 		.channel_est(channel_est),
-		.clk        (clk),
-		.rstb       (rstb),
+
 		.est_seq_out(est_seq)
 	);
 
