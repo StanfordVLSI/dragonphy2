@@ -42,7 +42,7 @@ module rx (
 
     // Measure phase and adjust sampling point
     // TODO: cleanup hierarchy
-    mm_pd mm_pd_i (
+    single_mm_pd mm_pd_i (
         .clk(clk_o),
         .rstb(rstb),
         .data_i(adc_o[0]),
