@@ -48,14 +48,17 @@ module TDC_delay_unit_PR (
 
     logic phase_reverse;
 
-    // inverter
+    // compute new jitter value
     always @(inv_in) begin
         rj = tdc_obj.get_rj();
-        inv_out <= #((td0_inv+rj)*1s) ~inv_in;
     end
 
+    // assign to the output using an inertial delay
+    // ref: http://www-inst.eecs.berkeley.edu/~cs152/fa06/handouts/CummingsHDLCON1999_BehavioralDelays_Rev1_1.pdf
+    assign #((td0_inv+rj)*1s) inv_out = ~inv_in;
+
     // XNOR gate
-    // TODO: randomize
+    // TODO: add delay and jitter
     assign xnor_out = ~(inv_out^phase_reverse);
 
     // Updating phase_reverse signal
