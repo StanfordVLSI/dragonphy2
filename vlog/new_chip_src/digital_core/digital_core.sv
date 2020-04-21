@@ -23,7 +23,7 @@ module digital_core import const_pack::*; (
     cdr_debug_intf cdbg_intf_i ();
     sram_debug_intf sdbg_intf_i ();
     dcore_debug_intf ddbg_intf_i ();
-
+    dsp_debug_intf dsp_dbg_intf_i();
     
   //  wire logic ext_rstb;
     wire logic rstb;
@@ -40,6 +40,10 @@ module digital_core import const_pack::*; (
    // wire logic bufferend_signals[15:0];
     wire logic buffered_signals[15:0];
     wire logic signed [Nadc-1:0] adcout_unfolded [Nti+Nti_rep-1:0];
+
+    wire logic signed [constant_gpack::code_precision-1:0] estimated_bits [constant_gpack::channel_width-1:0];
+    wire logic checked_bits [constant_gpack::channel_width-1:0];
+
     wire logic [Npi-1:0] scale_value [Nout-1:0];
     wire logic [Npi-1:0] unscaled_pi_ctl [Nout-1:0];
     wire logic [Npi+Npi-1:0] scaled_pi_ctl [Nout-1:0];
@@ -54,7 +58,7 @@ module digital_core import const_pack::*; (
     assign cdr_rstb         = ddbg_intf_i.cdr_rstb  && ext_rstb;
     //assign adbg_intf_i.rstb = rstb;
 
-    assign clk_cdr = clk_cdr_in;
+    assign clk_cdr = clk_adc;
 
     assign buffered_signals[0]  = clk_adc;
     assign buffered_signals[1]  = adbg_intf_i.del_out_pi;
@@ -169,6 +173,16 @@ module digital_core import const_pack::*; (
             assign int_pi_ctl_cdr[j]     = scaled_pi_ctl[j] >> Npi;
         end
     endgenerate
+
+    dsp_backend dsp_i(
+        .codes(adcout_unfolded),
+        .clk(clk),
+        .rstb(rstb),
+        .estimated_bits(estimated_bits),
+        .checked_bits(checked_bits),
+        .dsp_dbg_intf_i(dsp_dbg_intf_i)
+    );
+
     // SRAM
 
     oneshot_memory oneshot_memory_i (
