@@ -160,6 +160,7 @@ module dsp_backend (
 		end
 	endgenerate
 
+	wire logic cmp_out [constant_gpack::channel_width-1:0];
 
 	comb_comp #(
 		.numChannels(cmp_gpack::width),
