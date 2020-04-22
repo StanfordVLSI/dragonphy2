@@ -21,6 +21,8 @@ else:
     SIMULATOR = 'ncsim'
 
 CLK_REF_FREQ = 4e9
+N_BLENDER = 4
+
 PH_ERR_TOL   = 1e-12
 FREQ_ERR_TOL = 5e4
 DUTY_ERR_TOL = 0.01
@@ -50,7 +52,7 @@ def test_sim():
     class dut(m.Circuit):
         name = 'test'
         io = m.IO(
-            en_mixer=m.BitIn,
+            thm_sel_bld=m.In(m.Bits[2**N_BLENDER]),
             delay0=fault.RealIn,
             delay1=fault.RealIn,
             delay_out=fault.RealOut,
@@ -61,33 +63,19 @@ def test_sim():
     # create tester
     t = fault.Tester(dut)
 
-    test_del = []
+    mixers = []
+    for val in range((2**(N_BLENDER))+1):
+        mixer = Results(t, dut)
+        mixers.append(mixer)
+        t.print('Testing thm_sel_bld=%0b\n', (1<<val)-1)
+        t.poke(dut.thm_sel_bld, (1 << val)-1)
+        for k in range(-124, 125):
+            t.poke(dut.delay0, 125e-12)
+            t.poke(dut.delay1, (125+k)*1e-12)
+            t.delay(20e-9)
+            mixer.log()
 
-    mixer_on = Results(tester=t, dut=dut)
-    for k in range(-124, 125):
-        t.print('Testing delay %0.3f ps\n', k)
-
-        t.poke(dut.delay0, 125e-12)
-        t.poke(dut.delay1, (125+k)*1e-12)
-
-        t.poke(dut.en_mixer, 1)
-        t.delay(20e-9)
-        mixer_on.log()
-
-        test_del.append(k*1e-12)
-
-    mixer_off = Results(tester=t, dut=dut)
-    for k in range(-124, 125):
-        t.print('Testing delay %0.3f ps\n', k)
-
-        t.poke(dut.delay0, 125e-12)
-        t.poke(dut.delay1, (125+k)*1e-12)
-
-        t.poke(dut.en_mixer, 0)
-        t.delay(20e-9)
-        mixer_off.log()
-
-    # delay at end to make sure we record the last point
+    # delay at the end to make sure that the last point is recorded OK
     t.delay(20e-9)
 
     # gather dependencies
@@ -105,53 +93,66 @@ def test_sim():
             'DAVE_TIMEUNIT': '1fs',
             'NCVLOG': None
         },
-        flags=['-sv'],
+        parameters = {
+            'Nblender': N_BLENDER
+        },
+        flags=['-sv', '-unbuffered'],
         directory=BUILD_DIR,
         num_cycles=1e12
     )
 
+    # gather list of times
+    test_del = []
+    for k in range(-124, 125):
+        test_del.append(k*1e-12)
     test_del = np.array(test_del, dtype=float)
-    mixer_off.convert_values()
-    mixer_on.convert_values()
+
+    # convert values and unwrap phase
+    for mixer in mixers:
+        mixer.convert_values()
+        scale_factor = 2*np.pi*CLK_REF_FREQ
+        mixer.ph *= scale_factor
+        mixer.ph = np.unwrap(mixer.ph)
+        mixer.ph /= scale_factor
 
     # plot results
-    plot_data(test_del, mixer_on, mixer_off)
+    plot_data(test_del, mixers)
 
     # check the results
-    print('Checking behavior with mixer off...')
-    check_data(test_del, mixer_off, wgt=0.0)
+    for k, mixer in enumerate(mixers):
+        print(f'Checking behavior for value {k}...')
+        check_data(test_del, mixer, wgt=k/(2**N_BLENDER))
 
-    print('Checking behavior with mixer on...')
-    check_data(test_del, mixer_on, wgt=0.5)
-
-def plot_data(test_del, mixer_on, mixer_off):
-    plt.plot(test_del*1e12, mixer_on.ph*1e12, '*')
-    plt.plot(test_del*1e12, mixer_off.ph*1e12, '*')
+def plot_data(test_del, mixers):
+    leg = []
+    for k, mixer in enumerate(mixers):
+        plt.plot(test_del*1e12, mixer.ph*1e12, '*')
+        leg.append(f'val={k}')
     plt.xlabel('Relative Delay (ps)')
     plt.ylabel('Phase Blender Output (ps)')
-    plt.legend(['Blender Enabled', 'Blender Disabled'])
+    plt.legend(leg)
     plt.tight_layout()
-    plt.savefig(BUILD_DIR / 'pb1_ph.eps')
+    plt.savefig(BUILD_DIR / 'pb_ph.eps')
     plt.cla()
     plt.clf()
 
-    plt.plot(test_del*1e12, mixer_on.freq/1e9, '*')
-    plt.plot(test_del*1e12, mixer_off.freq/1e9, '*')
+    for k, mixer in enumerate(mixers):
+        plt.plot(test_del*1e12, mixer.freq/1e9, '*')
     plt.xlabel('Relative Delay (ps)')
     plt.ylabel('Phase Blender Output (GHz)')
-    plt.legend(['Blender Enabled', 'Blender Disabled'])
+    plt.legend(leg)
     plt.tight_layout()
-    plt.savefig(BUILD_DIR / 'pb1_freq.eps')
+    plt.savefig(BUILD_DIR / 'pb_freq.eps')
     plt.cla()
     plt.clf()
 
-    plt.plot(test_del*1e12, mixer_on.duty, '*')
-    plt.plot(test_del*1e12, mixer_off.duty, '*')
+    for k, mixer in enumerate(mixers):
+        plt.plot(test_del*1e12, mixer.duty, '*')
     plt.xlabel('Relative Delay (ps)')
     plt.ylabel('Phase Blender Output (Duty Cycle)')
-    plt.legend(['Blender Enabled', 'Blender Disabled'])
+    plt.legend(leg)
     plt.tight_layout()
-    plt.savefig(BUILD_DIR / 'pb1_duty.eps')
+    plt.savefig(BUILD_DIR / 'pb_duty.eps')
     plt.cla()
     plt.clf()
 
