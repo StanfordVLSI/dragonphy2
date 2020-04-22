@@ -197,6 +197,15 @@ module dsp_backend (
 	);
 
 	logic signed [mlsd_gpack::code_precision-1:0] est_seq [2**mlsd_gpack::bit_length-1:0][constant_gpack::channel_width-1:0][mlsd_gpack::length-1:0];
+	logic signed [mlsd_gpack::code_precision-1:0] precalc_seq_vals [2**mlsd_gpack::bit_length-1:0][constant_gpack::channel_width-1:0][mlsd_gpack::length-1:0];
+
+	seq_val_gen #(
+		.nbit(mlsd_gpack::bit_length)
+	) seq_gen_i (
+		.channel_est(channel_est),
+		.precalc_seq_vals(precalc_seq_vals)
+	);
+
 	comb_potential_codes_gen #(
 		.seqLength   (mlsd_gpack::length),
 		.estDepth    (mlsd_gpack::estimate_depth),
@@ -210,6 +219,7 @@ module dsp_backend (
 	) comb_pt_cg_i (
 		.flat_bits  (flat_bits),
 		.channel_est(channel_est),
+		.precalc_seq_vals(precalc_seq_vals),
 
 		.est_seq_out(est_seq)
 	);

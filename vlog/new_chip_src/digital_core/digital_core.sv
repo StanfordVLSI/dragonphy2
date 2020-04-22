@@ -41,7 +41,7 @@ module digital_core import const_pack::*; (
     wire logic buffered_signals[15:0];
     wire logic signed [Nadc-1:0] adcout_unfolded [Nti+Nti_rep-1:0];
 
-    wire logic signed [constant_gpack::code_precision-1:0] estimated_bits [constant_gpack::channel_width-1:0];
+    wire logic signed [ffe_gpack::output_precision-1:0] estimated_bits [constant_gpack::channel_width-1:0];
     wire logic checked_bits [constant_gpack::channel_width-1:0];
 
     wire logic [Npi-1:0] scale_value [Nout-1:0];
@@ -175,7 +175,7 @@ module digital_core import const_pack::*; (
     endgenerate
 
     dsp_backend dsp_i(
-        .codes(adcout_unfolded),
+        .codes(adcout_unfolded[Nti-1:0]),
         .clk(clk_adc),
         .rstb(rstb),
         .estimated_bits(estimated_bits),
