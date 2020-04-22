@@ -59,7 +59,8 @@ def test_sim(n_prbs=7):
         parameters={'n_prbs': n_prbs},
         ext_model_file=True,
         disp_type='realtime',
-        dump_waveforms=False
+        dump_waveforms=False,
+        directory=BUILD_DIR
     )
 
     # get output values (uncomment lines below to generate balanced, but non-random data)
