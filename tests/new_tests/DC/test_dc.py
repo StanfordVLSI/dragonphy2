@@ -29,11 +29,12 @@ def test_sim():
     }
 
     deps = get_deps_cpu_sim_new(impl_file=THIS_DIR / 'test.sv')
+    deps.insert(0, Directory.path() + '/build/all/adapt_fir/ffe_gpack.sv')
+    deps.insert(0, Directory.path() + '/build/all/adapt_fir/cmp_gpack.sv')
+    deps.insert(0, Directory.path() + '/build/all/adapt_fir/mlsd_gpack.sv')
+    deps.insert(0, Directory.path() + '/build/all/adapt_fir/constant_gpack.sv')
+
     print(deps)
-    deps.insert(0, Directory.path() + '/build/adapt_fir/ffe_gpack.sv')
-    deps.insert(0, Directory.path() + '/build/adapt_fir/cmp_gpack.sv')
-    deps.insert(0, Directory.path() + '/build/adapt_fir/mlsd_gpack.sv')
-    deps.insert(0, Directory.path() + '/build/adapt_fir/constant_gpack.sv')
 
 
 
