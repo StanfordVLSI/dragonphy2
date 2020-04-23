@@ -1,5 +1,5 @@
-//`include "iotype.sv"
-`include "/aha/sjkim85/github_repo/dragonphy/inc/new_asic/iotype.sv"
+`include "iotype.sv"
+//`include "/aha/sjkim85/github_repo/dragonphy/inc/new_asic/iotype.sv"
 
 module stochastic_adc_PR #(
     parameter Nctl_v2t = 5,
