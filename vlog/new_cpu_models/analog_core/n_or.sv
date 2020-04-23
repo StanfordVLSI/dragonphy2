@@ -11,13 +11,13 @@ Todo:
 ********************************************************************/
 
 module n_or #(
-    parameter real td_nom = 0.0,    // nominal delay in sec
-    parameter real td_std = 0.0,    // std dev of nominal delay variation in sec
-    parameter real rj_rms = 0.0     // rms random jitter in sec
+    parameter real td_nom = 15.0e-12,    // nominal delay in sec
+    parameter real td_std = 0.0,         // std dev of nominal delay variation in sec
+    parameter real rj_rms = 0.0          // rms random jitter in sec
 ) (
-    input wire logic in1,           // input signal
-    input wire logic in2,           // input signal
-    output wire out                 // delayed output signal
+    input wire logic in1,                // input signal
+    input wire logic in2,                // input signal
+    output wire out                      // delayed output signal
 );
 
 timeunit 1fs;

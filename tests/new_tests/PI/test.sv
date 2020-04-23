@@ -1,207 +1,157 @@
 `include "mLingua_pwl.vh"
-`include "iotype.sv"
-`default_nettype none
-`define PULSE_HIGH(signal) \
-    signal = 1'b1; \
-    #0; \
-    signal = 1'b0
+
+`define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
+`define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
+
+`ifndef PI_CTL_TXT
+    `define PI_CTL_TXT
+`endif
+
+`ifndef DELAY_TXT
+    `define DELAY_TXT
+`endif
 
 module test;
+	import test_pack::*;
+	import checker_pack::*;
+    import const_pack::Nout;
+    import const_pack::Npi;
 
-    import const_pack::*;
-    import test_pack::*;
-    import checker_pack::*;
-    import jtag_reg_pack::*;
+	// clock inputs
 
-    localparam integer Nin = 1;          // number of PI input clock phases
-    localparam integer Nblender = 4;     // number of phase blender control bits
+	logic ext_clkp;
+	logic ext_clkn;
+
+	// reset
+
+	logic rstb;
+
+	// JTAG driver
+
+	jtag_intf jtag_intf_i ();
+	jtag_drv jtag_drv_i (jtag_intf_i);
+
+    // stimulus parameters
     localparam real Twait = 1e-9;
-    localparam `real_t v_cm = 0.40;
 
-    // signal declaration
-    PWLMethod pm=new;
+	// instantiate top module
 
-    // Analog inputs
-    `pwl_t ch_outp;
-    `pwl_t ch_outn;
-    //`real_t v_cm;
-    `voltage_t v_cal;
+	dragonphy_top top_i (
+		// clock inputs
+		.ext_clkp(ext_clkp),
+		.ext_clkn(ext_clkn),
 
-    // clock inputs 
-    logic clk_async;
-    logic clk_jm_p;
-    logic clk_jm_n;
-    logic ext_clkp;
-    logic ext_clkn;
-    logic signed [Nadc-1:0] adcout_conv_signed [Nti-1:0];
-    // clock outputs
-    logic clk_out_p;
-    logic clk_out_n;
-    logic clk_trig_p;
-    logic clk_trig_n;
-    logic clk_retime;
-    logic clk_slow;
-    logic rstb;
-    // dump control
-    logic dump_start;
-    logic clk_cdr;
-    // JTAG
-    jtag_intf jtag_intf_i();
+        // reset
+        .ext_rstb(rstb),
 
-    wire logic [Nout-1:0] clk_interp;
-    reg [Npi-1:0] pi_ctl [Nout-1:0];
-    reg [Npi-1:0] temp;
+        // JTAG
+		.jtag_intf_i(jtag_intf_i)
+		// other I/O not used..
+	);
+
+	// External clock
+
+    localparam real ext_clk_freq = full_rate/2;
+	clock #(
+		.freq(ext_clk_freq),
+		.duty(0.5),
+		.td(0)
+	) iEXTCLK (
+		.ckout(ext_clkp),
+		.ckoutb(ext_clkn)
+	);
+
+    // Data recording
+    logic record;
+    logic [Npi-1:0] pi_ctl [Nout-1:0];
     real Tdelay [Nout-1:0];
 
-    // Instantiate blocks per output
-
-    genvar i;
-    generate
-        for (i=0; i<Nout; i=i+1) begin
-            delay_meas_ideal idmeas (
-                .ref_in(top_i.iacore.clk_in_pi),
-                .in(top_i.iacore.clk_interp_sw[i]),
-                .delay(Tdelay[i])
-            );
-        end
-    endgenerate
-
-    // instantiate top module
-    butterphy_top top_i (
-        // analog inputs
-        .ext_rx_inp(ch_outp),
-        .ext_rx_inn(ch_outn),
-        .ext_Vcm(v_cm),
-        .ext_Vcal(v_cal),
-
-        // clock inputs 
-        .ext_clkp(ext_clkp),
-        .ext_clkn(ext_clkn),
-
-        // clock outputs
-        .clk_out_p(clk_out_p),
-        .clk_out_n(clk_out_n),
-        .clk_trig_p(clk_trig_p),
-        .clk_trig_n(clk_trig_n),
-        // dump control
-        .ext_dump_start(dump_start),
-        .ext_rstb(rstb),
-        // JTAG
-        .jtag_intf_i(jtag_intf_i)
-    );
-
-
-    clock #(
-        .freq(full_rate/2), //Depends on divider !
-        .duty(0.5),
-        .td(0)
-    ) iEXTCLK (
-        .ckout(ext_clkp),
-        .ckoutb(ext_clkn)
-    ); 
-
-    jtag_drv jtag_drv_i (jtag_intf_i);
-
-    // Recording
-
-    logic record;
-
-    pi_ctl_recorder pi_ctl_recorder_i(
+    pi_ctl_recorder #(
+        .filename(`PI_CTL_TXT)
+    ) pi_ctl_recorder_i(
     	.in(pi_ctl),
     	.en(1'b1),
     	.clk(record)
     );
 
-    delay_recorder delay_recorder_i(
+    delay_recorder #(
+        .filename(`DELAY_TXT)
+    ) delay_recorder_i(
     	.in(Tdelay),
     	.en(1'b1),
     	.clk(record)
     );
 
-    // Main test logic
+    genvar ig;
+    generate
+        for (ig=0; ig<Nout; ig=ig+1) begin
+            delay_meas_ideal idmeas (
+                .ref_in(top_i.iacore.clk_in_pi),
+                .in(top_i.iacore.clk_interp_sw[ig]),
+                .delay(Tdelay[ig])
+            );
+        end
+    endgenerate
 
-    logic [Npi-1:0] pi_ctl_stim [Nout-1:0] [(2**Npi-1):0];
-    initial begin
+	// Main test
+	initial begin
+		// Initialize pins
+		$display("Initializing pins...");
+		record = 1'b0;
+		jtag_drv_i.init();
 
-        record = 1'b0;
+		// Toggle reset
+		$display("Toggling reset...");
         #(20ns);
-        rstb = 1'b0;
-        #(20ns);
-        rstb = 1'b1;
+		rstb = 1'b0;
+		#(20ns);
+		rstb = 1'b1;
+
+		// Enable the input buffer
+		$display("Set up the input buffer...");
+        `FORCE_ADBG(en_inbuf, 0);
+        #(1ns);
+        `FORCE_ADBG(en_inbuf, 1);
+        #(1ns);
+		`FORCE_ADBG(en_gf, 1);
+        #(1ns);
+        `FORCE_ADBG(en_v2t, 1);
+        #(1ns);
+        `FORCE_DDBG(int_rstb, 1);
+        #(1ns);
+
+        // run CDR clock fast to reduce simulation time
+        // (the CDR clock is an input of the phase interpolator)
+        `FORCE_DDBG(Ndiv_clk_cdr, 1);
+
+        // wait for a little bit so that the CDR clock starts toggling
         #(10ns);
 
-        // Initialize JTAG
-        jtag_drv_i.init();
-
-        // Enable the input buffer
-        //jtag_drv_i.write_tc_reg(en_inbuf, 'b1);
-        //jtag_drv_i.write_tc_reg(int_rstb, 'b1);
-        force top_i.idcore.adbg_intf_i.en_inbuf='d1;
-        force top_i.idcore.ddbg_intf_i.int_rstb ='d1;
-        force top_i.idcore.ddbg_intf_i.Ndiv_clk_cdr = 'd1;
-        //jtag_drv_i.write_tc_reg(Ndiv_clk_cdr, 'd1); //  Reduce the CDR clock division so that the simulation time isn't so egregious
-
-        //PI has an erroneous state due to its relationship with the clock that produces the CDR clock
-        //If value goes above ~375, the PI produces a clock output that has a duty cycle issue (?) that then causes
-        //the clk_adc to drop to half rate and the clock cdr to drop to half that...
-        for (int i=0; i<Nout; i=i+1) begin
-            temp = $random;
-            pi_ctl[i] = temp;//(temp > 375) ? 374 : temp;
-        end
-        force top_i.idcore.ddbg_intf_i.ext_pi_ctl_offset[0] = pi_ctl[0];
-        force top_i.idcore.ddbg_intf_i.ext_pi_ctl_offset[1] = pi_ctl[1];
-        force top_i.idcore.ddbg_intf_i.ext_pi_ctl_offset[2] = pi_ctl[2];
-        force top_i.idcore.ddbg_intf_i.ext_pi_ctl_offset[3] = pi_ctl[3];
-    //end
-
-        // compute stimulus
-
-        for (int i=0; i<Nout; i=i+1) begin
-            //for (int j=240; j<340; j=j+1) begin
-            for (int j=0; j<2**Npi; j=j+1) begin
-                pi_ctl_stim[i][j] = j;
-            end
-            //pi_ctl_stim[i].shuffle(); 
-        end
-
-        // wait for startup
-        jtag_drv_i.write_tc_reg(en_v2t, 'b1);
-
-        #(100ns);
-
         // run desired number of trials
-        //for (int j=0; j<2**Npi; j=j+1) begin
-        for (int i=0; i<2**Npi; i=i+1) begin
-                    //for (int i=0; i<Nout; i=i+1) begin
-            pi_ctl[0] = pi_ctl_stim[0][i];
-            pi_ctl[1] = pi_ctl_stim[1][i];
-            pi_ctl[2] = pi_ctl_stim[2][i];
-            pi_ctl[3] = pi_ctl_stim[3][i];
-            repeat (3) @(negedge top_i.idcore.clk_cdr);
-            force top_i.idcore.ddbg_intf_i.ext_pi_ctl_offset[0] = pi_ctl[0];
-            force top_i.idcore.ddbg_intf_i.ext_pi_ctl_offset[1] = pi_ctl[1];
-            force top_i.idcore.ddbg_intf_i.ext_pi_ctl_offset[2] = pi_ctl[2];
-            force top_i.idcore.ddbg_intf_i.ext_pi_ctl_offset[3] = pi_ctl[3];
-                //end
- //           #(Twait*1s);
-            `PULSE_HIGH(record);
+        // TODO: explore behavior beyond 350
+        for (int i=0; i<=350; i=i+1) begin
+            // apply the stimulus
+            for (int j=0; j<Nout; j=j+1) begin
+                pi_ctl[j] = i;
+            end
+            $display("Setting ext_pi_ctl_offset to %0d...", pi_ctl[0]);
+            `FORCE_DDBG(ext_pi_ctl_offset, pi_ctl);
+
+            // wait a few cycles of the CDR clock
+            repeat (4) @(negedge top_i.idcore.clk_cdr);
+            $display("Measured delay: %0.3f ps.", Tdelay[0]*1e12);
+
+            // record the data
+            record = 1'b1;
+            #(1ns);
+            record = 1'b0;
+            #(1ns);
         end
 
+        // wait a bit
         #(Twait*1s);
 
+        // finish the test
         $finish;
-    end
-
-    initial begin
-    	// initialize
-
-
-    end
-
-    // print simulation status
-
-    sim_status sim_status_i();
-
+	end
 endmodule
-
-`default_nettype wire

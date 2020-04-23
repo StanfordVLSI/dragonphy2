@@ -24,5 +24,6 @@ def test_sim():
         top_module='test',
         inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/new_cpu')],
         defines={'DAVE_TIMEUNIT': '1fs', 'NCVLOG': None},
+        flags=['-unbuffered'],
         simulator=SIMULATOR
     ).run()

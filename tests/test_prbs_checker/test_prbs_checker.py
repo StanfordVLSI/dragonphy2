@@ -93,7 +93,8 @@ def test_sim(n_delay, n_prbs=7, n_channels=16, n_shift_bits=4):
         parameters={'n_prbs': n_prbs, 'n_channels': n_channels, 'n_shift_bits': n_shift_bits},
         ext_model_file=True,
         disp_type='realtime',
-        dump_waveforms=False
+        dump_waveforms=False,
+        directory=BUILD_DIR
     )
 
     # check results
