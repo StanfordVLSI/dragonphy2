@@ -70,7 +70,8 @@ module dsp_backend (
                 end
 
                 for(jj=0; jj<ffe_gpack::length; jj=jj+1) begin
-                	weights[jj][ii] <= (dsp_dbg_intf_i.update_weights[jj][ii]) ? (dsp_dbg_intf_i.new_weights[jj][ii]) : weights[jj][ii];
+                	weights[jj][ii] <= (dsp_dbg_intf_i.update_weights[jj][ii]) ? (dsp_dbg_intf_i.new_weights[jj][ii]) : weights[jj][ii];\
+                	disable_product[jj][ii] <=0;
                 end
             end
         end
