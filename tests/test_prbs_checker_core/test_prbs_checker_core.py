@@ -88,5 +88,6 @@ def test_sim(n_delay, n_prbs=7, n_channels=16, n_shift_bits=4, n_match_bits=5):
         },
         ext_model_file=True,
         disp_type='realtime',
-        dump_waveforms=False
+        dump_waveforms=False,
+        directory=BUILD_DIR
     )

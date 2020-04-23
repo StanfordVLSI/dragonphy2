@@ -58,7 +58,7 @@ module test;
     );
 
     // Main test logic
-    logic [(Npi-1):0] pi_codes [Nout];
+    logic [(Npi-1):0] pi_ctl [Nout];
     initial begin
     	// Uncomment to save key signals
 	    // $dumpfile("out.vcd");
@@ -94,36 +94,40 @@ module test;
         `FORCE_DDBG(int_rstb, 1);
         #(1ns);
 
-        // wait a bit
-        #(100ns);
+        // run CDR clock fast to reduce simulation time
+        // (the CDR clock is an input of the phase interpolator)
+        `FORCE_DDBG(Ndiv_clk_cdr, 1);
 
-        // walk through all PI codes
-        for (int i=0; i<2**Npi; i=i+1) begin
-        	$display("Trial %0d/%0d", i, 2**Npi);
+        // wait for a little bit so that the CDR clock starts toggling
+        #(10ns);
 
-            // write PI codes
+        // run desired number of trials
+        // TODO: explore behavior beyond 350
+        for (int i=0; i<350; i=i+1) begin
+            // apply the stimulus
             for (int j=0; j<Nout; j=j+1) begin
-                pi_codes[j] = i;
+                pi_ctl[j] = i;
             end
-            `FORCE_DDBG(ext_pi_ctl_offset, pi_codes);
+            $display("Setting ext_pi_ctl_offset to %0d...", pi_ctl[0]);
+            `FORCE_DDBG(ext_pi_ctl_offset, pi_ctl);
 
-            // wait
-            #(10ns);
+            // wait a few cycles of the CDR clock
+            repeat (4) @(negedge top_i.idcore.clk_cdr);
 
             // start monitoring
             test_start = 'b1;
-            #0;
+            #(1ns);
             test_start = 'b0;
-            #0;
+            #(1ns);
 
             // wait while monitoring
             #(20ns);
 
             // stop monitoring
             test_stop = 'b1;
-            #0;
+            #(1ns);
             test_stop = 'b0;
-            #0;
+            #(1ns);
         end
 
         $finish;
