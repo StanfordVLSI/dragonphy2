@@ -1,12 +1,16 @@
 `default_nettype none
 
-interface sram_debug_intf;
+interface sram_debug_intf #(
+    parameter integer N_mem_tiles=4
+);
+
+    localparam log_N_tiles = $clog2(N_mem_tiles);
 
 	import const_pack::*;
 
-    logic [N_mem_addr-1:0] in_addr;
-    logic signed [Nadc-1:0] out_data [(Nti+Nti_rep)-1:0];
-    logic [N_mem_addr-1:0] addr;
+    logic [N_mem_addr + log_N_tiles  - 1:0] in_addr;
+    logic signed [Nadc + log_N_tiles - 1:0] out_data [(Nti+Nti_rep)-1:0];
+    logic [N_mem_addr + log_N_tiles  - 1:0] addr;
 
     modport sram (
 	    input in_addr,
