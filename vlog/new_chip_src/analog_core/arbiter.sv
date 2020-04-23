@@ -8,13 +8,13 @@ module arbiter (
 
     wire Q, Qb, Q_inv, Qb_inv;
 
-    n_and inand1_dont_touch (
+    n_and inand1 (
         .in1(in1),
         .in2(Qb),
         .out(Q)
     );
 
-    n_and inand2_dont_touch (
+    n_and inand2 (
         .in1(in2),
         .in2(Q),
         .out(Qb)

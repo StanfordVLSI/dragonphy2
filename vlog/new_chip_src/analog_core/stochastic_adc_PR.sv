@@ -1,4 +1,5 @@
-`include "iotype.sv"
+//`include "iotype.sv"
+`include "/aha/sjkim85/github_repo/dragonphy/inc/new_asic/iotype.sv"
 
 module stochastic_adc_PR #(
     parameter Nctl_v2t = 5,
@@ -120,7 +121,7 @@ module stochastic_adc_PR #(
 
     assign clk_TDC = sel_clk_TDC ? clk_async : clk_adder;
 
-    dcdl_coarse idcdl_coarse_dont_touch (
+    dcdl_coarse idcdl_coarse (
         .thm(thm_ctl_dcdl),
         .out(clk_TDC_d),
         .in(clk_TDC)
@@ -153,14 +154,14 @@ module stochastic_adc_PR #(
         .clk(clk_adder)
     );
 
-    mux ipm_mux1_dont_touch (
+    mux_fixed ipm_mux1_dont_touch (
         .in0(clk_v2t),
         .in1(v2t_out_p),
         .sel(sel_pm_in[1]),
         .out(ph_ref)
     );
 
-    mux ipm_mux0_dont_touch (
+    mux_fixed ipm_mux0_dont_touch (
         .in0(clk_in),
         .in1(v2t_out_n),
         .sel(sel_pm_in[0]),
