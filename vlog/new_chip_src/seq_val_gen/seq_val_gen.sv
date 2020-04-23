@@ -1,12 +1,14 @@
 module seq_val_gen #(
     parameter integer nbit=1
 ) (
-    input wire logic signed [estBitwidth-1:0] channel_est [numChannels-1:0][estDepth-1:0],
+    input wire logic signed [mlsd_gpack::estimate_precision-1:0]  channel_est [mlsd_gpack::width-1:0][mlsd_gpack::estimate_depth-1:0],
 
     output logic signed [mlsd_gpack::estimate_precision-1:0]   precalc_seq_vals [2**nbit-1:0][mlsd_gpack::width-1:0][mlsd_gpack::length-1:0]
 );
     logic signed [nbit+mlsd_gpack::estimate_precision-1:0] sum_precalc_seq_vals [2**nbit-1:0][mlsd_gpack::width-1:0][mlsd_gpack::length-1:0];
     logic signed [1:0] precalc_bit_vector [2**nbit-1:0][nbit-1:0];
+
+    int ii, jj, kk, ll;
 
     always_comb begin
         for(ii=0; ii<2**nbit; ii=ii+1) begin
