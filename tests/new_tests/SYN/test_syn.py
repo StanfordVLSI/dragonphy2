@@ -44,6 +44,7 @@ def test_sim(top_cell='dragonphy_top', run_tcl='run.tcl'):
     src_files.insert(0, Directory.path() + '/build/all/adapt_fir/cmp_gpack.sv')
     src_files.insert(0, Directory.path() + '/build/all/adapt_fir/mlsd_gpack.sv')
     src_files.insert(0, Directory.path() + '/build/all/adapt_fir/constant_gpack.sv')
+    src_files.insert(0, Directory.path() + '/vlog/new_pack/dsp_pack.sv')
     # add the rest of the files
     src_files += get_deps_new_asic(top_cell)
 
@@ -71,3 +72,7 @@ def test_sim(top_cell='dragonphy_top', run_tcl='run.tcl'):
 
     err_str = re.compile('(error)|(^Error:)')
     subprocess_run(args, cwd=BUILD_DIR, err_str=err_str)
+
+
+if __name__ == "__main__":
+    test_sim()
