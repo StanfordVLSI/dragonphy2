@@ -9,7 +9,7 @@ interface sram_debug_intf #(
 	import const_pack::*;
 
     logic [N_mem_addr + log_N_tiles  - 1:0] in_addr;
-    logic signed [Nadc + log_N_tiles - 1:0] out_data [(Nti+Nti_rep)-1:0];
+    logic signed [Nadc - 1:0] out_data [(Nti+Nti_rep)-1:0];
     logic [N_mem_addr + log_N_tiles  - 1:0] addr;
 
     modport sram (
