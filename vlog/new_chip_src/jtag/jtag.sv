@@ -138,10 +138,10 @@ module jtag (
 	assign rjtag_intf_i.pfd_offset_rep=ddbg_intf_i.pfd_offset_rep;
 	
 	//SRAM Input
-	assign sdbg_intf_i.in_addr = rjtag_intf_i.in_addr;
-	assign rjtag_intf_i.addr = sdbg_intf_i.addr;
+	assign sdbg_intf_i.in_addr_multi = rjtag_intf_i.in_addr_multi;
+	assign rjtag_intf_i.addr_multi = sdbg_intf_i.addr_multi;
 	//SRAM Output
-	assign rjtag_intf_i.out_data = sdbg_intf_i.out_data;
+	assign rjtag_intf_i.out_data_multi = sdbg_intf_i.out_data_multi;
 
 
 	//CDR Input
