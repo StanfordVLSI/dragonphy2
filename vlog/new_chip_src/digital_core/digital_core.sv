@@ -23,7 +23,7 @@ module digital_core import const_pack::*; (
     cdr_debug_intf cdbg_intf_i ();
     sram_debug_intf sdbg_intf_i ();
     dcore_debug_intf ddbg_intf_i ();
-
+    prbs_debug_intf pdbg_intf_i ();
     
   //  wire logic ext_rstb;
     wire logic rstb;
@@ -37,6 +37,7 @@ module digital_core import const_pack::*; (
     wire logic clk_cdr_in;
     wire logic sram_rstb;
     wire logic cdr_rstb;
+    wire logic prbs_rstb;
    // wire logic bufferend_signals[15:0];
     wire logic buffered_signals[15:0];
     wire logic signed [Nadc-1:0] adcout_unfolded [Nti+Nti_rep-1:0];
@@ -49,6 +50,7 @@ module digital_core import const_pack::*; (
     assign rstb             = ddbg_intf_i.int_rstb  && ext_rstb; //combine external reset with JTAG reset\
     assign sram_rstb        = ddbg_intf_i.sram_rstb && ext_rstb;
     assign cdr_rstb         = ddbg_intf_i.cdr_rstb  && ext_rstb;
+    assign prbs_rstb        = ddbg_intf_i.prbs_rstb && ext_rstb;
     //assign adbg_intf_i.rstb = rstb;
 
     assign clk_cdr = clk_cdr_in;
@@ -186,6 +188,33 @@ module digital_core import const_pack::*; (
         .addr(sdbg_intf_i.addr)
     );
 
+    // PRBS
+    // TODO: refine data decision from ADC (custom threshold, gain, invert option, etc.)
+    // TODO: mux PRBS input between ADC, FFE, and MLSD
+    logic [(Nti-1):0] prbs_rx_bits;
+    generate
+        for (k=0; k<Nti; k=k+1) begin
+            assign prbs_rx_bits[k] = ~adcout_unfolded[k][Nadc-1];
+        end
+    endgenerate
+
+    prbs_checker #(
+        .n_prbs(Nprbs),
+        .n_channels(Nti)
+    ) prbs_checker_i (
+        // clock and reset
+        .clk(clk_adc),
+        .rst(~prbs_rstb),
+        // inputs
+        .prbs_init_vals(pdbg_intf_i.prbs_init_vals),
+        .rx_bits(prbs_rx_bits),
+        .checker_mode(pdbg_intf_i.prbs_checker_mode),
+        // outputs
+        .correct_bits({pdbg_intf_i.prbs_correct_bits_upper, pdbg_intf_i.prbs_correct_bits_lower}),
+        .total_bits({pdbg_intf_i.prbs_total_bits_upper, pdbg_intf_i.prbs_total_bits_lower}),
+        .rx_shift(pdbg_intf_i.prbs_rx_shift)
+    );
+
     output_buffer out_buff_i (
             .bufferend_signals(buffered_signals),
             .sel_outbuff(ddbg_intf_i.sel_outbuff),
@@ -211,6 +240,7 @@ module digital_core import const_pack::*; (
         .adbg_intf_i(adbg_intf_i),
         .cdbg_intf_i(cdbg_intf_i),
         .sdbg_intf_i(sdbg_intf_i),
+        .pdbg_intf_i(pdbg_intf_i),
         .jtag_intf_i(jtag_intf_i)
     );
 

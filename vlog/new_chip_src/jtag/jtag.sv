@@ -7,6 +7,7 @@ module jtag (
 	cdr_debug_intf.jtag cdbg_intf_i,
 	dcore_debug_intf.jtag ddbg_intf_i,
 	sram_debug_intf.jtag sdbg_intf_i,
+	prbs_debug_intf.jtag pdbg_intf_i,
 	jtag_intf.target jtag_intf_i
 );
 	raw_jtag_ifc_unq1 rjtag_intf_i(.Clk(clk), .Reset(rstb));
@@ -126,7 +127,8 @@ module jtag (
 	assign ddbg_intf_i.bypass_out    = rjtag_intf_i.bypass_out;
 	assign ddbg_intf_i.sram_rstb 	 = rjtag_intf_i.sram_rstb;
 	assign ddbg_intf_i.cdr_rstb 	 = rjtag_intf_i.cdr_rstb;
-	
+    assign ddbg_intf_i.prbs_rstb 	 = rjtag_intf_i.prbs_rstb;
+
 	//Digital Output
 	assign rjtag_intf_i.adcout_avg=ddbg_intf_i.adcout_avg;
 	assign rjtag_intf_i.adcout_sum=ddbg_intf_i.adcout_sum;
@@ -145,12 +147,21 @@ module jtag (
 	//SRAM Output
 	assign rjtag_intf_i.out_data = sdbg_intf_i.out_data;
 
-
 	//CDR Input
 	assign cdbg_intf_i.pd_offset_ext = rjtag_intf_i.pd_offset_ext;
 	assign cdbg_intf_i.i_val = rjtag_intf_i.i_val;
 	assign cdbg_intf_i.p_val = rjtag_intf_i.p_val;
 	//CDR Output
+
+    // PRBS Input
+    assign pdbg_intf_i.prbs_checker_mode = rjtag_intf_i.prbs_checker_mode;
+    assign pdbg_intf_i.prbs_init_vals = rjtag_intf_i.prbs_init_vals;
+    // PRBS Output
+    assign rjtag_intf_i.prbs_correct_bits_upper = pdbg_intf_i.prbs_correct_bits_upper;
+    assign rjtag_intf_i.prbs_correct_bits_lower = pdbg_intf_i.prbs_correct_bits_lower;
+    assign rjtag_intf_i.prbs_total_bits_upper = pdbg_intf_i.prbs_total_bits_upper;
+    assign rjtag_intf_i.prbs_total_bits_lower = pdbg_intf_i.prbs_total_bits_lower;
+    assign rjtag_intf_i.prbs_rx_shift = pdbg_intf_i.prbs_rx_shift;
 
 	//JTAG Interface - Output Buffer Enable is not passed through *
 	assign rjtag_intf_i.tck    = jtag_intf_i.phy_tck;
