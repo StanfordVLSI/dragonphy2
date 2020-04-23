@@ -21,7 +21,7 @@ module digital_core import const_pack::*; (
 
     // internal signals
     cdr_debug_intf cdbg_intf_i ();
-    sram_debug_intf sdbg_intf_i ();
+    sram_debug_intf #(.N_mem_tiles(4)) sm_dbg_intf_i ();
     dcore_debug_intf ddbg_intf_i ();
     dsp_debug_intf dsp_dbg_intf_i();
     
@@ -185,18 +185,20 @@ module digital_core import const_pack::*; (
 
     // SRAM
 
-    oneshot_memory oneshot_memory_i (
-        .clk(clk_cdr_in),
+    oneshot_multimemory  #(
+        .N_mem_tiles(4)
+    ) oneshot_multimemory_i(
+        .clk(clk_adc),
         .rstb(sram_rstb),
         
         .in_data(adcout_unfolded),
 
         .in_start_write(ext_dump_start),
 
-        .in_addr(sdbg_intf_i.in_addr),
+        .in_addr(sm_dbg_intf_i.in_addr),
 
-        .out_data(sdbg_intf_i.out_data),
-        .addr(sdbg_intf_i.addr)
+        .out_data(sm_dbg_intf_i.out_data),
+        .addr(sm_dbg_intf_i.addr)
     );
 
     output_buffer out_buff_i (
@@ -223,7 +225,7 @@ module digital_core import const_pack::*; (
         .ddbg_intf_i(ddbg_intf_i),
         .adbg_intf_i(adbg_intf_i),
         .cdbg_intf_i(cdbg_intf_i),
-        .sdbg_intf_i(sdbg_intf_i),
+        .sdbg_intf_i(sm_dbg_intf_i),
         .jtag_intf_i(jtag_intf_i)
     );
 

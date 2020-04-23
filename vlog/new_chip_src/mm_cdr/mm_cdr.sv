@@ -10,7 +10,8 @@ module mm_cdr import const_pack::*; #(
     input wire logic clk,
     input wire logic ext_rstb,
     
-    output wire logic  [Npi-1:0]pi_ctl[Nout-1:0],
+    output logic  [Npi-1:0]pi_ctl[Nout-1:0],
+    output logic freq_lvl_cross,
 
     cdr_debug_intf.cdr cdbg_intf_i
 );
@@ -85,6 +86,14 @@ module mm_cdr import const_pack::*; #(
                     sampler_state <= cdbg_intf_i.sample_state ? SAMPLE : READY;
                 end
             endcase
+        end
+    end
+
+    always_ff @(posedge clk or negedge ext_rstb) begin
+        if(~ext_rstb) begin
+            freq_lvl_cross <= 0;
+        end else begin
+            freq_lvl_cross <= 
         end
     end
 
