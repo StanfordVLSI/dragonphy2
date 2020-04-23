@@ -191,14 +191,14 @@ module digital_core import const_pack::*; (
         .clk(clk_adc),
         .rstb(sram_rstb),
         
-        .in_data(adcout_unfolded),
+        .in_bytes(adcout_unfolded),
 
         .in_start_write(ext_dump_start),
 
-        .in_addr(sm_dbg_intf_i.in_addr_multi),
+        .in_addr(sm_dbg_intf_i.in_addr),
 
-        .out_data(sm_dbg_intf_i.out_data_multi),
-        .addr(sm_dbg_intf_i.addr_multi)
+        .out_data(sm_dbg_intf_i.out_data),
+        .addr(sm_dbg_intf_i.addr)
     );
 
     output_buffer out_buff_i (
