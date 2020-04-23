@@ -10,15 +10,15 @@ module dsp_backend (
 	dsp_debug_intf.dsp dsp_dbg_intf_i
 );
 	localparam integer ffe_code_centerBuffer      = 0;
-	localparam integer ffe_code_numPastBuffers     = $ceil(real'(ffe_gpack::length-1)/real'(constant_gpack::channel_width));
+	localparam integer ffe_code_numPastBuffers     = $ceil((ffe_gpack::length-1)*1.0/(constant_gpack::channel_width));
 	localparam integer ffe_code_numFutureBuffers   = 0;
 
-	localparam integer mlsd_bit_numPastBuffers    = $ceil(real'(mlsd_gpack::estimate_depth-1)*1.0/constant_gpack::channel_width);
-	localparam integer mlsd_bit_numFutureBuffers  = $ceil(real'(mlsd_gpack::length-1)*1.0/constant_gpack::channel_width);
+	localparam integer mlsd_bit_numPastBuffers    = $ceil((mlsd_gpack::estimate_depth-1)*1.0/constant_gpack::channel_width);
+	localparam integer mlsd_bit_numFutureBuffers  = $ceil((mlsd_gpack::length-1)*1.0/constant_gpack::channel_width);
 	localparam integer mlsd_bit_centerBuffer      = mlsd_bit_numPastBuffers;
 
 
-	localparam integer mlsd_code_numPastBuffers   = $ceil(real'(mlsd_gpack::length-1)*1.0/constant_gpack::channel_width);
+	localparam integer mlsd_code_numPastBuffers   = $ceil((mlsd_gpack::length-1)*1.0/constant_gpack::channel_width);
 	localparam integer mlsd_code_numFutureBuffers = 0;
 	localparam integer mlsd_code_centerBuffer     = 0;
 
