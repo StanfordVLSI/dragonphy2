@@ -1,6 +1,6 @@
 module seq_val_gen #(
     parameter integer nbit=1,
-    parameter integer cbit=0,
+    parameter integer cbit=0
 ) (
     input wire logic signed [mlsd_gpack::estimate_precision-1:0]  channel_est [mlsd_gpack::width-1:0][mlsd_gpack::estimate_depth-1:0],
 
