@@ -200,7 +200,8 @@ module dsp_backend (
 	logic signed [mlsd_gpack::code_precision-1:0] precalc_seq_vals [2**mlsd_gpack::bit_length-1:0][constant_gpack::channel_width-1:0][mlsd_gpack::length-1:0];
 
 	seq_val_gen #(
-		.nbit(mlsd_gpack::bit_length)
+		.nbit(mlsd_gpack::bit_length),
+		.cbit(mlsd_gpack::est_center)
 	) seq_gen_i (
 		.channel_est(channel_est),
 		.precalc_seq_vals(precalc_seq_vals)
