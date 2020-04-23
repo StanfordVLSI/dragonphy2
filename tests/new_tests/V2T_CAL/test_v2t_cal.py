@@ -30,3 +30,7 @@ def test_sim():
         defines={'DAVE_TIMEUNIT': '1fs', 'NCVLOG': None},
         simulator=SIMULATOR
     ).run()
+
+
+if __name__ == "__main__":
+    test_sim()
