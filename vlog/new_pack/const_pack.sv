@@ -21,5 +21,5 @@ package const_pack;
     localparam integer intg_width = 8;
     localparam integer phase_est_shift = 8;
     localparam integer N_mem_width = 18;
-    localparam integer N_mem_tile  = 4;
+    localparam integer N_mem_tiles  = 4;
 endpackage
