@@ -39,6 +39,7 @@ def test_sim():
     deps.insert(0, Directory.path() + '/build/all/adapt_fir/cmp_gpack.sv')
     deps.insert(0, Directory.path() + '/build/all/adapt_fir/mlsd_gpack.sv')
     deps.insert(0, Directory.path() + '/build/all/adapt_fir/constant_gpack.sv')
+    deps.insert(0, Directory.path() + '/vlog/new_pack/dsp_pack.sv')
     print(deps)
 
     DragonTester(
