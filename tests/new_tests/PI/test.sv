@@ -128,8 +128,8 @@ module test;
         #(10ns);
 
         // run desired number of trials
-        // TODO: explore behavior beyond 350
-        for (int i=0; i<=350; i=i+1) begin
+        // TODO: explore behavior beyond 450
+        for (int i=0; i<=450; i=i+1) begin
             // apply the stimulus
             for (int j=0; j<Nout; j=j+1) begin
                 pi_ctl[j] = i;
