@@ -30,6 +30,7 @@
 | int_rstb                   |         |                        |                  | Test         | out      |   0       |
 | sram_rstb                  |         |                        |                  | Test         | out      |   1       |
 | cdr_rstb                   |         |                        |                  | Test         | out      |   1       |
+| prbs_rstb                  |         |                        |                  | Test         | out      |   1       |
 | sel_outbuff				 | 		   | 3:0					|				   | Test		  | out 	 |   0		 |
 | sel_trigbuff				 | 		   | 3:0					|				   | Test		  | out 	 |   0		 |
 | en_outbuff				 | 		   |     					|				   | Test		  | out 	 |   0		 |
