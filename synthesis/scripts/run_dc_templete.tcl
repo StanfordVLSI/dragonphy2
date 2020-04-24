@@ -17,15 +17,15 @@ if { ${DESIGN_TARGET} == "gate_size_test" } {
 #------------------------------------------------------------
 # gate_size_test
 #-----------------------------------------------------------
-analyze -format sverilog [list ${STUBDIR}/inv_0_fixed.sv]
-analyze -format sverilog [list ${STUBDIR}/inv_1_fixed.sv]
-analyze -format sverilog [list ${STUBDIR}/inv_2_fixed.sv]
-analyze -format sverilog [list ${STUBDIR}/inv_3_fixed.sv]
-analyze -format sverilog [list ${STUBDIR}/inv_4_fixed.sv]
-analyze -format sverilog [list ${STUBDIR}/inv_5_fixed.sv]
-analyze -format sverilog [list ${STUBDIR}/n_or_fixed.sv]
-analyze -format sverilog [list ${STUBDIR}/mux_fixed.sv]
-analyze -format sverilog [list ${STUBDIR}/ff_cn_sn_rn_fixed.sv]
+analyze -format sverilog [list ${RTLDIR}/inv_0_fixed.sv]
+analyze -format sverilog [list ${RTLDIR}/inv_1_fixed.sv]
+analyze -format sverilog [list ${RTLDIR}/inv_2_fixed.sv]
+analyze -format sverilog [list ${RTLDIR}/inv_3_fixed.sv]
+analyze -format sverilog [list ${RTLDIR}/inv_4_fixed.sv]
+analyze -format sverilog [list ${RTLDIR}/inv_5_fixed.sv]
+analyze -format sverilog [list ${RTLDIR}/n_or_fixed.sv]
+analyze -format sverilog [list ${RTLDIR}/mux_fixed.sv]
+analyze -format sverilog [list ${RTLDIR}/ff_cn_sn_rn_fixed.sv]
 } else { 
 #------------------------------------------------------------
 # gates for V2T_buffer
