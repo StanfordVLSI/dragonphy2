@@ -16,11 +16,6 @@ else:
 @pytest.mark.parametrize((), [pytest.param(marks=pytest.mark.slow) if SIMULATOR=='vivado' else ()])
 def test_sim():
     deps = get_deps_cpu_sim_new(impl_file=THIS_DIR / 'test.sv')
-    deps.insert(0, Directory.path() + '/build/all/adapt_fir/ffe_gpack.sv')
-    deps.insert(0, Directory.path() + '/build/all/adapt_fir/cmp_gpack.sv')
-    deps.insert(0, Directory.path() + '/build/all/adapt_fir/mlsd_gpack.sv')
-    deps.insert(0, Directory.path() + '/build/all/adapt_fir/constant_gpack.sv')
-    deps.insert(0, Directory.path() + '/vlog/new_pack/dsp_pack.sv')
     print(deps)
 
     DragonTester(
@@ -29,6 +24,6 @@ def test_sim():
         top_module='test',
         inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/new_cpu')],
         defines={'DAVE_TIMEUNIT': '1fs', 'NCVLOG': None},
-        flags=['-unbuffered'],
-        simulator=SIMULATOR
+        simulator=SIMULATOR,
+        flags=['-unbuffered']
     ).run()
