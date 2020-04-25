@@ -18,6 +18,17 @@
 *.v.gz
 *.io
 *.src.net
+*.lef
+*.time
+*.enc
+*.dat
+*.spf
+*.sdf
+*.svf
+*.syn
+*.pvl
+*.mr
+*.ddc
 qrcTechFile*
 tcbn16*
 pnr/data
