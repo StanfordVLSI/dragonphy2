@@ -40,11 +40,11 @@ def test_sim(top_cell='dragonphy_top', run_tcl='run.tcl'):
     # manually add JTAG interface because it is not instantiated
     # anywhere (only appears in I/O specifications)
     src_files += [get_file('vlog/new_chip_src/jtag/jtag_intf.sv')]
-    src_files += Directory.path() + '/build/all/adapt_fir/ffe_gpack.sv'
-    src_files += Directory.path() + '/build/all/adapt_fir/cmp_gpack.sv'
-    src_files += Directory.path() + '/build/all/adapt_fir/mlsd_gpack.sv'
-    src_files += Directory.path() + '/build/all/adapt_fir/constant_gpack.sv'
-    src_files += Directory.path() + '/vlog/new_pack/dsp_pack.sv'
+    src_files += [Directory.path() + '/build/all/adapt_fir/ffe_gpack.sv']
+    src_files += [Directory.path() + '/build/all/adapt_fir/cmp_gpack.sv']
+    src_files += [Directory.path() + '/build/all/adapt_fir/mlsd_gpack.sv']
+    src_files += [Directory.path() + '/build/all/adapt_fir/constant_gpack.sv']
+    src_files += [Directory.path() + '/vlog/new_pack/dsp_pack.sv']
     # add the rest of the files
     src_files += get_deps_new_asic(top_cell)
 
