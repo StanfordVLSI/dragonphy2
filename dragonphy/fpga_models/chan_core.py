@@ -28,7 +28,7 @@ class ChannelCore:
         m.add_digital_input('rst')
 
         # read in the channel data
-        chan = Filter.from_file(get_file('build/all/adapt_fir/chan.npy'))
+        chan = Filter.from_file(get_file('build/new_chip_src/adapt_fir/chan.npy'))
 
         # create a function
         domain = [chan.t_vec[0], chan.t_vec[-1]]
