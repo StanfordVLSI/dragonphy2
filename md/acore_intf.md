@@ -2,8 +2,8 @@
 |----------------------------|---------|------------------------|--------------|--------------|----------|-----------|
 | en_v2t                     |         |                        |              | Test         | out      |   0       |
 | en_slice                   |         | Nti-1:0                |              | Test         | out      |   'hFFFF  |
-| ctl_v2tn                   |         | Nv2t-1:0               | Nti-1:0      | Test         | out      |   6       |
-| ctl_v2tp                   |         | Nv2t-1:0               | Nti-1:0      | Test         | out      |   6       |
+| ctl_v2tn                   |         | Nv2t-1:0               | Nti-1:0      | Test         | out      |   8       |
+| ctl_v2tp                   |         | Nv2t-1:0               | Nti-1:0      | Test         | out      |   8       |
 | init                       |         | $clog2(Nout)-1:0       | Nti-1:0      | Test         | out      |   0       |
 | ALWS_ON                    |         | Nti-1:0                |              | Test         | out      |   0       |
 | sel_pm_sign                |         | 1:0                    | Nti-1:0      | Test         | out      |   0       |
