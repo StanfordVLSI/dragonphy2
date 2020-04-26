@@ -17,7 +17,7 @@ def create_fpga_graph():
     graph.add_config('jtag_config', folders=['config'])
 
     # Add msdsl scripts to build list
-    graph.add_python('adapt_fir', 'adapt_fir', 'AdaptFir', view='all',
+    graph.add_python('adapt_fir', 'adapt_fir', 'AdaptFir', view='fpga_models',
                      folders=['dragonphy'], configs={'test_loopback_config'})
     graph.add_python('jtag', 'jtag', 'JTAG', view='all',
                      folders=['dragonphy'], configs={'jtag_config'})
@@ -48,7 +48,7 @@ def create_asic_graph():
     graph.add_config('jtag_config', folders=['config'])
 
     # Add msdsl scripts to build list
-    graph.add_python('adapt_fir', 'adapt_fir', 'AdaptFir', view='all',
+    graph.add_python('adapt_fir', 'adapt_fir', 'AdaptFir', view='new_chip_src',
                      folders=['dragonphy'], configs={'system'})
     graph.add_python('jtag', 'jtag', 'JTAG', view='all',
                      folders=['dragonphy'], configs={'jtag_config'})
