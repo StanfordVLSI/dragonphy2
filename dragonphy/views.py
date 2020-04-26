@@ -152,6 +152,13 @@ def get_deps_cpu_sim_new(cell_name=None, impl_file=None):
         includes=[get_dir('inc/new_cpu'), get_mlingua_dir() / 'samples'],
         defines={'DAVE_TIMEUNIT': '1fs', 'NCVLOG': None}
     )
+
+    #deps.insert(0, Directory.path() + '/build/all/adapt_fir/ffe_gpack.sv')
+    #deps.insert(0, Directory.path() + '/build/all/adapt_fir/cmp_gpack.sv')
+    #deps.insert(0, Directory.path() + '/build/all/adapt_fir/mlsd_gpack.sv')
+    #deps.insert(0, Directory.path() + '/build/all/adapt_fir/constant_gpack.sv')
+    #deps.insert(0, Directory.path() + '/vlog/new_pack/dsp_pack.sv')
+
     return deps
 
 def get_deps_cpu_sim(cell_name=None, impl_file=None):
