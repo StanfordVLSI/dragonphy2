@@ -62,7 +62,7 @@ class DependencyNode(Node, Directory):
     def __ne__(self, other):
         return self.rank != other
 
-    def build(self, *src_nodes):
+    def build(self, src_nodes, view):
         pass
 
 class DependencyGraph:
@@ -251,7 +251,7 @@ class ConcatNode(DependencyNode):
         self.src_path = None
         self.snk_path = file_
 
-    def build(self, src_nodes):
+    def build(self, src_nodes, view):
         input_paths = [src_node.snk_path for src_node in src_nodes]
         os.system(f'cat {" ".join(input_paths)} > {self.snk_path}')
         return self.snk_path
@@ -273,7 +273,7 @@ class KratosNode(DependencyNode):
         self.snk_path = directory_path + '/' + f'{self.name}.sv'
         self.gen_name = generator_name
 
-    def build(self, src_nodes):        
+    def build(self, src_nodes, view):        
 
         gen_spec = importlib.util.spec_from_file_location(self.gen_name, self.src_path)
         gen_mod  = importlib.util.module_from_spec(gen_spec)
@@ -309,7 +309,7 @@ class PythonNode(DependencyNode):
         self.gen_name = generator_name
         self.configs  = configs
 
-    def build(self, src_nodes):
+    def build(self, src_nodes, view):
 
         gen_spec = importlib.util.spec_from_file_location(self.gen_name, self.src_path)
         gen_mod  = importlib.util.module_from_spec(gen_spec)
@@ -327,6 +327,8 @@ class PythonNode(DependencyNode):
             for src_node in src_nodes:
                 if src_node.name in self.configs:
                     config = src_node.config_dict
+        
+        config['view'] = view
 
         return vlog_gen(**config, filename=self.snk_path).generated_files
 
@@ -394,7 +396,7 @@ class BuildGraph(Directory):
                 node = self.depend_graph[node_name]
                 src_nodes = [self.depend_graph[src_name] for src_name in node.sources]
                 print(f'BUILDING: {node_name}')
-                new_outputs[node_name] = (node.build(src_nodes), node.view)
+                new_outputs[node_name] = (node.build(src_nodes, node.view), node.view)
                 built_list, view = new_outputs[node_name]
                 if not built_list is None:
                     for item in built_list:

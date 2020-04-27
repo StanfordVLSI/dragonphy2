@@ -11,6 +11,7 @@ parameter_list:
   - &ffe_shift_precision 5
   - &mlsd_bit_length 1
   - &mlsd_est_cursor_pos 0
+
 generate:
   channel:
     class: "PulseChannel"
