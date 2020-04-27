@@ -27,7 +27,8 @@ def create_fpga_graph():
                      folders=['dragonphy'], configs={'test_loopback_config'})
     graph.add_python('jtag', 'jtag', 'JTAG', view='all',
                      folders=['dragonphy'], 
-                     configs={'jtag_config', 'acore_intf', 'cdr_intf', 'sram_multi_intf', 'dcore_intf'})
+                     configs={'jtag_config'},
+                     sources={'acore_intf', 'cdr_intf', 'sram_multi_intf', 'dcore_intf'})
     graph.add_python('chan_core', 'chan_core', 'ChannelCore', view='fpga_models',
                      folders=['dragonphy', 'fpga_models'], sources={'adapt_fir'},
                      configs={'chan'})
@@ -65,7 +66,8 @@ def create_asic_graph():
                      folders=['dragonphy'], configs={'system'})
     graph.add_python('jtag', 'jtag', 'JTAG', view='all',
                      folders=['dragonphy'], 
-                     configs={'jtag_config', 'acore_intf', 'cdr_intf', 'sram_multi_intf', 'dcore_intf'})
+                     configs={'jtag_config'},
+                     sources={'acore_intf', 'cdr_intf', 'sram_multi_intf', 'dcore_intf'})
 
     return graph
 
@@ -91,7 +93,8 @@ def create_cpu_graph():
                      folders=['dragonphy'], configs={'test_loopback_config'})
     graph.add_python('jtag', 'jtag', 'JTAG', view='all',
                      folders=['dragonphy'], 
-                     configs={'jtag_config', 'acore_intf', 'cdr_intf', 'sram_multi_intf', 'dcore_intf'})
+                     configs={'jtag_config'},
+                     sources={'acore_intf', 'cdr_intf', 'sram_multi_intf', 'dcore_intf'})
     graph.add_python('chan_core', 'chan_core', 'ChannelCore', view='chip_src',
                      folders=['dragonphy', 'fpga_models'], sources={'adapt_fir'},
                      configs={'chan'})
