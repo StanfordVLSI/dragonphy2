@@ -129,7 +129,7 @@ class BuildStatus(Directory):
             else:
                 old_time_stamp = self.state_dict[node_type][src_name]['time_stamp']
                 old_view       = self.state_dict[node_type][src_name]['view']
-                return ((old_time_stamp - time_stamp) != 0.0) and (old_view != src_view), { 'time_stamp' : time_stamp, 'loc' : src_path, 'view' : src_view}
+                return ((old_time_stamp - time_stamp) != 0.0) | (old_view != src_view), { 'time_stamp' : time_stamp, 'loc' : src_path, 'view' : src_view}
 
         self.state_dict['inputs'] = {} if self.state_dict['inputs'] is None else self.state_dict['inputs']
         self.state_dict['outputs'] = {} if self.state_dict['outputs'] is None else self.state_dict['outputs']
@@ -154,6 +154,7 @@ class BuildStatus(Directory):
             file_exists = Path(src_path).is_file()
             if file_exists:
                 node_changed, node_state = check_node(src_path, src_name, src_view=src_view, node_type='inputs')
+                print(node_changed, src_name)
                 if node_changed:
                     self.state_dict['inputs'][src_name] = node_state
                     update_set = update_set | {src_name}
