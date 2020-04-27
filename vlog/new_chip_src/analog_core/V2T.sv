@@ -14,7 +14,7 @@ input [31:0]  ctl,
 output v2t_out
 );
 //synopsys dc_script_begin
-// set_dont_touch {buff* nor* vdch}
+// set_dont_touch {mid* *out* Vdch}
 //synopsys dc_script_end
 
 SW  ISW4 (  .OUT(CS_DRN), .CLK(clk_v2t_l), .CLKB(clk_v2t_lb), .IN(1'b1));
@@ -26,11 +26,11 @@ MOMcap  IMOM ( .Cbot(Vdch), .Ctop(Vch) );
 CS_cell  ICS_dont_touch[31:0] ( .CS_DRN(CS_DRN), .Vbias(Vcal), .CTRL(ctl));
 CS_cell_dmm  ICSdmm_dont_touch[7:0] ();
 
-n_or iinv_skewed (  .in1(Vdch), .in2(Vdch), .out(NOR) );
-inv iinv_buff1 (  .in(NOR), .out(buff1) );
-inv iinv_buff2 (  .in(buff1), .out(buff2) );
-inv iinv_buff3 (  .in(buff2), .out(buff3) );
-inv iinv_buff4 (  .in(buff3), .out(v2t_out) );
+n_or iinv_skewed (  .in1(Vdch), .in2(Vdch), .out(nor_out) );
+inv iinv_buff1 (  .in(nor_out), .out(mid1) );
+inv iinv_buff2 (  .in(mid1), .out(mid2) );
+inv iinv_buff3 (  .in(mid2), .out(mid3) );
+inv iinv_buff4 (  .in(mid3), .out(v2t_out) );
 
 endmodule
 

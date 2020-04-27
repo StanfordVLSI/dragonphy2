@@ -8,21 +8,21 @@ module arbiter (
 
     wire Q, Qb, Q_inv, Qb_inv;
 
-    n_and inand1 (
+    n_and_arb_fixed inand1_dont_touch (
         .in1(in1),
         .in2(Qb),
         .out(Q)
     );
 
-    n_and inand2 (
+    n_and_arb_fixed inand2_dont_touch (
         .in1(in2),
         .in2(Q),
         .out(Qb)
     );
 
-    assign Q_inv = ~Q;
-    assign out_dmm= ~Qb;
-
+    inv_arb_fixed iinv_arb_dont_touch (.in(Q), .out(Q_inv));
+    inv_arb_fixed iinv_arb_dmm_dont_touch (.in(Qb), .out(out_dmm));
+    
     always @(posedge clk) begin
         out <= Q_inv;
     end
