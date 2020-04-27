@@ -4,6 +4,8 @@ import os
 import msdsl, svreal
 from svinst import get_defs
 
+from .directory import Directory
+
 from .files import get_dir, get_file, get_mlingua_dir
 
 def remove_dup(seq):
