@@ -1,6 +1,6 @@
 | Name                       | Signed? | Packed Dim             | Unpacked Dim | Clock Domain | JTAG Dir | Reset Val |
 |----------------------------|---------|------------------------|--------------|--------------|----------|-----------|
-| en_v2t                     |         |                        |              | Test         | out      |   1       |
+| en_v2t                     |         |                        |              | Test         | out      |   0       |
 | en_slice                   |         | Nti-1:0                |              | Test         | out      |   'hFFFF  |
 | ctl_v2tn                   |         | Nv2t-1:0               | Nti-1:0      | Test         | out      |   8       |
 | ctl_v2tp                   |         | Nv2t-1:0               | Nti-1:0      | Test         | out      |   8       |
