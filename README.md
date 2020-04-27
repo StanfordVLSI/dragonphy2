@@ -1,8 +1,8 @@
 # DragonPHY
 
-[![BuildKite Status](https://badge.buildkite.com/df233a0a276c870f908484cdf1e94db22868edd69514c7a977.svg?branch=master)](https://buildkite.com/stanford-aha/dragonphy)
+[![BuildKite Status](https://badge.buildkite.com/46976365e67cd49a5ef6402136255426d399b17039869a1efd.svg?branch=master)](https://buildkite.com/stanford-aha/dragonphy2)
 [![License:Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Code Coverage](https://codecov.io/gh/StanfordVLSI/dragonphy/branch/master/graph/badge.svg)](https://codecov.io/gh/StanfordVLSI/dragonphy)
+[![Code Coverage](https://codecov.io/gh/StanfordVLSI/dragonphy2/branch/master/graph/badge.svg)](https://codecov.io/gh/StanfordVLSI/dragonphy2)
 
 DragonPHY is the second design in the Open Source PHY project at Stanford.
 
@@ -10,11 +10,11 @@ DragonPHY is the second design in the Open Source PHY project at Stanford.
 
 1. Clone the repository.
 ```shell
-> git clone https://github.com/StanfordVLSI/dragonphy.git
+> git clone https://github.com/StanfordVLSI/dragonphy2.git
 ```
 2. Go into the top-level folder
 ```shell
-> cd dragonphy
+> cd dragonphy2
 ```
 3. Install the Python package associated with this project.
 ```shell
