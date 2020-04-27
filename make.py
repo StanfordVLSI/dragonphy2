@@ -52,17 +52,6 @@ def create_asic_graph():
                      folders=['dragonphy'], configs={'system'})
     graph.add_python('jtag', 'jtag', 'JTAG', view='all',
                      folders=['dragonphy'], configs={'jtag_config'})
-    graph.add_python('chan_core', 'chan_core', 'ChannelCore', view='fpga_models',
-                     folders=['dragonphy', 'fpga_models'], sources={'adapt_fir'},
-                     configs={'chan'})
-    graph.add_python('osc_model_core', 'osc_model_core', 'OscModelCore', view='fpga_models',
-                     folders=['dragonphy', 'fpga_models'], configs={'osc_model'})
-    graph.add_python('rx_adc_core', 'rx_adc_core', 'RXAdcCore', view='fpga_models',
-                     folders=['dragonphy', 'fpga_models'], configs={'rx_adc'})
-    graph.add_python('tx_core', 'tx_core', 'TXCore', view='fpga_models',
-                     folders=['dragonphy', 'fpga_models'], configs={'tx'})
-    graph.add_python('clk_delay_core', 'clk_delay_core', 'ClkDelayCore', view='fpga_models',
-                     folders=['dragonphy', 'fpga_models'], configs={'clk_delay'})
 
     return graph
 
@@ -83,16 +72,16 @@ def create_cpu_graph():
                      folders=['dragonphy'], configs={'test_loopback_config'})
     graph.add_python('jtag', 'jtag', 'JTAG', view='all',
                      folders=['dragonphy'], configs={'jtag_config'})
-    graph.add_python('chan_core', 'chan_core', 'ChannelCore', view='fpga_models',
+    graph.add_python('chan_core', 'chan_core', 'ChannelCore', view='chip_src',
                      folders=['dragonphy', 'fpga_models'], sources={'adapt_fir'},
                      configs={'chan'})
-    graph.add_python('osc_model_core', 'osc_model_core', 'OscModelCore', view='fpga_models',
+    graph.add_python('osc_model_core', 'osc_model_core', 'OscModelCore', view='chip_src',
                      folders=['dragonphy', 'fpga_models'], configs={'osc_model'})
-    graph.add_python('rx_adc_core', 'rx_adc_core', 'RXAdcCore', view='fpga_models',
+    graph.add_python('rx_adc_core', 'rx_adc_core', 'RXAdcCore', view='chip_src',
                      folders=['dragonphy', 'fpga_models'], configs={'rx_adc'})
-    graph.add_python('tx_core', 'tx_core', 'TXCore', view='fpga_models',
+    graph.add_python('tx_core', 'tx_core', 'TXCore', view='chip_src',
                      folders=['dragonphy', 'fpga_models'], configs={'tx'})
-    graph.add_python('clk_delay_core', 'clk_delay_core', 'ClkDelayCore', view='fpga_models',
+    graph.add_python('clk_delay_core', 'clk_delay_core', 'ClkDelayCore', view='chip_src',
                      folders=['dragonphy', 'fpga_models'], configs={'clk_delay'})
 
     return graph
