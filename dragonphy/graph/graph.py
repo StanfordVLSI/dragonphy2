@@ -154,7 +154,6 @@ class BuildStatus(Directory):
             file_exists = Path(src_path).is_file()
             if file_exists:
                 node_changed, node_state = check_node(src_path, src_name, src_view=src_view, node_type='inputs')
-                print(node_changed, src_name)
                 if node_changed:
                     self.state_dict['inputs'][src_name] = node_state
                     update_set = update_set | {src_name}
