@@ -45,17 +45,17 @@ module stochastic_adc_PR #(
     reg en_TDC_phase_reverse_sampled;
     reg clk_TDC_phase_reverse;
 
-    bin2thm_5b ib2tn (
+    bin2thm #(.Nbit(5)) ib2tn (
         .bin(ctl_v2t_n),
         .thm(thm_ctl_v2t_n)
     );
 
-    bin2thm_5b ib2tp (
+    bin2thm #(.Nbit(5)) ib2tp (
         .bin(ctl_v2t_p),
         .thm(thm_ctl_v2t_p)
     );
 
-    bin2thm_5b ib2t_tdc (
+    bin2thm #(.Nbit(5)) ib2t_tdc (
         .bin(ctl_dcdl),
         .thm(thm_ctl_dcdl)
     );
