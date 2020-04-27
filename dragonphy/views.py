@@ -143,6 +143,13 @@ def get_deps_new_asic(cell_name=None, impl_file=None):
         view_order=['new_pack', 'new_chip_src', 'new_chip_stubs'],
         includes=[get_dir('inc/new_asic')]
     )
+
+    deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/ffe_gpack.sv')
+    deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/cmp_gpack.sv')
+    deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/mlsd_gpack.sv')
+    deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/constant_gpack.sv')
+    deps.insert(0, Directory.path() + '/vlog/new_pack/dsp_pack.sv')
+
     return deps
 
 def get_deps_cpu_sim_new(cell_name=None, impl_file=None):
