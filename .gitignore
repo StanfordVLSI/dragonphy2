@@ -1,3 +1,43 @@
+###########################################
+# critical: do not include script outputs #
+###########################################
+
+*.sdc
+*.mapped.sdc
+*.gds
+*.lib
+*.db
+*.map
+*.tlef
+*.rpt
+*.ilm
+*postRoute.v*
+*.spef*
+*.place*
+*.mapped.v
+*.v.gz
+*.io
+*.src.net
+*.lef
+*.time
+*.enc
+*.dat
+*.spf
+*.sdf
+*.svf
+*.syn
+*.pvl
+*.mr
+*.ddc
+qrcTechFile*
+tcbn16*
+pnr/data
+pnr/gate_size_test
+
+#########################
+# other files to ignore #
+#########################
+
 __pycache__
 
 .idea
@@ -11,7 +51,6 @@ __pycache__
 *.str
 *.diag
 *.svg
-
 
 .Xil
 fpga_prj
