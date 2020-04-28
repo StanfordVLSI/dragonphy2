@@ -1,0 +1,129 @@
+################################################################################
+################ Makefile Definitions
+################################################################################
+# This little trick finds where the makefile exists
+aprDir := /aha/sjkim85/apr_flow
+
+SYNTH_HOME := ${aprDir}/synthesis_dragonphy
+DESIGN_HOME := ${SYNTH_HOME}/DesignName
+GIT_REPO := /aha/sjkim85/github_repo/dragonphy
+SRC_PATH   	:= $(GIT_REPO)/vlog/new_chip_src/analog_core
+STUB_PATH 	:= $(GIT_REPO)/vlog/new_chip_stubs
+PRE_MAPPED  := $(aprDir)/netlist/mapped_gate
+
+# RUNDIR is where we are actually running
+RUNDIR := $(DESIGN_HOME)
+
+##### FLAGS FOR SYNOPSYS DC-SHELL #####
+#######################################
+# flags for dc/icc
+# define folders
+DESIGN_TARGET	= DesignName
+SYNTH_DIR_NAME 	= $(DESIGN_TARGET)
+SYNTH_SCRIPT	= $(SYNTH_HOME)/scripts
+SYNTH_RUNDIR	= $(RUNDIR)/DC_WORK/$(SYNTH_DIR_NAME)
+SYNTH_LOGS		= $(SYNTH_RUNDIR)/log
+SYNTH_RESULTS	= $(SYNTH_RUNDIR)/results
+SYNTH_REPORTS	= $(SYNTH_RUNDIR)/reports
+PNR_RESULTS 	= $(aprDir)/pnr_dragonphy
+
+# define input files
+DC_HEAD_SCRIPT = $(SYNTH_SCRIPT)/header.tcl
+DC_MAIN_SCRIPT = $(DESIGN_HOME)/run_dc.tcl
+
+# define output files
+DC_NETLIST	= $(DESIGN_TARGET).mapped.v
+DC_DDC		= $(DESIGN_TARGET).mapped.ddc
+DC_SCANDEF	= $(DESIGN_TARGET).mapped.scandef
+DC_LOG		= $(SYNTH_LOGS)/dc.log
+DC_SIMV		= $(RUNDIR)/dc_simv
+
+# define command strings
+SET_SYNTH_PARAMS = 	set DESIGN_TARGET $(DESIGN_TARGET); 	\
+			set GITDIR $(GIT_REPO); \
+			set RTLDIR $(SRC_PATH); \
+			set STUBDIR $(STUB_PATH); \
+			set mappedDIR $(PRE_MAPPED); \
+			set DESIGN_HOME $(DESIGN_HOME); 	\
+			set SYNTH_SCRIPT $(SYNTH_SCRIPT);	 	\
+			set RUNDIR $(RUNDIR); 			\
+			set SYNTH_RESULTS $(SYNTH_RESULTS);	\
+			set SYNTH_REPORTS $(SYNTH_REPORTS);	\
+			set SYNTH_HOME $(SYNTH_HOME); \
+			set PNR_RESULTS $(PNR_RESULTS); \
+			set NEED_CONSTRAINTS NEED_SDC; \
+			set CLK_PERIOD 0.25;\
+			set CLK_DIV_PERIOD 1.0;
+DC_COMMAND_STRING = "$(SET_SYNTH_PARAMS) source -echo -verbose $(DC_MAIN_SCRIPT)"
+DC_LOAD_COMMAND_STRING = "$(SET_SYNTH_PARAMS) source -echo -verbose $(DC_HEAD_SCRIPT)"
+
+######## END OF FLAGS FOR SYNOPSYS DC-SHELL #####
+
+
+################################################################################
+################ Makefile Rules
+################################################################################
+#default rule: 
+all: run_dc
+
+# Design Compiler rules:
+########################
+.PHONY: run_dc dc_clean force_dc dc_load
+force_dc: dc_clean run_dc 
+
+run_dc:$(DC_LOG)
+
+$(DC_LOG): $(GENESIS_SYNTH_LIST) $(DC_MAIN_SCRIPT)
+	@echo ""
+	@echo Now Running DC SHELL: Making $@ because of $?
+	@echo =============================================
+	@sleep 1;
+	@if test ! -d "$(SYNTH_LOGS)"; then 					\
+		mkdir -p $(SYNTH_LOGS);						\
+	fi
+	cd $(SYNTH_RUNDIR); dc_shell-xg-t -64bit -x $(DC_COMMAND_STRING) 2>&1 | tee -i $(DC_LOG)
+
+dc_load: $(DC_HEAD_SCRIPT)
+	@echo Now LOADING DC SHELL:
+	@echo =============================================
+	@sleep 1;
+	@if test ! -d "$(SYNTH_LOGS)"; then 					\
+		mkdir -p $(SYNTH_LOGS);						\
+	fi
+	cd $(SYNTH_RUNDIR); dc_shell-xg-t -64bit -x $(DC_LOAD_COMMAND_STRING) 
+
+dc_clean:
+	@echo ""
+	@echo Removing previous DC run log
+	@echo =============================================
+	\rm -f $(DC_LOG) $(DC_SIMV) 
+
+# Cleanup rules:
+#####################
+.PHONY: clean cleanall 
+clean: dc_clean
+	@echo ""
+	@echo Cleanning old files, objects, logs and garbage
+	@echo ==================================================
+	\rm -rf $(SIMV) simv.*
+	##\rm -f *.tcl
+	\rm -f *.info
+	\rm -rf csrc
+	\rm -rf *.daidir
+	\rm -rf *.log
+	\rm -rf *.pvl
+	\rm -rf *.syn
+	\rm -rf *.mr
+	\rm -rf *.pvk
+	\rm -rf *.flc
+	\rm -f pads.tdf
+	\rm -f ucli.key
+	\rm -rf *~
+
+cleanall: clean 
+	\rm -rf DVE*
+	\rm -rf DC_WORK
+	\rm -rf vcdplus.vpd
+	\rm -rf genesis*
+	\rm -rf *.vh
+	\rm -rf scan.svf

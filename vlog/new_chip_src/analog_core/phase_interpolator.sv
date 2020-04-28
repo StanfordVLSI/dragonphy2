@@ -34,7 +34,11 @@ module phase_interpolator #(
     output [19:0]  pm_out
 );
 
-    wire  [Nunit-1:0]  arb_out;
+	//synopsys dc_script_begin
+	//set_dont_touch {clk_in_mid*}
+	//synopsys dc_script_end
+    
+	wire  [Nunit-1:0]  arb_out;
     wire  [(2**Nblender)-1:0]  thm_sel_bld;
     wire  [Nunit-1:0]  en_mixer;
     wire  [Nunit-1:0]  mclk;
@@ -48,12 +52,15 @@ module phase_interpolator #(
     logic [1:0] sel_mux_2nd_even;
     logic [1:0] ph_out;
 
-    assign clk_in_gated = clk_in|~en_delay;
+	inv iinv_buff1 (.in(clk_in), .out(clk_in_mid1));
+	inv iinv_buff2 (.in(clk_in_mid1), .out(clk_in_buff));
+    
+	assign clk_in_gated = clk_in_buff|~en_delay;
     assign ph_out_and = ph_out[0]&ph_out[1];
 
     inv_chain #(
         .Ninv(4)
-    ) iinv_chain_dont_touch (
+    ) iinv_chain (
         .in(ph_out_and),
         .out(ph_out_d)
     );
@@ -84,7 +91,7 @@ module phase_interpolator #(
         .ph_in(ph_out)
     );
 
-    arbiter iarbiter_dont_touch (
+    arbiter iarbiter (
         .in1(ph_out[1]),
         .out(cal_out),
         .in2(ph_out[0]),
@@ -92,7 +99,7 @@ module phase_interpolator #(
         .out_dmm(cal_out_dmm)
     );
 
-    dcdl_fine idcdl_fine0_dont_touch (
+    dcdl_fine idcdl_fine0 (
         .disable_state(disable_state),
         .out(clk_out_sw),
         .en(en_clk_sw),
@@ -100,7 +107,7 @@ module phase_interpolator #(
         .ctl(ctl_dcdl_sw)
     );
 
-    dcdl_fine idcdl_fine1_dont_touch (
+    dcdl_fine idcdl_fine1 (
         .disable_state(1'b0),
         .out(clk_out_slice),
         .en(1'b1),
