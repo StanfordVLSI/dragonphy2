@@ -1,4 +1,4 @@
-module tri_buff (
+module tri_buff_fixed (
     input in,
     input en,
     output out
