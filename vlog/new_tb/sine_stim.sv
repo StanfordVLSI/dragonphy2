@@ -1,4 +1,5 @@
 `include "mLingua_pwl.vh"
+`timescale 1fs/1fs;
 
 module sine_stim import const_pack::*; #(
 	parameter real Vcm = 0.25,
@@ -9,7 +10,6 @@ module sine_stim import const_pack::*; #(
 	output pwl ch_outp,
 	output pwl ch_outn
 );
-
 	pwl_cos #(
 		.etol(etol),
 		.freq(sine_freq),
@@ -27,5 +27,4 @@ module sine_stim import const_pack::*; #(
 	) icos_pwln(
 		.out(ch_outn)
 	);
-
 endmodule

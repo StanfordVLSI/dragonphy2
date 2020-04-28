@@ -29,6 +29,7 @@ requires_list = [
     'pexpect',
     'pyyaml',
     'numpy',
+    'scipy',
     'matplotlib',
     'sklearn',
     'pygraphviz',
