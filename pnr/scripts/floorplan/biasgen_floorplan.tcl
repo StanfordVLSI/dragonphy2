@@ -65,7 +65,7 @@ set VDD_region [expr $Vbias_region-2*$blockage_width]
 set origin_x [expr $VDD_region-$SW_width-$welltap_width-2*$DB_width-2*$blockage_width]
 set origin_y [expr $FP_height/2-$cell_height]
 
-placeInstance I5 $origin_x $origin_y 
+placeInstance iSW_dont_touch $origin_x $origin_y 
 createPlaceBlockage -box [expr $origin_x-$blockage_width] [expr $origin_y-$blockage_height] [expr $origin_x+$SW_width+$blockage_width] [expr $origin_y+$SW_height+$blockage_height] -type hard
 addWellTap -cell TAPCELLBWP16P90 -inRowOffset 1  -cellInterval $FP_width -prefix WELLTAP
 
@@ -123,6 +123,8 @@ createPlaceBlockage -box [expr $VDD_region] 0 [expr $Vbias_region]  [expr $FP_he
 addEndCap 
 
 addWellTap -cell TAPCELLBWP16P90  -inRowOffset [expr $Vbias_region]  -cellInterval [expr ($FP_width-$Vbias_region)/2-$welltap_width/2] -prefix WELLTAP
+
+
 createRouteBlk -box 0 0 $Vbias_region $FP_height -layer 1
 
 addStripe -pin_layer M1   \
@@ -237,6 +239,7 @@ setPinAssignMode -pinEditInBatch true
 editPin -pinWidth $pin_width -pinDepth $pin_depth -spacing [expr 8*$metal_space] -fixOverlap 1 -spreadDirection counterclockwise -edge 0 -layer 2 -spreadType center -pin {ctl* en}
 
 #------------------------------------------------------
+set_dont_touch *
 set RUN_LAYOUT_ONLY 1
 #------------------------------------------------------
 

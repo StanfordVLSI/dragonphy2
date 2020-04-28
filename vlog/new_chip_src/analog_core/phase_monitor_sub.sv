@@ -13,7 +13,7 @@ module phase_monitor_sub(
 wire net_x;
 
 // synopsys dc_script_begin
-// set_dont_touch {ph* sel* xor*}
+// set_dont_touch {ph* clk* xor*}
 // synopsys dc_script_end
 
 x_or uXOR0 (.in1(ph_in), .in2(sel_sign[0]), .out(xor_in));

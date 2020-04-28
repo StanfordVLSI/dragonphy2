@@ -64,6 +64,7 @@ interface acore_debug_intf import const_pack::*; (
 		
 		//input clock buffer
 		logic en_inbuf;										// xfrom JTAG (1)
+		logic sel_clk_source;								// xfrom JTAG (1)
 		logic bypass_inbuf_div;								// xfrom JTAG (1)
 		logic bypass_inbuf_div2;							// xfrom JTAG (1)
         logic [2:0] inbuf_ndiv;								// xfrom JTAG (0)
@@ -155,6 +156,7 @@ interface acore_debug_intf import const_pack::*; (
         input disable_ibuf_test1,
 
 		input en_inbuf,
+		input sel_clk_source,
 		input bypass_inbuf_div,
 		input bypass_inbuf_div2,
 		input inbuf_ndiv,
@@ -246,6 +248,7 @@ interface acore_debug_intf import const_pack::*; (
         output disable_ibuf_test1,
 
         output en_inbuf,
+        output sel_clk_source,
         output bypass_inbuf_div,
         output bypass_inbuf_div2,
         output inbuf_ndiv,

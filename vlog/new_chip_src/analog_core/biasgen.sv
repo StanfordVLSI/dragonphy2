@@ -12,9 +12,9 @@ module biasgen ( Vbias, ctl, en );
  //set_dont_touch {*mid* end* net_tied}
  //synopsys dc_script_end
   
-assign clt_thmb = ~ctl_thm;
-  
-  n_and4 in_and4[4:0] ( .in1(1'b0), .in2(ctl_thmb[4:0]), .in3(ctl_thmb[9:5]), .in4(ctl_thmb[14:10]), .out(net_tied) );
+ inv iinv[14:0] (.in(ctl_thm), .out(ctl_thmb));
+ 
+  n_and4 in_and4_dont_touch[4:0] ( .in1(1'b0), .in2(ctl_thmb[4:0]), .in3(ctl_thmb[9:5]), .in4(ctl_thmb[14:10]), .out(net_tied) );
   n_and in_and[11:0] ( .in1(end0), .in2(net_tied), .out(net_tied) );
  
   inv ien_buff_1 ( .in(en), .out(en_mid) );

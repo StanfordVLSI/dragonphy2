@@ -2,13 +2,14 @@
 #
 DESIGN=$1
 aprDir=$PWD/../..
-pnrDir="${aprDir}/pnr"
+pnrDir="${aprDir}/pnr_dragonphy"
 lefDir="${pnrDir}/data/lef"
 gdsDir="${pnrDir}/data/gds"
 POWER_NAME="VDD"
 GROUND_NAME="VSS"
+
 #-----------------------------
-# check argument
+# check input argument
 #-----------------------------
 if [ $# -eq 0 ]
   then
@@ -19,7 +20,7 @@ fi
 #-----------------------------
 # check macro definition
 #-----------------------------
-if [ $DESIGN == "V2T" ] || [ $DESIGN == "biasgen" ] || [ $DESIGN == "stochastic_adc_PR" ] || [ $DESIGN == "PI_delay_chain" ] || [ $DESIGN == "phase_interpolator" ] || [ $DESIGN == "input_buffer" ] || [ $DESIGN == "analog_core" ] 
+if [ $DESIGN == "V2T" ] || [ $DESIGN == "biasgen" ] || [ $DESIGN == "stochastic_adc_PR" ] || [ $DESIGN == "PI_delay_chain" ] || [ $DESIGN == "phase_interpolator" ] || [ $DESIGN == "analog_core" ] 
   then
 	HAS_MACRO=1
 	if [ ! -e ${pnrDir}/scripts/floorplan/${DESIGN}_macro_def.tcl ]
@@ -61,7 +62,7 @@ if [ $DESIGN == "V2T" ] || [ $DESIGN == "biasgen" ] || [ $DESIGN == "stochastic_
 		POWER_NAME="{VDD Vbias}"
 		GROUND_NAME="{VSS}"
 	fi
-	if [ $DESIGN == "stochastic_adc" ] || [ $DESIGN == "V2T_V2T_clock_gen" ]
+	if [ $DESIGN == "stochastic_adc_PR" ] 
 	  then
 		POWER_NAME="{AVDD DVDD}"
 		GROUND_NAME="{AVSS DVSS}"
@@ -75,6 +76,15 @@ if [ $DESIGN == "V2T" ] || [ $DESIGN == "biasgen" ] || [ $DESIGN == "stochastic_
 	MULTIPLE_POWER=0
 fi
 
+#-----------------------------------
+# check top metal bloackage layer
+#-----------------------------------
+TOP_BLK_LAYER="M7"
+if [ $DESIGN == "V2T" ] 
+  then
+    TOP_BLK_LAYER="M9"
+fi
+
 mkdir -p $pnrDir/$DESIGN
 \cp ${pnrDir}/scripts/run_all_templete.tcl ${pnrDir}/$DESIGN/${DESIGN}_run_all.tcl
 cd $pnrDir/$DESIGN 
@@ -84,46 +94,57 @@ sed -i "1 i\set gnd_name ${GROUND_NAME}" ${DESIGN}_run_all.tcl
 sed -i "1 i\set MULTIPLE_POWER ${MULTIPLE_POWER}" ${DESIGN}_run_all.tcl
 sed -i "1 i\set HAS_MACRO ${HAS_MACRO}" ${DESIGN}_run_all.tcl
 sed -i "1 i\set DesignName ${DESIGN}" ${DESIGN}_run_all.tcl
+sed -i "1 i\set TOP_BLK_LAYER ${TOP_BLK_LAYER}" ${DESIGN}_run_all.tcl
 sed -i "1 i\#---------------- HEADER ----------------" ${DESIGN}_run_all.tcl
 
 #-----------------------------
 # run Innovus
 #-----------------------------
 \rm -rf ./DBS
-\rm ${DESIGN}_innvus.log
-\rm ${DESIGN}_drc.log
+\rm -f ${DESIGN}_innvus.log
+\rm -f ${DESIGN}_drc.log
+
+echo ""
 echo "[PnR] Innovus is running for block [$DESIGN] ..."
+echo ""
 innovus -batch -no_gui -files ${DESIGN}_run_all.tcl -no_logv -overwrite > ${DESIGN}_innovus.log 
 
 if grep -q "PnR is done" ${DESIGN}_innovus.log
 then
     echo -e "[PnR] Completed"
+	\cp ./results/${DESIGN}.lef $lefDir/${DESIGN}.lef 
+	\cp ./results/${DESIGN}_Model/library/${DESIGN}_antenna.lef $lefDir/${DESIGN}_antenna.lef 
+	\cp ./results/${DESIGN}.gds $gdsDir/${DESIGN}.gds 
+	echo -e "[${DESIGN}.lef] is copied to ${lefDir}"
+	echo -e "[${DESIGN}_antenna.lef] is copied to ${lefDir}"
+	echo -e "[${DESIGN}.gds] is copied to ${gdsDir}"
 else
-    echo -e "[PnR] Innonus stopped at stage [ x ]";
+    echo -e "[PnR] Innonus stopped at stage [x]";
+    #echo -e "[PnR] Innonus stopped at stage [${vars(db_name)}]";
 fi
 
-\cp ./results/${DESIGN}.lef $lefDir/${DESIGN}.lef 
-\cp ./results/${DESIGN}_Model/library/${DESIGN}_antenna.lef $lefDir/${DESIGN}_antenna.lef 
-\cp ./results/${DESIGN}.gds $gdsDir/${DESIGN}.gds 
+
 
 
 #-----------------------------
 # run calibre DRC
 #-----------------------------
-echo "[DRC] Calibre DRC is running for block [$DESIGN] ..."
-\cp ${pnrDir}/scripts/runset_block_drc_templete ./${DESIGN}_runset_block_drc 
-sed -i s,BLOCK,${DESIGN}, ${DESIGN}_runset_block_drc
-sed -i s,gds_path,${aprDir}/gds/${DESIGN}.gds, ${DESIGN}_runset_block_drc
-calibre -gui -drc ${DESIGN}_runset_block_drc -batch > ${DESIGN}_drc.log 
-echo "[RVE] Launching RVE window for block [$DESIGN] ..."
+#echo "[DRC] Calibre DRC is running for block [$DESIGN] ..."
+#\cp ${pnrDir}/scripts/runset_block_drc_templete ./${DESIGN}_runset_block_drc 
+#sed -i s,BLOCK,${DESIGN}, ${DESIGN}_runset_block_drc
+#sed -i s,gds_path,${gdsDir}/${DESIGN}.gds, ${DESIGN}_runset_block_drc
+#calibre -gui -drc ${DESIGN}_runset_block_drc -batch > ${DESIGN}_drc.log 
+#echo "[RVE] Launching RVE window for block [$DESIGN] ..."
 
 
 #-----------------------------
 # run Calinre LVS
 #-----------------------------
+#echo "[LVS] Calibre LVS is running for block [$DESIGN] ..."
+#calibre -gui -lvs ${DESIGN}_runset_lvs -batch > ${DESIGN}_lvs.log 
 
-echo "[LVS] Calibre LVS is running for block [$DESIGN] ..."
-calibre -gui -lvs ${DESIGN}_runset_lvs -batch > ${DESIGN}_lvs.log 
-
+#-----------------------------
+# run Calinre RVE
+#-----------------------------
 
 

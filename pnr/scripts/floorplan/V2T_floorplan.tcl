@@ -420,7 +420,7 @@ addStripe -nets {VDD VSS} \
 
 deleteRouteBlk -name M8_blk*
 
-addStripe -nets {VSS} \
+addStripe -nets {VDD} \
   -layer M8 -direction horizontal -width $AVDD_M8_width -spacing $AVDD_M8_space -start_offset $cell_height -set_to_set_distance $FP_height -start_from top -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit M8 -padcore_ring_bottom_layer_limit M1 -block_ring_top_layer_limit M1 -block_ring_bottom_layer_limit M1 -use_wire_group 0 -snap_wire_center_to_grid None -skip_via_on_pin {standardcell} -skip_via_on_wire_shape {  noshape } -create_pins 1 -extend_to design_boundary
 
 deleteRouteBlk -all
@@ -536,7 +536,7 @@ routeMixedSignal -constraintFile ${scrDir}/floorplan/${DesignName}_MS_routes.tcl
 
 
 ##------------------------------------------------------
-#set_dont_touch *
+set_dont_touch [get_nets {mid* *out* Vdch}]
 set RUN_LAYOUT_ONLY 0
 ##------------------------------------------------------
 
