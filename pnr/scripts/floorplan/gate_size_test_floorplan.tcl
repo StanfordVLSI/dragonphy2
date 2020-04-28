@@ -4,7 +4,7 @@
 ##---------------------------------------------------------
 floorPlan -site core -r 1 0.3 0 0 0 0
 set raw_area [dbGet top.fPlan.area]
-set FP_height [expr 2*$cell_height]
+set FP_height [expr 4*$cell_height]
 set FP_width [expr ceil($raw_area/$FP_height/$cell_grid)*$cell_grid]
 floorPlan -site core -s $FP_width [expr 2*$FP_height] 0 0 0 0
 
@@ -76,9 +76,9 @@ addStripe -nets { VDD VSS} \
 #---------------------------------------------
 setPinAssignMode -pinEditInBatch true
 
-editPin -pinWidth $pin_width -pinDepth [expr $pin_depth] -spacing [expr 8*$pin_width] -fixOverlap 1 -spreadDirection clockwise -edge 0 -layer 2 -spreadType center -pin {clk_in clk_div_in}
+editPin -pinWidth $pin_width -pinDepth [expr $pin_depth] -spacing [expr 8*$pin_width] -fixOverlap 1 -spreadDirection clockwise -edge 0 -layer 2 -spreadType center -pin { one zero chain_in clk_in clk_div_in zero*}
 
-editPin -pinWidth $pin_width -pinDepth [expr $pin_depth] -spacing [expr 8*$pin_width] -fixOverlap 1 -spreadDirection clockwise -edge 2 -layer 2 -spreadType center -pin {out outb}
+editPin -pinWidth $pin_width -pinDepth [expr $pin_depth] -spacing [expr 8*$pin_width] -fixOverlap 1 -spreadDirection clockwise -edge 2 -layer 2 -spreadType center -pin {*out*}
 
 
 ##------------------------------------------------------

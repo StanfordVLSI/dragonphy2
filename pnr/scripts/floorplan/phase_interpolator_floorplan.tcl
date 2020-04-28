@@ -1,5 +1,5 @@
 
-set PI_Nunit 32
+set delay_Nunit 32
 set blender_Nunit 16
 
 #---------------------------------------------------------
@@ -19,24 +19,24 @@ foreach block_data $pnr_data {
 #---------------------------------------------------------
 # calculate cell widths
 #---------------------------------------------------------
-set mux_blender_area [get_property [get_cells iphase_blender_dont_touch/imux_0] area]
+set mux_blender_area [get_property [get_cells iphase_blender_dont_touch/imux_bld_dont_touch_0_/U1] area]
 set mux_blender_width [expr round($mux_blender_area/$cell_height/$cell_grid)*$cell_grid]
 set mux4_area [get_property [get_cells imux_network/imux4_gf_2nd_odd/imux4_dont_touch/IMUX4] area]
 set mux4_width [expr round($mux4_area/$cell_height/$cell_grid)*$cell_grid]
 
-set inbuf1_area [get_property [get_cells iphase_blender_dont_touch/iin_buf_odd1] area]
+set inbuf1_area [get_property [get_cells iphase_blender_dont_touch/iin_buf_odd1_dont_touch/U1] area]
 set inbuf1_width [expr round($inbuf1_area/$cell_height/$cell_grid)*$cell_grid]
-set inbuf2_area [get_property [get_cells iphase_blender_dont_touch/iin_buf_odd2] area]
+set inbuf2_area [get_property [get_cells iphase_blender_dont_touch/iin_buf_odd2_dont_touch/U1] area]
 set inbuf2_width [expr round($inbuf2_area/$cell_height/$cell_grid)*$cell_grid]
-set outbuf1_area [get_property [get_cells iphase_blender_dont_touch/iout_buf1] area]
+set outbuf1_area [get_property [get_cells iphase_blender_dont_touch/iout_buf1_dont_touch/U1] area]
 set outbuf1_width [expr round($outbuf1_area/$cell_height/$cell_grid)*$cell_grid]
-set outbuf2_area [get_property [get_cells iphase_blender_dont_touch/iout_buf2] area]
+set outbuf2_area [get_property [get_cells iphase_blender_dont_touch/iout_buf2_dont_touch/U1] area]
 set outbuf2_width [expr round($outbuf2_area/$cell_height/$cell_grid)*$cell_grid]
 
-set ff_pm_area [get_property [get_cells iPM/iPM_sub_dont_touch/ff_ref_reg] area]
+set ff_pm_area [get_property [get_cells iPM/iPM_sub/ff_ref_reg] area]
 set ff_pm_width [expr round($ff_pm_area/$cell_height/$cell_grid)*$cell_grid]
 
-set xor_pm_area [get_property [get_cells iPM/iPM_sub_dont_touch/uXOR1] area]
+set xor_pm_area [get_property [get_cells iPM/iPM_sub/uXOR1/U1] area]
 set xor_pm_width [expr round($xor_pm_area/$cell_height/$cell_grid)*$cell_grid]
 
 
@@ -149,53 +149,60 @@ addWellTap -cell TAPCELLBWP16P90 -inRowOffset [expr $FP_width-$boundary_width-3*
 #---------------------------------------------------------
 # pre-placement
 #---------------------------------------------------------
-for { set k 0} {$k < $PI_Nunit} {incr k} {
+#[delay_chain]
+for { set k 0} {$k < $delay_Nunit} {incr k} {
 	placeInstance iPI_delay_chain_dont_touch/iPI_delay_unit_dont_touch_$k\_ [expr $origin1_x] [expr $origin1_y+$k*$PI_delay_unit_height]
 }
 
-for { set k 0} {$k < [expr $PI_Nunit/8]} {incr k} {
-	placeInstance imux_network/imux4_gf_1st_$k\__odd/imux4_dont_touch/IMUX4 [expr $origin1_x+$PI_delay_unit_width+$routing_space1] [expr $origin1_y+($PI_Nunit/8+$k*$PI_Nunit/4)*$PI_delay_unit_height]
-	placeInstance imux_network/imux4_gf_1st_$k\__even/imux4_dont_touch/IMUX4 [expr $origin1_x+$PI_delay_unit_width+$routing_space1] [expr $origin1_y+($PI_Nunit/8+$k*$PI_Nunit/4)*$PI_delay_unit_height-$cell_height]
+#[mux_network]
+#(mux_1st)
+for { set k 0} {$k < [expr $delay_Nunit/8]} {incr k} {
+	placeInstance imux_network/imux4_gf_1st_$k\__odd/imux4_dont_touch/IMUX4 [expr $origin1_x+$PI_delay_unit_width+$routing_space1] [expr $origin1_y+($delay_Nunit/8+$k*$delay_Nunit/4)*$PI_delay_unit_height]
+	placeInstance imux_network/imux4_gf_1st_$k\__even/imux4_dont_touch/IMUX4 [expr $origin1_x+$PI_delay_unit_width+$routing_space1] [expr $origin1_y+($delay_Nunit/8+$k*$delay_Nunit/4)*$PI_delay_unit_height-$cell_height]
 }
+#(mux_2nd)
+placeInstance imux_network/imux4_gf_2nd_odd/imux4_dont_touch/IMUX4 [expr $origin1_x+$PI_delay_unit_width+$routing_space1+$mux4_width+$routing_space2] [expr $origin1_y+($delay_Nunit/2)*$PI_delay_unit_height]
+placeInstance imux_network/imux4_gf_2nd_even/imux4_dont_touch/IMUX4 [expr $origin1_x+$PI_delay_unit_width+$routing_space1+$mux4_width+$routing_space2] [expr $origin1_y+($delay_Nunit/2)*$PI_delay_unit_height-$cell_height]
 
-placeInstance imux_network/imux4_gf_2nd_odd/imux4_dont_touch/IMUX4 [expr $origin1_x+$PI_delay_unit_width+$routing_space1+$mux4_width+$routing_space2] [expr $origin1_y+($PI_Nunit/2)*$PI_delay_unit_height]
-placeInstance imux_network/imux4_gf_2nd_even/imux4_dont_touch/IMUX4 [expr $origin1_x+$PI_delay_unit_width+$routing_space1+$mux4_width+$routing_space2] [expr $origin1_y+($PI_Nunit/2)*$PI_delay_unit_height-$cell_height]
+#[phase_blender]
+#(blender_inbuf)
+placeInstance iphase_blender_dont_touch/iin_buf_even1_dont_touch/U1  [expr $origin1_x+$PI_delay_unit_width+$routing_space1+$routing_space2+2*$mux4_width] [expr $origin1_y+$PI_delay_unit_height*$delay_Nunit/2-($blender_Nunit/4+1)*$cell_height]
+placeInstance iphase_blender_dont_touch/iin_buf_even2_dont_touch/U1 [expr $origin1_x+$PI_delay_unit_width+$routing_space1+$routing_space2+2*$mux4_width+$inbuf1_width] [expr $origin1_y+$PI_delay_unit_height*$delay_Nunit/2-($blender_Nunit/4+1)*$cell_height]
 
-placeInstance iphase_blender_dont_touch/iin_buf_even1  [expr $origin1_x+$PI_delay_unit_width+$routing_space1+$routing_space2+2*$mux4_width] [expr $origin1_y+$PI_delay_unit_height*$PI_Nunit/2-($blender_Nunit/4+1)*$cell_height]
-placeInstance iphase_blender_dont_touch/iin_buf_even2 [expr $origin1_x+$PI_delay_unit_width+$routing_space1+$routing_space2+2*$mux4_width+$inbuf1_width] [expr $origin1_y+$PI_delay_unit_height*$PI_Nunit/2-($blender_Nunit/4+1)*$cell_height]
-
-placeInstance iphase_blender_dont_touch/iin_buf_odd1  [expr $origin1_x+$PI_delay_unit_width+$routing_space1+$routing_space2+2*$mux4_width] [expr $origin1_y+$PI_delay_unit_height*$PI_Nunit/2+($blender_Nunit/4)*$cell_height]
-placeInstance iphase_blender_dont_touch/iin_buf_odd2 [expr $origin1_x+$PI_delay_unit_width+$routing_space1+$routing_space2+2*$mux4_width+$inbuf1_width] [expr $origin1_y+$PI_delay_unit_height*$PI_Nunit/2+($blender_Nunit/4)*$cell_height]
-
+placeInstance iphase_blender_dont_touch/iin_buf_odd1_dont_touch/U1  [expr $origin1_x+$PI_delay_unit_width+$routing_space1+$routing_space2+2*$mux4_width] [expr $origin1_y+$PI_delay_unit_height*$delay_Nunit/2+($blender_Nunit/4)*$cell_height]
+placeInstance iphase_blender_dont_touch/iin_buf_odd2_dont_touch/U1 [expr $origin1_x+$PI_delay_unit_width+$routing_space1+$routing_space2+2*$mux4_width+$inbuf1_width] [expr $origin1_y+$PI_delay_unit_height*$delay_Nunit/2+($blender_Nunit/4)*$cell_height]
+#(blender_mux_array)
 for { set k 0} {$k < $blender_Nunit} {incr k} {
-	placeInstance iphase_blender_dont_touch/imux_$k [expr $origin1_x+$PI_delay_unit_width+$routing_space1+$routing_space2+2*$mux4_width+$inbuf1_width+$inbuf2_width] [expr $origin1_y+$PI_delay_unit_height*$PI_Nunit/2-$blender_Nunit/2*$cell_height+$k*$cell_height]
+	placeInstance iphase_blender_dont_touch/imux_bld_dont_touch_${k}_/U1 [expr $origin1_x+$PI_delay_unit_width+$routing_space1+$routing_space2+2*$mux4_width+$inbuf1_width+$inbuf2_width] [expr $origin1_y+$PI_delay_unit_height*$delay_Nunit/2-$blender_Nunit/2*$cell_height+$k*$cell_height]
 }
-
-placeInstance iphase_blender_dont_touch/iout_buf1  [expr $origin1_x+$PI_delay_unit_width+$routing_space1+$routing_space2+2*$mux4_width+$inbuf1_width+$inbuf2_width] [expr $origin1_y+$PI_delay_unit_height*$PI_Nunit/2+($blender_Nunit/2)*$cell_height] MY
-placeInstance iphase_blender_dont_touch/iout_buf2  [expr $origin1_x+$PI_delay_unit_width+$routing_space1+$routing_space2+2*$mux4_width+$inbuf1_width+$inbuf2_width] [expr $origin1_y+$PI_delay_unit_height*$PI_Nunit/2+($blender_Nunit/2+1)*$cell_height] 
-
-
-
-
-createInstGroup grp0 -region [expr $origin1_x+$PI_delay_unit_width+$routing_space1+$routing_space2+$mux4_width] [expr $origin1_y+$PI_Nunit/2*$PI_delay_unit_height-4*$cell_height] [expr $FP_width-$boundary_width-$mux_blender_width] [expr $origin1_y+$PI_Nunit/2*$PI_delay_unit_height+4*$cell_height] 
-addInstToInstGroup grp0 {iarbiter_dont_touch}
-
-createInstGroup grp1 -region  [expr $FP_width-$boundary_width-3*$welltap_width-3] [expr $origin1_y+$PI_Nunit*$PI_delay_unit_height] [expr $FP_width-$boundary_width-3*$welltap_width]  [expr $origin1_y+$PI_Nunit*$PI_delay_unit_height-10*$cell_height] 
-addInstToInstGroup grp1 {idcdl_fine0_dont_touch idcdl_fine1_dont_touch iinv_chain_dont_touch}
-
-createInstGroup grp2 -region [expr $origin1_x+$PI_delay_unit_width] [expr $origin1_y+$PI_Nunit*$PI_delay_unit_height] [expr $FP_width-$boundary_width-3*$welltap_width] [expr $origin1_y+$PI_Nunit*$PI_delay_unit_height+2*$cell_height] 
-addInstToInstGroup grp2 {iPM/iPM_sub_dont_touch/*}
-
-#createRouteBlk -box [expr $origin1_x+$PI_delay_unit_width+$routing_space1+$routing_space2+$mux4_width] [expr $origin1_y+$PI_Nunit/2*$PI_delay_unit_height-4*$cell_height] [expr $FP_width-$boundary_width-$mux_blender_width] [expr $origin1_y+$PI_Nunit/2*$PI_delay_unit_height+4*$cell_height] -layer 6 
-
-#createRouteBlk -box [expr $FP_width-$boundary_width-$welltap_width-3] [expr $origin1_y+$PI_Nunit*$PI_delay_unit_height] [expr $FP_width-$boundary_width-$welltap_width]  [expr $origin1_y+$PI_Nunit*$PI_delay_unit_height-10*$cell_height]  -layer 6 
+#(blender_outbuf)
+placeInstance iphase_blender_dont_touch/iout_buf1_dont_touch/U1  [expr $origin1_x+$PI_delay_unit_width+$routing_space1+$routing_space2+2*$mux4_width+$inbuf1_width+$inbuf2_width] [expr $origin1_y+$PI_delay_unit_height*$delay_Nunit/2+($blender_Nunit/2)*$cell_height] MY
+placeInstance iphase_blender_dont_touch/iout_buf2_dont_touch/U1  [expr $origin1_x+$PI_delay_unit_width+$routing_space1+$routing_space2+2*$mux4_width+$inbuf1_width+$inbuf2_width] [expr $origin1_y+$PI_delay_unit_height*$delay_Nunit/2+($blender_Nunit/2+1)*$cell_height] 
 
 
 
+#---------------------------------------------------------
+# cell grouping
+#---------------------------------------------------------
+createInstGroup grp0 -region [expr $origin1_x+$PI_delay_unit_width+$routing_space1+$routing_space2+$mux4_width] [expr $origin1_y+$delay_Nunit/2*$PI_delay_unit_height-4*$cell_height] [expr $FP_width-$boundary_width-$mux_blender_width] [expr $origin1_y+$delay_Nunit/2*$PI_delay_unit_height+4*$cell_height] 
+addInstToInstGroup grp0 {iarbiter}
 
-#createPlaceBlockage -box [expr $origin1_x+$PI_delay_unit_width] [expr $origin1_y+2*$cell_height] [expr $origin1_x+$PI_delay_unit_width+$mux4_width+$routing_space1+$routing_space2] [expr $origin1_y+$PI_Nunit*$PI_delay_unit_height-2*$cell_height] 
-#createPlaceBlockage -box [expr $origin1_x+$PI_delay_unit_width+$mux4_width+$routing_space1+$routing_space2] [expr $origin1_y+$PI_Nunit/2*$PI_delay_unit_height+4*$cell_height] [expr $origin1_x+$PI_delay_unit_width+2*$mux4_width+$routing_space1+$routing_space2] [expr $origin1_y+$PI_Nunit*$PI_delay_unit_height-2*$cell_height]
-#createPlaceBlockage -box [expr $origin1_x+$PI_delay_unit_width+$mux4_width+$routing_space1+$routing_space2] [expr $origin1_y+$PI_Nunit/2*$PI_delay_unit_height-4*$cell_height] [expr $origin1_x+$PI_delay_unit_width+2*$mux4_width+$routing_space1+$routing_space2] [expr $origin1_y+2*$cell_height] 
+createInstGroup grp1 -region  [expr $FP_width-$boundary_width-3*$welltap_width-3] [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height] [expr $FP_width-$boundary_width-3*$welltap_width]  [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height-10*$cell_height] 
+addInstToInstGroup grp1 {idcdl_fine0 idcdl_fine1 iinv_chain}
+
+createInstGroup grp2 -region [expr $origin1_x+$PI_delay_unit_width] [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height] [expr $FP_width-$boundary_width-3*$welltap_width] [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height+2*$cell_height] 
+addInstToInstGroup grp2 {iPM/iPM_sub/*}
+
+#createRouteBlk -box [expr $origin1_x+$PI_delay_unit_width+$routing_space1+$routing_space2+$mux4_width] [expr $origin1_y+$delay_Nunit/2*$PI_delay_unit_height-4*$cell_height] [expr $FP_width-$boundary_width-$mux_blender_width] [expr $origin1_y+$delay_Nunit/2*$PI_delay_unit_height+4*$cell_height] -layer 6 
+
+#createRouteBlk -box [expr $FP_width-$boundary_width-$welltap_width-3] [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height] [expr $FP_width-$boundary_width-$welltap_width]  [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height-10*$cell_height]  -layer 6 
+
+
+
+
+#createPlaceBlockage -box [expr $origin1_x+$PI_delay_unit_width] [expr $origin1_y+2*$cell_height] [expr $origin1_x+$PI_delay_unit_width+$mux4_width+$routing_space1+$routing_space2] [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height-2*$cell_height] 
+#createPlaceBlockage -box [expr $origin1_x+$PI_delay_unit_width+$mux4_width+$routing_space1+$routing_space2] [expr $origin1_y+$delay_Nunit/2*$PI_delay_unit_height+4*$cell_height] [expr $origin1_x+$PI_delay_unit_width+2*$mux4_width+$routing_space1+$routing_space2] [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height-2*$cell_height]
+#createPlaceBlockage -box [expr $origin1_x+$PI_delay_unit_width+$mux4_width+$routing_space1+$routing_space2] [expr $origin1_y+$delay_Nunit/2*$PI_delay_unit_height-4*$cell_height] [expr $origin1_x+$PI_delay_unit_width+2*$mux4_width+$routing_space1+$routing_space2] [expr $origin1_y+2*$cell_height] 
 
 
 
@@ -210,12 +217,12 @@ set PI_clk_in_M4_width [expr $AVDD_M7_width/8]
 set PI_clk_in_M5_width [expr $AVDD_M7_width/2]
 set clk_in_net [get_property [get_nets -of_objects [get_pins iPI_delay_chain_dont_touch/clk_in]] name] 
 set PI_clk_in_offset [get_property [get_pins iPI_delay_chain_dont_touch/iPI_delay_unit_dont_touch_0_/arb_in] x_coordinate]
-set PI_delay_unit_power_offset [expr $origin1_x+$welltap_width] 
-set PI_delay_unit_power_space [expr $PI_delay_unit_width-2*$welltap_width-$AVDD_M7_width] 
+set PI_delay_chain_power_offset [expr $origin1_x+$PI_delay_unit_M7_power_offset] 
+set PI_delay_chain_power_space [expr $PI_delay_unit_width-$welltap_width-$AVDD_M7_width] 
 
 
 addStripe -nets {VDD VSS} \
-  -layer M7 -direction vertical -width [expr $AVDD_M7_width/2] -spacing $PI_delay_unit_power_space -start_offset $PI_delay_unit_power_offset -set_to_set_distance $FP_width -start_from left -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit AP -padcore_ring_bottom_layer_limit M7 -block_ring_top_layer_limit M7 -block_ring_bottom_layer_limit M7 -use_wire_group 0 -snap_wire_center_to_grid None  -skip_via_on_wire_shape {  noshape } -extend_to design_boundary -create_pins 1
+  -layer M7 -direction vertical -width [expr $AVDD_M7_width/2] -spacing $PI_delay_chain_power_space -start_offset $PI_delay_chain_power_offset -set_to_set_distance $FP_width -start_from left -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit AP -padcore_ring_bottom_layer_limit M7 -block_ring_top_layer_limit M7 -block_ring_bottom_layer_limit M7 -use_wire_group 0 -snap_wire_center_to_grid None  -skip_via_on_wire_shape {  noshape } -extend_to design_boundary -create_pins 1
 
 addStripe -nets {VDD VSS} \
   -layer M7 -direction vertical -width $AVDD_M7_width -spacing [expr 2*$AVDD_M7_space] -start_offset $DB_width -set_to_set_distance $FP_width -start_from left -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit AP -padcore_ring_bottom_layer_limit M7 -block_ring_top_layer_limit M7 -block_ring_bottom_layer_limit M7 -use_wire_group 0 -snap_wire_center_to_grid None  -skip_via_on_wire_shape {  noshape } -extend_to design_boundary -create_pins 1
@@ -250,11 +257,11 @@ setEdit -width_vertical $PI_clk_in_M5_width
 
 setEdit -nets $clk_in_net
 editAddRoute $PI_clk_in_offset [expr $origin1_y-$cell_height]
-editCommitRoute $PI_clk_in_offset [expr $origin1_y+$PI_Nunit*$PI_delay_unit_height+2*$cell_height] 
+editCommitRoute $PI_clk_in_offset [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height+2*$cell_height] 
 
 setEdit -nets $clk_in_net
-editAddRoute $PI_clk_in_offset [expr $origin1_y+$PI_Nunit*$PI_delay_unit_height+1.5*$cell_height]
-editCommitRoute [expr $origin1_x+$PI_delay_unit_width+$ff_pm_width] [expr $origin1_y+$PI_Nunit*$PI_delay_unit_height+1.5*$cell_height] 
+editAddRoute $PI_clk_in_offset [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height+1.5*$cell_height]
+editCommitRoute [expr $origin1_x+$PI_delay_unit_width+$ff_pm_width] [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height+1.5*$cell_height] 
 
 
 
@@ -276,25 +283,25 @@ editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MIC
 
 editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 0 -layer 2 -spreadType start -spacing [expr 4*$metal_space] -offsetStart [expr $boundary_height+$cell_height] -pin {pm_out* en_pm sel_pm* clk_async ctl_dcdl* disable_state rstb del_out en_clk_sw} 
 
-editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 1 -spreadDirection counterclockwise -edge 0 -layer 2 -spreadType range -offsetEnd [expr $origin1_y] -offsetStart [expr $FP_height-($origin1_y+$PI_Nunit*$PI_delay_unit_height)] -pin {inc_del* } 
+editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 1 -spreadDirection counterclockwise -edge 0 -layer 2 -spreadType range -offsetEnd [expr $origin1_y] -offsetStart [expr $FP_height-($origin1_y+$delay_Nunit*$PI_delay_unit_height)] -pin {inc_del* } 
 
-editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 1 -spreadDirection counterclockwise -edge 0 -layer 2 -spreadType range -offsetEnd [expr $origin1_y] -offsetStart [expr $FP_height-($origin1_y+$PI_Nunit*$PI_delay_unit_height)] -pin {*Qperi* max_sel_mux* ctl[* } 
+editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 1 -spreadDirection counterclockwise -edge 0 -layer 2 -spreadType range -offsetEnd [expr $origin1_y] -offsetStart [expr $FP_height-($origin1_y+$delay_Nunit*$PI_delay_unit_height)] -pin {*Qperi* max_sel_mux* ctl[* } 
 
 
-editPin -pinWidth [expr 4*$pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 2 -layer 4 -spreadType start -spacing [expr 16*$metal_space] -offsetStart [expr $origin1_y+$PI_Nunit*$PI_delay_unit_height-3*$cell_height] -pin {clk_out_slice clk_out_sw }
+editPin -pinWidth [expr 4*$pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 2 -layer 4 -spreadType start -spacing [expr 16*$metal_space] -offsetStart [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height-3*$cell_height] -pin {clk_out_slice clk_out_sw }
 
 
 
 saveIoFile -locations ${ioDir}/${DesignName}.io
 
 
-createRouteBlk -box [expr $origin1_x] [expr $origin1_y] [expr $origin1_x+$PI_delay_unit_width] [expr $origin1_y+$PI_Nunit*$PI_delay_unit_height] -layer {7 8}
-#createRouteBlk -box [expr $origin1_x] [expr $origin1_y+$cell_height] [expr $origin1_x+$PI_delay_unit_width] [expr $origin1_y+$PI_Nunit*$PI_delay_unit_height-$cell_height] -layer {3 5}
+createRouteBlk -box [expr $origin1_x] [expr $origin1_y] [expr $origin1_x+$PI_delay_unit_width] [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height] -layer {5 7 8}
+#createRouteBlk -box [expr $origin1_x] [expr $origin1_y+$cell_height] [expr $origin1_x+$PI_delay_unit_width] [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height-$cell_height] -layer {3 5}
 
-placeInstance iPM/iPM_sub_dont_touch/ff_ref_reg [expr $origin1_x+$PI_delay_unit_width] [expr $origin1_y+$PI_Nunit*$PI_delay_unit_height] R180
-placeInstance iPM/iPM_sub_dont_touch/ff_in_reg [expr $origin1_x+$PI_delay_unit_width+$ff_pm_width] [expr $origin1_y+$PI_Nunit*$PI_delay_unit_height] 
-placeInstance iPM/iPM_sub_dont_touch/uXOR1 [expr $origin1_x+$PI_delay_unit_width+$ff_pm_width-$xor_pm_width] [expr $origin1_y+$PI_Nunit*$PI_delay_unit_height+$cell_height] 
-placeInstance iPM/iPM_sub_dont_touch/uXOR0 [expr $origin1_x+$PI_delay_unit_width+$ff_pm_width] [expr $origin1_y+$PI_Nunit*$PI_delay_unit_height+$cell_height] MY 
+placeInstance iPM/iPM_sub/ff_ref_reg/Q_reg [expr $origin1_x+$PI_delay_unit_width] [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height] R180
+placeInstance iPM/iPM_sub/ff_in_reg/Q_reg [expr $origin1_x+$PI_delay_unit_width+$ff_pm_width] [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height] 
+placeInstance iPM/iPM_sub/uXOR1/U1 [expr $origin1_x+$PI_delay_unit_width+$ff_pm_width-$xor_pm_width] [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height+$cell_height] 
+placeInstance iPM/iPM_sub/uXOR0/U1 [expr $origin1_x+$PI_delay_unit_width+$ff_pm_width] [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height+$cell_height] MY 
 
 
 ##-----------------------

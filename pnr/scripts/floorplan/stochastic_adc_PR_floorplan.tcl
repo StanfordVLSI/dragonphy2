@@ -26,15 +26,22 @@ set V2T_clock_gen_height [expr ceil((2*$DVDD_M8_width+$DVDD_M8_space)/(2*$cell_h
 
 set digital_width 5
 
-set TDC_inv_area [get_property [get_cells idchain/iTDC_delay_unit_dont_touch_0_/U5] area] 
+set TDC_inv_area [get_property [get_cells idchain/iTDC_delay_unit_0_/iinv/U1] area] 
 set TDC_inv_width [expr round($TDC_inv_area/$cell_height/$cell_grid)*$cell_grid]
 
-set TDC_ff_area [get_property [get_cells idchain/iTDC_delay_unit_dont_touch_0_/ff_out_reg] area] 
+set TDC_ff_area [get_property [get_cells idchain/iTDC_delay_unit_0_/ff_out_reg/Q_reg] area] 
 set TDC_ff_width [expr round($TDC_ff_area/$cell_height/$cell_grid)*$cell_grid]
 
+set TDC_ff_PR_area [get_property [get_cells idchain/iTDC_delay_unit_0_/phase_reverse_reg/Q_reg] area] 
+set TDC_ff_PR_width [expr round($TDC_ff_PR_area/$cell_height/$cell_grid)*$cell_grid]
 
-set delay_chain_width [expr (2*$TDC_inv_width+2*$TDC_ff_width)*($TDC_Nwidth+2)+$welltap_width]
-set delay_chain_height [expr $cell_height*($TDC_Nheight+2)]
+set TDC_xnor_area [get_property [get_cells idchain/iTDC_delay_unit_0_/ix_nor/U1] area] 
+set TDC_xnor_width [expr round($TDC_xnor_area/$cell_height/$cell_grid)*$cell_grid]
+
+
+set delay_chain_width [expr (2*($TDC_inv_width+$TDC_ff_width)+$TDC_ff_PR_width+$TDC_xnor_width)*($TDC_Nwidth+2)+$welltap_width]
+set delay_chain_height [expr $cell_height*($TDC_Nheight+8)]
+
 set routing_width [expr ceil(5/$cell_grid)*$cell_grid]
 set routing_height [expr 4*$cell_height]
 
@@ -168,9 +175,8 @@ set Vcal_M7_offset [get_property [get_ports Vcal] x_coordinate]
 set VinP_M8_offset [get_property [get_pins iV2Tp_dont_touch/Vin] y_coordinate] 
 set VinN_M8_offset [get_property [get_pins iV2Tn_dont_touch/Vin] y_coordinate] 
 
-addWellTap -cell TAPCELLBWP16P90 -inRowOffset [expr $Vcal_M7_offset-$welltap_width] -cellInterval $FP_width -prefix WELLTAP
 addWellTap -cell TAPCELLBWP16P90 -inRowOffset $Vcal_M7_offset -cellInterval $FP_width -prefix WELLTAP
-addWellTap -cell TAPCELLBWP16P90 -inRowOffset [expr ($FP_width+($origin1_x+$V2T_width+$blockage_width+$DB_width))/2]  -cellInterval $FP_width -prefix WELLTAP
+addWellTap -cell TAPCELLBWP16P90 -inRowOffset [expr ($origin1_x+$V2T_width+$blockage_width+$DB_width)+($FP_width-($origin1_x+$V2T_width+$blockage_width+$DB_width))/3]  -cellInterval [expr ($FP_width-($origin1_x+$V2T_width+$blockage_width+$DB_width))/3] -prefix WELLTAP
 
 addWellTap -cell TAPCELLBWP16P90 -inRowOffset 0 -cellInterval [expr 2*$FP_width] -prefix WELLTAP
 
@@ -255,11 +261,15 @@ addInstToInstGroup grp0 {iV2T_clock_gen}
 createInstGroup grp1 -region [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width] $origin2_y $FP_width [expr $origin2_y+$delay_chain_height]
 addInstToInstGroup grp1 {idchain}
 
+#createRouteBlk -box [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width] $origin2_y $FP_width [expr $origin2_y+$delay_chain_height] -layer 4
+
+
+
 createInstGroup grp2 -region [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width] 0 $FP_width $origin2_y 
 addInstToInstGroup grp2 {iadder}
 
 createInstGroup grp3 -region $V2T_clock_gen_width [expr $FP_height/2-$V2T_clock_gen_height/2] [expr $origin1_x+$V2T_width] [expr $FP_height/2+$V2T_clock_gen_height/2]
-addInstToInstGroup grp3 {iPM/iPM_sub_dont_touch/* ipm_mux*} 
+addInstToInstGroup grp3 {iPM/iPM_sub/* ipm_mux*} 
 
 
 

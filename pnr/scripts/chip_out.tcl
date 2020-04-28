@@ -13,7 +13,7 @@ saveNetlist ${resDir}/${DesignName}.pnr.v
 ##### GDS out ##
 streamOut ${resDir}/${DesignName}.gds -uniquifyCellNames -mode ALL -merge ${gds_files} -mapFile ${procDir}/gdsout_2Xa1Xd_h_3Xe_vhv_2Z_1.2a.map -outputMacros -units 1000
 ##### LEF out ##
-write_lef_abstract ${resDir}/${DesignName}.lef -specifyTopLayer M8
+write_lef_abstract ${resDir}/${DesignName}.lef -specifyTopLayer ${TOP_BLK_LAYER}
 ##### SDF out ##
 write_sdf ${resDir}/${DesignName}.sdf -max_view setup_rcworst_CC -min_view hold_rcbest_CC
 
@@ -24,7 +24,7 @@ rcOut -spf ${resDir}/${DesignName}_rcworst_CC.spf -rc_corner rcworst_CC
 rcOut -spf ${resDir}/${DesignName}_rcbest.spf -rc_corner rcbest_CC
 
 ### Save Model ##
-#saveModel -dir ${resDir}/${DesignName}_Model -ilm -spef 
+saveModel -dir ${resDir}/${DesignName}_Model -ilm -spef 
 
 puts "============="
 puts " PnR is done "
