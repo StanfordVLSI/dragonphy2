@@ -5,6 +5,9 @@ module arbiter (
     output reg out,
     output out_dmm
 );
+//synopsys dc_script_begin
+//set_dont_touch {Q Qb in*}
+//synopsys dc_script_end
 
     wire Q, Qb, Q_inv, Qb_inv;
 

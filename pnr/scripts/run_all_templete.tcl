@@ -52,6 +52,7 @@ if { ${MULTIPLE_POWER} == 1 } {
 ## fix vias
 source ${scrDir}/08_editSVIA1.tcl
 
+
 ## DB out
 source ${scrDir}/chip_out.tcl
 

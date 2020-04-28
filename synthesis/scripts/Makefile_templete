@@ -2,12 +2,14 @@
 ################ Makefile Definitions
 ################################################################################
 # This little trick finds where the makefile exists
-aprDir := ../..
+aprDir := /aha/sjkim85/apr_flow
 
-SYNTH_HOME := ${aprDir}/synthesis
+SYNTH_HOME := ${aprDir}/synthesis_dragonphy
 DESIGN_HOME := ${SYNTH_HOME}/DesignName
-SRC_PATH   	:= ${aprDir}/vlog/new_chip_src/analog_core
-STUB_PATH 	:= ${aprDir}/vlog/new_chip_stubs
+GIT_REPO := /aha/sjkim85/github_repo/dragonphy
+SRC_PATH   	:= $(GIT_REPO)/vlog/new_chip_src/analog_core
+STUB_PATH 	:= $(GIT_REPO)/vlog/new_chip_stubs
+PRE_MAPPED  := $(aprDir)/netlist/mapped_gate
 
 # RUNDIR is where we are actually running
 RUNDIR := $(DESIGN_HOME)
@@ -23,7 +25,7 @@ SYNTH_RUNDIR	= $(RUNDIR)/DC_WORK/$(SYNTH_DIR_NAME)
 SYNTH_LOGS		= $(SYNTH_RUNDIR)/log
 SYNTH_RESULTS	= $(SYNTH_RUNDIR)/results
 SYNTH_REPORTS	= $(SYNTH_RUNDIR)/reports
-PNR_RESULTS 	= $(aprDir)/pnr
+PNR_RESULTS 	= $(aprDir)/pnr_dragonphy
 
 # define input files
 DC_HEAD_SCRIPT = $(SYNTH_SCRIPT)/header.tcl
@@ -38,8 +40,10 @@ DC_SIMV		= $(RUNDIR)/dc_simv
 
 # define command strings
 SET_SYNTH_PARAMS = 	set DESIGN_TARGET $(DESIGN_TARGET); 	\
+			set GITDIR $(GIT_REPO); \
 			set RTLDIR $(SRC_PATH); \
 			set STUBDIR $(STUB_PATH); \
+			set mappedDIR $(PRE_MAPPED); \
 			set DESIGN_HOME $(DESIGN_HOME); 	\
 			set SYNTH_SCRIPT $(SYNTH_SCRIPT);	 	\
 			set RUNDIR $(RUNDIR); 			\
