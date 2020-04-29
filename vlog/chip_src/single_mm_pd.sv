@@ -1,6 +1,6 @@
 `timescale 1s/1fs
 
-module mm_pd #(
+module single_mm_pd #(
     parameter integer adc_bits=8,
     parameter integer pi_ctl_bits=8,
     parameter integer pi_ctl_init=0,
