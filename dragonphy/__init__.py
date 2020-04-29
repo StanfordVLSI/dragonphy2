@@ -12,9 +12,9 @@ from .analysis.histogram import Histogram
 
 
 # Some Python Verification Libraries
-from .channel   	import Channel, Filter
+from .channel   	import Channel, Filter, DelayChannel
 from .adaptation 	import Wiener
-from .quantizer 	import Quantizer
+from .quantizer 	import Quantizer, StaticQuantizer
 from .fir           import Fir
 from .ffe           import FFEHelper
 from .mlsd          import MLSD

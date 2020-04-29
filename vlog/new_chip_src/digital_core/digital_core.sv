@@ -21,9 +21,11 @@ module digital_core import const_pack::*; (
 
     // internal signals
     cdr_debug_intf cdbg_intf_i ();
-    sram_debug_intf sdbg_intf_i ();
+    sram_debug_intf #(.N_mem_tiles(4)) sm_dbg_intf_i ();
     dcore_debug_intf ddbg_intf_i ();
+    dsp_debug_intf dsp_dbg_intf_i();
     prbs_debug_intf pdbg_intf_i ();
+
     
   //  wire logic ext_rstb;
     wire logic rstb;
@@ -41,10 +43,17 @@ module digital_core import const_pack::*; (
    // wire logic bufferend_signals[15:0];
     wire logic buffered_signals[15:0];
     wire logic signed [Nadc-1:0] adcout_unfolded [Nti+Nti_rep-1:0];
+
+    wire logic signed [ffe_gpack::output_precision-1:0] estimated_bits [constant_gpack::channel_width-1:0];
+    wire logic checked_bits [constant_gpack::channel_width-1:0];
+
     wire logic [Npi-1:0] scale_value [Nout-1:0];
     wire logic [Npi-1:0] unscaled_pi_ctl [Nout-1:0];
     wire logic [Npi+Npi-1:0] scaled_pi_ctl [Nout-1:0];
-
+    
+    initial begin
+        $shm_probe(pi_ctl_cdr);
+    end
 
 
     assign rstb             = ddbg_intf_i.int_rstb  && ext_rstb; //combine external reset with JTAG reset\
@@ -53,7 +62,7 @@ module digital_core import const_pack::*; (
     assign prbs_rstb        = ddbg_intf_i.prbs_rstb && ext_rstb;
     //assign adbg_intf_i.rstb = rstb;
 
-    assign clk_cdr = clk_cdr_in;
+    assign clk_cdr = clk_adc;
 
     assign buffered_signals[0]  = clk_adc;
     assign buffered_signals[1]  = adbg_intf_i.del_out_pi;
@@ -153,13 +162,9 @@ module digital_core import const_pack::*; (
     // CDR
 
     mm_cdr iMM_CDR (
-        .clk_data(clk_adc),
-        .clk_cdr(clk_cdr_in),
         .din(adcout_unfolded[Nti-1:0]),
+        .clk(clk_adc),
         .ext_rstb(cdr_rstb),
-        .sel_ext(ddbg_intf_i.en_ext_pi_ctl_cdr),
-        .pi_ctl_ext(ddbg_intf_i.ext_pi_ctl_cdr),
-        .Nlog_sample(ddbg_intf_i.Ndiv_clk_cdr),
         .pi_ctl(pi_ctl_cdr),
         .cdbg_intf_i(cdbg_intf_i)
     );
@@ -172,20 +177,32 @@ module digital_core import const_pack::*; (
             assign int_pi_ctl_cdr[j]     = scaled_pi_ctl[j] >> Npi;
         end
     endgenerate
+
+    dsp_backend dsp_i(
+        .codes(adcout_unfolded[Nti-1:0]),
+        .clk(clk_adc),
+        .rstb(rstb),
+        .estimated_bits(estimated_bits),
+        .checked_bits(checked_bits),
+        .dsp_dbg_intf_i(dsp_dbg_intf_i)
+    );
+
     // SRAM
 
-    oneshot_memory oneshot_memory_i (
+    oneshot_multimemory #(
+        .N_mem_tiles(4)
+    ) oneshot_multimemory_i(
         .clk(clk_adc),
         .rstb(sram_rstb),
         
-        .in_data(adcout_unfolded),
+        .in_bytes(adcout_unfolded),
 
         .in_start_write(ext_dump_start),
 
-        .in_addr(sdbg_intf_i.in_addr),
+        .in_addr(sm_dbg_intf_i.in_addr),
 
-        .out_data(sdbg_intf_i.out_data),
-        .addr(sdbg_intf_i.addr)
+        .out_data(sm_dbg_intf_i.out_data),
+        .addr(sm_dbg_intf_i.addr)
     );
 
     // PRBS
@@ -239,7 +256,7 @@ module digital_core import const_pack::*; (
         .ddbg_intf_i(ddbg_intf_i),
         .adbg_intf_i(adbg_intf_i),
         .cdbg_intf_i(cdbg_intf_i),
-        .sdbg_intf_i(sdbg_intf_i),
+        .sdbg_intf_i(sm_dbg_intf_i),
         .pdbg_intf_i(pdbg_intf_i),
         .jtag_intf_i(jtag_intf_i)
     );

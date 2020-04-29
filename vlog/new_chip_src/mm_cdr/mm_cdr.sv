@@ -1,74 +1,108 @@
 `default_nettype none
 
-module mm_cdr import const_pack::*; (
-    input wire logic clk_data,                          // parallel data clock
+module mm_cdr import const_pack::*; #(
+    parameter integer prop_width = 6,
+    parameter integer intg_width = 6,
+    parameter integer phase_est_shift = 6
+) (
     input wire logic signed [Nadc-1:0] din[Nti-1:0],    // adc outputs
-    input wire logic sel_ext,
-    input wire logic [Npi-1:0] pi_ctl_ext,
+    input wire logic ramp_clock,
+
+
+    input wire logic clk,
     input wire logic ext_rstb,
-    input wire logic clk_cdr,
-    input wire logic [2:0] Nlog_sample,
-    output wire logic  [Npi-1:0]pi_ctl[Nout-1:0],
+    
+    output logic  [Npi-1:0]pi_ctl[Nout-1:0],
+    output logic freq_lvl_cross,
 
     cdr_debug_intf.cdr cdbg_intf_i
 );
 
-    logic signed [Nadc-1:0] pd_offset;
-    logic signed [Npi-1:0] pi_filt_out;
-    logic signed [Nadc+1:0] pd_out_bstage0, pd_out_astage0, pd_out_bstage1, pd_out_astage1; // pd output
+    typedef enum  logic [1:0] {SAMPLE, WAIT, READY} sampler_state_t;
+    sampler_state_t sampler_state;
 
-    logic valid;
-    // Phase detector
+    logic signed [prop_width-1:0] Kp;
+    logic signed [intg_width-1:0] Ki; 
+
+    assign Ki = cdbg_intf_i.Ki;
+    assign Kp = cdbg_intf_i.Kp;
+
+    logic signed [Nadc+1:0] phase_error;
+    logic signed [Nadc+1+phase_est_shift:0] phase_est_d, phase_est_q, freq_est_d, freq_est_q, prev_freq_update_q;
+    logic signed [Nadc+2+phase_est_shift:0] freq_diff;
+    logic signed [Nadc+1+phase_est_shift:0] freq_est_update;
+
+    logic signed [Npi-1:0]  scaled_pi_ctl;
+    logic signed [Nadc+1:0] phase_est_out;
+
 
     mm_pd iMM_PD (
         .din(din),
         .pd_offset(cdbg_intf_i.pd_offset_ext),
-        .pd_out(pd_out_bstage0)
+        .pd_out(phase_error)
     );
 
-
-    always @(posedge clk_data) begin
-        pd_out_astage0 <= valid ? pd_out_bstage0 : 0;
+    always @* begin
+        freq_est_update  = freq_est_q + (phase_error << Ki);
+        freq_diff        = freq_est_update - prev_freq_update_q;
+        freq_est_d       = cdbg_intf_i.en_freq_est ? freq_est_update : 0;
+        phase_est_d      = phase_est_q + (phase_error << Kp) + freq_est_q;
+        phase_est_out    = phase_est_q >> phase_est_shift;
     end
 
-    mm_avg_IIR iMM_AVG_IIR (
-        .clk(clk_data),
-        .rstb(ext_rstb),
-
-        .in(pd_out_astage0),
-        .Nlog_sample(Nlog_sample),
-        .out(pd_out_bstage1),
-        //Until the integrator rolls over twice, the output will not be valid due to how the clk_cdr times... 
-        .isValid(valid)
-    );
-
-    always @(posedge clk_cdr, negedge ext_rstb) begin
-        if (!ext_rstb) begin
-            pd_out_astage1 <= 0;
+    always_ff @(posedge clk or negedge ext_rstb) begin 
+        if(~ext_rstb) begin
+            phase_est_q <= 0;
+            freq_est_q  <= 0;
         end else begin
-            pd_out_astage1 <= valid ? pd_out_bstage1 : 0;
+            phase_est_q <= phase_est_d;
+            freq_est_q  <= freq_est_d;
+            prev_freq_update_q <= freq_est_update;
         end
     end
 
-    // Filter
-
-    pi_filter iFILTER (
-        .clk(clk_cdr),
-        .rstb(ext_rstb && valid),
-        .sel_ext(sel_ext),
-        .pi_ctl_ext(pi_ctl_ext),
-        .p_val(cdbg_intf_i.p_val),
-        .i_val(cdbg_intf_i.i_val),
-        .in(pd_out_astage1),
-        .out(pi_filt_out)
-    );
+    assign scaled_pi_ctl = phase_est_out >> (Nadc + 2 - Npi);
 
     genvar k;
     generate
         for(k=0;k<Nout;k=k+1) begin
-            assign pi_ctl[k] = pi_filt_out;
+            assign pi_ctl[k] = cdbg_intf_i.en_ext_pi_ctl ? cdbg_intf_i.ext_pi_ctl : scaled_pi_ctl;
         end
     endgenerate
+
+
+    //State Machine to sample the current state of the 2nd order loop once
+    always_ff @(posedge clk or negedge ext_rstb) begin
+        if(~ext_rstb) begin
+            cdbg_intf_i.phase_est <= 0;
+            cdbg_intf_i.freq_est  <= 0;
+            sampler_state <= WAIT;
+        end else begin
+            case(sampler_state)
+                SAMPLE : begin
+                    cdbg_intf_i.phase_est <= phase_est_out;
+                    cdbg_intf_i.freq_est  <= freq_est_update;
+                    sampler_state <= WAIT;
+                end
+                WAIT : begin
+                    sampler_state <= cdbg_intf_i.sample_state ? WAIT : READY;
+                end
+                READY : begin
+                    sampler_state <= cdbg_intf_i.sample_state ? SAMPLE : READY;
+                end
+            endcase
+        end
+    end
+
+    always_ff @(posedge clk or negedge ext_rstb) begin
+        if(~ext_rstb) begin
+            freq_lvl_cross <= 0;
+        end else begin
+            freq_lvl_cross <= (freq_diff > 0) ? 1'b1 : 1'b0;
+        end
+    end
+
+
 
 endmodule
 
