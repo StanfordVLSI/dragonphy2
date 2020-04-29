@@ -1,16 +1,17 @@
 parameter_list:
   - &channel_width 16
   - &code_precision 8
-  - &output_precision 8
-  - &ffe_length 3
-  - &ffe_weight_precision 11
+  - &output_precision 10
+  - &ffe_length 8
+  - &ffe_weight_precision 10
   - &estimate_depth 30
   - &estimate_precision 8
   - &sequence_length 3
   - &decision_shift_precision 4
   - &ffe_shift_precision 5
-  - &mlsd_bit_length 2
-  - &mlsd_est_cursor_pos 1
+  - &mlsd_bit_length 1
+  - &mlsd_est_cursor_pos 0
+
 generate:
   channel:
     class: "PulseChannel"

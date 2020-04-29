@@ -1,6 +1,19 @@
 import numpy as np
 import math
 
+class StaticQuantizer():
+    def __init__(self, width=4, full_scale=1.0):
+        self.lsb = full_scale/(2**(width-1))
+        self.width = width
+
+    def quantize(self, inp_sig):
+        quantized_signal = np.array([round(x/self.lsb) for x in inp_sig])
+        return np.clip(quantized_signal, -2**(self.width-1), 2**(self.width-1))
+
+    def __call__(self, inp_sig):
+        return self.quantize(inp_sig)
+
+
 # Assuming Binary Fixed Point Representation 
 class Quantizer():
     def __init__(self, width=4, full_scale=1.0, signed=False, lsb=None, **kwargs):
