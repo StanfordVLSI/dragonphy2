@@ -12,11 +12,11 @@
 `endif
 
 `ifndef N_INTERVAL
-    `define N_INTERVAL 1
+    `define N_INTERVAL 10
 `endif
 
 `ifndef INTERVAL_LENGTH
-    `define INTERVAL_LENGTH 100e-9
+    `define INTERVAL_LENGTH 10e-9
 `endif
 
 module test;
