@@ -1,5 +1,4 @@
 import numpy as np
-from scipy import optimize
 
 def enob(y, Fs, Fstim):
     # ref: page 7 at http://www.mit.edu/~klund/A2Dtesting.pdf
@@ -20,25 +19,18 @@ def enob(y, Fs, Fstim):
     A = np.column_stack((c_vec, s_vec))
     b, _, _, _ = np.linalg.lstsq(A, y, rcond=None)
 
-    # extract amplitude and phase of a sine wave
-    # these are used as initial guesses for an
-    # optimization routine
-    c_init = np.sqrt(b[0]**2 + b[1]**2)
-    if b[1] != 0:
-        K_init = np.arctan(b[0]/b[1])
-    else:
-        K_init = np.sign(b[0])*(np.pi/2)
-
-    # fine-tune phase, amplitude, and offset
-    def model_func(x_data, c_param, K_param, o_param):
-        return c_param*np.sin(x_data+K_param) + o_param
-    params, _ = optimize.curve_fit(model_func, p_vec, y, p0=[c_init, K_init, 0.0])
-
     # compute model of noiseless signal
-    y_mod = model_func(p_vec, *params)
+    y_mod = b[0]*c_vec + b[1]*s_vec
+
+    # uncomment for debugging
+    # import matplotlib.pyplot as plt
+    # plt.plot(y)
+    # plt.plot(y_mod)
+    # plt.legend(['y', 'y_mod'])
+    # plt.show()
 
     # compute RMS signal amplitude
-    As = params[0]/np.sqrt(2)
+    As = np.sqrt(np.mean(b**2))
 
     # compute noise amplitude
     An = np.std(y-y_mod)
