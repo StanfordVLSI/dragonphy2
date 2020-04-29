@@ -213,14 +213,26 @@ module digital_core import const_pack::*; (
 
     // Output buffer
 
-    logic [15:0] buffered_signals;
+    // wire out PI measurement signals separately 
+    // this is a work-around for a low-level Vivado bug
+    // in which the tool seg-faults inexplicably when the
+    // pi_out_meas signals are directly assigned into 
+    // buffered_signals.
+    logic pi_out_meas_0, pi_out_meas_1, pi_out_meas_2, pi_out_meas_3;
+    assign pi_out_meas_0 = adbg_intf_i.pi_out_meas[0];
+    assign pi_out_meas_1 = adbg_intf_i.pi_out_meas[1];
+    assign pi_out_meas_2 = adbg_intf_i.pi_out_meas[2];
+    assign pi_out_meas_3 = adbg_intf_i.pi_out_meas[3];
 
+    // mapping for signals that can be selected
+    // through the output buffer
+    logic [15:0] buffered_signals;
     assign buffered_signals[0]  = clk_adc;
     assign buffered_signals[1]  = adbg_intf_i.del_out_pi;
-    assign buffered_signals[2]  = adbg_intf_i.pi_out_meas[0];
-    assign buffered_signals[3]  = adbg_intf_i.pi_out_meas[1];
-    assign buffered_signals[4]  = adbg_intf_i.pi_out_meas[2];
-    assign buffered_signals[5]  = adbg_intf_i.pi_out_meas[3];
+    assign buffered_signals[2]  = pi_out_meas_0;
+    assign buffered_signals[3]  = pi_out_meas_1;
+    assign buffered_signals[4]  = pi_out_meas_2;
+    assign buffered_signals[5]  = pi_out_meas_3;
     assign buffered_signals[6]  = adbg_intf_i.del_out_rep[0];
     assign buffered_signals[7]  = adbg_intf_i.del_out_rep[1];
     assign buffered_signals[8]  = adbg_intf_i.inbuf_out_meas;
