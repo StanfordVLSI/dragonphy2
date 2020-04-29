@@ -12,7 +12,7 @@ class JTAG:
         justag_inputs = []
         justag_inputs += list(get_dir('md').glob('*.md'))
         justag_inputs += [get_file('vlog/new_pack/const_pack.sv')]
-
+        print(justag_inputs)
 
         # call JusTAG
         self.justag(*justag_inputs, cwd=build_dir)

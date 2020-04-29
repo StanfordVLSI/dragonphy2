@@ -131,7 +131,7 @@ def test_chan_model():
     meas8 = t.get_value(dut.out)
 
     # compute expected outputs
-    chan = Filter.from_file(get_file('build/all/adapt_fir/chan.npy'))
+    chan = Filter.from_file(get_file('build/fpga_models/adapt_fir/chan.npy'))
     f = chan.interp
     expt1 = 0
     expt2 = val1*f(dt2)

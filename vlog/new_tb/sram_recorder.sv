@@ -10,6 +10,7 @@ module sram_recorder import const_pack::*; #(
 
 	integer fid;
 	initial begin
+        $shm_open("waves.shm"); $shm_probe("AC");
 		fid = $fopen(filename, "w");
 	end
 

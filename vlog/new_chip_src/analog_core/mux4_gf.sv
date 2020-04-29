@@ -5,11 +5,14 @@ module mux4_gf (
     output out
 );
 
+//synopsys dc_script_begin
+//set_dont_touch {out_b}
+//synopsys dc_script_end
     reg  [1:0] sel_retimed;
     wire [1:0] sel_mux;
     wire out_d;
 
-    mux4 imux4_dont_touch (
+    mux4_fixed imux4_dont_touch (
         .in(in),
         .sel(sel_mux),
         .out(out)
@@ -23,10 +26,8 @@ module mux4_gf (
         end
     end
 
-    del_PI idel_PI_dont_touch (
-        .in(out),
-        .out(out_d)
-    );
+    inv iinv_1(.in(out), .out(out_b));	
+    inv iinv_2(.in(out_b), .out(out_d));	
 
     assign sel_mux = en_gf ? sel_retimed : sel;
 
