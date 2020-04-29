@@ -1,0 +1,21 @@
+*drcRulesFile: /home/sjkim85/virtuoso/calibre_block.drc
+*drcRunDir: /home/sjkim85/virtuoso/drc_dump
+*drcLayoutPaths: gds_path
+*drcLayoutPrimary: BLOCK
+*drcLayoutLibrary: BLOCK_apr2_steam_in
+*drcLayoutView: layout
+*drcResultsFile: BLOCK.drc.results
+*drcSummaryFile: BLOCK.drc.summary
+*drcDRCAreaCoords: 1859.158 2186.635 2207.772 2404.444
+*cmnWarnLayoutOverwrite: 0
+*cmnPromptSaveRunset: 0
+*cmnNumTurbo: 10
+*cmnRunMT: 1
+*cmnRunHyper: 1
+*cmnStartRVEAfterBatch: 1
+*cmnSlaveHosts: {use {}} {hostName {}} {cpuCount {}} {a32a64 {}} {rsh {}} {maxMem {}} {workingDir {}} {layerDir {}} {mgcLibPath {}} {launchName {}}
+*cmnLSFSlaveTbl: {use 1} {totalCpus 1} {minCpus 1} {architecture {{}}} {minMemory {{}}} {resourceOptions {{}}} {submitOptions {{}}}
+*cmnGridSlaveTbl: {use 1} {totalCpus 1} {minCpus 1} {architecture {{}}} {minMemory {{}}} {resourceOptions {{}}} {submitOptions {{}}}
+*cmnFDILayoutLibrary: BLOCK_apr2_steam_in
+*cmnFDILayoutView: layout
+*cmnFDIDEFLayoutPath: BLOCK.def

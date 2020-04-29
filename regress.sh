@@ -23,7 +23,10 @@ pip install -e .
 
 # make dependencies for design
 # TODO: should other views be used as well?
+python make.py --view asic
 python make.py --view fpga
+python make.py --view cpu
+
 
 # install pytest
 pip install pytest pytest-cov

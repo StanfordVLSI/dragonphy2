@@ -20,7 +20,7 @@ else:
 T_PER = 1/4e9
 INL_LIM = 10e-12
 GAIN_MIN = 0.2e-12
-GAIN_MAX = 0.4e-12
+GAIN_MAX = 1.9e-12
 MONOTONIC_LIM = -0.01e-12
 RES_LIM = 2e-12
 
@@ -119,9 +119,25 @@ def check_pi(x, y):
     max_delta = np.max(np.diff(y))
     print(f'Max delta is {max_delta*1e12:0.3f} ps.')
 
-    # check results
+    # check INL
     assert inl <= INL_LIM, \
         f'INL out of spec.  Worst-case code: {np.argmax(np.abs(y - y_fit))}.'
+
+    # check gain
     assert GAIN_MIN <= gain <= GAIN_MAX, f'Gain out of spec.'
-    assert min_delta >= MONOTONIC_LIM, 'Monotonicity test failed.'
-    assert max_delta <= RES_LIM, 'Resolution test failed.'
+    
+    # check monotonicity
+    if min_delta < MONOTONIC_LIM:
+        deltas = np.diff(y)
+        worst = np.argmin(deltas)
+        print('PI is not monotonic.')
+        print(f'Worst-case code is {worst} with delta {deltas[worst]*1e12:0.3f} ps.')
+        raise Exception(f'Assertion failed.')
+
+    # check resolution
+    if max_delta > RES_LIM:
+        deltas = np.diff(y)
+        worst = np.argmax(deltas)
+        print('PI resolution is low.')
+        print(f'Worst-case code is {worst} with delta {deltas[worst]*1e12:0.3f} ps.')
+        raise Exception(f'Assertion failed.')

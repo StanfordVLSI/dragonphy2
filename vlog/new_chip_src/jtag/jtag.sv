@@ -73,6 +73,7 @@ module jtag (
 	assign adbg_intf_i.disable_ibuf_test1 = rjtag_intf_i.disable_ibuf_test1;
 
 	assign adbg_intf_i.en_inbuf = rjtag_intf_i.en_inbuf;
+	assign adbg_intf_i.sel_clk_source = rjtag_intf_i.sel_clk_source;
 	assign adbg_intf_i.bypass_inbuf_div = rjtag_intf_i.bypass_inbuf_div;
 	assign adbg_intf_i.bypass_inbuf_div2 = rjtag_intf_i.bypass_inbuf_div2;
 	assign adbg_intf_i.inbuf_ndiv = rjtag_intf_i.inbuf_ndiv;
@@ -97,10 +98,8 @@ module jtag (
 	assign rjtag_intf_i.pm_out_rep = adbg_intf_i.pm_out_rep;
 
 	//Digital Input
-	assign ddbg_intf_i.en_ext_pi_ctl_cdr = rjtag_intf_i.en_ext_pi_ctl_cdr;
-	assign ddbg_intf_i.ext_pi_ctl_cdr = rjtag_intf_i.ext_pi_ctl_cdr;
-	assign ddbg_intf_i.ext_pi_ctl_offset =rjtag_intf_i.ext_pi_ctl_offset;
-	assign ddbg_intf_i.en_ext_pfd_offset=rjtag_intf_i.en_ext_pfd_offset;
+	assign ddbg_intf_i.ext_pi_ctl_offset = rjtag_intf_i.ext_pi_ctl_offset;
+	assign ddbg_intf_i.en_ext_pfd_offset = rjtag_intf_i.en_ext_pfd_offset;
 	assign ddbg_intf_i.ext_pfd_offset=rjtag_intf_i.ext_pfd_offset;
 	assign ddbg_intf_i.en_ext_pfd_offset_rep=rjtag_intf_i.en_ext_pfd_offset_rep;
 	assign ddbg_intf_i.ext_pfd_offset_rep=rjtag_intf_i.ext_pfd_offset_rep;
@@ -142,16 +141,24 @@ module jtag (
 	assign rjtag_intf_i.pfd_offset_rep=ddbg_intf_i.pfd_offset_rep;
 	
 	//SRAM Input
-	assign sdbg_intf_i.in_addr = rjtag_intf_i.in_addr;
-	assign rjtag_intf_i.addr = sdbg_intf_i.addr;
+	assign sdbg_intf_i.in_addr = rjtag_intf_i.in_addr_multi;
+	assign rjtag_intf_i.addr_multi = sdbg_intf_i.addr;
 	//SRAM Output
-	assign rjtag_intf_i.out_data = sdbg_intf_i.out_data;
+	assign rjtag_intf_i.out_data_multi = sdbg_intf_i.out_data;
 
 	//CDR Input
 	assign cdbg_intf_i.pd_offset_ext = rjtag_intf_i.pd_offset_ext;
-	assign cdbg_intf_i.i_val = rjtag_intf_i.i_val;
-	assign cdbg_intf_i.p_val = rjtag_intf_i.p_val;
+	assign cdbg_intf_i.Ki    = rjtag_intf_i.Ki;
+	assign cdbg_intf_i.Kp 	 = rjtag_intf_i.Kp;
+	assign cdbg_intf_i.en_ext_pi_ctl = rjtag_intf_i.en_ext_pi_ctl;
+	assign cdbg_intf_i.ext_pi_ctl = rjtag_intf_i.ext_pi_ctl;
+	assign cdbg_intf_i.en_freq_est   = rjtag_intf_i.en_freq_est;
+	assign cdbg_intf_i.sample_state = rjtag_intf_i.sample_state;
+
 	//CDR Output
+	assign rjtag_intf_i.phase_est    = cdbg_intf_i.phase_est;
+	assign rjtag_intf_i.freq_est    = cdbg_intf_i.freq_est;
+
 
     // PRBS Input
     assign pdbg_intf_i.prbs_checker_mode = rjtag_intf_i.prbs_checker_mode;
