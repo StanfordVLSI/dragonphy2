@@ -3,9 +3,9 @@ module weight_manager #(
     parameter integer depth=7,
     parameter integer bitwidth=8
 ) (
-    input wire logic [width*2-1:0] data_reg,
-    input wire logic [1+$clog2(width)+$clog2(depth)-1:0] inst_reg,
-    input wire logic exec_reg,
+    input wire logic [width*2-1:0] data,
+    input wire logic [1+$clog2(width)+$clog2(depth)-1:0] inst,
+    input wire logic exec,
 
     input wire logic clk,
     input wire logic rstb,
@@ -30,7 +30,7 @@ module weight_manager #(
 
     //The bottom part contains X Y location
     assign depth_addr   = inst[$clog2(depth)-1:0]; 
-    assign width_addr   = inst[$clog2(width) + $clog2(depth)-1: $clog2(depth)]
+    assign width_addr   = inst[$clog2(width) + $clog2(depth)-1: $clog2(depth)];
 
     always_comb begin
         int ii;
@@ -47,33 +47,35 @@ module weight_manager #(
     generate
         for(gi=0 ; gi < width; gi = gi + 1) begin
             assign increment_weights[gi] =  weights[gi][depth_addr] + $signed(data[2*gi+1:2*gi]);
-            assign next_weights[gi][depth_addr] = is_increment ? increment_weights[gi] : set_weights[gi];
+            assign next_weights[gi] = is_increment ? increment_weights[gi] : set_weights[gi];
         end
 
 
-        always_ff @(posedge clk or negedge rstb) begin
-            if(~rstb) begin
-                manager_state <= READY;
-                for(gi=0 ; gi < width; gi = gi + 1) begin
-                    for(gj=0; gj < depth; gj = gj + 1) begin
-                        weights[gi][gj] <= 0;
-                    end
+    always_ff @(posedge clk or negedge rstb) begin
+        int ii, jj;
+        if(~rstb) begin
+            manager_state <= READY;
+            for(ii=0 ; ii < width; ii = ii + 1) begin
+                for(jj=0; jj < depth; jj = jj + 1) begin
+                    weights[ii][jj] <= 0;
                 end
-                read_reg <= 0;
-            end else begin
-                case(manager_state)
-                    READY: begin
-                        for(gi=0 ; gi < width; gi = gi + 1) begin
-                            weights[gi][depth_addr] <= exec ? next_weights[gi] : weights[gi][depth_addr];
-                        end
-                        manager_state <= exec ? HALT : READY;
-                        read_reg      <= exec ? $signed(weights[width_addr][depth_addr]) : read_reg;
-                    end
-                    HALT: begin
-                        manager_state <= exec ? HALT : READY;
-                    end
             end
+            read_reg <= 0;
+        end else begin
+            case(manager_state)
+                READY: begin
+                    for(ii=0 ; ii < width; ii = ii + 1) begin
+                        weights[ii][depth_addr] <= exec ? next_weights[ii] : weights[ii][depth_addr];
+                    end
+                    manager_state <= exec ? HALT : READY;
+                    read_reg      <= exec ? $signed(weights[width_addr][depth_addr]) : read_reg;
+                end
+                HALT: begin
+                    manager_state <= exec ? HALT : READY;
+                end
+            endcase
         end
+    end
     endgenerate 
 
 endmodule : weight_manager
