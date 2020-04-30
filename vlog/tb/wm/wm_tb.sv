@@ -16,8 +16,8 @@ module testbench;
     logic signed [bitwidth-1:0] read_reg;
     logic signed [bitwidth-1:0] weights [width-1:0][depth-1:0];
 
-    logic pulse_wr;
-    logic pulse_wr_in;
+    logic pul_wr;
+    logic pul_wr_in;
 
     clock #(.period(2ns)) clk_gen (.clk(clk));
 
@@ -38,7 +38,7 @@ module testbench;
         .read_reg(read_reg),
         .d_idx(inst_reg[$clog2(depth)-1:0]),
         .w_idx(inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)]),
-        .clk     (pulse_wr),
+        .clk     (pul_wr),
         .en      (1'b1)
     );
 
@@ -46,7 +46,7 @@ module testbench;
         .read_reg(value),
         .d_idx(inst_reg[$clog2(depth)-1:0]),
         .w_idx(inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)]),
-        .clk     (pulse_wr_in),
+        .clk     (pul_wr_in),
         .en      (1'b1)
     );
 
@@ -66,7 +66,6 @@ module testbench;
         inst_reg  = 0; 
         @(posedge clk) rstb = 1;
 
-        en_wr_in = 1;
         for(ii = 0; ii < width; ii = ii + 1) begin
             for(jj = 0; jj < depth; jj=jj+1) begin
                 value = $signed($random%(2**bitwidth));
@@ -74,16 +73,12 @@ module testbench;
                 pulse_wr_in();
             end
         end
-        en_wr_in = 0;
-
-        en_wr = 1;
         for(ii = 0; ii < width; ii = ii + 1) begin
             for(jj = 0; jj < depth; jj=jj+1) begin
                 read(jj, ii);
                 pulse_wr();
             end
         end
-        en_wr = 0;
     end
 
     task increment(input logic [$clog2(depth)-1:0] d_idx, input logic [1:0] inc_arr [width-1:0]);
@@ -99,9 +94,9 @@ module testbench;
     endtask
 
     task read(input logic [$clog2(depth)-1:0] d_idx, logic [$clog2(width)-1:0] w_idx);
-        @(posedge clk);
         inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)] = w_idx;
         inst_reg[$clog2(depth)-1:0] = d_idx;
+        @(posedge clk);
     endtask
 
     task load(input logic [$clog2(depth)-1:0] d_idx, logic [$clog2(width)-1:0] w_idx, logic [bitwidth-1:0] value);
@@ -113,18 +108,18 @@ module testbench;
     endtask
 
     task pulse_wr;
-        pulse_wr = 1;
-        #0 pulse_wr = 0;
+        pul_wr = 1;
+        #0 pul_wr = 0;
     endtask
 
     task pulse_wr_in;
-        pulse_wr_in = 1;
-        #0 pulse_wr_in = 0;
+        pul_wr_in = 1;
+        #0 pul_wr_in = 0;
     endtask
 
     task toggle_exec;
         @(posedge clk) exec=1;
-        #0.5ns exec=0;
+        @(posedge clk) exec=0;
     endtask
 
 
