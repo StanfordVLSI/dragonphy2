@@ -22,6 +22,10 @@
 	`define N_TRIALS 25
 `endif
 
+`ifndef SIGN_FLIP
+	`define SIGN_FLIP 200
+`endif
+
 module test;
 	import test_pack::*;
 	import checker_pack::*;
@@ -111,6 +115,8 @@ module test;
 
 	// Main test
 	integer pi_ctl_indiv;
+	integer pm_sign_indiv;
+	logic [1:0] pm_sign [Nout-1:0];
 	initial begin
 		// Initialize pins
 		$display("Initializing pins...");
@@ -150,14 +156,23 @@ module test;
         for (int i=0; i<`N_TRIALS; i=i+1) begin
             // calculate the stimulus
             // TODO: explore behavior beyond 450
+            // TODO: make test more robust with respect to sign, possibly by measuring
+            // with both signs and deciding which one to use in post processing
             pi_ctl_indiv = ($urandom % 451);
+            if (pi_ctl_indiv < (`SIGN_FLIP)) begin
+                pm_sign_indiv = 0;
+            end else begin
+                pm_sign_indiv = 1;
+            end
 
             // apply the stimulus
             for (int j=0; j<Nout; j=j+1) begin
                 pi_ctl[j] = pi_ctl_indiv;
+                pm_sign[j] = pm_sign_indiv;
             end
-            $display("Setting ext_pi_ctl_offset to %0d...", pi_ctl[0]);
+            $display("Setting ext_pi_ctl_offset to %0d...", pi_ctl_indiv);
             `FORCE_DDBG(ext_pi_ctl_offset, pi_ctl);
+            `FORCE_ADBG(sel_pm_sign_pi, pm_sign);
 
             // wait a few cycles of the CDR clock
             $display("Waiting for a few edges of the CDR clock...");

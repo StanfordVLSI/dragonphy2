@@ -1,8 +1,8 @@
 /********************************************************************
-filename: o_r.sv
+filename: x_or.sv
 
 Description: 
-a parameterized or cell
+a parameterized xor cell
 
 Assumptions:
 
@@ -10,7 +10,7 @@ Todo:
 
 ********************************************************************/
 
-module o_r #(
+module x_or #(
     parameter real td_nom = 15.0e-12,    // nominal delay in sec
     parameter real td_std = 0.0,         // std dev of nominal delay variation in sec
     parameter real rj_rms = 0.0          // rms random jitter in sec
@@ -51,6 +51,6 @@ end
 
 // assign to the output using an inertial delay
 // ref: http://www-inst.eecs.berkeley.edu/~cs152/fa06/handouts/CummingsHDLCON1999_BehavioralDelays_Rev1_1.pdf
-assign #((td+rj)*1s) out = (in1 | in2);
+assign #((td+rj)*1s) out = (in1 ^ in2);
 
 endmodule

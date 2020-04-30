@@ -18,9 +18,10 @@ else:
 
 # testing parameters
 T_PER = 1/4e9
+SIGN_FLIP = 200
 INL_LIM = 10e-12
-GAIN_MIN = 0.2e-12
-GAIN_MAX = 0.4e-12
+GAIN_MIN = -1.9e-12
+GAIN_MAX = -0.2e-12
 MONOTONIC_LIM = -0.01e-12
 RES_LIM = 3.5e-12
 
@@ -35,6 +36,7 @@ def test_sim():
         'PI_CTL_TXT': qwrap(BUILD_DIR / 'pi_ctl.txt'),
         'DELAY_TXT': qwrap(BUILD_DIR / 'delay.txt'),
         'DAVE_TIMEUNIT': '1fs',
+        'SIGN_FLIP': SIGN_FLIP,
         'NCVLOG': None
     }
 
@@ -57,6 +59,11 @@ def test_sim():
         idx_arr = pi_ctl[:, k].argsort()
         pi_ctl[:, k] = pi_ctl[idx_arr, k]
         delay[:, k] = delay[idx_arr, k]
+
+    # correct phase measurement based on the sign
+    # TODO: make this more robust
+    for k in range(delay.shape[1]):
+        delay[:, k] -= (T_PER/2)*(pi_ctl[:, k] >= SIGN_FLIP)
 
     # unwrap phase
     delay_unwrapped = np.zeros(delay.shape, dtype=float)
