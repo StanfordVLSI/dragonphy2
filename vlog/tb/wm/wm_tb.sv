@@ -30,31 +30,35 @@ module testbench;
     initial begin
         rstb      = 0;
         #1ns rstb = 1;
-        @(posedge clk) inst_reg[7] = 1;
-        inst_reg[6:3]   = 0;
-        inst_reg[2:0]   = 4;
-        data_reg[31:30] = 1;
-        data_reg[29:28] = -1;
-        data_reg[27:26] = 1;
-        data_reg[25:0]  = 0;
-        @(posedge clk) exec = 1;
-        @(posedge clk) exec = 0;
-        repeat (10) @(posedge clk);
-        @(posedge clk) inst_reg[7] = 0;
-        inst_reg[6:3] = 0;
-        inst_reg[2:0] = 4;
-        data_reg[7:0] = -128;
-        @(posedge clk) exec = 1; @(clk);
-        @(posedge clk) exec = 0;
-        repeat (2) @(posedge clk);
-        @(posedge clk) inst_reg[7] = 1;
-        inst_reg[6:3] = 0;
-        inst_reg[2:0] = 4;
-        data_reg[1:0] = 1;
-        data_reg[31:2] = 0; 
-        @(posedge clk) exec = 1; @(clk);
-        @(posedge clk) exec = 0;
+
+        increment(0, {1,1,1,1,-1,-1,-1,-1,1,1,1,1,-1,-1,-1,-1});
+        load(0, 0, +8'd50)
+        load(1, 0, +8'd51)
+        load(2, 0, +8'd52)
     end
+
+    task increment(input logic [$clog2(depth)-1:0] d_idx, input logic [1:0] inc_arr [width-1:0]);
+        int ii;
+        @(posedge clk) inst_reg[$clog2(depth)+$clog2(width)] = 1;
+        inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)] = 0;
+        inst_reg[$clog2(depth)-1:0] = d_idx;
+        for(ii=0; ii<width; ii = ii+1) begin
+            data_reg[2*ii+1:2*ii] = inc_arr[ii];
+        end
+    endtask
+
+    task load(input logic [$clog2(depth)-1:0] d_idx, logic [$clog2(width)-1:0] w_idx, logic [bitwidth-1:0] value);
+        @(posedge clk) inst_reg[$clog2(depth)+$clog2(width)] = 0;
+        inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)] = w_idx;
+        inst_reg[$clog2(depth)-1:0] = d_idx;
+        data_reg[bitwidth-1:0] = value;
+    endtask
+
+    task toggle_exec;
+        @(posedge clk) exec=1;
+        @(posedge clk) exec=0;
+    endtask
+
 
 endmodule : testbench
 

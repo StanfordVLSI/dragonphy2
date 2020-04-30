@@ -36,6 +36,7 @@ module testbench;
         data_reg[31:30] = 1;
         data_reg[29:28] = -1;
         data_reg[27:26] = 1;
+        data_reg[25:0]  = 0;
         repeat (10) @(clk); 
     end
 
