@@ -36,12 +36,16 @@ module testbench;
 
     weight_recorder #(.width(width), .depth(depth), .filename("out_weights.txt")) wr_i (
         .read_reg(read_reg),
+        .d_idx(inst_reg[$clog2(depth)-1:0]),
+        .w_idx(inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)]),
         .clk     (pulse_wr),
         .en      (1'b1)
     );
 
     weight_recorder #(.width(width), .depth(depth), .filename("in_weights.txt")) wr_in_i (
         .read_reg(value),
+        .d_idx(inst_reg[$clog2(depth)-1:0]),
+        .w_idx(inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)]),
         .clk     (pulse_wr_in),
         .en      (1'b1)
     );
@@ -65,7 +69,7 @@ module testbench;
         en_wr_in = 1;
         for(ii = 0; ii < width; ii = ii + 1) begin
             for(jj = 0; jj < depth; jj=jj+1) begin
-                value = $signed($random$(2**bitwidth));
+                value = $signed($random%(2**bitwidth));
                 load(jj, ii, value);
                 pulse_wr_in();
             end
@@ -95,12 +99,13 @@ module testbench;
     endtask
 
     task read(input logic [$clog2(depth)-1:0] d_idx, logic [$clog2(width)-1:0] w_idx);
-        @(posedge clk) inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)] = w_idx;
+        @(posedge clk);
+        inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)] = w_idx;
         inst_reg[$clog2(depth)-1:0] = d_idx;
     endtask
 
     task load(input logic [$clog2(depth)-1:0] d_idx, logic [$clog2(width)-1:0] w_idx, logic [bitwidth-1:0] value);
-        @(posedge clk) inst_reg[$clog2(depth)+$clog2(width)] = 0;
+        inst_reg[$clog2(depth)+$clog2(width)] = 0;
         inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)] = w_idx;
         inst_reg[$clog2(depth)-1:0] = d_idx;
         data_reg[bitwidth-1:0] = value;
@@ -119,7 +124,7 @@ module testbench;
 
     task toggle_exec;
         @(posedge clk) exec=1;
-        @(posedge clk) exec=0;
+        #0.5ns exec=0;
     endtask
 
 
@@ -140,7 +145,7 @@ module arr2dregconv #(
 endmodule 
 
 module weight_recorder #(
-    parameter  filename = "values.txt",
+    parameter filename = "values.txt",
     parameter integer width    = 16,
     parameter integer depth    = 6,
     parameter integer bitwidth  = 8
@@ -154,6 +159,7 @@ module weight_recorder #(
     integer fid, ii;
     initial begin
         fid = $fopen(filename, "w");
+        $display(filename);
     end
 
     always @(posedge clk) begin
