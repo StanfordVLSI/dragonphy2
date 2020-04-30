@@ -12,8 +12,12 @@ module testbench;
     logic  [1+$clog2(width)+$clog2(depth)-1:0] inst_reg;
     logic exec = 0;
 
+    logic signed [bitwidth-1:0] value;
     logic signed [bitwidth-1:0] read_reg;
     logic signed [bitwidth-1:0] weights [width-1:0][depth-1:0];
+
+    logic en_wr;
+    logic en_wr_in;
 
     clock #(.period(2ns)) clk_gen (.clk(clk));
 
@@ -30,6 +34,18 @@ module testbench;
 
     arr2dregconv #(.width(width)) adregc_i (.arr(arr), .d_reg(d_reg_arr));
 
+    weight_recorder #(.width(width), .depth(depth), .filename("out_weights.txt")) wr_i (
+        .read_reg(read_reg),
+        .clk     (clk),
+        .en      (en_wr)
+    );
+
+    weight_recorder #(.width(width), .depth(depth), .filename("in_weights.txt")) wr_in_i (
+        .read_reg(value),
+        .clk     (clk),
+        .en      (en_wr_in)
+    );
+
     genvar gj;
     generate
     for(gj=0; gj<width; gj=gj+1) begin
@@ -40,15 +56,28 @@ module testbench;
     endgenerate
 
     initial begin
+        integer ii, jj;
         rstb      = 0;
         data_reg  = 0;
         inst_reg  = 0; 
-        #1ns rstb = 1;
+        @(posedge clk) rstb = 1;
 
-        increment(0, {1,1,1,1,-1,-1,-1,-1,1,1,1,1,-1,-1,-1,-1});
-        load(0, 0, +8'd50);
-        load(1, 0, +8'd51);
-        load(2, 0, +8'd52);
+        en_wr_in = 1;
+        for(ii = 0; ii < width; ii = ii + 1) begin
+            for(jj = 0; jj < depth; jj=jj+1) begin
+                value = $signed($random$(2**bitwidth));
+                load(jj, ii, value);
+            end
+        end
+        en_wr_in = 0;
+
+        en_wr = 1;
+        for(ii = 0; ii < width; ii = ii + 1) begin
+            for(jj = 0; jj < depth; jj=jj+1) begin
+                read(jj, ii);
+            end
+        end
+        en_wr = 0;
     end
 
     task increment(input logic [$clog2(depth)-1:0] d_idx, input logic [1:0] inc_arr [width-1:0]);
@@ -61,6 +90,11 @@ module testbench;
         end
         @(posedge clk) data_reg = d_reg_arr;
         toggle_exec();
+    endtask
+
+    task read(input logic [$clog2(depth)-1:0] d_idx, logic [$clog2(width)-1:0] w_idx);
+        @(posedge clk) inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)] = w_idx;
+        inst_reg[$clog2(depth)-1:0] = d_idx;
     endtask
 
     task load(input logic [$clog2(depth)-1:0] d_idx, logic [$clog2(width)-1:0] w_idx, logic [bitwidth-1:0] value);
@@ -92,6 +126,32 @@ module arr2dregconv #(
         end
     endgenerate
 endmodule 
+
+module weight_recorder #(
+    parameter integer filename = "values.txt",
+    parameter integer width    = 16,
+    parameter integer depth    = 6,
+    parameter integer bitwidth  = 8
+) ( 
+    input logic [bitwidth-1:0] read_reg,
+    input logic [$clog2(depth)-1:0] d_idx,
+    input logic [$clog2(width)-1:0] w_idx,
+    input wire logic clk,
+    input wire logic en
+);
+    integer fid, ii;
+    initial begin
+        fid = $fopen(filename, "w");
+    end
+
+    always @(posedge clk) begin
+        if (en == 'b1) begin
+            $fwrite(fid, "%0d, %0d, %0d\n", d_idx, w_idx, read_reg);
+        end
+    end
+endmodule
+
+
 
 module clock #(
     parameter real delay=0ps,
