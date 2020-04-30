@@ -16,8 +16,8 @@ module testbench;
     logic signed [bitwidth-1:0] read_reg;
     logic signed [bitwidth-1:0] weights [width-1:0][depth-1:0];
 
-    logic en_wr;
-    logic en_wr_in;
+    logic pulse_wr;
+    logic pulse_wr_in;
 
     clock #(.period(2ns)) clk_gen (.clk(clk));
 
@@ -36,14 +36,14 @@ module testbench;
 
     weight_recorder #(.width(width), .depth(depth), .filename("out_weights.txt")) wr_i (
         .read_reg(read_reg),
-        .clk     (clk),
-        .en      (en_wr)
+        .clk     (pulse_wr),
+        .en      (1'b1)
     );
 
     weight_recorder #(.width(width), .depth(depth), .filename("in_weights.txt")) wr_in_i (
         .read_reg(value),
-        .clk     (clk),
-        .en      (en_wr_in)
+        .clk     (pulse_wr_in),
+        .en      (1'b1)
     );
 
     genvar gj;
@@ -67,6 +67,7 @@ module testbench;
             for(jj = 0; jj < depth; jj=jj+1) begin
                 value = $signed($random$(2**bitwidth));
                 load(jj, ii, value);
+                pulse_wr_in();
             end
         end
         en_wr_in = 0;
@@ -75,6 +76,7 @@ module testbench;
         for(ii = 0; ii < width; ii = ii + 1) begin
             for(jj = 0; jj < depth; jj=jj+1) begin
                 read(jj, ii);
+                pulse_wr();
             end
         end
         en_wr = 0;
@@ -105,6 +107,16 @@ module testbench;
         toggle_exec();
     endtask
 
+    task pulse_wr;
+        pulse_wr = 1;
+        #0 pulse_wr = 0;
+    endtask
+
+    task pulse_wr_in;
+        pulse_wr_in = 1;
+        #0 pulse_wr_in = 0;
+    endtask
+
     task toggle_exec;
         @(posedge clk) exec=1;
         @(posedge clk) exec=0;
@@ -128,7 +140,7 @@ module arr2dregconv #(
 endmodule 
 
 module weight_recorder #(
-    parameter integer filename = "values.txt",
+    parameter  filename = "values.txt",
     parameter integer width    = 16,
     parameter integer depth    = 6,
     parameter integer bitwidth  = 8
