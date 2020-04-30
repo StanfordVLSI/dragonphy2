@@ -32,6 +32,8 @@ module weight_manager #(
     assign depth_addr   = inst[$clog2(depth)-1:0]; 
     assign width_addr   = inst[$clog2(width) + $clog2(depth)-1: $clog2(depth)];
 
+    assign read_reg     = weights[width_addr][depth_addr];
+
     always_comb begin
         int ii;
         for(ii=0; ii<width; ii=ii+1) begin
@@ -60,7 +62,6 @@ module weight_manager #(
                     weights[ii][jj] <= 0;
                 end
             end
-            read_reg <= 0;
         end else begin
             case(manager_state)
                 READY: begin
@@ -68,7 +69,6 @@ module weight_manager #(
                         weights[ii][depth_addr] <= exec ? next_weights[ii] : weights[ii][depth_addr];
                     end
                     manager_state <= exec ? HALT : READY;
-                    read_reg      <= exec ? $signed(weights[width_addr][depth_addr]) : read_reg;
                 end
                 HALT: begin
                     manager_state <= exec ? HALT : READY;
