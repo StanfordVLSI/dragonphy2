@@ -4,6 +4,8 @@ import os
 import msdsl, svreal
 from svinst import get_defs
 
+from .directory import Directory
+
 from .files import get_dir, get_file, get_mlingua_dir
 
 def remove_dup(seq):
@@ -141,6 +143,13 @@ def get_deps_new_asic(cell_name=None, impl_file=None):
         view_order=['new_pack', 'new_chip_src', 'new_chip_stubs'],
         includes=[get_dir('inc/new_asic')]
     )
+
+    deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/ffe_gpack.sv')
+    deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/cmp_gpack.sv')
+    deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/mlsd_gpack.sv')
+    deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/constant_gpack.sv')
+    deps.insert(0, Directory.path() + '/vlog/new_pack/dsp_pack.sv')
+
     return deps
 
 def get_deps_cpu_sim_new(cell_name=None, impl_file=None):
@@ -152,11 +161,18 @@ def get_deps_cpu_sim_new(cell_name=None, impl_file=None):
         includes=[get_dir('inc/new_cpu'), get_mlingua_dir() / 'samples'],
         defines={'DAVE_TIMEUNIT': '1fs', 'NCVLOG': None}
     )
+
+    deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/ffe_gpack.sv')
+    deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/cmp_gpack.sv')
+    deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/mlsd_gpack.sv')
+    deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/constant_gpack.sv')
+    deps.insert(0, Directory.path() + '/vlog/new_pack/dsp_pack.sv')
+
     return deps
 
 def get_deps_cpu_sim(cell_name=None, impl_file=None):
     deps = []
-    deps += [get_file('build/all/adapt_fir/ffe_gpack.sv')]
+    deps += [get_file('build/fpga_models/adapt_fir/ffe_gpack.sv')]
     deps += get_deps(
         cell_name=cell_name,
         impl_file=impl_file,
@@ -168,7 +184,7 @@ def get_deps_cpu_sim(cell_name=None, impl_file=None):
 
 def get_deps_fpga_emu(cell_name=None, impl_file=None):
     deps = []
-    deps += [get_file('build/all/adapt_fir/ffe_gpack.sv')]
+    deps += [get_file('build/fpga_models/adapt_fir/ffe_gpack.sv')]
     deps += get_deps(
         cell_name=cell_name,
         impl_file=impl_file,

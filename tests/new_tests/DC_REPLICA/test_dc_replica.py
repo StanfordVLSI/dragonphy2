@@ -78,7 +78,7 @@ def plot_data(x, y, widths):
     plt.cla()
     plt.clf()
 
-def check_data(x, y, inl_limit=7.5, offset_limit=2.5, gain_bnds=(250, 290)):
+def check_data(x, y, inl_limit=5, offset_limit=2.5, gain_bnds=(260, 300)):
     # compute linear regression
     regr = linear_model.LinearRegression()
     regr.fit(x[:, np.newaxis], y)

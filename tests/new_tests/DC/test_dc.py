@@ -31,6 +31,8 @@ def test_sim():
     deps = get_deps_cpu_sim_new(impl_file=THIS_DIR / 'test.sv')
     print(deps)
 
+
+
     DragonTester(
         ext_srcs=deps,
         directory=BUILD_DIR,
@@ -39,6 +41,7 @@ def test_sim():
         defines=defines,
         simulator=SIMULATOR,
         flags=['-unbuffered']
+#        dump_waveforms=True
     ).run()
 
     x = np.loadtxt(BUILD_DIR / 'rx_input.txt', dtype=float)
@@ -78,7 +81,7 @@ def plot_data(x, y, widths):
     plt.cla()
     plt.clf()
 
-def check_data(x, y, inl_limit=5, offset_limit=2.5, gain_bnds=(250, 290)):
+def check_data(x, y, inl_limit=5, offset_limit=2.5, gain_bnds=(240, 300)):
     # compute linear regression
     regr = linear_model.LinearRegression()
     regr.fit(x[:, np.newaxis], y)
@@ -98,3 +101,6 @@ def check_data(x, y, inl_limit=5, offset_limit=2.5, gain_bnds=(250, 290)):
     gain = regr.coef_[0]
     assert min(gain_bnds) <= gain <= max(gain_bnds), f'Gain out of spec: {gain} LSB/Volt.'
     print(f'Gain OK: {gain} LSB/Volt.')
+
+if __name__ == "__main__":
+    test_sim()

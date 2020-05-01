@@ -1,20 +1,20 @@
 # Some Quality Of Life Libraries
-from.subprocess_run import subprocess_run
-from .cmdparser		import CmdLineParser
-from .packager      import Packager
-from .config 		import Configuration
-from .tester     	import DragonTester
-from .directory     import Directory
-from .graph.graph   import BuildGraph
+from .subprocess_run import subprocess_run
+from .enob           import enob
+from .cmdparser		 import CmdLineParser
+from .packager       import Packager
+from .config 		 import Configuration
+from .tester     	 import DragonTester
+from .directory      import Directory
+from .graph.graph    import BuildGraph
 
 # Some analysis libraries
 from .analysis.histogram import Histogram
 
-
 # Some Python Verification Libraries
-from .channel   	import Channel, Filter
+from .channel   	import Channel, Filter, DelayChannel
 from .adaptation 	import Wiener
-from .quantizer 	import Quantizer
+from .quantizer 	import Quantizer, StaticQuantizer
 from .fir           import Fir
 from .ffe           import FFEHelper
 from .mlsd          import MLSD

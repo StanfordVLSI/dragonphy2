@@ -16,7 +16,7 @@
 `endif
 
 `ifndef EXT_PFD_OFFSET
-    `define EXT_PFD_OFFSET 14
+    `define EXT_PFD_OFFSET 16
 `endif
 
 module test;
@@ -33,6 +33,11 @@ module test;
 	// reset
 
 	logic rstb;
+
+    //outputs for debugging
+//    initial begin
+//        $shm_open("waves.shm"); $shm_probe("ACT");
+//    end
 
 	// JTAG driver
 
@@ -133,6 +138,9 @@ module test;
 	// Main test
 	logic [Nadc-1:0] tmp_ext_pfd_offset [Nti-1:0];
 	initial begin
+        rstb = 1'b0;
+
+        #(10ns);
 		// Initialize pins
 		$display("Initializing pins...");
 		jtag_drv_i.init();
@@ -150,13 +158,17 @@ module test;
         #(1ns);
         `FORCE_ADBG(en_inbuf, 1);
         #(1ns);
+        `FORCE_DDBG(int_rstb, 1);
+        #(1ns);
 		`FORCE_ADBG(en_gf, 1);
         #(1ns);
         `FORCE_ADBG(en_v2t, 1);
         #(1ns);
-        `FORCE_DDBG(int_rstb, 1);
-        #(1ns);
-
+        #(10ns);
+        `FORCE_DDBG(ext_pi_ctl_offset[0], 0);
+        `FORCE_DDBG(ext_pi_ctl_offset[1], 130);
+        `FORCE_DDBG(ext_pi_ctl_offset[2], 265);
+        `FORCE_DDBG(ext_pi_ctl_offset[3], 400);
         // Set up the PFD offset
         for (int idx=0; idx<Nti; idx=idx+1) begin
             tmp_ext_pfd_offset[idx] = `EXT_PFD_OFFSET;
