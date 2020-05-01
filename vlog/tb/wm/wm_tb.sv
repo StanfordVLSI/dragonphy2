@@ -13,6 +13,7 @@ module testbench;
     logic exec = 0;
 
     logic signed [bitwidth-1:0] value;
+    logic signed [1:0] onebit_val;
     logic signed [bitwidth-1:0] read_reg;
     logic signed [bitwidth-1:0] weights [width-1:0][depth-1:0];
 
@@ -52,8 +53,8 @@ module testbench;
         .en      (1'b1)
     );
 
-    weight_recorder #(.width(width), .depth(depth), .filename("ow_rand_incrmnt.txt")) wr_inc_i (
-        .read_reg(value),
+    weight_recorder #(.width(width), .depth(depth), .bitwidth(2), .filename("ow_rand_incrmnt.txt")) wr_inc_i (
+        .read_reg(onebit_val),
         .d_idx(inst_reg[$clog2(depth)-1:0]),
         .w_idx(inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)]),
         .clk     (pul_wr_inc),
@@ -101,11 +102,11 @@ module testbench;
 
         for(jj = 0; jj < depth; jj=jj+1) begin
             for(ii = 0; ii < width; ii = ii + 1) begin
-                value = $signed($random%(2));
-                arr[ii] = value
+                onebit_val = $signed($random%(2));
+                arr[ii] = onebit_val;
                 pulse_wr_inc();
             end
-            increment(jj, ii, d_reg_arr);
+            increment(jj);
         end
 
         for(ii = 0; ii < width; ii = ii + 1) begin
@@ -116,14 +117,11 @@ module testbench;
         end
     end
 
-    task increment(input logic [$clog2(depth)-1:0] d_idx, input logic [1:0] inc_arr [width-1:0]);
+    task increment(input logic [$clog2(depth)-1:0] d_idx);
         int gi;
         @(posedge clk) inst_reg[$clog2(depth)+$clog2(width)] = 1;
         inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)] = 0;
         inst_reg[$clog2(depth)-1:0] = d_idx;
-        for(gi=0; gi<width;gi=gi+1) begin
-            arr[gi]      = inc_arr[gi];
-        end
         @(posedge clk) data_reg = d_reg_arr;
         toggle_exec();
     endtask
