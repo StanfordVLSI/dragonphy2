@@ -1,10 +1,6 @@
 module PI_delay_chain #(
 parameter Nunit = 32
 )(
-//synopsys dc_script_begin
-//set_dont_touch {clk_in}
-//synopsys dc_script_end
-
 input clk_in, 
 input en_arb, 
 input [Nunit-1:0] en_mixer,

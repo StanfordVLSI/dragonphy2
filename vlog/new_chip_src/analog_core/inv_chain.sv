@@ -4,14 +4,10 @@ module inv_chain #(
     input logic in,
     output logic out
 );
-//synopsys dc_script_begin
-// set_dont_touch {inv_out*}
-//synopsys dc_script_end
-
 
     logic [Ninv-2:0] inv_out;
 
-    inv iinv [Ninv-1:0] (
+    inv iinv_dont_touch [Ninv-1:0] (
         .in({inv_out, in}),
         .out({out, inv_out})
     );

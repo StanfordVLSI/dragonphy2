@@ -1,5 +1,5 @@
 
-module bin2thm #(
+module bin2thm_5b #(
 parameter Nbit = 5
 ) 
 (

@@ -13,11 +13,7 @@ assign enb = ~en;
 assign ctl_thm = ~(('1 << ctl)&{(Nunit-1){en}});
 assign out = mux_out[0];
 
-//synopsys dc_script_begin
-// set_dont_touch {mux_out*}
-//synopsys dc_script_end
-
-mux_fixed imux_dont_touch[Nunit-1:0] (.in0(in), .in1({disable_state, mux_out[Nunit-1:1]}), .sel({enb, ctl_thm}), .out(mux_out));
+mux imux_dont_touch[Nunit-1:0] (.in0(in), .in1({disable_state, mux_out[Nunit-1:1]}), .sel({enb, ctl_thm}), .out(mux_out));
 
 
 endmodule

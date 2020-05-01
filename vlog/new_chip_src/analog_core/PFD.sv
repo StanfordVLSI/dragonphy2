@@ -12,7 +12,7 @@ module PFD (
     wire ff_rst, and_out_delayed, arbiter_clk;
 
     assign and_out = (TinP_sampled & TinN_sampled);
-    assign Tout = (TinP_sampled | TinN_sampled);
+    //assign Tout = (TinP_sampled | TinN_sampled);
     assign ff_rst = (and_out_delayed | (~rstb));
 
     inv_chain #(
@@ -47,6 +47,7 @@ module PFD (
             TinN_sampled <= 1;
         end
     end
+	o_r io_r(.in1(TinP_sampled), .in2(TinN_sampled), .out(Tout)); 
 
 endmodule
 

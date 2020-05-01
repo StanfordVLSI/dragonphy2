@@ -35,7 +35,7 @@ always @(posedge xor_ref_bf, negedge en_sync)
     pm_out <= pm_out + (ff_in^ff_ref);
   end
 
-phase_monitor_sub iPM_sub (
+phase_monitor_sub iPM_sub_dont_touch (
 	.ph_ref(ph_ref),
 	.ph_in(ph_in),
 	.en_sync(en_sync),

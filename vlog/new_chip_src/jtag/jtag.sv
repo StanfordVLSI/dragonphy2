@@ -73,7 +73,6 @@ module jtag (
 	assign adbg_intf_i.disable_ibuf_test1 = rjtag_intf_i.disable_ibuf_test1;
 
 	assign adbg_intf_i.en_inbuf = rjtag_intf_i.en_inbuf;
-	assign adbg_intf_i.sel_clk_source = rjtag_intf_i.sel_clk_source;
 	assign adbg_intf_i.bypass_inbuf_div = rjtag_intf_i.bypass_inbuf_div;
 	assign adbg_intf_i.bypass_inbuf_div2 = rjtag_intf_i.bypass_inbuf_div2;
 	assign adbg_intf_i.inbuf_ndiv = rjtag_intf_i.inbuf_ndiv;
