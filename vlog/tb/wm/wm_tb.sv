@@ -104,6 +104,9 @@ module testbench;
             for(ii = 0; ii < width; ii = ii + 1) begin
                 onebit_val = $signed($random%(2));
                 arr[ii] = onebit_val;
+                inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)] = ii;
+                inst_reg[$clog2(depth)-1:0] = jj;
+                @(posedge clk);
                 pulse_wr_inc();
             end
             increment(jj, ii);
@@ -187,7 +190,7 @@ module weight_recorder #(
     parameter integer depth    = 6,
     parameter integer bitwidth  = 8
 ) ( 
-    input logic [bitwidth-1:0] read_reg,
+    input logic signed [bitwidth-1:0] read_reg,
     input logic [$clog2(depth)-1:0] d_idx,
     input logic [$clog2(width)-1:0] w_idx,
     input wire logic clk,
