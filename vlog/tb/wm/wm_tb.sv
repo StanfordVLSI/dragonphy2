@@ -106,7 +106,7 @@ module testbench;
                 arr[ii] = onebit_val;
                 pulse_wr_inc();
             end
-            increment(jj);
+            increment(jj, ii);
         end
 
         for(ii = 0; ii < width; ii = ii + 1) begin
@@ -117,12 +117,11 @@ module testbench;
         end
     end
 
-    task increment(input logic [$clog2(depth)-1:0] d_idx);
-        int gi;
-        @(posedge clk) inst_reg[$clog2(depth)+$clog2(width)] = 1;
-        inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)] = 0;
+    task increment(input logic [$clog2(depth)-1:0] d_idx, logic [$clog2(width)-1:0] w_idx);
+        inst_reg[$clog2(depth)+$clog2(width)] = 1;
+        inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)] = w_idx;
         inst_reg[$clog2(depth)-1:0] = d_idx;
-        @(posedge clk) data_reg = d_reg_arr;
+        data_reg = d_reg_arr;
         toggle_exec();
     endtask
 
