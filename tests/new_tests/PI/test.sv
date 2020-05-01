@@ -95,9 +95,10 @@ module test;
 
 	// Main test
 	initial begin
-	    // uncomment to dump waveforms
-	    // $shm_open("waves.shm");
-	    // $shm_probe("ASM");
+	    `ifdef DUMP_WAVEFORMS
+	        $shm_open("waves.shm");
+	        $shm_probe("ASMC");
+        `endif
 
 		// Initialize pins
 		$display("Initializing pins...");

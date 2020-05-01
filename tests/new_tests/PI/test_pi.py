@@ -24,6 +24,9 @@ GAIN_MAX = 1.9e-12
 MONOTONIC_LIM = -0.01e-12
 RES_LIM = 2e-12
 
+# debug parameters
+DUMP_WAVEFORMS = False
+
 @pytest.mark.parametrize((), [pytest.param(marks=pytest.mark.slow) if SIMULATOR=='vivado' else ()])
 def test_sim():
     deps = get_deps_cpu_sim_new(impl_file=THIS_DIR / 'test.sv')
@@ -37,6 +40,10 @@ def test_sim():
         'DAVE_TIMEUNIT': '1fs',
         'NCVLOG': None
     }
+    flags = ['-unbuffered']
+    if DUMP_WAVEFORMS:
+        defines['DUMP_WAVEFORMS'] = None
+        flags += ['-access', '+r']
 
     DragonTester(
         ext_srcs=deps,
@@ -45,7 +52,7 @@ def test_sim():
         inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/new_cpu')],
         defines=defines,
         simulator=SIMULATOR,
-        flags=['-unbuffered']
+        flags=flags
     ).run()
 
     # read data from file
