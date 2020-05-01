@@ -9,7 +9,8 @@ class AdaptFir:
 
         ffe_config      = system_values['generic']['ffe']
         constant_config = system_values['generic']
-
+        mlsd_config     = system_values['generic']['mlsd']
+        comp_config      = system_values['generic']['comp']
         # create channel model
         kwargs = dict(
             channel_type='arctan',
@@ -66,6 +67,20 @@ class AdaptFir:
         Packager(
             package_name='ffe_gpack',
             parameters=ffe_config['parameters'],
+            dir=build_dir
+        ).create_package()
+
+        # Create MLSD package
+        Packager(
+            package_name='mlsd_gpack',
+            parameters=mlsd_config['parameters'],
+            dir=build_dir
+        ).create_package()
+
+        # Create Comp package
+        Packager(
+            package_name='cmp_gpack',
+            parameters=comp_config['parameters'],
             dir=build_dir
         ).create_package()
 

@@ -29,9 +29,13 @@ requires_list = [
     'pexpect',
     'pyyaml',
     'numpy',
+    'scipy',
     'matplotlib',
     'sklearn',
     'pygraphviz',
+    'html5lib',
+    'lxml',
+    'BeautifulSoup4',
     'justag==0.0.2.9',
     # general requirements with special versions to prevent
     # warnings that clutter pytest output

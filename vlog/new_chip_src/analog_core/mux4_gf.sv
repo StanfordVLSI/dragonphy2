@@ -33,8 +33,3 @@ module mux4_gf (
 endmodule
 
 
-
-
-
-
-
