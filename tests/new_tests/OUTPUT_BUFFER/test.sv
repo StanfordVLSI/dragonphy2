@@ -11,6 +11,8 @@ module test;
 	// clock inputs
 	logic ext_clkp;
 	logic ext_clkn;
+	logic clk_async_p;
+	logic clk_async_n;
 
 	// clock outputs
 	logic clk_out_p;
@@ -30,28 +32,48 @@ module test;
 
 	// instantiate top module
 	dragonphy_top top_i (
+        // clock inputs
 		.ext_clkp(ext_clkp),
 		.ext_clkn(ext_clkn),
+        .ext_clk_async_p(clk_async_p),
+        .ext_clk_async_n(clk_async_n),
+
+        // clock outputs
 		.clk_out_p(clk_out_p),
 		.clk_out_n(clk_out_n),
 		.clk_trig_p(clk_trig_p),
 		.clk_trig_n(clk_trig_n),
+
+		// reset
         .ext_rstb(rstb),
+
+        // JTAG
 		.jtag_intf_i(jtag_intf_i)
+
 		// other I/O not used..
 	);
 
+	// External clocks
 
-	// External clock
     localparam real ext_clk_freq = full_rate/2;
 	clock #(
 		.freq(ext_clk_freq),
 		.duty(0.5),
 		.td(0)
-	) iEXTCLK (
+	) ext_clk_i (
 		.ckout(ext_clkp),
 		.ckoutb(ext_clkn)
 	); 
+
+    localparam real async_clk_freq = 5.67e9;
+	clock #(
+		.freq(async_clk_freq),
+		.duty(0.5),
+		.td(0)
+	) async_clk_i (
+		.ckout(clk_async_p),
+		.ckoutb(clk_async_n)
+	);
 
 	// Frequency measurement
 
@@ -65,6 +87,18 @@ module test;
 	meas_clock meas_clk_in_n (
 		.clk(ext_clkn),
 		.period(clk_in_period_n)
+	);
+
+	pwl clk_async_period_p;
+	meas_clock meas_clk_async_p (
+		.clk(clk_async_p),
+		.period(clk_async_period_p)
+	);
+
+	pwl clk_async_period_n;
+	meas_clock meas_clk_async_n (
+		.clk(clk_async_n),
+		.period(clk_async_period_n)
 	);
 
 	pwl clk_out_period_p;
@@ -98,7 +132,6 @@ module test;
 	    // $dumpfile("out.vcd");
 	    // $dumpvars(1, top_i);
 	    // $dumpvars(1, top_i.iacore);
-	    // $dumpvars(3, top_i.iacore.iinbuf);
         // $dumpvars(1, top_i.idcore);
         // $dumpvars(2, top_i.idcore.out_buff_i);
         // $dumpvars(1, top_i.idcore.buffered_signals);
@@ -124,6 +157,8 @@ module test;
         #(1ns);
         `FORCE_ADBG(en_v2t, 1);
         #(1ns);
+        `FORCE_ADBG(disable_ibuf_async, 0);
+        #(1ns);
         `FORCE_DDBG(int_rstb, 1);
         #(1ns);
 
@@ -133,25 +168,34 @@ module test;
         #(1ns);
         `FORCE_DDBG(en_trigbuff, 'b1);
         #(1ns);
+        `FORCE_DDBG(sel_outbuff, 0);   // ADC clock
+        #(1ns);
+        `FORCE_DDBG(sel_trigbuff, 12); // async clock
+        #(1ns);
 
 		// Wait a little bit to measure frequencies
 		#(100ns);
 
 		// run assertions
 		$display("Testing input clock");
+
 		$display("External period: ", clk_in_period_p.a);
 		check_rel_tol(1.0/clk_in_period_p.a, ext_clk_freq, 0.01);
 		check_rel_tol(1.0/clk_in_period_n.a, ext_clk_freq, 0.01);
 
+		$display("Async period: ", clk_async_period_p.a);
+		check_rel_tol(1.0/clk_async_period_p.a, async_clk_freq, 0.01);
+		check_rel_tol(1.0/clk_async_period_n.a, async_clk_freq, 0.01);
+
 		$display("Testing output clock");
 		$display("CLK_OUT period: ", clk_out_period_p.a);
-		check_rel_tol(1.0/clk_out_period_p.a, ext_clk_freq/256, 0.01);
-		check_rel_tol(1.0/clk_out_period_n.a, ext_clk_freq/256, 0.01);
+		check_rel_tol(1.0/clk_out_period_p.a, ext_clk_freq/8, 0.01);
+		check_rel_tol(1.0/clk_out_period_n.a, ext_clk_freq/8, 0.01);
 
 		$display("Testing trigger clock");
 		$display("TRIG_OUT period: ", trig_out_period_p.a);
-		check_rel_tol(1.0/trig_out_period_p.a, ext_clk_freq/256, 0.01);
-		check_rel_tol(1.0/trig_out_period_n.a, ext_clk_freq/256, 0.01);
+		check_rel_tol(1.0/trig_out_period_p.a, async_clk_freq, 0.01);
+		check_rel_tol(1.0/trig_out_period_n.a, async_clk_freq, 0.01);
 		
 		$finish;
 	end

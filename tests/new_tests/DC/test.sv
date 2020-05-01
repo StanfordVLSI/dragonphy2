@@ -16,7 +16,7 @@
 `endif
 
 `ifndef EXT_PFD_OFFSET
-    `define EXT_PFD_OFFSET 14
+    `define EXT_PFD_OFFSET 16
 `endif
 
 module test;

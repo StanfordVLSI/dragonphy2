@@ -19,12 +19,10 @@ else:
 # testing parameters
 T_PER = 1/4e9
 INL_LIM = 10e-12
-OFFSET_NOM = 233e-12
-OFFSET_DEV = 500e-12
-GAIN_MIN = 0.3e-12
+GAIN_MIN = 0.2e-12
 GAIN_MAX = 1.9e-12
 MONOTONIC_LIM = -0.01e-12
-RES_LIM = 3.5e-12
+RES_LIM = 2e-12
 
 @pytest.mark.parametrize((), [pytest.param(marks=pytest.mark.slow) if SIMULATOR=='vivado' else ()])
 def test_sim():
@@ -50,8 +48,15 @@ def test_sim():
         flags=['-unbuffered']
     ).run()
 
+    # read data from file
     pi_ctl = np.loadtxt(BUILD_DIR / 'pi_ctl.txt', dtype=int, delimiter=',')
     delay = np.loadtxt(BUILD_DIR / 'delay.txt', dtype=float, delimiter=',')
+
+    # sort each column increasing order of pi_ctl codes
+    for k in range(delay.shape[1]):
+        idx_arr = pi_ctl[:, k].argsort()
+        pi_ctl[:, k] = pi_ctl[idx_arr, k]
+        delay[:, k] = delay[idx_arr, k]
 
     # unwrap phase
     delay_unwrapped = np.zeros(delay.shape, dtype=float)
@@ -100,45 +105,39 @@ def check_pi(x, y):
 
     # INL
     inl = np.max(np.abs(y - y_fit))
-    if inl > INL_LIM:
-        print(f'INL out of spec: {inl*1e12:0.3f} ps.')
-        print(f'Worst-case code: {np.argmax(np.abs(y - y_fit))}.')
-        raise Exception(f'Assertion failed.')
-    print(f'INL OK: {inl*1e12:0.3f} ps')
-
-    # calculate offset
-    offset = regr.intercept_
-    offset %= T_PER
-
-    # calculate offset error from nominal and wrap to +/- 0.5*T_PER
-    offset_error = offset - OFFSET_NOM
-    offset_error = ((offset_error + 0.5*T_PER)%T_PER) - 0.5*T_PER
-
-    # check offset
-    assert -OFFSET_DEV <= offset_error <= +OFFSET_DEV, \
-        f'Offset out of spec: {offset*1e12:0.3f} ps'
-    print(f'Offset OK: {offset*1e12:0.3f} ps')
+    print(f'INL: {inl*1e12:0.3f} ps.')
 
     # gain
     gain = regr.coef_[0]
-    assert GAIN_MIN <= gain <= GAIN_MAX, \
-        f'Gain out of spec: {gain*1e12:0.3f} ps/LSB'
-    print(f'Gain OK: {gain*1e12:0.3f} ps/LSB')
+    print(f'Gain: {gain*1e12:0.3f} ps/LSB')
 
-    # monotonicity check
-    deltas = np.diff(y)
-    if np.any(deltas < MONOTONIC_LIM):
+    # monotonicity
+    min_delta = np.min(np.diff(y))
+    print(f'Min delta is {min_delta*1e12:0.3f} ps.')
+
+    # resolution
+    max_delta = np.max(np.diff(y))
+    print(f'Max delta is {max_delta*1e12:0.3f} ps.')
+
+    # check INL
+    assert inl <= INL_LIM, \
+        f'INL out of spec.  Worst-case code: {np.argmax(np.abs(y - y_fit))}.'
+
+    # check gain
+    assert GAIN_MIN <= gain <= GAIN_MAX, f'Gain out of spec.'
+    
+    # check monotonicity
+    if min_delta < MONOTONIC_LIM:
+        deltas = np.diff(y)
         worst = np.argmin(deltas)
         print('PI is not monotonic.')
         print(f'Worst-case code is {worst} with delta {deltas[worst]*1e12:0.3f} ps.')
         raise Exception(f'Assertion failed.')
-    print(f'Monotonicity check OK with min change {np.min(deltas)*1e12:0.3f} ps.')
 
-    # Resolution
-    # apply bounds checking
-    if np.any(deltas > RES_LIM):
+    # check resolution
+    if max_delta > RES_LIM:
+        deltas = np.diff(y)
         worst = np.argmax(deltas)
         print('PI resolution is low.')
         print(f'Worst-case code is {worst} with delta {deltas[worst]*1e12:0.3f} ps.')
         raise Exception(f'Assertion failed.')
-    print(f'Resolution check OK with max change {np.max(deltas)*1e12:0.3f} ps.')
