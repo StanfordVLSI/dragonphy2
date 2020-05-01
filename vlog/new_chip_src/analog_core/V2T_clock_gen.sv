@@ -60,7 +60,7 @@ module V2T_clock_gen #(
     assign clk_pstb = en_slice;
     assign clk_rstb = ~en_slice|(alws_onb);
 
-    V2T_buffer iV2T_buffer (
+    V2T_buffer iV2T_buffer_dont_touch (
         .clk_in(clk_in),
         .clk_div(clk_div),
         .ctl_dcdl_early(ctl_dcdl_early),
