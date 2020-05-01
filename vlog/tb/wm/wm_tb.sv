@@ -18,6 +18,8 @@ module testbench;
 
     logic pulse_wr;
     logic pulse_wr_in;
+    logic pulse_wr_inc;
+    logic pulse_wr_plsone;
 
     clock #(.period(2ns)) clk_gen (.clk(clk));
 
@@ -50,6 +52,22 @@ module testbench;
         .en      (1'b1)
     );
 
+    weight_recorder #(.width(width), .depth(depth), .filename("ow_rand_incrmnt.txt")) wr_inc_i (
+        .read_reg(value),
+        .d_idx(inst_reg[$clog2(depth)-1:0]),
+        .w_idx(inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)]),
+        .clk     (pulse_wr_inc),
+        .en      (1'b1)
+    );
+
+    weight_recorder #(.width(width), .depth(depth), .filename("ow_plsone.txt")) wr_plone_i (
+        .read_reg(read_reg),
+        .d_idx(inst_reg[$clog2(depth)-1:0]),
+        .w_idx(inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)]),
+        .clk     (pulse_wr_plsone),
+        .en      (1'b1)
+    );
+
     genvar gj;
     generate
     for(gj=0; gj<width; gj=gj+1) begin
@@ -66,7 +84,6 @@ module testbench;
         inst_reg  = 0; 
         @(posedge clk) rstb = 1;
 
-        en_wr_in = 1;
         for(ii = 0; ii < width; ii = ii + 1) begin
             for(jj = 0; jj < depth; jj=jj+1) begin
                 value = $signed($random%(2**bitwidth));
@@ -74,16 +91,22 @@ module testbench;
                 pulse_wr_in();
             end
         end
-        en_wr_in = 0;
 
-        en_wr = 1;
         for(ii = 0; ii < width; ii = ii + 1) begin
             for(jj = 0; jj < depth; jj=jj+1) begin
                 read(jj, ii);
                 pulse_wr();
             end
         end
-        en_wr = 0;
+
+        for(ii = 0; ii < width; ii = ii + 1) begin
+            for(jj = 0; jj < depth; jj=jj+1) begin
+                read(jj, ii);
+                pulse_wr();
+            end
+        end
+
+
     end
 
     task increment(input logic [$clog2(depth)-1:0] d_idx, input logic [1:0] inc_arr [width-1:0]);
@@ -118,6 +141,16 @@ module testbench;
     endtask
 
     task pulse_wr_in;
+        pulse_wr_in = 1;
+        #0 pulse_wr_in = 0;
+    endtask
+
+    task pulse_wr_inc;
+        pulse_wr_inc = 1;
+        #0 pulse_wr = 0;
+    endtask
+
+    task pulse_wr_plsone;
         pulse_wr_in = 1;
         #0 pulse_wr_in = 0;
     endtask
@@ -168,8 +201,6 @@ module weight_recorder #(
         end
     end
 endmodule
-
-
 
 module clock #(
     parameter real delay=0ps,
