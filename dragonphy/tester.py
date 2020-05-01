@@ -6,7 +6,7 @@ class DragonTester:
 	def __init__(self, top_module, ext_test_bench=True, disp_type='realtime',
 				 simulator='ncsim', overload_seed=False, seed=None, clean=True,
 				 flags=None, target='system-verilog', dump_waveforms=False,
-				 timescale='1fs/1fs', **kwargs):
+				 timescale='1fs/1fs', unbuffered=False, **kwargs):
 		# save kwargs
 		kwargs['top_module'] = top_module
 		kwargs['ext_test_bench'] = ext_test_bench
@@ -25,6 +25,7 @@ class DragonTester:
 		# save custom arguments
 		self.clean = clean
 		self.seed = seed
+		self.unbuffered = unbuffered
 
 		# generate a random seed if needed
 		if overload_seed and (self.seed is None):
@@ -49,6 +50,8 @@ class DragonTester:
 				flags += ['-clean']
 			if self.seed is not None:
 				flags += ['-seed', self.seed]
+			if self.unbuffered:
+				flags += ['-unbuffered']
 			# need "-sv" flag because not all files
 			# in DaVE have a ".sv" extension
 			flags += ['-sv']

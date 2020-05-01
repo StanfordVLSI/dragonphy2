@@ -13,10 +13,9 @@ export PATH="$GENESIS_HOME/bin:$PATH"
 export PATH="$GENESIS_HOME/gui/bin:$PATH"
 /bin/rm -rf $GENESIS_HOME/PerlLibs/ExtrasForOldPerlDistributions/Compress
 
-
 # install DaVE
 # TODO: install from master branch
-git clone --single-branch --branch pli_workaround https://github.com/StanfordVLSI/DaVE.git
+git clone --single-branch --branch pwl_cos https://github.com/StanfordVLSI/DaVE.git
 export mLINGUA_DIR=`realpath DaVE/mLingua`
 
 # install dragonphy
