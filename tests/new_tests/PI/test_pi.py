@@ -19,12 +19,13 @@ else:
 # testing parameters
 T_PER = 1/4e9
 INL_LIM = 10e-12
-GAIN_MIN = 0.2e-12
-GAIN_MAX = 1.9e-12
+GAIN_MIN = 0.8e-12
+GAIN_MAX = 1.1e-12
 MONOTONIC_LIM = -0.01e-12
 RES_LIM = 2e-12
 
-# debug parameters
+# Set DUMP_WAVEFORMS to True if you want to dump all waveforms for this
+# test.  The waveforms are stored in tests/new_tests/PI/build/waves.shm
 DUMP_WAVEFORMS = False
 
 @pytest.mark.parametrize((), [pytest.param(marks=pytest.mark.slow) if SIMULATOR=='vivado' else ()])
@@ -40,6 +41,7 @@ def test_sim():
         'DAVE_TIMEUNIT': '1fs',
         'NCVLOG': None
     }
+
     flags = ['-unbuffered']
     if DUMP_WAVEFORMS:
         defines['DUMP_WAVEFORMS'] = None
