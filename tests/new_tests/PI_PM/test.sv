@@ -1,5 +1,6 @@
 `define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
 `define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
+
 `define GET_ADBG(name) top_i.iacore.adbg_intf_i.``name``
 
 `ifndef PI_CTL_TXT
@@ -23,7 +24,7 @@
 `endif
 
 `ifndef SIGN_FLIP
-	`define SIGN_FLIP 200
+	`define SIGN_FLIP 125
 `endif
 
 module test;
@@ -93,14 +94,13 @@ module test;
 
     // Data recording
     logic record;
-    logic [Npi-1:0] pi_ctl [Nout-1:0];
     logic [19:0] pm_out_pi [Nout-1:0];
     real Tdelay [Nout-1:0];
 
     pi_ctl_recorder #(
         .filename(`PI_CTL_TXT)
     ) pi_ctl_recorder_i(
-    	.in(pi_ctl),
+    	.in(top_i.iacore.ctl_pi),
     	.en(1'b1),
     	.clk(record)
     );
@@ -113,70 +113,99 @@ module test;
     	.clk(record)
     );
 
+    // Convenience function
+
+    function integer min(integer a, integer b);
+        min = (a < b) ? a : b;
+    endfunction
+
 	// Main test
+
 	integer pi_ctl_indiv;
-	integer pm_sign_indiv;
-	logic [1:0] pm_sign [Nout-1:0];
+	logic [1:0] tmp_sel_pm_sign_pi [Nout-1:0];
+
+    integer max_sel_mux [Nout];
+	integer max_ctl_pi [Nout];
+	integer max_max_ctl_pi;
+
 	initial begin
-		// Initialize pins
-		$display("Initializing pins...");
-		record = 1'b0;
-		jtag_drv_i.init();
+	    `ifdef DUMP_WAVEFORMS
+	        $shm_open("waves.shm");
+	        $shm_probe("ASMC");
+        `endif
 
-		// Toggle reset
-		$display("Toggling reset...");
-        #(20ns);
+        // initialize control signals
 		rstb = 1'b0;
-		#(20ns);
-		rstb = 1'b1;
+		record = 1'b0;
+        #(1ns);
 
-		// Enable the input buffer
-		$display("Set up the input buffer...");
-        `FORCE_ADBG(en_inbuf, 0);
+		// Release reset
+		$display("Releasing external reset...");
+		rstb = 1'b1;
+        #(1ns);
+
+        // Initialize JTAG
+        $display("Initializing JTAG...");
+        jtag_drv_i.init();
+
+        // Soft reset sequence
+        $display("Soft reset sequence...");
+        `FORCE_DDBG(int_rstb, 1);
         #(1ns);
         `FORCE_ADBG(en_inbuf, 1);
-        #(1ns);
-		`FORCE_ADBG(en_gf, 1);
+		#(1ns);
+        `FORCE_ADBG(en_gf, 1);
         #(1ns);
         `FORCE_ADBG(en_v2t, 1);
         #(1ns);
+
+        // wait for startup so that we can read max_sel_mux
+        #(10ns);
+
+        // determine the max code range for each PI
+        // the expression for the max value is from Sung-Jin on May 1, 2020
+        max_max_ctl_pi = 0;
+        for (int i=0; i<Nout; i=i+1) begin
+            max_sel_mux[i] = `GET_ADBG(max_sel_mux[i]);
+            max_ctl_pi[i] = ((max_sel_mux[i]+1)*16)-1;
+            if (max_ctl_pi[i] > max_max_ctl_pi) begin
+                max_max_ctl_pi = max_ctl_pi[i];
+            end
+        end
+
+        // Enable the async input buffer
+        $display("Enable the async input buffer...");
         `FORCE_ADBG(disable_ibuf_async, 0);
         #(1ns);
-        `FORCE_DDBG(int_rstb, 1);
+
+        // Enable external max_sel_mux
+        $display("Enable external max_sel_mux...");
+        `FORCE_DDBG(en_ext_max_sel_mux, 1);
         #(1ns);
-
-        // run CDR clock fast to reduce simulation time
-        // (the CDR clock is an input of the phase interpolator)
-        `FORCE_DDBG(Ndiv_clk_cdr, 1);
-
-        // wait for a little bit so that the CDR clock starts toggling
-        #(10ns);
 
         // run desired number of trials
         for (int i=0; i<`N_TRIALS; i=i+1) begin
             // calculate the stimulus
-            // TODO: explore behavior beyond 450
-            // TODO: make test more robust with respect to sign, possibly by measuring
-            // with both signs and deciding which one to use in post processing
-            pi_ctl_indiv = ($urandom % 451);
-            if (pi_ctl_indiv < (`SIGN_FLIP)) begin
-                pm_sign_indiv = 0;
-            end else begin
-                pm_sign_indiv = 1;
-            end
+            pi_ctl_indiv = ($urandom % (max_max_ctl_pi+1));
 
             // apply the stimulus
-            for (int j=0; j<Nout; j=j+1) begin
-                pi_ctl[j] = pi_ctl_indiv;
-                pm_sign[j] = pm_sign_indiv;
-            end
-            $display("Setting ext_pi_ctl_offset to %0d...", pi_ctl_indiv);
-            `FORCE_DDBG(ext_pi_ctl_offset, pi_ctl);
-            `FORCE_ADBG(sel_pm_sign_pi, pm_sign);
+            // force statements that use loop variables don't seem to work
+            $display("Setting ctl_pi to %0d...", pi_ctl_indiv);
+            force top_i.iacore.ctl_pi[0] = min(pi_ctl_indiv, max_ctl_pi[0]);
+            force top_i.iacore.ctl_pi[1] = min(pi_ctl_indiv, max_ctl_pi[1]);
+            force top_i.iacore.ctl_pi[2] = min(pi_ctl_indiv, max_ctl_pi[2]);
+            force top_i.iacore.ctl_pi[3] = min(pi_ctl_indiv, max_ctl_pi[3]);
 
-            // wait a few cycles of the CDR clock
-            $display("Waiting for a few edges of the CDR clock...");
-            repeat (4) @(negedge top_i.idcore.clk_cdr);
+            // Update signs of the PMs
+            tmp_sel_pm_sign_pi[0] = top_i.iacore.ctl_pi[0] < (`SIGN_FLIP) ? 1 : 0;
+            tmp_sel_pm_sign_pi[1] = top_i.iacore.ctl_pi[1] < (`SIGN_FLIP) ? 1 : 0;
+            tmp_sel_pm_sign_pi[2] = top_i.iacore.ctl_pi[2] < (`SIGN_FLIP) ? 1 : 0;
+            tmp_sel_pm_sign_pi[3] = top_i.iacore.ctl_pi[3] < (`SIGN_FLIP) ? 1 : 0;
+            `FORCE_ADBG(sel_pm_sign_pi, tmp_sel_pm_sign_pi);
+            #(1ns);
+
+            // wait a few cycles of the 1 GHz clock
+            #(5ns);
 
             // reset the PM
             $display("Resetting the PI PMs...");
@@ -203,9 +232,6 @@ module test;
             // Print status
             $display("%0.2f%% complete", 100.0*(i+1)/(1.0*`N_TRIALS));
         end
-
-        // wait a bit
-        #(1ns);
 
         // finish the test
         $finish;

@@ -34,11 +34,6 @@ module test;
 
 	logic rstb;
 
-    //outputs for debugging
-//    initial begin
-//        $shm_open("waves.shm"); $shm_probe("ACT");
-//    end
-
 	// JTAG driver
 
 	jtag_intf jtag_intf_i ();
@@ -134,42 +129,41 @@ module test;
 		.en(1'b1)
 	);
 
-
 	// Main test
 	logic [Nadc-1:0] tmp_ext_pfd_offset [Nti-1:0];
 	initial begin
-        rstb = 1'b0;
+        `ifdef DUMP_WAVEFORMS
+	        $shm_open("waves.shm");
+	        $shm_probe("ASMC");
+        `endif
 
-        #(10ns);
-		// Initialize pins
-		$display("Initializing pins...");
-		jtag_drv_i.init();
-
-		// Toggle reset
-		$display("Toggling reset...");
-        #(20ns);
+        // initialize control signals
+    	record = 1'b0;
 		rstb = 1'b0;
-		#(20ns);
-		rstb = 1'b1;
+        #(1ns);
 
-		// Enable the input buffer
-		$display("Set up the input buffer...");
-        `FORCE_ADBG(en_inbuf, 0);
+		// Release reset
+		$display("Releasing external reset...");
+		rstb = 1'b1;
         #(1ns);
-        `FORCE_ADBG(en_inbuf, 1);
-        #(1ns);
+
+        // Initialize JTAG
+        $display("Initializing JTAG...");
+        jtag_drv_i.init();
+
+        // Soft reset sequence
+        $display("Soft reset sequence...");
         `FORCE_DDBG(int_rstb, 1);
         #(1ns);
-		`FORCE_ADBG(en_gf, 1);
+        `FORCE_ADBG(en_inbuf, 1);
+		#(1ns);
+        `FORCE_ADBG(en_gf, 1);
         #(1ns);
         `FORCE_ADBG(en_v2t, 1);
         #(1ns);
-        #(10ns);
-        `FORCE_DDBG(ext_pi_ctl_offset[0], 0);
-        `FORCE_DDBG(ext_pi_ctl_offset[1], 130);
-        `FORCE_DDBG(ext_pi_ctl_offset[2], 265);
-        `FORCE_DDBG(ext_pi_ctl_offset[3], 400);
+
         // Set up the PFD offset
+        $display("Set the PFD offset...");
         for (int idx=0; idx<Nti; idx=idx+1) begin
             tmp_ext_pfd_offset[idx] = `EXT_PFD_OFFSET;
         end
@@ -187,7 +181,7 @@ module test;
 			$display("Differential input: %0.3f V", ch_outp.a-ch_outn.a);
 			#(15ns);
 
-			$display("ADC out: %d",top_i.idcore.adcout_unfolded[0] );
+			$display("ADC out: %d",top_i.idcore.adcout_unfolded[0]);
 			record = 1'b1;
 			#(1ns);
 			record = 1'b0;

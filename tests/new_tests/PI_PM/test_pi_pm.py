@@ -18,12 +18,16 @@ else:
 
 # testing parameters
 T_PER = 1/4e9
-SIGN_FLIP = 200
 INL_LIM = 10e-12
 GAIN_MIN = -1.9e-12
 GAIN_MAX = -0.2e-12
 MONOTONIC_LIM = -0.01e-12
 RES_LIM = 3.5e-12
+SIGN_FLIP = 125
+
+# Set DUMP_WAVEFORMS to True if you want to dump all waveforms for this
+# test.  The waveforms are stored in tests/new_tests/PI_PM/build/waves.shm
+DUMP_WAVEFORMS = False
 
 @pytest.mark.parametrize((), [pytest.param(marks=pytest.mark.slow) if SIMULATOR=='vivado' else ()])
 def test_sim():
@@ -32,13 +36,19 @@ def test_sim():
 
     def qwrap(s):
         return f'"{s}"'
+
     defines = {
         'PI_CTL_TXT': qwrap(BUILD_DIR / 'pi_ctl.txt'),
         'DELAY_TXT': qwrap(BUILD_DIR / 'delay.txt'),
-        'DAVE_TIMEUNIT': '1fs',
         'SIGN_FLIP': SIGN_FLIP,
+        'DAVE_TIMEUNIT': '1fs',
         'NCVLOG': None
     }
+
+    flags = ['-unbuffered']
+    if DUMP_WAVEFORMS:
+        defines['DUMP_WAVEFORMS'] = None
+        flags += ['-access', '+r']
 
     DragonTester(
         ext_srcs=deps,
@@ -47,7 +57,7 @@ def test_sim():
         inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/new_cpu')],
         defines=defines,
         simulator=SIMULATOR,
-        flags=['-unbuffered']
+        flags=flags
     ).run()
 
     # read data from file
@@ -63,7 +73,7 @@ def test_sim():
     # correct phase measurement based on the sign
     # TODO: make this more robust
     for k in range(delay.shape[1]):
-        delay[:, k] -= (T_PER/2)*(pi_ctl[:, k] >= SIGN_FLIP)
+       delay[:, k] -= (T_PER/2)*(pi_ctl[:, k] >= SIGN_FLIP)
 
     # unwrap phase
     delay_unwrapped = np.zeros(delay.shape, dtype=float)
