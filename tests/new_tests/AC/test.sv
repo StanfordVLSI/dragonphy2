@@ -135,35 +135,39 @@ module test;
     end
 
 	// Main test
-	logic [Npi-1:0] tmp_ext_pi_ctl_offset [Nout-1:0];
-	logic [Nadc-1:0] tmp_ext_pfd_offset [Nti-1:0];
-	initial begin
-		// Uncomment to probe waveforms
-		// $shm_open("out.shm");
-		// $shm_probe("ASM");
 
-		// Initialize pins
-		$display("Initializing pins...");
+	logic [Nadc-1:0] tmp_ext_pfd_offset [Nti-1:0];
+
+	initial begin
+        `ifdef DUMP_WAVEFORMS
+	        $shm_open("waves.shm");
+	        $shm_probe("ASMC");
+        `endif
+
+        // initialize control signals
 		should_record = 1'b0;
 		recording_clk = 1'b0;
-		jtag_drv_i.init();
+        rstb = 1'b0;
+        #(1ns);
 
-		// Toggle reset
-		$display("Toggling reset...");
-        #(20ns);
-		rstb = 1'b0;
-		#(20ns);
+		// Release reset
+		$display("Releasing external reset...");
 		rstb = 1'b1;
+        #(1ns);
 
-		// Enable the input buffer
-		$display("Set up the input buffer...");
-        `FORCE_ADBG(en_inbuf, 0);
+        // Initialize JTAG
+        $display("Initializing JTAG...");
+        jtag_drv_i.init();
+
+        // Soft reset sequence
+        $display("Soft reset sequence...");
+        `FORCE_DDBG(int_rstb, 1);
         #(1ns);
         `FORCE_ADBG(en_inbuf, 1);
+		#(1ns);
+        `FORCE_ADBG(en_gf, 1);
         #(1ns);
-		`FORCE_ADBG(en_gf, 1);
-        #(1ns);
-        `FORCE_DDBG(int_rstb, 1);
+        `FORCE_ADBG(en_v2t, 1);
         #(1ns);
 
         // Set up the PFD offset
@@ -176,28 +180,17 @@ module test;
 
         // apply the stimulus
         $display("Setting up the PI control codes...");
-        tmp_ext_pi_ctl_offset[0] = 0;
-        tmp_ext_pi_ctl_offset[1] = 67;
-        tmp_ext_pi_ctl_offset[2] = 133;
-        tmp_ext_pi_ctl_offset[3] = 200;
-        force top_i.idcore.int_pi_ctl_cdr[0] = tmp_ext_pi_ctl_offset[0];
-        force top_i.idcore.int_pi_ctl_cdr[1] = tmp_ext_pi_ctl_offset[1];
-        force top_i.idcore.int_pi_ctl_cdr[2] = tmp_ext_pi_ctl_offset[2];
-        force top_i.idcore.int_pi_ctl_cdr[3] = tmp_ext_pi_ctl_offset[3];
+        force top_i.idcore.int_pi_ctl_cdr[0] = 0;
+        force top_i.idcore.int_pi_ctl_cdr[1] = 67;
+        force top_i.idcore.int_pi_ctl_cdr[2] = 133;
+        force top_i.idcore.int_pi_ctl_cdr[3] = 200;
+        #(5ns);
 
-        // toggle the CDR clock a few times
-        // TODO: fix this!  this may be a real bug
-        for (int k=0; k<5; k=k+1) begin
-            force top_i.idcore.clk_cdr = 1'b1;
-            #(1ns);
-            force top_i.idcore.clk_cdr = 1'b0;
-            #(1ns);
-        end
-        release top_i.idcore.clk_cdr;
-
-        // Enable the V2T
+        // toggle the en_v2t signal to re-initialize the V2T ordering
+        `FORCE_ADBG(en_v2t, 0);
+        #(5ns);
         `FORCE_ADBG(en_v2t, 1);
-        #(1ns);
+        #(5ns);
 
 		// Wait some time initially
 		$display("Initial delay of 50 ns...");

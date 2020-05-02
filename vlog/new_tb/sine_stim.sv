@@ -1,5 +1,6 @@
 `include "mLingua_pwl.vh"
-`timescale 1fs/1fs;
+
+`timescale 1fs/1fs
 
 module sine_stim import const_pack::*; #(
 	parameter real Vcm = 0.25,

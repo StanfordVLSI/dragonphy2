@@ -42,19 +42,23 @@ module test;
 	logic [31:0] result;
 
 	initial begin
-	    // Uncomment to save key signals
-	    // $dumpfile("out.vcd");
-	    // $dumpvars(2, top_i.iacore);
+	    `ifdef DUMP_WAVEFORMS_NCSIM
+	        $shm_open("waves.shm");
+	        $shm_probe("ASMC");
+        `endif
 
-		// Toggle reset
-		$display("Toggling reset.");
+        // initialize control signals
 		rstb = 1'b0;
-		#(20ns);
-		rstb = 1'b1;		
+        #(1ns);
 
-		// Initialize JTAG
-		$display("Initializing JTAG.");
-		jtag_drv_i.init();
+		// Release reset
+		$display("Releasing external reset...");
+		rstb = 1'b1;
+        #(1ns);
+
+        // Initialize JTAG
+        $display("Initializing JTAG...");
+        jtag_drv_i.init();
 
 		// ID read test
 		$display("Reading the JTAG ID.");
@@ -69,24 +73,20 @@ module test;
 		$display("Read 0x%0H from TC register 0x%0H.", result, pd_offset_ext);
 		assert (result == 'hCAFE);
 
-        // Set up clock as needed for SC
-        $display("Setting en_gf...", en_gf);
-    	jtag_drv_i.write_tc_reg(en_gf, 1);
-        $display("setting bypass_inbuf_div...", bypass_inbuf_div);
-    	jtag_drv_i.write_tc_reg(bypass_inbuf_div, 1);
-    	$display("Disabling input buffer", en_inbuf);
-    	jtag_drv_i.write_tc_reg(en_inbuf, 0);
-    	$display("Enabling input buffer", en_inbuf);
-    	jtag_drv_i.write_tc_reg(en_inbuf, 1);
-		$display("De-asserting int_rstb.");
-		jtag_drv_i.write_tc_reg(int_rstb, 'b1);
-	    $display("Setting en_v2t...", en_v2t);
-		jtag_drv_i.write_tc_reg(en_v2t, 'b1);
+        // Soft reset sequence
+        $display("De-asserting int_rstb...");
+        jtag_drv_i.write_tc_reg(int_rstb, 1);
+        $display("De-asserting en_inbuf...");
+        jtag_drv_i.write_tc_reg(en_inbuf, 1);
+		$display("De-asserting en_inbuf...");
+        jtag_drv_i.write_tc_reg(en_gf, 1);
+        $display("De-asserting en_v2t...");
+        jtag_drv_i.write_tc_reg(en_v2t, 1);
 
 		// Force data into SC domain
 		$display("Writing data to Qperi...");
 		force top_i.iacore.adbg_intf_i.Qperi = '{'hE, 'hC, 'hA, 'hF};
-		#(100ns);
+		#(10ns);
 
 		// Read back data from SC domain
 		$display("Reading SC register 0x%0H...", Qperi[0]);

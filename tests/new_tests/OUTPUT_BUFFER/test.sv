@@ -128,45 +128,45 @@ module test;
 	// Main test
 
 	initial begin
-		// Uncomment to save key signals
-	    // $dumpfile("out.vcd");
-	    // $dumpvars(1, top_i);
-	    // $dumpvars(1, top_i.iacore);
-        // $dumpvars(1, top_i.idcore);
-        // $dumpvars(2, top_i.idcore.out_buff_i);
-        // $dumpvars(1, top_i.idcore.buffered_signals);
+		`ifdef DUMP_WAVEFORMS
+	        $shm_open("waves.shm");
+	        $shm_probe("ASMC");
+        `endif
 
-		// Initialize pins
-		$display("Initializing pins...");
-		jtag_drv_i.init();
-
-		// Toggle reset
-		$display("Toggling reset...");
-        #(20ns);
+        // initialize control signals
 		rstb = 1'b0;
-		#(20ns);
-		rstb = 1'b1;
+        #(1ns);
 
-		// Enable the input buffer
-		$display("Set up the input buffer...");
-		`FORCE_ADBG(en_inbuf, 0);
+		// Release reset
+		$display("Releasing external reset...");
+		rstb = 1'b1;
+        #(1ns);
+
+        // Initialize JTAG
+        $display("Initializing JTAG...");
+        jtag_drv_i.init();
+
+        // Soft reset sequence
+        $display("Soft reset sequence...");
+        `FORCE_DDBG(int_rstb, 1);
         #(1ns);
         `FORCE_ADBG(en_inbuf, 1);
-        #(1ns);
-		`FORCE_ADBG(en_gf, 1);
+		#(1ns);
+        `FORCE_ADBG(en_gf, 1);
         #(1ns);
         `FORCE_ADBG(en_v2t, 1);
         #(1ns);
+
+        // Enable input buffer for the async clock
+        $display("Enable input buffer for the async clock...");
         `FORCE_ADBG(disable_ibuf_async, 0);
         #(1ns);
-        `FORCE_DDBG(int_rstb, 1);
-        #(1ns);
 
-		// Set up the output buffer
-		$display("Set up the output buffer...");
-		`FORCE_DDBG(en_outbuff, 'b1);
+		// Set up the output buffers
+		$display("Set up the output buffers...");
+		`FORCE_DDBG(en_outbuff, 1);
         #(1ns);
-        `FORCE_DDBG(en_trigbuff, 'b1);
+        `FORCE_DDBG(en_trigbuff, 1);
         #(1ns);
         `FORCE_DDBG(sel_outbuff, 0);   // ADC clock
         #(1ns);
