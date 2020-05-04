@@ -1,3 +1,24 @@
+`include "mLingua_pwl.vh"
+
+`ifndef W_INP_TXT
+    `define W_INP_TXT
+`endif
+
+`ifndef W_OUT_TXT
+    `define W_OUT_TXT
+`endif
+
+`ifndef W_INC_TXT
+    `define W_INC_TXT
+`endif
+
+`ifndef W_PLS_TXT
+    `define W_PLS_TXT
+`endif
+
+
+
+
 module testbench;
 
     localparam integer width = 16;
@@ -37,7 +58,7 @@ module testbench;
 
     arr2dregconv #(.width(width)) adregc_i (.arr(arr), .d_reg(d_reg_arr));
 
-    weight_recorder #(.width(width), .depth(depth), .filename("out_weights.txt")) wr_i (
+    weight_recorder #(.width(width), .depth(depth), .filename(`W_OUT_TXT)) wr_i (
         .read_reg(read_reg),
         .d_idx(inst_reg[$clog2(depth)-1:0]),
         .w_idx(inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)]),
@@ -45,7 +66,7 @@ module testbench;
         .en      (1'b1)
     );
 
-    weight_recorder #(.width(width), .depth(depth), .filename("in_weights.txt")) wr_in_i (
+    weight_recorder #(.width(width), .depth(depth), .filename(`W_INP_TXT)) wr_in_i (
         .read_reg(value),
         .d_idx(inst_reg[$clog2(depth)-1:0]),
         .w_idx(inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)]),
@@ -53,7 +74,7 @@ module testbench;
         .en      (1'b1)
     );
 
-    weight_recorder #(.width(width), .depth(depth), .bitwidth(2), .filename("ow_rand_incrmnt.txt")) wr_inc_i (
+    weight_recorder #(.width(width), .depth(depth), .bitwidth(2), .filename(`W_INC_TXT)) wr_inc_i (
         .read_reg(onebit_val),
         .d_idx(inst_reg[$clog2(depth)-1:0]),
         .w_idx(inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)]),
@@ -61,7 +82,7 @@ module testbench;
         .en      (1'b1)
     );
 
-    weight_recorder #(.width(width), .depth(depth), .filename("ow_plsone.txt")) wr_plone_i (
+    weight_recorder #(.width(width), .depth(depth), .filename(`W_PLS_TXT)) wr_plone_i (
         .read_reg(read_reg),
         .d_idx(inst_reg[$clog2(depth)-1:0]),
         .w_idx(inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)]),
