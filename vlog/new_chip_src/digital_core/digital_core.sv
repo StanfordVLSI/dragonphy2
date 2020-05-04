@@ -176,7 +176,7 @@ module digital_core import const_pack::*; (
     genvar j;
     generate
         for (j=0; j<Nout; j=j+1) begin
-            assign scale_value[j]        = (ddbg_intf_i.en_ext_max_sel_mux ? ddbg_intf_i.ext_max_sel_mux[j] : adbg_intf_i.max_sel_mux[j])<<4;
+            assign scale_value[j]        = (((ddbg_intf_i.en_ext_max_sel_mux ? ddbg_intf_i.ext_max_sel_mux[j]: adbg_intf_i.max_sel_mux[j]) + 1)<<4) -1;
             assign unscaled_pi_ctl[j]    = pi_ctl_cdr[j] + ddbg_intf_i.ext_pi_ctl_offset[j];
             assign scaled_pi_ctl[j]      = unscaled_pi_ctl[j]*scale_value[j];
             assign int_pi_ctl_cdr[j]     = scaled_pi_ctl[j] >> Npi;
