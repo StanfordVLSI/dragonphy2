@@ -5,7 +5,7 @@ interface dsp_debug_intf import const_pack::*; ();
     logic signed [cmp_gpack::thresh_precision-1:0] thresh  [constant_gpack::channel_width-1:0];
     logic signed [mlsd_gpack::estimate_precision-1:0] channel_est [constant_gpack::channel_width-1:0][mlsd_gpack::estimate_depth-1:0];
     logic signed [mlsd_gpack::shift_precision-1:0] mlsd_shift [constant_gpack::channel_width-1:0];
-    logic [ffe_gpack::length-1:0] disable_product [constant_gpack::channel_width-1:0];
+    logic [constant_gpack::channel_width-1:0] disable_product [ffe_gpack::length-1:0];
 
 
     modport dsp (
