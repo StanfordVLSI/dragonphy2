@@ -178,6 +178,29 @@ module digital_core import const_pack::*; (
         end
     endgenerate
 
+    assign dsp_debug_intf.
+
+
+    weight_manager #(.width(Nti), .depth(10), .bitwidth(10)) wme_ffe_i (
+        .data    (data),
+        .inst    (inst),
+        .exec    (exec),
+        .clk     (clk_adc),
+        .rstb    (rstb),
+        .read_reg(read_reg),
+        .weights (dsp_dbg_intf_i.weights)
+    );
+
+    weight_manager #(.width(Nti), .depth(10), .bitwidth(10)) wme_ffe_i (
+        .data    (data),
+        .inst    (inst),
+        .exec    (exec),
+        .clk     (clk_adc),
+        .rstb    (rstb),
+        .read_reg(read_reg),
+        .weights (dsp_dbg_intf_i.channel_est)
+    );
+
     dsp_backend dsp_i(
         .codes(adcout_unfolded[Nti-1:0]),
         .clk(clk_adc),
