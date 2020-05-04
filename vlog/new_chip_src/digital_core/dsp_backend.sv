@@ -51,13 +51,13 @@ module dsp_backend (
                 thresh[ii]     <= dsp_dbg_intf_i.thresh[ii];
                 ffe_shift[ii]  <= dsp_dbg_intf_i.ffe_shift[ii];
                 mlsd_shift[ii] <= dsp_dbg_intf_i.mlsd_shift[ii];
-                
+
                 for(jj=0; jj<mlsd_gpack::estimate_depth; jj=jj+1) begin
                     channel_est[ii][jj] <= dsp_dbg_intf_i.channel_est[ii][jj];
                 end
 
                 for(jj=0; jj<ffe_gpack::length; jj=jj+1) begin
-                	weights[jj][ii] <= dsp_dbg_intf_i.weights[jj][ii];
+                	weights[jj][ii] <= dsp_dbg_intf_i.weights[ii][jj];
                 	disable_product[jj][ii] <= dsp_dbg_intf_i.disable_product[jj][ii];
                	end
             end
