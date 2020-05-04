@@ -22,7 +22,7 @@
 module test;
 
     localparam integer width = 16;
-    localparam integer depth = 8;
+    localparam integer depth = 30;
     localparam integer bitwidth=8;
 
     logic clk, rstb;
