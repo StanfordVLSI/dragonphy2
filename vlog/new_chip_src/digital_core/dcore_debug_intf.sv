@@ -82,7 +82,7 @@ interface dcore_debug_intf import const_pack::*; (
 		input prbs_rstb,
 		input ffe_shift,
 		input cmp_thresh,
-		input mlsd_shift
+		input mlsd_shift,
 
 		output adcout_avg ,
 		output adcout_sum,
@@ -129,7 +129,7 @@ interface dcore_debug_intf import const_pack::*; (
 		output prbs_rstb,
 		output ffe_shift,
 		output cmp_thresh,
-		output mlsd_shift
+		output mlsd_shift,
 
 		input adcout_avg ,
 		input adcout_sum,
