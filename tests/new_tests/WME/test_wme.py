@@ -43,34 +43,38 @@ def test_sim():
 #        dump_waveforms=True
     ).run()
 
-    iw     = np.loadtxt(BUILD_DIR / 'w_inp.txt', dtype=float)
-    ow     = np.loadtxt(BUILD_DIR / 'w_out.txt', dtype=float)
-    inc    = np.loadtxt(BUILD_DIR / 'w_inc.txt', dtype=float)
-    ow_pls = np.loadtxt(BUILD_DIR / 'w_pls.txt', dtype=float)
+    iw     = read_into_dictionary(BUILD_DIR / 'w_inp.txt')
+    ow     = read_into_dictionary(BUILD_DIR / 'w_out.txt')
+    inc    = read_into_dictionary(BUILD_DIR / 'w_inc.txt')
+    ow_pls = read_into_dictionary(BUILD_DIR / 'w_pls.txt')
 
-
-
-    # make sure that length of y is an integer multiple of length of x
-    assert len(iw) == len(ow), \
-        'Number of ADC codes must be an integer multiple of the number of input samples.'
-
-    print(iw)
-    print(ow)
-    print(inc)
-    print(ow_pls)
+    assert check_weights(iw, ow, inc, ow_pls) == 0 
 
 def read_into_dictionary(filename):
     new_dict = {}
-
     with open(filename) as f:
         for line in f:
             x, y, value = line.strip().split(',')
-            print(x, y, value)
+            if not x in new_dict:
+                new_dict[x] = {}
+            new_dict[x][y] = int(value)
     return new_dict
 
 
 def check_weights(iw, ow, inc, ow_pls):
-    return 
+    diff = 0
+
+    for x in iw.keys():
+        for y in iw[x].keys():
+            diff += (iw[x][y] - ow[x][y])
+            
+            calc_ow_pls = (ow[x][y] + inc[x][y])
+            if calc_ow_pls >= 128:
+                calc_ow_pls = -128
+            elif calc_ow_pls <= -129:
+                calc_ow_plus = 127
+            diff += (ow_pls[x][y] - calc_ow_pls)
+    return diff 
 
 if __name__ == "__main__":
     test_sim()
