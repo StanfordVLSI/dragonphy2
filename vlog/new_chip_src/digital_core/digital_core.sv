@@ -53,6 +53,8 @@ module digital_core import const_pack::*; (
     wire logic [Npi+Npi-1:0] scaled_pi_ctl [Nout-1:0];
     
     initial begin
+        $shm_open("waves.shm");
+        $shm_probe("ACT"); 
         $shm_probe(pi_ctl_cdr);
     end
 
