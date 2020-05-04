@@ -44,10 +44,10 @@ interface dcore_debug_intf import const_pack::*; (
     	logic sram_rstb;
     	logic cdr_rstb;
     	logic prbs_rstb;
-   		logic signed [ffe_gpack::shift_precision-1:0] ffe_shift [constant_gpack::channel_width-1:0];
+   		logic [ffe_gpack::shift_precision-1:0] ffe_shift [constant_gpack::channel_width-1:0];
     	logic signed [cmp_gpack::thresh_precision-1:0] cmp_thresh  [constant_gpack::channel_width-1:0];
-    	logic signed [mlsd_gpack::shift_precision-1:0] mlsd_shift [constant_gpack::channel_width-1:0];
-    	logic [ffe_gpack::length-1:0] disable_product [constant_gpack::channel_width-1:0];
+    	logic [mlsd_gpack::shift_precision-1:0] mlsd_shift [constant_gpack::channel_width-1:0];
+    	logic [constant_gpack::channel_width-1:0] disable_product [ffe_gpack::length-1:0];
 
 
     modport dcore ( 	
