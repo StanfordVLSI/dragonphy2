@@ -284,6 +284,7 @@ module digital_core import const_pack::*; (
         .cdbg_intf_i(cdbg_intf_i),
         .sdbg_intf_i(sm_dbg_intf_i),
         .pdbg_intf_i(pdbg_intf_i),
+        .wdbg_intf_i(wdbg_intf_i),
         .jtag_intf_i(jtag_intf_i)
     );
 
