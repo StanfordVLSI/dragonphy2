@@ -60,9 +60,14 @@ def test_sim():
     print(inc)
     print(ow_pls)
 
-def convert_to_dictionary(array):
+def read_into_dictionary(filename):
     new_dict = {}
-    return array
+
+    with open(filename) as f:
+        for line in f:
+            x, y, value = line.strip().split(',')
+            print(x, y, value)
+    return new_dict
 
 
 def check_weights(iw, ow, inc, ow_pls):
