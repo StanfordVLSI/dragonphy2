@@ -39,3 +39,9 @@
 | Ndiv_trigbuff 			 | 		   | 2:0					|				   | Test		  | out 	 |   0		 |
 | bypass_out				 | 		   |     					|				   | Test		  | out 	 |   1		 |
 | bypass_trig				 | 		   |     					|				   | Test		  | out 	 |   1		 |
+| ffe_shift                  |         | 4:0                    | Nti-1:0          | Test         | out      |   1       |
+| mlsd_shift                 |         | 3:0                    | Nti-1:0          | Test         | out      |   1       |
+| cmp_thresh                 |   yes   | 9:0                    | Nti-1:0          | Test         | out      |   0       |
+| disable_product            |         | Nti-1:0                | 9:0              | Test         | out      |   0       |
+
+
