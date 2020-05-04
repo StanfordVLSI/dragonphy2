@@ -5,6 +5,10 @@ interface dcore_debug_intf import const_pack::*; (
 
 		logic en_ext_pi_ctl_cdr;
 		logic [Npi-1:0] ext_pi_ctl_cdr;
+
+		logic [Nout-1:0] en_bypass_pi_ctl;
+		logic [Npi-1:0] bypass_pi_ctl [Nout-1:0];
+
 		logic [Npi-1:0] ext_pi_ctl_offset [Nout-1:0];
 		logic en_ext_pfd_offset;
 		logic [Nadc-1:0] ext_pfd_offset [Nti-1:0];
@@ -86,6 +90,8 @@ interface dcore_debug_intf import const_pack::*; (
 		input cmp_thresh,
 		input mlsd_shift,
 		input disable_product,
+		input en_bypass_pi_ctl,
+		input bypass_pi_ctl,
 
 		output adcout_avg ,
 		output adcout_sum,
@@ -134,6 +140,8 @@ interface dcore_debug_intf import const_pack::*; (
 		output cmp_thresh,
 		output mlsd_shift,
 		output disable_product,
+		output en_bypass_pi_ctl,
+		output bypass_pi_ctl,
 
 		input adcout_avg ,
 		input adcout_sum,

@@ -101,6 +101,8 @@ module jtag (
 	//Digital Input
 	assign ddbg_intf_i.ext_pi_ctl_offset = rjtag_intf_i.ext_pi_ctl_offset;
 	assign ddbg_intf_i.en_ext_pfd_offset = rjtag_intf_i.en_ext_pfd_offset;
+	assign ddbg_intf_i.en_bypass_pi_ctl  = rjtag_intf_i.en_bypass_pi_ctl;
+	assign ddbg_intf_i.bypass_pi_ctl     = rjtag_intf_i.bypass_pi_ctl;
 	assign ddbg_intf_i.ext_pfd_offset=rjtag_intf_i.ext_pfd_offset;
 	assign ddbg_intf_i.en_ext_pfd_offset_rep=rjtag_intf_i.en_ext_pfd_offset_rep;
 	assign ddbg_intf_i.ext_pfd_offset_rep=rjtag_intf_i.ext_pfd_offset_rep;
