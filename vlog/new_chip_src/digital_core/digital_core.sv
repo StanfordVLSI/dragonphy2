@@ -25,6 +25,7 @@ module digital_core import const_pack::*; (
     dcore_debug_intf ddbg_intf_i ();
     dsp_debug_intf dsp_dbg_intf_i();
     prbs_debug_intf pdbg_intf_i ();
+    wme_debug_intf wdbg_intf_i ();
 
     
   //  wire logic ext_rstb;
@@ -178,26 +179,28 @@ module digital_core import const_pack::*; (
         end
     endgenerate
 
-    assign dsp_debug_intf.
-
+    assign dsp_debug_intf.disable_product = ddbg_intf_i.disable_product;
+    assign dsp_debug_intf.ffe_shift       = ddbg_intf_i.ffe_shift;
+    assign dsp_debug_intf.mlsd_shift      = ddbg_intf_i.mlsd_shift;
+    assign dsp_debug_intf.thresh          = ddbg_intf_i.cmp_thresh;
 
     weight_manager #(.width(Nti), .depth(10), .bitwidth(10)) wme_ffe_i (
-        .data    (data),
-        .inst    (inst),
-        .exec    (exec),
+        .data    (wdbg_intf_i.wme_ffe_data),
+        .inst    (wdbg_intf_i.wme_ffe_inst),
+        .exec    (wdbg_intf_i.wme_ffe_exec),
         .clk     (clk_adc),
         .rstb    (rstb),
-        .read_reg(read_reg),
+        .read_reg(wdbg_intf_i.wme_ffe_read),
         .weights (dsp_dbg_intf_i.weights)
     );
 
-    weight_manager #(.width(Nti), .depth(10), .bitwidth(10)) wme_ffe_i (
-        .data    (data),
-        .inst    (inst),
-        .exec    (exec),
+    weight_manager #(.width(Nti), .depth(30), .bitwidth(8)) wme_channel_est_i (
+        .data    (wdbg_intf_i.wme_mlsd_data),
+        .inst    (wdbg_intf_i.wme_mlsd_inst),
+        .exec    (wdbg_intf_i.wme_mlsd_exec),
         .clk     (clk_adc),
         .rstb    (rstb),
-        .read_reg(read_reg),
+        .read_reg(wdbg_intf_i.wme_mlsd_read),
         .weights (dsp_dbg_intf_i.channel_est)
     );
 

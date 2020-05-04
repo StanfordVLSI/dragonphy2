@@ -8,6 +8,7 @@ module jtag (
 	dcore_debug_intf.jtag ddbg_intf_i,
 	sram_debug_intf.jtag sdbg_intf_i,
 	prbs_debug_intf.jtag pdbg_intf_i,
+	wme_debug_intf.jtag wdbg_intf_i,
 	jtag_intf.target jtag_intf_i
 );
 	raw_jtag_ifc_unq1 rjtag_intf_i(.Clk(clk), .Reset(rstb));
@@ -128,6 +129,12 @@ module jtag (
 	assign ddbg_intf_i.cdr_rstb 	 = rjtag_intf_i.cdr_rstb;
     assign ddbg_intf_i.prbs_rstb 	 = rjtag_intf_i.prbs_rstb;
 
+	assign ddbg_intf_i.disable_product	= rjtag_intf_i.disable_product;
+	assign ddbg_intf_i.ffe_shift		= rjtag_intf_i.ffe_shift;
+	assign ddbg_intf_i.mlsd_shift		= rjtag_intf_i.mlsd_shift;
+	assign ddbg_intf_i.cmp_thresh		= rjtag_intf_i.cmp_thresh;
+
+
 	//Digital Output
 	assign rjtag_intf_i.adcout_avg=ddbg_intf_i.adcout_avg;
 	assign rjtag_intf_i.adcout_sum=ddbg_intf_i.adcout_sum;
@@ -169,6 +176,16 @@ module jtag (
     assign rjtag_intf_i.prbs_total_bits_upper = pdbg_intf_i.prbs_total_bits_upper;
     assign rjtag_intf_i.prbs_total_bits_lower = pdbg_intf_i.prbs_total_bits_lower;
     assign rjtag_intf_i.prbs_rx_shift = pdbg_intf_i.prbs_rx_shift;
+
+    //WME Input
+    assign wdbg_intf_i.wme_ffe_data  = rjtag_intf_i.wme_ffe_data;
+    assign wdbg_intf_i.wme_ffe_inst  = rjtag_intf_i.wme_ffe_inst;
+    assign wdbg_intf_i.wme_ffe_exec  = rjtag_intf_i.wme_ffe_exec;
+    assign wdbg_intf_i.wme_mlsd_data = rjtag_intf_i.wme_mlsd_data;
+    assign wdbg_intf_i.wme_mlsd_inst = rjtag_intf_i.wme_mlsd_inst;
+    assign wdbg_intf_i.wme_mlsd_exec = rjtag_intf_i.wme_mlsd_exec;
+    assign rjtag_intf_i.wme_ffe_read  = wdbg_intf_i.wme_ffe_read;
+    assign rjtag_intf_i.wme_mlsd_read = wdbg_intf_i.wme_mlsd_read;
 
 	//JTAG Interface - Output Buffer Enable is not passed through *
 	assign rjtag_intf_i.tck    = jtag_intf_i.phy_tck;
