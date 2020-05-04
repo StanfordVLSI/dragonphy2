@@ -43,7 +43,7 @@ module test;
     logic pul_wr_inc;
     logic pul_wr_plsone;
 
-    clock #(.period(2ns)) clk_gen (.clk(clk));
+    weight_clock #(.period(2ns)) clk_gen (.clk(clk));
 
     weight_manager #(.width(width), .depth(depth), .bitwidth(bitwidth)) wm_i (
         .data(data_reg),
@@ -189,57 +189,4 @@ module test;
     endtask
 
 
-endmodule : testbench
-
-module arr2dregconv #(
-    parameter integer width=16
-)(
-    input logic signed [1:0] arr [width-1:0],
-    output logic [2*width-1:0] d_reg
-);
-    genvar gi;
-    generate
-        for(gi=0; gi<width; gi=gi+1) begin
-            assign d_reg[2*gi+1:2*gi] = arr[gi];
-        end
-    endgenerate
-endmodule 
-
-module weight_recorder #(
-    parameter filename = "values.txt",
-    parameter integer width    = 16,
-    parameter integer depth    = 6,
-    parameter integer bitwidth  = 8
-) ( 
-    input logic signed [bitwidth-1:0] read_reg,
-    input logic [$clog2(depth)-1:0] d_idx,
-    input logic [$clog2(width)-1:0] w_idx,
-    input wire logic clk,
-    input wire logic en
-);
-    integer fid, ii;
-    initial begin
-        fid = $fopen(filename, "w");
-        $display(filename);
-    end
-
-    always @(posedge clk) begin
-        if (en == 'b1) begin
-            $fwrite(fid, "%0d, %0d, %0d\n", d_idx, w_idx, read_reg);
-        end
-    end
-endmodule
-
-module clock #(
-    parameter real delay=0ps,
-    parameter real period=10ns
-) (
-    output reg clk
-);
-
-    initial begin
-        clk = 0;
-        #delay
-        forever begin #(period/2.0) clk = ~clk; end
-    end
-endmodule : clock
+endmodule : test
