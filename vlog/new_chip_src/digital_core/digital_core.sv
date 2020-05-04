@@ -179,10 +179,10 @@ module digital_core import const_pack::*; (
         end
     endgenerate
 
-    assign dsp_debug_intf.disable_product = ddbg_intf_i.disable_product;
-    assign dsp_debug_intf.ffe_shift       = ddbg_intf_i.ffe_shift;
-    assign dsp_debug_intf.mlsd_shift      = ddbg_intf_i.mlsd_shift;
-    assign dsp_debug_intf.thresh          = ddbg_intf_i.cmp_thresh;
+    assign dsp_dbg_intf_i.disable_product = ddbg_intf_i.disable_product;
+    assign dsp_dbg_intf_i.ffe_shift       = ddbg_intf_i.ffe_shift;
+    assign dsp_dbg_intf_i.mlsd_shift      = ddbg_intf_i.mlsd_shift;
+    assign dsp_dbg_intf_i.thresh          = ddbg_intf_i.cmp_thresh;
 
     weight_manager #(.width(Nti), .depth(10), .bitwidth(10)) wme_ffe_i (
         .data    (wdbg_intf_i.wme_ffe_data),
