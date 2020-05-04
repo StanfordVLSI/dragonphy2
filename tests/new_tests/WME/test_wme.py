@@ -27,7 +27,6 @@ def test_sim():
         'DAVE_TIMEUNIT': '1fs',
         'NCVLOG': None
     }
-
     deps = get_deps_cpu_sim_new(impl_file=THIS_DIR / 'test.sv')
     print(deps)
 
