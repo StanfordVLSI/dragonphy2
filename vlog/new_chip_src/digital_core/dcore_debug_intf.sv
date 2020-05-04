@@ -46,7 +46,9 @@ interface dcore_debug_intf import const_pack::*; (
     	logic prbs_rstb;
    		logic signed [ffe_gpack::shift_precision-1:0] ffe_shift [constant_gpack::channel_width-1:0];
     	logic signed [cmp_gpack::thresh_precision-1:0] cmp_thresh  [constant_gpack::channel_width-1:0];
-    	logic signed [mlsd_gpack::shift_precision-1:0] mlsd_shift [constant_gpack::channel_width-1:0];   
+    	logic signed [mlsd_gpack::shift_precision-1:0] mlsd_shift [constant_gpack::channel_width-1:0];
+    	logic [ffe_gpack::length-1:0] disable_product [constant_gpack::channel_width-1:0];
+
 
     modport dcore ( 	
 		input en_ext_pi_ctl_cdr,
@@ -83,6 +85,7 @@ interface dcore_debug_intf import const_pack::*; (
 		input ffe_shift,
 		input cmp_thresh,
 		input mlsd_shift,
+		input disable_product,
 
 		output adcout_avg ,
 		output adcout_sum,
@@ -130,6 +133,7 @@ interface dcore_debug_intf import const_pack::*; (
 		output ffe_shift,
 		output cmp_thresh,
 		output mlsd_shift,
+		output disable_product,
 
 		input adcout_avg ,
 		input adcout_sum,
