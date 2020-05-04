@@ -19,7 +19,7 @@
 
 
 
-module testbench;
+module test;
 
     localparam integer width = 16;
     localparam integer depth = 8;
