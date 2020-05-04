@@ -56,6 +56,8 @@ module digital_core import const_pack::*; (
         $shm_open("waves.shm");
         $shm_probe("ACT"); 
         $shm_probe(pi_ctl_cdr);
+        $shm_probe(ddbg_intf_i.disable_product);
+        $shm_probe(dsp_i.disable_product);
     end
 
 
