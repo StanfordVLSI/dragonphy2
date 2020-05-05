@@ -159,14 +159,19 @@ module jtag (
 	assign cdbg_intf_i.pd_offset_ext = rjtag_intf_i.pd_offset_ext;
 	assign cdbg_intf_i.Ki    = rjtag_intf_i.Ki;
 	assign cdbg_intf_i.Kp 	 = rjtag_intf_i.Kp;
+	assign cdbg_intf_i.Kr 	 = rjtag_intf_i.Kr;
 	assign cdbg_intf_i.en_ext_pi_ctl = rjtag_intf_i.en_ext_pi_ctl;
-	assign cdbg_intf_i.ext_pi_ctl = rjtag_intf_i.ext_pi_ctl;
+	assign cdbg_intf_i.ext_pi_ctl    = rjtag_intf_i.ext_pi_ctl;
 	assign cdbg_intf_i.en_freq_est   = rjtag_intf_i.en_freq_est;
+	assign cdbg_intf_i.en_ramp_est   = rjtag_intf_i.en_ramp_est;
+
 	assign cdbg_intf_i.sample_state = rjtag_intf_i.sample_state;
 
 	//CDR Output
-	assign rjtag_intf_i.phase_est    = cdbg_intf_i.phase_est;
+	assign rjtag_intf_i.phase_est   = cdbg_intf_i.phase_est;
 	assign rjtag_intf_i.freq_est    = cdbg_intf_i.freq_est;
+	assign rjtag_intf_i.ramp_est    = cdbg_intf_i.ramp_est;
+
 
 
     // PRBS Input
