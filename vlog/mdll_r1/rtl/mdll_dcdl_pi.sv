@@ -54,18 +54,23 @@ timeprecision 1fs;
 wire cinp_lag, cinn_lag;
 wire cinp_buf, cinn_buf;
 wire cinp_lag_buf, cinn_lag_buf;
+wire tiehigh;
+wire tielow;
 
 //---------------------
 // INSTANTIATION
 //---------------------
+
+mdll_tieh uTIEH ( .HI(tiehigh) );
+mdll_tiel uTIEL ( .LO(tielow) );
 
 mdll_dcdl_coarse_unit uDLYP (
 `ifdef SIMULATION
     .VREG(VREG),
 `endif
 	.cin_ff(cinp),
-	.cin_fb(1'b1),
-	.en_ff(1'b0),
+	.cin_fb(tiehigh),
+	.en_ff(tielow),
 	.cout_ff(),
 	.cout_fb(cinp_lag)
 );
@@ -75,8 +80,8 @@ mdll_dcdl_coarse_unit uDLYN (
     .VREG(VREG),
 `endif
 	.cin_ff(cinn),
-	.cin_fb(1'b1),
-	.en_ff(1'b0),
+	.cin_fb(tiehigh),
+	.en_ff(tielow),
 	.cout_ff(),
 	.cout_fb(cinn_lag)
 );
