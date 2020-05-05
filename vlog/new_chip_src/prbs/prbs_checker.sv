@@ -20,6 +20,7 @@ module prbs_checker #(
     // 2'b00: RESET
     // 2'b01: ALIGN
     // 2'b10: TEST
+    // 2'b11: FREEZE
     input wire logic [1:0] checker_mode,
 
     // outputs
@@ -29,9 +30,10 @@ module prbs_checker #(
 );
 
     // TODO: consider using enum here
-    localparam logic [1:0] RESET = 2'b00;
-    localparam logic [1:0] ALIGN = 2'b01;
-    localparam logic [1:0]  TEST = 2'b10;
+    localparam logic [1:0]  RESET = 2'b00;
+    localparam logic [1:0]  ALIGN = 2'b01;
+    localparam logic [1:0]   TEST = 2'b10;
+    localparam logic [1:0] FREEZE = 2'b11;
 
     // control signals for the checker core
     logic prbs_rst, prbs_cke, prbs_match;
@@ -87,13 +89,20 @@ module prbs_checker #(
             end
             correct_bits <= 0;
             total_bits <= 0;
-        end else begin
+        end else if (checker_mode == TEST) begin
             prbs_rst <= 0;
             prbs_cke <= 1;
             rx_shift <= rx_shift;
             correct_bits <= correct_bits + prbs_match_bits;
             total_bits <= total_bits + n_channels;
             err_count <= 0;
+        end else begin
+            prbs_rst <= prbs_rst;
+            prbs_cke <= prbs_cke;
+            rx_shift <= rx_shift;
+            correct_bits <= correct_bits;
+            total_bits <= total_bits;
+            err_count <= err_count;
         end
     end
 

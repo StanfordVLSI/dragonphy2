@@ -1,11 +1,4 @@
-#=========================================================================
-# construct.py
-#=========================================================================
-# Demo with 16-bit GcdUnit
-#
-# Author : Christopher Torng
-# Date   : June 2, 2019
-#
+# Adapted from mflowgen GcdUnit example
 
 import os
 
@@ -24,7 +17,7 @@ def construct():
 
   parameters = {
     'construct_path' : __file__,
-    'design_name'    : 'GcdUnit',
+    'design_name'    : 'prbs_checker',
     'clock_period'   : 2.0,
     'adk'            : adk_name,
     'adk_view'       : adk_view,
