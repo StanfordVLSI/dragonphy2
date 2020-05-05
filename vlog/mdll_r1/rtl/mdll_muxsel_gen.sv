@@ -55,10 +55,13 @@ wire osc_0_b;
 wire osc_0_bb;
 wire enb;
 wire resetb;
+wire tiehigh;
 
 //---------------------
 // INSTANTIATION
 //---------------------
+
+mdll_tieh uTIEH ( .HI(tiehigh) );
 
 // ignored miller effect
 mdll_inv_x1 uDMY1 ( .A(osc_90), .ZN() );
@@ -70,7 +73,7 @@ mdll_inv_x1 uINV1 ( .A(osc_0), .ZN(osc_0_b) );
 mdll_inv_x1 uINV2 ( .A(osc_0_b), .ZN(osc_0_bb) );
 mdll_nd2_x1 uND1 ( .A(osc_0_b), .B(last_cycle), .ZN(enb) );
 mdll_nd3_x1 uND2 ( .A(osc_0_bb), .B(clk_refp), .C(enb), .ZN(resetb) );
-mdll_nd3_x1 uND2_DMY ( .A(1'b1), .B(clk_refn), .C(1'b1), .ZN() );
+mdll_nd3_x1 uND2_DMY ( .A(tiehigh), .B(clk_refn), .C(tiehigh), .ZN() );
 mdll_latn_sr uLAT1 ( .Q(sel_inj), .D(en_inj), .SETN(en_osc), .GN(enb), .RESETN(resetb) );
 
 
@@ -89,21 +92,6 @@ mdll_latn_sr uLAT1 ( .Q(sel_inj), .D(en_inj), .SETN(en_osc), .GN(enb), .RESETN(r
 //---------------------
 
 //synopsys translate_off
-
-//initial sel_inj = $urandom(); // simulation purpose
-//
-//assign en = last_cycle & ~osc_0;
-//assign reset = clk_refp & osc_0 & ~en;
-//
-//// latch
-//always @* begin
-//    if (reset) sel_inj = 1'b0;
-//    else if (en) sel_inj = en_inj;
-//end
-//initial begin
-//    force resetb = 1'b0;
-//    #200ns release resetb;
-//end
 
 //synopsys translate_on
 

@@ -49,8 +49,8 @@ module mdll_core import mdll_pkg::*; #(
 	input [$clog2(N_DIV):0] fb_ndiv,	// 2**fb_ndiv is the feedback divider ratio
 	input load_offset,	// 1: load dco_ctl_offset value, 0: keep the current offset value
 	input [N_DCO_O-1:0] dco_ctl_offset,			// # of delay coarse stages for supply modulation, false path
-	input [N_DCO_T-1:0] dco_ctl_track_lv,		// init load value of dco_ctl_track in digital loop filter, false path
-	input [N_DAC_T-1:0] dac_ctl_track_lv,		// init load value of dac_ctl_track in digital loop filter, false path
+	input [N_DCO_T-N_DCO_TF-1:0] dco_ctl_track_lv,		// init load value of dco_ctl_track in digital loop filter, false path
+	input [N_DAC_T-N_DAC_TF-1:0] dac_ctl_track_lv,		// init load value of dac_ctl_track in digital loop filter, false path
 	input [N_BB_GB-1:0] gain_bb,					// BB gain (2**(gain_bb)) for dco tracking , false path
 	input [N_BB_GDAC-1:0] gain_bb_dac,				// BB gain (2**(gain_dac)) for dac tracking, false path
 	input [$clog2(N_DIV)-1:0] sel_sdm_clk,	// sdm clock select from feedback divider 
