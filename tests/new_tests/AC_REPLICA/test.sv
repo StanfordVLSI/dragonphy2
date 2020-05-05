@@ -84,6 +84,7 @@ module test;
 
     logic should_record;
     ti_adc_recorder #(
+        .filename(`TI_ADC_TXT),
     	.num_channels(Nti_rep)
     ) ti_adc_recorder_i (
 		.in(top_i.idcore.adcout_unfolded[Nti+Nti_rep-1:Nti]),
@@ -104,38 +105,38 @@ module test;
 	// Main test
 	logic [Nadc-1:0] tmp_ext_pfd_offset_rep [Nti_rep-1:0];
 	initial begin
-		// Uncomment to probe waveforms
-		// $shm_open("out.shm");
-		// $shm_probe("ASM");
+        `ifdef DUMP_WAVEFORMS
+	        $shm_open("waves.shm");
+	        $shm_probe("ASMC");
+        `endif
 
-		// Initialize pins
-		$display("Initializing pins...");
-		should_record = 1'b0;
-		jtag_drv_i.init();
-
-		// Toggle reset
-		$display("Toggling reset...");
-        #(20ns);
+        // initialize control signals
+    	should_record = 1'b0;
 		rstb = 1'b0;
-		#(20ns);
-		rstb = 1'b1;
+        #(1ns);
 
-		// Enable the input buffer
-		$display("Set up the input buffer...");
-        `FORCE_ADBG(en_inbuf, 0);
+		// Release reset
+		$display("Releasing external reset...");
+		rstb = 1'b1;
+        #(1ns);
+
+        // Initialize JTAG
+        $display("Initializing JTAG...");
+        jtag_drv_i.init();
+
+        // Soft reset sequence
+        $display("Soft reset sequence...");
+        `FORCE_DDBG(int_rstb, 1);
         #(1ns);
         `FORCE_ADBG(en_inbuf, 1);
+		#(1ns);
+        `FORCE_ADBG(en_gf, 1);
         #(1ns);
-		`FORCE_ADBG(en_gf, 1);
-        #(1ns);
-        // Enable the V2T
         `FORCE_ADBG(en_v2t, 1);
         #(1ns);
+
         // Enable the replica slices
         `FORCE_ADBG(en_slice_rep, (1<<(Nti_rep))-1);
-        #(1ns);
-        // Release from reset
-        `FORCE_DDBG(int_rstb, 1);
         #(1ns);
 
         // Set up the PFD offset
@@ -144,10 +145,6 @@ module test;
         end
         `FORCE_DDBG(ext_pfd_offset_rep, tmp_ext_pfd_offset_rep);
         #(1ns);
-
-        // run CDR clock fast to reduce simulation time
-        // (the CDR clock is an input of the phase interpolator)
-        `FORCE_DDBG(Ndiv_clk_cdr, 1);
 
 		// Wait some time initially
 		$display("Initial delay of 50 ns...");

@@ -1,15 +1,8 @@
 /********************************************************************
-<<<<<<< HEAD
-filename: mux4_fixed.sv
+filename: inv_3_fixed.sv
 
 Description: 
-a parameterized mux4 cell 
-=======
-filename: mux_fixed.sv
-
-Description: 
-a parameterized mux cell 
->>>>>>> master
+a parameterized inv cell 
 
 Assumptions:
 
@@ -17,14 +10,12 @@ Todo:
 
 ********************************************************************/
 
-module mux_fixed #(
+module inv_3_fixed #(
     parameter real td_nom = 15.0e-12,    // nominal delay in sec
     parameter real td_std = 0.0,         // std dev of nominal delay variation in sec
     parameter real rj_rms = 0.0          // rms random jitter in sec
 ) (
-    input wire logic in0,                // input signal
-    input wire logic in1,                // input signal
-    input wire logic sel,                // selection signal
+    input wire logic in,                 // input signal
     output wire out                      // delayed output signal
 );
 
@@ -39,8 +30,8 @@ Delay dly_obj;
 
 // variables
 
-real td;    // delay w/o jitter 
-real rj;    // random jitter 
+real td;    // delay w/o jitter
+real rj;    // random jitter
 
 // initialize class parameters
 initial begin
@@ -52,13 +43,13 @@ end
 // Model Body
 ///////////////////////////
 
-// compute new jitter
-always @(in0 or in1 or sel) begin
+// compute new jitter value
+always @(in) begin
     rj = dly_obj.get_rj(rj_rms);
 end
 
 // assign to the output using an inertial delay
 // ref: http://www-inst.eecs.berkeley.edu/~cs152/fa06/handouts/CummingsHDLCON1999_BehavioralDelays_Rev1_1.pdf
-assign #((td+rj)*1s) out = sel ? in1 : in0;
+assign #((td+rj)*1s) out = ~in;
 
 endmodule

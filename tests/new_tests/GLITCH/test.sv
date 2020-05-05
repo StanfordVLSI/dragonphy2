@@ -3,6 +3,8 @@
 `define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
 `define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
 
+`define GET_ADBG(name) top_i.iacore.adbg_intf_i.``name``
+
 // please set the values for these variables in the Python script!
 // documentation for each can be found there
 
@@ -35,7 +37,6 @@
 `endif
 
 module test;
- 	parameter max_sel_mux = 15;
     import const_pack::*;
     import test_pack::*;
     import checker_pack::*;
@@ -86,11 +87,23 @@ module test;
         .jtag_intf_i(jtag_intf_i)
     );
 
+    // Convenience function
+
+    function integer min(integer a, integer b);
+        min = (a < b) ? a : b;
+    endfunction
+
     // Main test logic
+
     real delay;
     integer code_delta;
     logic [(Npi-1):0] pi_ctl_indiv;
     logic [(Npi-1):0] pi_ctl_prev;
+
+	integer max_sel_mux [Nout];
+	integer max_ctl_pi [Nout];
+	integer max_max_ctl_pi;
+
     initial begin
          `ifdef DUMP_WAVEFORMS
 	        $shm_open("waves.shm");
@@ -105,11 +118,6 @@ module test;
 		rstb = 1'b0;
         #(1ns);
 
-        // set en_inbuf to "0"
-        // TODO: update value in JTAG register
-        `FORCE_ADBG(en_inbuf, 0);
-        #(1ns);
-
         // set all PI codes to pi_ctl_indiv
         force top_i.iacore.ctl_pi[0] = pi_ctl_indiv;
         force top_i.iacore.ctl_pi[1] = pi_ctl_indiv;
@@ -117,17 +125,11 @@ module test;
         force top_i.iacore.ctl_pi[3] = pi_ctl_indiv;
         #(1ns);
 
-        // run CDR clock fast to reduce simulation time
-        // (the CDR clock is an input of the phase interpolator)
-        `FORCE_DDBG(Ndiv_clk_cdr, 1);
-        #(1ns);
-
 		// Release reset
-		$display("Toggling reset...");
+		$display("Releasing reset...");
 		rstb = 1'b1;
 
         // Initialize JTAG
-        // TODO: what is the right place in the reset sequence for this?
         jtag_drv_i.init();
 
         // Soft reset sequence
@@ -141,8 +143,19 @@ module test;
         `FORCE_ADBG(en_v2t, 1);
         #(1ns);
 
-        // wait for a little bit so that the CDR clock starts toggling
+        // wait for startup so that we can read max_sel_mux
         #(10ns);
+
+        // determine the max code range for each PI
+        // the expression for the max value is from Sung-Jin on May 1, 2020
+        max_max_ctl_pi = 0;
+        for (int i=0; i<Nout; i=i+1) begin
+            max_sel_mux[i] = `GET_ADBG(max_sel_mux[i]);
+            max_ctl_pi[i] = ((max_sel_mux[i]+1)*16)-1;
+            if (max_ctl_pi[i] > max_max_ctl_pi) begin
+                max_max_ctl_pi = max_ctl_pi[i];
+            end
+        end
 
         // start the test
         $display("Starting the test...");
@@ -163,16 +176,15 @@ module test;
             pi_ctl_indiv = pi_ctl_indiv + code_delta;
             if (pi_ctl_indiv == 0) begin
                 code_delta = +1;
-            //end else if (pi_ctl_indiv == ((2**Npi)-1)) begin
-            end else if (pi_ctl_indiv == ((max_sel_mux+1)*16-1)) begin
+            end else if (pi_ctl_indiv == max_max_ctl_pi) begin
                 code_delta = -1;
             end
 
             // apply the stimulus
-            force top_i.iacore.ctl_pi[0] = pi_ctl_indiv;
-            force top_i.iacore.ctl_pi[1] = pi_ctl_indiv;
-            force top_i.iacore.ctl_pi[2] = pi_ctl_indiv;
-            force top_i.iacore.ctl_pi[3] = pi_ctl_indiv;
+            force top_i.iacore.ctl_pi[0] = min(pi_ctl_indiv, max_ctl_pi[0]);
+            force top_i.iacore.ctl_pi[1] = min(pi_ctl_indiv, max_ctl_pi[1]);
+            force top_i.iacore.ctl_pi[2] = min(pi_ctl_indiv, max_ctl_pi[2]);
+            force top_i.iacore.ctl_pi[3] = min(pi_ctl_indiv, max_ctl_pi[3]);
 
             // wait while monitoring
             #((`MONITOR_TIME)*1s);
