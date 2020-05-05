@@ -1,0 +1,111 @@
+INIT_CLK_STATE	mdll_aux_osc.sv	129
+ROTATE_MCLK	mdll_aux_osc.sv	145
+UPDATE_PHASE	mdll_aux_osc.sv	138
+mdll_aux_osc	mdll_aux_osc.sv	31
+mdll_bin2therm	mdll_bin2therm.sv	30
+mdll_core	mdll_core.sv	30
+mdll_dac_sdm	mdll_dac_sdm.sv	32
+mdll_dcdl_coarse	mdll_dcdl_coarse.sv	31
+mdll_dcdl_coarse_coupler	mdll_dcdl_coarse_coupler.sv	30
+mdll_dcdl_coarse_single	mdll_dcdl_coarse_single.sv	31
+mdll_dcdl_coarse_unit	mdll_dcdl_coarse_unit.sv	31
+mdll_dcdl_nd2	mdll_dcdl_nd2.sv	30
+mdll_dcdl_phase_blender	mdll_dcdl_phase_blender.sv	30
+mdll_dcdl_pi	mdll_dcdl_pi.sv	30
+mdll_dcdl_supply_dac	mdll_dcdl_supply_dac.sv	30
+mdll_dcdl_u	mdll_dcdl_u.sv	31
+mdll_dff_sampler	mdll_dff_sampler.sv	30
+mdll_fcal_counter	mdll_fcal_counter.sv	30
+mdll_feedback_div	mdll_feedback_div.sv	30
+mdll_freq_div_radix2	mdll_freq_div_radix2.sv	24
+mdll_injection_osc	mdll_injection_osc.sv	30
+mdll_inv_x1	mdll_inv_x1.sv	30
+mdll_lf	mdll_lf.sv	31
+mdll_muxsel_gen	mdll_muxsel_gen.sv	29
+mdll_pd_bb	mdll_pd_bb.sv	30
+mdll_pkg	mdll_pkg.sv	1
+mdll_prbs19	mdll_prbs19.sv	31
+mdll_reset_sync	mdll_reset_sync.sv	31
+mdll_sdm1_multibit	mdll_sdm1_multibit.sv	30
+mdll_supply_dac_filter	mdll_supply_dac_filter.sv	30
+mdll_synchronizer	mdll_synchronizer.sv	30
+mdll_aux_osc	mdll_aux_osc.sv	/module mdll_aux_osc import mdll_pkg::*; #(/
+mdll_bin2therm	mdll_bin2therm.sv	/module mdll_bin2therm #(/
+mdll_core	mdll_core.sv	/module mdll_core import mdll_pkg::*; #(/
+mdll_dac_decoder	mdll_dac_decoder.sv	/module mdll_dac_decoder import mdll_pkg::*; #(/
+mdll_dac_sdm	mdll_dac_sdm.sv	/module mdll_dac_sdm import mdll_pkg::*; #(/
+mdll_dcdl_coarse	mdll_dcdl_coarse.sv	/module mdll_dcdl_coarse import mdll_pkg::*; #(/
+mdll_dcdl_coarse_coupler	mdll_dcdl_coarse_coupler.sv	/module mdll_dcdl_coarse_coupler import mdll_pkg::*; #(/
+mdll_dcdl_coarse_single	mdll_dcdl_coarse_single.sv	/module mdll_dcdl_coarse_single import mdll_pkg::*; #(/
+mdll_dcdl_coarse_unit	mdll_dcdl_coarse_unit.sv	/module mdll_dcdl_coarse_unit import mdll_pkg::*; #(/
+mdll_dcdl_phase_blender	mdll_dcdl_phase_blender.sv	/module mdll_dcdl_phase_blender import mdll_pkg::*; #(/
+mdll_dcdl_pi	mdll_dcdl_pi.sv	/module mdll_dcdl_pi import mdll_pkg::*; #(/
+mdll_dcdl_supply_dac	mdll_dcdl_supply_dac.sv	/module mdll_dcdl_supply_dac import mdll_pkg::*; #(/
+mdll_dcdl_u	mdll_dcdl_u.sv	/module mdll_dcdl_u import mdll_pkg::*; #(/
+mdll_fcal_counter	mdll_fcal_counter.sv	/module mdll_fcal_counter import mdll_pkg::*; #(/
+mdll_feedback_div	mdll_feedback_div.sv	/module mdll_feedback_div import mdll_pkg::*; #(/
+mdll_freq_div_radix2	mdll_freq_div_radix2.sv	/module mdll_freq_div_radix2 #(/
+mdll_injection_osc	mdll_injection_osc.sv	/module mdll_injection_osc import mdll_pkg::*; #(/
+mdll_lf	mdll_lf.sv	/module mdll_lf import mdll_pkg::*; #(/
+mdll_muxsel_gen	mdll_muxsel_gen.sv	/module mdll_muxsel_gen #(/
+mdll_pd_bb	mdll_pd_bb.sv	/module mdll_pd_bb import mdll_pkg::*; #(/
+mdll_prbs19	mdll_prbs19.sv	/module mdll_prbs19 import mdll_pkg::*; #(/
+mdll_reset_sync	mdll_reset_sync.sv	/module mdll_reset_sync #(/
+mdll_sdm1_multibit	mdll_sdm1_multibit.sv	/module mdll_sdm1_multibit #(/
+mdll_supply_dac_buffer	mdll_supply_dac_buffer.sv	/module mdll_supply_dac_buffer import mdll_pkg::*; #(/
+mdll_supply_dac_filter	mdll_supply_dac_filter.sv	/module mdll_supply_dac_filter import mdll_pkg::*; #(/
+mdll_synchronizer	mdll_synchronizer.sv	/module mdll_synchronizer #(/
+mdll_aux_osc	mdll_aux_osc.sv	/module mdll_aux_osc import mdll_pkg::*; #(/
+mdll_bin2therm	mdll_bin2therm.sv	/module mdll_bin2therm #(/
+mdll_core	mdll_core.sv	/module mdll_core import mdll_pkg::*; #(/
+mdll_dac_decoder	mdll_dac_decoder.sv	/module mdll_dac_decoder import mdll_pkg::*; #(/
+mdll_dac_sdm	mdll_dac_sdm.sv	/module mdll_dac_sdm import mdll_pkg::*; #(/
+mdll_dcdl_coarse	mdll_dcdl_coarse.sv	/module mdll_dcdl_coarse import mdll_pkg::*; #(/
+mdll_dcdl_coarse_coupler	mdll_dcdl_coarse_coupler.sv	/module mdll_dcdl_coarse_coupler import mdll_pkg::*; #(/
+mdll_dcdl_coarse_single	mdll_dcdl_coarse_single.sv	/module mdll_dcdl_coarse_single import mdll_pkg::*; #(/
+mdll_dcdl_coarse_unit	mdll_dcdl_coarse_unit.sv	/module mdll_dcdl_coarse_unit import mdll_pkg::*; #(/
+mdll_dcdl_phase_blender	mdll_dcdl_phase_blender.sv	/module mdll_dcdl_phase_blender import mdll_pkg::*; #(/
+mdll_dcdl_pi	mdll_dcdl_pi.sv	/module mdll_dcdl_pi import mdll_pkg::*; #(/
+mdll_dcdl_supply_dac	mdll_dcdl_supply_dac.sv	/module mdll_dcdl_supply_dac import mdll_pkg::*; #(/
+mdll_dcdl_u	mdll_dcdl_u.sv	/module mdll_dcdl_u import mdll_pkg::*; #(/
+mdll_fcal_counter	mdll_fcal_counter.sv	/module mdll_fcal_counter import mdll_pkg::*; #(/
+mdll_feedback_div	mdll_feedback_div.sv	/module mdll_feedback_div import mdll_pkg::*; #(/
+mdll_freq_div_radix2	mdll_freq_div_radix2.sv	/module mdll_freq_div_radix2 #(/
+mdll_injection_osc	mdll_injection_osc.sv	/module mdll_injection_osc import mdll_pkg::*; #(/
+mdll_lf	mdll_lf.sv	/module mdll_lf import mdll_pkg::*; #(/
+mdll_muxsel_gen	mdll_muxsel_gen.sv	/module mdll_muxsel_gen #(/
+mdll_pd_bb	mdll_pd_bb.sv	/module mdll_pd_bb import mdll_pkg::*; #(/
+mdll_prbs19	mdll_prbs19.sv	/module mdll_prbs19 import mdll_pkg::*; #(/
+mdll_reset_sync	mdll_reset_sync.sv	/module mdll_reset_sync #(/
+mdll_sdm1_multibit	mdll_sdm1_multibit.sv	/module mdll_sdm1_multibit #(/
+mdll_supply_dac_buffer	mdll_supply_dac_buffer.sv	/module mdll_supply_dac_buffer import mdll_pkg::*; #(/
+mdll_supply_dac_filter	mdll_supply_dac_filter.sv	/module mdll_supply_dac_filter import mdll_pkg::*; #(/
+mdll_synchronizer	mdll_synchronizer.sv	/module mdll_synchronizer #(/
+ANALOG_WIRE	mdll_pkg.sv	/    `define ANALOG_WIRE real/
+ANALOG_WIRE	mdll_pkg.sv	/    `define ANALOG_WIRE wire/
+mdll_aux_osc	mdll_aux_osc.sv	/module mdll_aux_osc import mdll_pkg::*; #(/
+mdll_bin2therm	mdll_bin2therm.sv	/module mdll_bin2therm #(/
+mdll_core	mdll_core.sv	/module mdll_core import mdll_pkg::*; #(/
+mdll_dac_decoder	mdll_dac_decoder.sv	/module mdll_dac_decoder import mdll_pkg::*; #(/
+mdll_dac_sdm	mdll_dac_sdm.sv	/module mdll_dac_sdm import mdll_pkg::*; #(/
+mdll_dcdl_coarse	mdll_dcdl_coarse.sv	/module mdll_dcdl_coarse import mdll_pkg::*; #(/
+mdll_dcdl_coarse_coupler	mdll_dcdl_coarse_coupler.sv	/module mdll_dcdl_coarse_coupler import mdll_pkg::*; #(/
+mdll_dcdl_coarse_single	mdll_dcdl_coarse_single.sv	/module mdll_dcdl_coarse_single import mdll_pkg::*; #(/
+mdll_dcdl_coarse_unit	mdll_dcdl_coarse_unit.sv	/module mdll_dcdl_coarse_unit import mdll_pkg::*; #(/
+mdll_dcdl_phase_blender	mdll_dcdl_phase_blender.sv	/module mdll_dcdl_phase_blender import mdll_pkg::*; #(/
+mdll_dcdl_pi	mdll_dcdl_pi.sv	/module mdll_dcdl_pi import mdll_pkg::*; #(/
+mdll_dcdl_supply_dac	mdll_dcdl_supply_dac.sv	/module mdll_dcdl_supply_dac import mdll_pkg::*; #(/
+mdll_dcdl_u	mdll_dcdl_u.sv	/module mdll_dcdl_u import mdll_pkg::*; #(/
+mdll_fcal_counter	mdll_fcal_counter.sv	/module mdll_fcal_counter import mdll_pkg::*; #(/
+mdll_feedback_div	mdll_feedback_div.sv	/module mdll_feedback_div import mdll_pkg::*; #(/
+mdll_freq_div_radix2	mdll_freq_div_radix2.sv	/module mdll_freq_div_radix2 #(/
+mdll_injection_osc	mdll_injection_osc.sv	/module mdll_injection_osc import mdll_pkg::*; #(/
+mdll_lf	mdll_lf.sv	/module mdll_lf import mdll_pkg::*; #(/
+mdll_muxsel_gen	mdll_muxsel_gen.sv	/module mdll_muxsel_gen #(/
+mdll_pd_bb	mdll_pd_bb.sv	/module mdll_pd_bb import mdll_pkg::*; #(/
+mdll_prbs19	mdll_prbs19.sv	/module mdll_prbs19 import mdll_pkg::*; #(/
+mdll_reset_sync	mdll_reset_sync.sv	/module mdll_reset_sync #(/
+mdll_sdm1_multibit	mdll_sdm1_multibit.sv	/module mdll_sdm1_multibit #(/
+mdll_supply_dac_buffer	mdll_supply_dac_buffer.sv	/module mdll_supply_dac_buffer import mdll_pkg::*; #(/
+mdll_supply_dac_filter	mdll_supply_dac_filter.sv	/module mdll_supply_dac_filter import mdll_pkg::*; #(/
+mdll_synchronizer	mdll_synchronizer.sv	/module mdll_synchronizer #(/

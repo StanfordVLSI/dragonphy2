@@ -1,17 +1,16 @@
 `include "mLingua_pwl.vh"
 
-`default_nettype none
+`timescale 1fs/1fs
 
 module sine_stim import const_pack::*; #(
 	parameter real Vcm = 0.25,
 	parameter real sine_freq = 161e6,
 	parameter real sine_ampl = 0.2,
-	parameter real etol = 0.0005
+	parameter real etol = 0.0003
 ) (
 	output pwl ch_outp,
 	output pwl ch_outn
 );
-
 	pwl_cos #(
 		.etol(etol),
 		.freq(sine_freq),
@@ -29,7 +28,4 @@ module sine_stim import const_pack::*; #(
 	) icos_pwln(
 		.out(ch_outn)
 	);
-
-endmodule 
-
-`default_nettype wire
+endmodule

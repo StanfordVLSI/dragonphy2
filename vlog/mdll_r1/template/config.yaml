@@ -1,0 +1,124 @@
+mdll_dcdl_nd2: # NAND2 in DCDL delay line
+    cell: nand2
+    port: 
+        A1 : A
+        A2 : B
+        ZN: ZN
+
+mdll_dcdl_nd2_vreg: # NAND2 in DCDL delay line (supply regulated)
+    cell: nand2
+    port: 
+        A1 : A
+        A2 : B
+        ZN: ZN
+
+mdll_dff_sampler: # d flop 
+    cell: dff
+    port: 
+        CP: clk
+        D: d
+        Q: q
+
+mdll_dff_sampler_rstn: # d flop for bang-bang pd
+    cell: dffc
+    port: 
+        CP: clk
+        D: d
+        CDN: rstn
+        Q: q
+
+mdll_inv_x1: # x1 inverter used in cross-coupled inverter
+    cell: inv1
+    port: 
+        I: A
+        ZN: ZN
+
+mdll_inv_x4: # input and output bufffer of phase interpolator
+    cell: inv1
+    port: 
+        I: A
+        ZN: ZN
+
+mdll_latn_sr: # latch with active low enable, with set & reset
+    cell: dlatchncs
+    port: 
+        D: D
+        EN: GN
+        SDN: SETN
+        CDN: RESETN
+        Q: Q
+
+mdll_ckmux: # 2-to-1 mux for clock mux (non-inverting output)
+    cell: mux2
+    port: 
+        I1: I0
+        I0: I1
+        S: S0
+        Z: Z
+
+mdll_ckmuxi: # 2-to-1 mux for clock mux (inverting output)
+    cell: mux2i
+    port: 
+        I1: I0
+        I0: I1
+        S: S0
+        ZN: ZN
+
+mdll_mx2i: # 2-to-1 mux with inverting output for phase blender
+    cell: mux2i
+    port: 
+        I1: I0
+        I0: I1
+        S: S0
+        ZN: ZN
+
+mdll_nd2_x1: # two input nand (x1) for mux sel gen
+    cell: nand2
+    port: 
+        A1: A
+        A2: B
+        ZN: ZN
+
+mdll_or2: # two input or (x1) for bbpd
+    cell: or2
+    port: 
+        A1: A
+        A2: B
+        Z: Z
+
+mdll_nd3_x1: # three input nand (x1) for mux sel gen
+    cell: nand3
+    port: 
+        A1: A
+        A2: B
+        A3: C
+        ZN: ZN
+
+mdll_tbuf: # tri-state, non-inverting output (inverting output also should work)
+    cell: buft
+    port: 
+        I: A
+        OE: EN
+        Z: Z
+
+# not actually used for mdll_psw, mdll_sourcefollower, mdll_decap
+mdll_psw:
+    cell: nand2
+    port: 
+        A1: S
+        A2: G
+        ZN: D
+
+mdll_sourcefollower:
+    cell: nand2
+    port: 
+        A1: G
+        A2: S
+
+mdll_decap: # DECAP for filter and decap of source follower
+    cell: nand2
+    port: 
+        A1 : TOP
+        A2 : BOT
+        ZN : ' ' 
+
