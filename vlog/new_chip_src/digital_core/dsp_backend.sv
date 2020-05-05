@@ -44,38 +44,25 @@ module dsp_backend (
     logic [mlsd_gpack::shift_precision-1:0] mlsd_shift [constant_gpack::channel_width-1:0]; 
     logic disable_product [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0];
 
-    always_ff @(posedge clk or negedge rstb) begin
-        integer ii, jj;
-        if(!rstb) begin
-            for(ii=0; ii<constant_gpack::channel_width; ii=ii+1) begin
-                thresh[ii]  <= 0;
-                ffe_shift[ii] <= 0;
-                mlsd_shift[ii] <= 0;
-                for(jj=0; jj<mlsd_gpack::estimate_depth; jj=jj+1) begin
-                    channel_est[ii][jj] <= 0;
-                end
-                for(jj=0; jj<ffe_gpack::length; jj=jj+1) begin
-            	    weights[jj][ii] <= 0;
-            	    disable_product[jj][ii] <=0;
-                end
 
-            end
-        end else begin
-            for(ii=0; ii<constant_gpack::channel_width; ii=ii+1) begin
-                thresh[ii]  <= (dsp_dbg_intf_i.update_thresh[ii]) ? (dsp_dbg_intf_i.new_thresh[ii]) : thresh[ii];
-                ffe_shift[ii] <= (dsp_dbg_intf_i.update_ffe_shift[ii]) ? (dsp_dbg_intf_i.new_ffe_shift[ii] ): ffe_shift[ii];
-                mlsd_shift[ii] <= (dsp_dbg_intf_i.update_mlsd_shift[ii]) ? (dsp_dbg_intf_i.new_mlsd_shift[ii]) : mlsd_shift[ii];
+    always_comb begin
+    	integer ii, jj;
+    	for(ii=0; ii<constant_gpack::channel_width; ii=ii+1) begin
+                thresh[ii]     <= dsp_dbg_intf_i.thresh[ii];
+                ffe_shift[ii]  <= dsp_dbg_intf_i.ffe_shift[ii];
+                mlsd_shift[ii] <= dsp_dbg_intf_i.mlsd_shift[ii];
+
                 for(jj=0; jj<mlsd_gpack::estimate_depth; jj=jj+1) begin
-                    channel_est[ii][jj] <= (dsp_dbg_intf_i.update_channel_est[ii][jj]) ? (dsp_dbg_intf_i.new_channel_est[ii][jj]) : channel_est[ii][jj];
+                    channel_est[ii][jj] <= dsp_dbg_intf_i.channel_est[ii][jj];
                 end
 
                 for(jj=0; jj<ffe_gpack::length; jj=jj+1) begin
-                	weights[jj][ii] <= (dsp_dbg_intf_i.update_weights[jj][ii]) ? (dsp_dbg_intf_i.new_weights[jj][ii]) : weights[jj][ii];
-                	disable_product[jj][ii] <=0;
-                end
+                	weights[jj][ii] <= dsp_dbg_intf_i.weights[ii][jj];
+                	disable_product[jj][ii] <= dsp_dbg_intf_i.disable_product[jj][ii]; //Packed to Unpacked Conversion I think requires this
+               	end
             end
-        end
     end
+
 
 	wire logic   [mlsd_gpack::code_precision-1:0]  ucodes		[constant_gpack::channel_width-1:0];
 	genvar gi;
