@@ -1,0 +1,15 @@
+# Adapted from Garnet
+
+name: constraints
+
+commands:
+  - mkdir -p outputs
+  - cp constraints.tcl outputs/.
+
+outputs:
+  - constraints.tcl
+
+# TODO: are these needed?
+parameters:
+  clock_period: 1.0
+  design_name: undefined
