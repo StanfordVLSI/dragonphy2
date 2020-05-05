@@ -54,7 +54,7 @@ module digital_core import const_pack::*; (
     //Sample the FFE output
     genvar gi, gj;
     generate
-        for(gi=0; gi<constant_gpack::channel_width-1:0, gi = gi + 1 ) begin
+        for(gi=0; gi<constant_gpack::channel_width; gi = gi + 1 ) begin
             assign trunc_est_bits[gi] = estimated_bits[gi][9:2];
         end
     endgenerate
@@ -64,7 +64,7 @@ module digital_core import const_pack::*; (
     generate
         for(gi=0; gi<8; gi = gi + 1) begin
             for(gj=0; gj<2; gj = gj + 1 ) begin
-                assign trunc_est_bits[16+gj][gi] = checked_bits[gi + gj*8]
+                assign trunc_est_bits[16+gj][gi] = checked_bits[gi + gj*8];
             end
         end
     endgenerate
@@ -260,7 +260,7 @@ module digital_core import const_pack::*; (
 
     oneshot_multimemory #(
         .N_mem_tiles(4)
-    ) oneshot_multimemory_i(
+    ) omm_ffe_i(
         .clk(clk_adc),
         .rstb(sram_rstb),
         
