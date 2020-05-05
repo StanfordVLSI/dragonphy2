@@ -16,13 +16,13 @@ module mux_network #(
     genvar k;
     generate
         for (k=0;k<4;k++) begin:imux4_gf_1st
-            mux4_gf even (
+            mux4_gf even_dont_touch (
                 .out(ph_mid[2*k]),
                 .in({ph_in[8*k+6], ph_in[8*k+4], ph_in[8*k+2], ph_in[8*k+0]}),
                 .sel(sel_mux_1st_even[k]),
                 .en_gf(en_gf)
             );
-            mux4_gf odd (
+            mux4_gf odd_dont_touch (
                 .out(ph_mid[2*k+1]),
                 .in({ph_in[8*k+7], ph_in[8*k+5], ph_in[8*k+3], ph_in[8*k+1]}),
                 .sel(sel_mux_1st_odd[k]),
@@ -31,14 +31,14 @@ module mux_network #(
         end
     endgenerate
 
-    mux4_gf imux4_gf_2nd_even (
+    mux4_gf imux4_gf_2nd_even_dont_touch (
         .out(ph_out[0]),
         .in({ph_mid[6], ph_mid[4], ph_mid[2], ph_mid[0]}),
         .sel(sel_mux_2nd_even),
         .en_gf(en_gf)
     );
 
-    mux4_gf imux4_gf_2nd_odd (
+    mux4_gf imux4_gf_2nd_odd_dont_touch (
         .out(ph_out[1]),
         .in({ph_mid[7], ph_mid[5], ph_mid[3], ph_mid[1]}),
         .sel(sel_mux_2nd_odd),

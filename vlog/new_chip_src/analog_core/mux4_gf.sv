@@ -5,7 +5,11 @@ module mux4_gf (
     output out
 );
 
-    reg  [1:0] sel_retimed;
+//synopsys dc_script_begin
+//set_dont_touch {out out_b sel_mux*}
+//synopsys dc_script_end
+    
+	reg  [1:0] sel_retimed;
     wire [1:0] sel_mux;
     wire out_d;
 
@@ -28,7 +32,7 @@ module mux4_gf (
         .out(out_d)
     );
 
-    assign sel_mux = en_gf ? sel_retimed : sel;
+   mux_fixed imux_dont_touch[1:0] (.in0(sel), .in1(sel_retimed), .sel(en_gf), .out(sel_mux));
 
 endmodule
 
