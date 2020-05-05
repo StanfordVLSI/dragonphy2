@@ -3,13 +3,19 @@ steps:
       # set up environment
       source /cad/modules/tcl/init/bash
       module load base xcelium dc_shell
-      export DRAGONPHY_PYTHON=/usr/local/miniconda/bin/python3.7
       export DW_TAP=/cad/synopsys/syn/L-2016.03-SP5-5/dw/sim_ver/DW_tap.v
       export BUILD_VIEW=cpu
       printenv
 
+      # create virtual environment
+      /usr/local/miniconda/bin/python3.7 -m venv venv
+      source venv/bin/activate
+
       # run regression script
       source regress.sh
+
+      # deactivate virtual environment
+      deactivate 
     label: "test"
     timeout_in_minutes: 60
     agents:
@@ -17,14 +23,20 @@ steps:
   - command: |
       # set up environment
       source /etc/environment
-      export DRAGONPHY_PYTHON=python3.7
       export FPGA_SERVER=1
       export DW_TAP=/tools/synopsys/syn/L-2016.03-SP5-5/dw/sim_ver/DW_tap.v
       export BUILD_VIEW=fpga
       printenv
 
+      # create virtual environment
+      python3.7 -m venv venv
+      source venv/bin/activate
+
       # run regression script
       source regress.sh
+
+      # deactivate virtual environment
+      deactivate 
     label: "test_emu"
     timeout_in_minutes: 60
     agents:
