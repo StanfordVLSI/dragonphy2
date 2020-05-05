@@ -53,7 +53,7 @@
 | disable_ibuf_main          |         |                        |              | Test         | out      |   0       |
 | disable_ibuf_test0         |         |                        |              | Test         | out      |   1       |
 | disable_ibuf_test1         |         |                        |              | Test         | out      |   1       |
-| en_inbuf                   |         |                        |              | Test         | out      |   1       |
+| en_inbuf                   |         |                        |              | Test         | out      |   0       |
 | sel_clk_source             |         |                        |              | Test         | out      |   0       |
 | bypass_inbuf_div           |         |                        |              | Test         | out      |   1       |
 | bypass_inbuf_div2          |         |                        |              | Test         | out      |   0       |

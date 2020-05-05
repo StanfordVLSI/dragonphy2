@@ -23,15 +23,15 @@ module V2T import const_pack::*; #(
     input real Vcal,                    // gate bias voltage of a current source
     input pwl Vin,                      // input voltage being sampled
     input wire logic clk_v2t,           // sampling clock for the input switch
-    input wire logic clk_v2tb,          // ~ CLK
+    input wire logic clk_v2tb,          // ~clk_v2t
     input wire logic clk_v2t_gated,     // ~CLKB_D
     input wire logic clk_v2tb_gated,    // flip Cs polarity right before
                                         // starting ramp down
     input wire logic clk_v2t_e,         // bottom plate sampling
-    input wire logic clk_v2t_eb,        // ~CLKe
+    input wire logic clk_v2t_eb,        // ~clk_v2t_e
     input wire logic clk_v2t_l,         // steer current on the other path,
                                         // (does nothing in this model)
-    input wire logic clk_v2t_lb,        // ~CLKlB
+    input wire logic clk_v2t_lb,        // ~clk_v2t_l
     input  [2**Nv2t-1:0]  ctl           // ramp current control (thermometer coded)
 );
 
@@ -73,29 +73,40 @@ real Vin_s; // sampled input voltage (debugging purpose)
 assign Iunit = v2t_obj.get_current(Vcal);
 assign Iramp = Iunit*$countones(ctl);
 
+// sample on negative clock edge of clk_v2t
 real Vdch;
-// sample&hold
 always @(negedge clk_v2t) begin
     Vin_s = pm.eval(Vin, `get_time);
-    Vdch = v2t_obj.Vgain*(Vin_s - VSupl + Vdch_cm) - Vdch_cm;
+    Vdch = Vdch_cm + v2t_obj.Vgain*(VSupl - Vin_s - Vdch_cm);
 end
 
-// precharge Vdch to VDD
-always @(clk_v2t_e) begin
-    if (clk_v2t_e) begin
-        v2t_out <= 1'b0;
-    end
+// precharge Vdch to VDD on the positive edge of clk_v2t_e
+always @(posedge clk_v2t_e) begin
+    v2t_out <= 1'b0;
 end
 
 // create a pulse 
 always @(posedge clk_v2t_lb) begin // ramp down
-    Vdch = -Vdch;
+    // set v2t output to "0"
+    // TODO: why does this occur here?  isn't it really clk_v2t_e that does this?
     v2t_out <= 1'b0;
+
+    // add up all of the effects that contribute
+    // to the delay before the rising edge of the
+    // v2t output
     dt = 0.0;
     dt = dt + (Vdch-v2t_obj.Vlth)*Cs_eff/Iramp;
     dt = dt + v2t_obj.Td_comp;
     dt = dt + td_v2t_offset;
     dt = dt + v2t_obj.get_V2T_jitter();
+
+    // make sure the delay is non-negative
+    if (dt < 0.0) begin
+        dt = 0.0;
+    end
+
+    // assign to output
+    // TODO: why is a transport delay used here?
     v2t_out <= #(dt*1s) 1'b1;
 end
 

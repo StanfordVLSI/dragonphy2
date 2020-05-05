@@ -16,7 +16,7 @@
 `endif
 
 `ifndef EXT_PFD_OFFSET
-    `define EXT_PFD_OFFSET 14
+    `define EXT_PFD_OFFSET 16
 `endif
 
 module test;
@@ -136,33 +136,43 @@ module test;
 	// Main test
 	logic [Nadc-1:0] tmp_ext_pfd_offset_rep [Nti_rep-1:0];
 	initial begin
-		// Initialize pins
-		$display("Initializing pins...");
-		jtag_drv_i.init();
+        `ifdef DUMP_WAVEFORMS
+	        $shm_open("waves.shm");
+	        $shm_probe("ASMC");
+        `endif
 
-		// Toggle reset
-		$display("Toggling reset...");
-        #(20ns);
+        // initialize control signals
+    	record = 1'b0;
 		rstb = 1'b0;
-		#(20ns);
-		rstb = 1'b1;
+        #(1ns);
 
-		// Enable the input buffer
-		$display("Set up the input buffer...");
-        `FORCE_ADBG(en_inbuf, 0);
+		// Release reset
+		$display("Releasing external reset...");
+		rstb = 1'b1;
+        #(1ns);
+
+        // Initialize JTAG
+        $display("Initializing JTAG...");
+        jtag_drv_i.init();
+
+        // Soft reset sequence
+        $display("Soft reset sequence...");
+        `FORCE_DDBG(int_rstb, 1);
         #(1ns);
         `FORCE_ADBG(en_inbuf, 1);
-        #(1ns);
-		`FORCE_ADBG(en_gf, 1);
+		#(1ns);
+        `FORCE_ADBG(en_gf, 1);
         #(1ns);
         `FORCE_ADBG(en_v2t, 1);
         #(1ns);
+
+        // Enable replica slices
+        $display("Enable replica slices...");
         `FORCE_ADBG(en_slice_rep, (1<<(Nti_rep))-1);
-        #(1ns);
-        `FORCE_DDBG(int_rstb, 1);
         #(1ns);
 
         // Set up the PFD offset
+        $display("Set the PFD offset...");
         for (int idx=0; idx<Nti_rep; idx=idx+1) begin
             tmp_ext_pfd_offset_rep[idx] = `EXT_PFD_OFFSET;
         end
