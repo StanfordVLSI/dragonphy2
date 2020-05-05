@@ -1,5 +1,7 @@
 name: rtl
 
+commands:
+  - python gen_rtl.py
+
 outputs:
   - design.v
-
