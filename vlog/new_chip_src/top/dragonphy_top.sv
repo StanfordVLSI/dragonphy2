@@ -86,6 +86,10 @@ module dragonphy_top import const_pack::*; (
 	logic [Nti_rep-1:0] adcout_sign_rep;
 
 
+// temp setting for sim ultil DCORE is fixed ---------------------------
+	logic ctl_valid;
+	assign ctl_valid = 1;	
+//---------------------------------------------------------------------------
 	
 	// Analog core instantiation
 	analog_core iacore (
@@ -102,6 +106,7 @@ module dragonphy_top import const_pack::*; (
 		.clk_cdr(clk_cdr),						// CDR clock
 		.clk_async(clk_async),
 		.ctl_pi(pi_ctl_cdr),  // PI control code from CDR
+		.ctl_valid(ctl_valid),  // PI control valid flag from CDR
 		
 		.Vcal(ext_Vcal),
 		
@@ -113,7 +118,7 @@ module dragonphy_top import const_pack::*; (
 
 		.adbg_intf_i(adbg_intf_i) 				// debug IO
 	);
-
+	
 	// digital core instantiation
 
 	digital_core idcore (

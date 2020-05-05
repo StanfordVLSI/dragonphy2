@@ -1,5 +1,4 @@
 `include "iotype.sv"
-//`include "/aha/sjkim85/github_repo/dragonphy/inc/new_asic/iotype.sv"
 
 module analog_core import const_pack::*; #(
 ) (
@@ -21,6 +20,7 @@ module analog_core import const_pack::*; #(
 	input wire logic clk_async,                          // asynchronous clock for phase measurement
 	                                                     // (from DCORE)
 	input wire logic [Npi-1:0] ctl_pi[Nout-1:0],         // PI control code (from DCORE)
+	input wire logic ctl_valid,                          // PI control valid flag (from DCORE) 
 
 	input `real_t Vcal,                                  // bias voltage for V2T (from pad)
 	
@@ -122,8 +122,9 @@ module analog_core import const_pack::*; #(
                 .rstb(adbg_intf_i.rstb),
                 .clk_in(clk_in_pi),
                 .clk_async(clk_async),
-                .clk_cdr(clk_cdr),
+                .clk_encoder(clk_adc),
                 .ctl(ctl_pi[k]),
+                .ctl_valid(ctl_valid),
 
                 .en_gf(adbg_intf_i.en_gf),
                 .en_arb(adbg_intf_i.en_arb_pi[k]),
