@@ -19,6 +19,7 @@ module phase_interpolator #(
     input [Nbit-1:0]  ctl,
     input [Nctl_dcdl-1:0]  ctl_dcdl_sw,
     input [Nctl_dcdl-1:0]  ctl_dcdl_slice,
+    input [Nctl_dcdl-1:0]  ctl_dcdl_clk_encoder,
     input [Nunit-1:0]  inc_del,
     input [$clog2(Nunit)-1:0]  ext_Qperi,
     input [1:0] sel_pm_sign,
@@ -45,6 +46,7 @@ module phase_interpolator #(
     wire  [Nunit-1:0]  mclk;
 
 	reg [2**Nblender-1:0] thm_sel_bld_sampled;	
+	reg [2**Nblender-1:0] thm_sel_bld_sampled_d;	
 
     logic [1:0] sel_mux_1st_even [3:0];
     logic [1:0] sel_mux_1st_odd [3:0];
@@ -53,7 +55,7 @@ module phase_interpolator #(
     logic [1:0] ph_out;
 
 	a_nd ia_nd_clk_in(.in1(clk_in), .in2(en_delay), .out(clk_in_gated)); 
-	a_nd ia_nd_ph_out(.in1(ph_out[0]), .in2(ph_out[1]), .out(ph_out_and)); 
+	a_nd ia_nd_ph_out(.in1(ph_out[0]), .in2(ph_out[1]), .out(and_ph_out)); 
 	
 	inv iinv_buff1 (.in(clk_in_gated), .out(clk_in_mid1));
 	inv iinv_buff2 (.in(clk_in_mid1), .out(clk_in_buff));
@@ -61,8 +63,8 @@ module phase_interpolator #(
     inv_chain #(
         .Ninv(4)
     ) iinv_chain_dont_touch (
-        .in(ph_out_and),
-        .out(ph_out_d)
+        .in(and_ph_out),
+        .out(and_ph_out_d)
     );
 
     PI_delay_chain iPI_delay_chain_dont_touch (
@@ -86,21 +88,24 @@ module phase_interpolator #(
     );
 
     phase_blender iphase_blender_dont_touch (
-        .thm_sel_bld(thm_sel_bld_sampled),
+        .thm_sel_bld(thm_sel_bld_sampled_d),
         .ph_out(bld_out),
         .ph_in(ph_out)
     );
 
-	always @(posedge bld_out or negedge rstb) begin
+	always @(posedge and_ph_out_d or negedge rstb) begin
 		if (!rstb) thm_sel_bld_sampled <=0;
-		else thm_sel_bld_sampled <= thm_sel_bld;
+		else begin
+			thm_sel_bld_sampled <= thm_sel_bld;
+			thm_sel_bld_sampled_d <= thm_sel_bld_sampled;
+		end
 	end 
 	
     arbiter iarbiter (
         .in1(ph_out[1]),
         .out(cal_out),
         .in2(ph_out[0]),
-        .clk(ph_out_d),
+        .clk(and_ph_out_d),
         .out_dmm(cal_out_dmm)
     );
 
@@ -119,6 +124,14 @@ module phase_interpolator #(
         .in(bld_out),
         .ctl(ctl_dcdl_slice)
     );
+    
+	dcdl_fine idcdl_fine2_dont_touch (
+        .disable_state(1'b0),
+        .out(clk_encoder_d),
+        .en(1'b1),
+        .in(clk_encoder),
+        .ctl(ctl_dcdl_clk_encoder)
+    );
 
     PI_local_encoder iPI_local_encoder (
         .rstb(rstb),
@@ -132,7 +145,7 @@ module phase_interpolator #(
         .sel_mux_2nd_even(sel_mux_2nd_even),
         .sel_mux_2nd_odd(sel_mux_2nd_odd),
         .arb_out(arb_out),
-        .clk_encoder(clk_encoder),
+        .clk_encoder(clk_encoder_d),
         .ctl(ctl),
         .en_ext_Qperi(en_ext_Qperi),
         .ext_Qperi(ext_Qperi)

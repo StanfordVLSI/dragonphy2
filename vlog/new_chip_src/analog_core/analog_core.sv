@@ -136,6 +136,7 @@ module analog_core import const_pack::*; #(
                 .inc_del(adbg_intf_i.del_inc[k]),
                 .ctl_dcdl_slice(adbg_intf_i.ctl_dcdl_slice[k]),
                 .ctl_dcdl_sw(adbg_intf_i.ctl_dcdl_sw[k]),
+                .ctl_dcdl_clk_encoder(adbg_intf_i.ctl_dcdl_clk_encoder[k]),
                 .disable_state(adbg_intf_i.disable_state[k]),
                 .en_clk_sw(adbg_intf_i.en_clk_sw[k]),
 
