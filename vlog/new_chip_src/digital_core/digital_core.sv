@@ -8,12 +8,14 @@ module digital_core import const_pack::*; (
     input wire logic [Nti_rep-1:0] adcout_sign_rep,
     input wire logic ext_rstb,
     input wire logic clk_async,
+    input wire logic ramp_clock,
     output wire logic clk_cdr,  
     output wire logic  [Npi-1:0] int_pi_ctl_cdr [Nout-1:0],
     output wire logic clock_out_p,
     output wire logic clock_out_n,
     output wire logic trigg_out_p,
     output wire logic trigg_out_n,
+    output wire logic freq_lvl_cross,
     input wire logic ext_dump_start,
     acore_debug_intf.dcore adbg_intf_i,
     jtag_intf.target jtag_intf_i
@@ -170,6 +172,8 @@ module digital_core import const_pack::*; (
         .din(adcout_unfolded[Nti-1:0]),
         .clk(clk_adc),
         .ext_rstb(cdr_rstb),
+        .ramp_clock    (ramp_clock),
+        .freq_lvl_cross(freq_lvl_cross),
         .pi_ctl(pi_ctl_cdr),
         .cdbg_intf_i(cdbg_intf_i)
     );
