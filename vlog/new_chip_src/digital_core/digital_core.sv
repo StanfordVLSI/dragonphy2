@@ -23,7 +23,9 @@ module digital_core import const_pack::*; (
     // interfaces
 
     cdr_debug_intf cdbg_intf_i ();
-    sram_debug_intf #(.N_mem_tiles(4)) sm_dbg_intf_i ();
+    sram_debug_intf #(.N_mem_tiles(4)) sm1_dbg_intf_i ();
+    sram_debug_intf #(.N_mem_tiles(4)) sm2_dbg_intf_i ();
+
     dcore_debug_intf ddbg_intf_i ();
     dsp_debug_intf dsp_dbg_intf_i();
     prbs_debug_intf pdbg_intf_i ();
@@ -47,7 +49,25 @@ module digital_core import const_pack::*; (
     wire logic signed [Nadc-1:0] adcout_unfolded [Nti+Nti_rep-1:0];
 
     wire logic signed [ffe_gpack::output_precision-1:0] estimated_bits [constant_gpack::channel_width-1:0];
+    wire logic signed [7:0] trunc_est_bits [Nti+Nti_rep-1:0];
+
+    //Sample the FFE output
+    genvar gi, gj;
+    generate
+        for(gi=0; gi<constant_gpack::channel_width-1:0, gi = gi + 1 ) begin
+            assign trunc_est_bits[gi] = estimated_bits[gi][9:2];
+        end
+    endgenerate
+
     wire logic checked_bits [constant_gpack::channel_width-1:0];
+    //Sample the MLSD output
+    generate
+        for(gi=0; gi<8; gi = gi + 1) begin
+            for(gj=0; gj<2; gj = gj + 1 ) begin
+                assign trunc_est_bits[16+gj][gi] = checked_bits[gi + gj*8]
+            end
+        end
+    endgenerate
 
     wire logic [Npi-1:0] scale_value [Nout-1:0];
     wire logic [Npi-1:0] unscaled_pi_ctl [Nout-1:0];
@@ -60,6 +80,8 @@ module digital_core import const_pack::*; (
 //        $shm_probe(ddbg_intf_i.disable_product);
 //        $shm_probe(dsp_i.disable_product);
 //    end
+
+    
 
 
     // derived reset signals
@@ -230,10 +252,26 @@ module digital_core import const_pack::*; (
 
         .in_start_write(ext_dump_start),
 
-        .in_addr(sm_dbg_intf_i.in_addr),
+        .in_addr(sm1_dbg_intf_i.in_addr),
 
-        .out_data(sm_dbg_intf_i.out_data),
-        .addr(sm_dbg_intf_i.addr)
+        .out_data(sm1_dbg_intf_i.out_data),
+        .addr(sm1_dbg_intf_i.addr)
+    );
+
+    oneshot_multimemory #(
+        .N_mem_tiles(4)
+    ) oneshot_multimemory_i(
+        .clk(clk_adc),
+        .rstb(sram_rstb),
+        
+        .in_bytes(trunc_est_bits),
+
+        .in_start_write(ext_dump_start),
+
+        .in_addr(sm2_dbg_intf_i.in_addr),
+
+        .out_data(sm2_dbg_intf_i.out_data),
+        .addr(sm2_dbg_intf_i.addr)
     );
 
     // PRBS
@@ -321,7 +359,8 @@ module digital_core import const_pack::*; (
         .ddbg_intf_i(ddbg_intf_i),
         .adbg_intf_i(adbg_intf_i),
         .cdbg_intf_i(cdbg_intf_i),
-        .sdbg_intf_i(sm_dbg_intf_i),
+        .sdbg1_intf_i(sm1_dbg_intf_i),
+        .sdbg2_intf_i(sm2_dbg_intf_i),
         .pdbg_intf_i(pdbg_intf_i),
         .wdbg_intf_i(wdbg_intf_i),
         .jtag_intf_i(jtag_intf_i)

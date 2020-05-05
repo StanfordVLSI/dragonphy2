@@ -6,7 +6,8 @@ module jtag (
 	acore_debug_intf.dcore adbg_intf_i,
 	cdr_debug_intf.jtag cdbg_intf_i,
 	dcore_debug_intf.jtag ddbg_intf_i,
-	sram_debug_intf.jtag sdbg_intf_i,
+	sram_debug_intf.jtag sdbg1_intf_i,
+	sram_debug_intf.jtag sdbg2_intf_i,
 	prbs_debug_intf.jtag pdbg_intf_i,
 	wme_debug_intf.jtag wdbg_intf_i,
 	jtag_intf.target jtag_intf_i
@@ -150,10 +151,17 @@ module jtag (
 	assign rjtag_intf_i.pfd_offset_rep=ddbg_intf_i.pfd_offset_rep;
 	
 	//SRAM Input
-	assign sdbg_intf_i.in_addr = rjtag_intf_i.in_addr_multi;
-	assign rjtag_intf_i.addr_multi = sdbg_intf_i.addr;
+	assign sdbg1_intf_i.in_addr = rjtag_intf_i.in_addr_multi;
+	assign rjtag_intf_i.addr_multi = sdbg1_intf_i.addr;
 	//SRAM Output
-	assign rjtag_intf_i.out_data_multi = sdbg_intf_i.out_data;
+	assign rjtag_intf_i.out_data_multi = sdbg1_intf_i.out_data;
+
+	//SRAM Input FFE/MLSD
+	assign sdbg2_intf_i.in_addr = rjtag_intf_i.in_addr_multi_ffe;
+	assign rjtag_intf_i.addr_multi_ffe = sdbg2_intf_i.addr;
+	//SRAM Output FFE/MLSD
+	assign rjtag_intf_i.out_data_multi_ffe = sdbg2_intf_i.out_data;
+
 
 	//CDR Input
 	assign cdbg_intf_i.pd_offset_ext = rjtag_intf_i.pd_offset_ext;
