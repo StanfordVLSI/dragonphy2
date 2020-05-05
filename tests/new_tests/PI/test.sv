@@ -3,6 +3,8 @@
 `define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
 `define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
 
+`define GET_ADBG(name) top_i.iacore.adbg_intf_i.``name``
+
 `ifndef PI_CTL_TXT
     `define PI_CTL_TXT
 `endif
@@ -16,6 +18,7 @@ module test;
 	import checker_pack::*;
     import const_pack::Nout;
     import const_pack::Npi;
+    import const_pack::Nunit_pi;
 
 	// clock inputs
 
@@ -30,9 +33,6 @@ module test;
 
 	jtag_intf jtag_intf_i ();
 	jtag_drv jtag_drv_i (jtag_intf_i);
-
-    // stimulus parameters
-    localparam real Twait = 1e-9;
 
 	// instantiate top module
 
@@ -63,13 +63,12 @@ module test;
 
     // Data recording
     logic record;
-    logic [Npi-1:0] pi_ctl [Nout-1:0];
     real Tdelay [Nout-1:0];
 
     pi_ctl_recorder #(
         .filename(`PI_CTL_TXT)
     ) pi_ctl_recorder_i(
-    	.in(pi_ctl),
+    	.in(top_i.iacore.ctl_pi),
     	.en(1'b1),
     	.clk(record)
     );
@@ -93,57 +92,79 @@ module test;
         end
     endgenerate
 
+    // Convenience function
+
+    function integer min(integer a, integer b);
+        min = (a < b) ? a : b;
+    endfunction
+
 	// Main test
+
+	integer max_sel_mux [Nout];
+	integer max_ctl_pi [Nout];
+	integer max_max_ctl_pi;
+	integer ctl_pi;
+
 	initial begin
-	    `ifdef DUMP_WAVEFORMS
+		`ifdef DUMP_WAVEFORMS
 	        $shm_open("waves.shm");
 	        $shm_probe("ASMC");
         `endif
 
-		// Initialize pins
-		$display("Initializing pins...");
-		record = 1'b0;
-		jtag_drv_i.init();
-
-		// Toggle reset
-		$display("Toggling reset...");
-        #(20ns);
+        // initialize control signals
 		rstb = 1'b0;
-		#(20ns);
-		rstb = 1'b1;
+		record = 1'b0;
+        #(1ns);
 
-		// Enable the input buffer
-		$display("Set up the input buffer...");
-        `FORCE_ADBG(en_inbuf, 0);
+		// Release reset
+		$display("Releasing external reset...");
+		rstb = 1'b1;
+        #(1ns);
+
+        // Initialize JTAG
+        $display("Initializing JTAG...");
+        jtag_drv_i.init();
+
+        // Soft reset sequence
+        $display("Soft reset sequence...");
+        `FORCE_DDBG(int_rstb, 1);
         #(1ns);
         `FORCE_ADBG(en_inbuf, 1);
-        #(1ns);
-		`FORCE_ADBG(en_gf, 1);
+		#(1ns);
+        `FORCE_ADBG(en_gf, 1);
         #(1ns);
         `FORCE_ADBG(en_v2t, 1);
         #(1ns);
-        `FORCE_DDBG(int_rstb, 1);
-        #(1ns);
 
-        // run CDR clock fast to reduce simulation time
-        // (the CDR clock is an input of the phase interpolator)
-        `FORCE_DDBG(Ndiv_clk_cdr, 1);
-
-        // wait for a little bit so that the CDR clock starts toggling
+        // wait for startup so that we can read max_sel_mux
         #(10ns);
 
-        // run desired number of trials
-        // TODO: explore behavior beyond 450
-        for (int i=0; i<=450; i=i+1) begin
-            // apply the stimulus
-            for (int j=0; j<Nout; j=j+1) begin
-                pi_ctl[j] = i;
+        // determine the max code range for each PI
+        // the expression for the max value is from Sung-Jin on May 1, 2020
+        max_max_ctl_pi = 0;
+        for (int i=0; i<Nout; i=i+1) begin
+            max_sel_mux[i] = `GET_ADBG(max_sel_mux[i]);
+            max_ctl_pi[i] = ((max_sel_mux[i]+1)*16)-1;
+            if (max_ctl_pi[i] > max_max_ctl_pi) begin
+                max_max_ctl_pi = max_ctl_pi[i];
             end
-            $display("Setting ext_pi_ctl_offset to %0d...", pi_ctl[0]);
-            `FORCE_DDBG(ext_pi_ctl_offset, pi_ctl);
+        end
 
-            // wait a few cycles of the CDR clock
-            repeat (4) @(negedge top_i.idcore.clk_cdr);
+        // test all PI CTL codes in the valid range of the PI
+        for (int i=0; i<=max_max_ctl_pi; i=i+1) begin
+            // determine the stimulus
+            ctl_pi = i;
+
+            // apply the stimulus
+            // force statements that use loop variables don't seem to work
+            $display("Setting ctl_pi to %0d...", ctl_pi);
+            force top_i.iacore.ctl_pi[0] = min(ctl_pi, max_ctl_pi[0]);
+            force top_i.iacore.ctl_pi[1] = min(ctl_pi, max_ctl_pi[1]);
+            force top_i.iacore.ctl_pi[2] = min(ctl_pi, max_ctl_pi[2]);
+            force top_i.iacore.ctl_pi[3] = min(ctl_pi, max_ctl_pi[3]);
+
+            // wait a few cycles of the 1 GHz clock
+            #(5ns);
             $display("Measured delay: %0.3f ps.", Tdelay[0]*1e12);
 
             // record the data
@@ -152,9 +173,6 @@ module test;
             record = 1'b0;
             #(1ns);
         end
-
-        // wait a bit
-        #(Twait*1s);
 
         // finish the test
         $finish;

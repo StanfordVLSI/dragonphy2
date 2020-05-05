@@ -56,36 +56,38 @@ module test;
 	// Main test
 
 	initial begin
-		// Uncomment to save key signals
-	    // $dumpfile("out.vcd");
-	    // $dumpvars(1, top_i);
-	    // $dumpvars(1, top_i.iacore);
-        // $dumpvars(3, top_i.iacore.iinbuf);
+        `ifdef DUMP_WAVEFORMS
+	        $shm_open("waves.shm");
+	        $shm_probe("ASMC");
+        `endif
 
-		// Initialize pins
-		$display("Initializing pins...");
-		jtag_drv_i.init();
-
-		// Toggle reset
-		$display("Toggling reset...");
+        // initialize control signals
 		rstb = 1'b0;
-		#(20ns);
-		rstb = 1'b1;
+        #(1ns);
 
-		// Enable the input buffer
-		$display("Setting control signals...");
-        `FORCE_ADBG(en_inbuf, 0);
+		// Release reset
+		$display("Releasing external reset...");
+		rstb = 1'b1;
+        #(1ns);
+
+        // Initialize JTAG
+        $display("Initializing JTAG...");
+        jtag_drv_i.init();
+
+        // Soft reset sequence
+        $display("Soft reset sequence...");
+        `FORCE_DDBG(int_rstb, 1);
         #(1ns);
         `FORCE_ADBG(en_inbuf, 1);
+		#(1ns);
+        `FORCE_ADBG(en_gf, 1);
         #(1ns);
-		`FORCE_ADBG(en_gf, 1);
-        #(1ns);
-        `FORCE_DDBG(int_rstb, 1);
+        `FORCE_ADBG(en_v2t, 1);
         #(1ns);
 
         // Wait a little while
         $display("Waiting for period measurement to complete...");
-        #(1us);
+        #(100ns);
 
 		// print results
 		$display("External period: ", ext_period.a);
