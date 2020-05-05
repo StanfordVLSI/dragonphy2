@@ -1,90 +1,90 @@
 `include "mLingua_pwl.vh"
-`include "iotype.sv"
 
-`default_nettype none
+`define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
+`define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
+
+`ifndef TI_ADC_TXT
+    `define TI_ADC_TXT
+`endif
+
+`ifndef EXT_PFD_OFFSET
+    `define EXT_PFD_OFFSET 16
+`endif
+
+`ifndef N_INTERVAL
+    `define N_INTERVAL 160
+`endif
+
+`ifndef INTERVAL_LENGTH
+    `define INTERVAL_LENGTH 10e-9
+`endif
 
 module test;
-
-	import const_pack::*;
 	import test_pack::*;
 	import checker_pack::*;
-	import jtag_reg_pack::*;
+    import const_pack::Nti;
+    import const_pack::Nti_rep;
+    import const_pack::Nadc;
+    import const_pack::Nout;
+    import const_pack::Npi;
 
-	localparam real v_diff_min = -0.4;
-	localparam real v_diff_max = +0.4;
-	localparam real v_diff_step = 0.01;
-	localparam `real_t v_cm = 0.40;
+	// clock inputs
 
-	// mLingua initialization
-	PWLMethod pm=new;
-
-	// Analog inputs
-	`pwl_t ch_outp;
-	`pwl_t ch_outn;
-    `voltage_t v_cal;
-
-	// clock inputs 
-	logic clk_async;
-	logic clk_jm_p;
-	logic clk_jm_n;
 	logic ext_clkp;
 	logic ext_clkn;
 
-	// clock outputs
-	logic clk_out_p;
-	logic clk_out_n;
-	logic clk_trig_p;
-	logic clk_trig_n;
-	logic clk_retime;
-	logic clk_slow;
-    logic rstb;
+	// reset
 
-	// dump control
-	logic dump_start;
-	logic clk_cdr;
+	logic rstb;
 
-	// JTAG
-	jtag_intf jtag_intf_i();
+	// JTAG driver
 
+	jtag_intf jtag_intf_i ();
+	jtag_drv jtag_drv_i (jtag_intf_i);
+
+	// Analog inputs
+
+	pwl ch_outp;
+	pwl ch_outn;
 
 	// instantiate top module
-	butterphy_top top_i (
-		// analog inputs
-		.ext_rx_inp(ch_outp),
-		.ext_rx_inn(ch_outn),
-		.ext_Vcm(v_cm),
-		.ext_Vcal(v_cal),
 
-		// clock inputs 
+	dragonphy_top top_i (
+	    // analog inputs
+		.ext_rx_inp_test(ch_outp),
+		.ext_rx_inn_test(ch_outn),
+		.ext_Vcm(v_cm),
+	    .ext_Vcal(0.23),
+
+		// clock inputs
 		.ext_clkp(ext_clkp),
 		.ext_clkn(ext_clkn),
 
-		// clock outputs
-		.clk_out_p(clk_out_p),
-		.clk_out_n(clk_out_n),
-		.clk_trig_p(clk_trig_p),
-		.clk_trig_n(clk_trig_n),
-		// dump control
-		.ext_dump_start(dump_start),
+        // reset
         .ext_rstb(rstb),
-		// JTAG
+
+        // JTAG
 		.jtag_intf_i(jtag_intf_i)
+		// other I/O not used..
 	);
 
+	// External clock
+
+    localparam real ext_clk_freq = full_rate/2;
 	clock #(
-		.freq(full_rate/2), //Depends on divider !
+		.freq(ext_clk_freq),
 		.duty(0.5),
 		.td(0)
 	) iEXTCLK (
 		.ckout(ext_clkp),
 		.ckoutb(ext_clkn)
-	); 
+	);
 
-	jtag_drv jtag_drv_i (jtag_intf_i);
+	// Save signals for post-processing
 
-	logic should_record;
-	
+    logic should_record;
     ti_adc_recorder #(
+        .filename(`TI_ADC_TXT),
     	.num_channels(Nti_rep)
     ) ti_adc_recorder_i (
 		.in(top_i.idcore.adcout_unfolded[Nti+Nti_rep-1:Nti]),
@@ -93,59 +93,70 @@ module test;
 	);
 
     // Sine wave stimulus
-
     sine_stim #(
-		.sine_freq(11e6)
+        .Vcm(0.4),
+        .sine_ampl(0.2),
+        .sine_freq(12.3e6)
     ) sine_stim_i (
 		.ch_outp(ch_outp),
 		.ch_outn(ch_outn)
 	);
 
-	// Main stimulus program
-
-	localparam integer V2T_CTL_NOM = 6;
-
+	// Main test
+	logic [Nadc-1:0] tmp_ext_pfd_offset_rep [Nti_rep-1:0];
 	initial begin
-		should_record = 1'b0;
+        `ifdef DUMP_WAVEFORMS
+	        $shm_open("waves.shm");
+	        $shm_probe("ASMC");
+        `endif
+
+        // initialize control signals
+    	should_record = 1'b0;
 		rstb = 1'b0;
+        #(1ns);
 
-		#(20ns);
+		// Release reset
+		$display("Releasing external reset...");
 		rstb = 1'b1;
-		#(10ns);
+        #(1ns);
 
-		// Initialize JTAG
-		jtag_drv_i.init();
+        // Initialize JTAG
+        $display("Initializing JTAG...");
+        jtag_drv_i.init();
 
-		// JTAG writes
-		$display("Enabling the input buffer.");
-		jtag_drv_i.write_tc_reg(en_inbuf, 'b1);
-		$display("Enabling the V2T.");
-		jtag_drv_i.write_tc_reg(en_v2t, 'b1);
-		$display("Enabling the replica slices.");
-		jtag_drv_i.write_tc_reg(en_slice_rep, (1<<(Nti_rep))-1);
-		jtag_drv_i.write_tc_reg(int_rstb, 'b1);
-		for (int i=0; i<Nti_rep; i=i+1) begin
-			$display("Writing V2TP control code for replica %d.", i);
-			jtag_drv_i.write_tc_reg(ctl_v2tp_rep[i], V2T_CTL_NOM);
-			$display("Writing V2TN control code for replica %d.", i);
-			jtag_drv_i.write_tc_reg(ctl_v2tn_rep[i], V2T_CTL_NOM);
-		end
-		
+        // Soft reset sequence
+        $display("Soft reset sequence...");
+        `FORCE_DDBG(int_rstb, 1);
+        #(1ns);
+        `FORCE_ADBG(en_inbuf, 1);
+		#(1ns);
+        `FORCE_ADBG(en_gf, 1);
+        #(1ns);
+        `FORCE_ADBG(en_v2t, 1);
+        #(1ns);
+
+        // Enable the replica slices
+        `FORCE_ADBG(en_slice_rep, (1<<(Nti_rep))-1);
+        #(1ns);
+
+        // Set up the PFD offset
+        for (int idx=0; idx<Nti_rep; idx=idx+1) begin
+            tmp_ext_pfd_offset_rep[idx] = `EXT_PFD_OFFSET;
+        end
+        `FORCE_DDBG(ext_pfd_offset_rep, tmp_ext_pfd_offset_rep);
+        #(1ns);
+
 		// Wait some time initially
-		$display("Initial delay.");
+		$display("Initial delay of 50 ns...");
 		#(50ns);
 
 		// Then record for awhile
-		$display("Recording data.");
 		should_record = 1'b1;
-		#(1.2us);
+		for (int k=0; k<(`N_INTERVAL); k=k+1) begin
+		    $display("Test is %0.1f%% complete.", (100.0*k)/(1.0*(`N_INTERVAL)));
+		    #((`INTERVAL_LENGTH)*1s);
+		end
 
 		$finish;
 	end
-
-	// print out simulation progress
-	sim_status sim_status_i ();
-
 endmodule
-
-`default_nettype wire

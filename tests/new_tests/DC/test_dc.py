@@ -16,10 +16,18 @@ if 'FPGA_SERVER' in os.environ:
 else:
     SIMULATOR = 'ncsim'
 
+# Set DUMP_WAVEFORMS to True if you want to dump all waveforms for this
+# test.  The waveforms are stored in tests/new_tests/DC/build/waves.shm
+DUMP_WAVEFORMS = False
+
 @pytest.mark.parametrize((), [pytest.param(marks=pytest.mark.slow) if SIMULATOR=='vivado' else ()])
 def test_sim():
+    deps = get_deps_cpu_sim_new(impl_file=THIS_DIR / 'test.sv')
+    print(deps)
+
     def qwrap(s):
         return f'"{s}"'
+
     defines = {
         'TI_ADC_TXT': qwrap(BUILD_DIR / 'ti_adc.txt'),
         'RX_INPUT_TXT': qwrap(BUILD_DIR / 'rx_input.txt'),
@@ -28,10 +36,10 @@ def test_sim():
         'NCVLOG': None
     }
 
-    deps = get_deps_cpu_sim_new(impl_file=THIS_DIR / 'test.sv')
-    print(deps)
-
-
+    flags = ['-unbuffered']
+    if DUMP_WAVEFORMS:
+        defines['DUMP_WAVEFORMS'] = None
+        flags += ['-access', '+r']
 
     DragonTester(
         ext_srcs=deps,
@@ -40,8 +48,7 @@ def test_sim():
         inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/new_cpu')],
         defines=defines,
         simulator=SIMULATOR,
-        flags=['-unbuffered']
-#        dump_waveforms=True
+        flags=flags
     ).run()
 
     x = np.loadtxt(BUILD_DIR / 'rx_input.txt', dtype=float)
@@ -81,7 +88,7 @@ def plot_data(x, y, widths):
     plt.cla()
     plt.clf()
 
-def check_data(x, y, inl_limit=5, offset_limit=2.5, gain_bnds=(240, 290)):
+def check_data(x, y, inl_limit=5, offset_limit=2.5, gain_bnds=(240, 300)):
     # compute linear regression
     regr = linear_model.LinearRegression()
     regr.fit(x[:, np.newaxis], y)
