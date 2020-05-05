@@ -30,6 +30,7 @@ interface acore_debug_intf import const_pack::*; (
         logic [Nunit_pi-1:0] del_inc[Nout-1:0];				// from JTAG (all 0) x
         logic [1:0] ctl_dcdl_slice[Nout-1:0];				// from JTAG (all 0) x
         logic [1:0] ctl_dcdl_sw[Nout-1:0];					// from JTAG (all 0) x
+        logic [1:0] ctl_dcdl_clk_encoder[Nout-1:0];			// from JTAG (all 0) x
         logic [Nout-1:0] disable_state;						// from JTAG (all 0) x
         logic [Nout-1:0] en_clk_sw;							// from JTAG (all 1) x
         logic [Nout-1:0] en_meas_pi;						// from JTAG (all 0) x
@@ -129,6 +130,7 @@ interface acore_debug_intf import const_pack::*; (
         input del_inc,
         input ctl_dcdl_slice,
         input ctl_dcdl_sw,
+        input ctl_dcdl_clk_encoder,
         input disable_state,
         input en_clk_sw,
         input en_meas_pi,
@@ -220,6 +222,7 @@ interface acore_debug_intf import const_pack::*; (
         output del_inc,
         output ctl_dcdl_slice,
         output ctl_dcdl_sw,
+        output ctl_dcdl_clk_encoder,
         output disable_state,
         output en_clk_sw,
         output en_meas_pi,
