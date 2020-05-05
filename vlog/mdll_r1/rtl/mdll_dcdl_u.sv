@@ -32,9 +32,7 @@ module mdll_dcdl_u import mdll_pkg::*; #(
 // parameters here
 ) (
 // I/Os here
-`ifdef SIMULATION
-    input `ANALOG_WIRE VREG,
-`endif
+    input `ANALOG_WIRE vout,
 	input sel_inj,	// 1: take inj_inp(n); 0: take inp(n) inputs
 	input [2**N_DCO_O-2:0] ctl_offset_thm,// offset control of the delay (thermometer)
 	input [2**(N_DCO_TI-N_PI)-2:0] ctl_fine_msb_thm,	// MSB fine control of the delay (thermometer)
@@ -75,9 +73,11 @@ mdll_pd_bb uPD ( .osc_0(inp), .clk_refp(inj_inp), .clk_refn(inj_inn), .sel_inj(s
 defparam uDCDL_OFFSET.N_STG = 2**N_DCO_O-1;
 defparam uDCDL_OFFSET.USE_VREG = 1'b1;
 
+mdll_vreg_feedthrough uFT (.vin(vout), .vout(1'b1));	// VREG PD
+
 mdll_dcdl_coarse uDCDL_OFFSET (
 `ifdef SIMULATION
-    .VREG(VREG),
+    .VREG(vout),
 `endif
 	.cinp(mux_p),
     .cinn(mux_n),
