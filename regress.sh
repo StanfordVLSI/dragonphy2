@@ -1,7 +1,3 @@
-# create virtual environment
-$DRAGONPHY_PYTHON -m venv venv
-source venv/bin/activate
-
 # upgrade pip
 pip install -U pip
 
@@ -18,6 +14,12 @@ export PATH="$GENESIS_HOME/gui/bin:$PATH"
 git clone --single-branch --branch pwl_cos https://github.com/StanfordVLSI/DaVE.git
 export mLINGUA_DIR=`realpath DaVE/mLingua`
 
+# install mflowgen
+git clone https://github.com/cornell-brg/mflowgen
+cd mflowgen
+pip install -e .
+cd ..
+
 # install dragonphy
 pip install -e .
 
@@ -27,15 +29,18 @@ python make.py --view asic
 python make.py --view fpga
 python make.py --view cpu
 
-
 # install pytest
 pip install pytest pytest-cov
 
-# run tests
-pytest tests -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
+# run tests and upload coverage
+# pytest tests -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
+# bash <(curl -s https://codecov.io/bash)
 
-# upload coverage
-bash <(curl -s https://codecov.io/bash)
-
-# deactivate virtual env
-deactivate
+# run mflowgen as long as we're not on the FPGA server
+if [ -z "$FPGA_SERVER" ]
+then
+    mkdir -p build/mflowgen
+    cd build/mflowgen
+    mflowgen run --design ../../flow
+    make synopsys-dc-synthesis
+fi
