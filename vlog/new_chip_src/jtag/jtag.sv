@@ -136,7 +136,9 @@ module jtag (
 	assign ddbg_intf_i.ffe_shift		= rjtag_intf_i.ffe_shift;
 	assign ddbg_intf_i.mlsd_shift		= rjtag_intf_i.mlsd_shift;
 	assign ddbg_intf_i.cmp_thresh		= rjtag_intf_i.cmp_thresh;
-
+	assign ddbg_intf_i.ffe_thresh		= rjtag_intf_i.ffe_thresh;
+	assign ddbg_intf_i.adc_thresh		= rjtag_intf_i.adc_thresh;
+	assign ddbg_intf_i.sel_prbs_mux		= rjtag_intf_i.sel_prbs_mux;
 
 	//Digital Output
 	assign rjtag_intf_i.adcout_avg=ddbg_intf_i.adcout_avg;
