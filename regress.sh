@@ -39,8 +39,21 @@ pip install pytest pytest-cov
 # run mflowgen as long as we're not on the FPGA server
 if [ -z "$FPGA_SERVER" ]
 then
-    mkdir -p build/mflowgen
-    cd build/mflowgen
-    mflowgen run --design ../../flow
+    mkdir -p build/mflowgen_dragonphy_top
+    cd build/mflowgen_dragonphy_top
+    mflowgen run --design ../../designs/dragonphy_top
     make synopsys-dc-synthesis
+    cd ..
+
+    mkdir -p build/mflowgen_jtag
+    cd build/mflowgen_jtag
+    mflowgen run --design ../../designs/jtag
+    make synopsys-dc-synthesis
+    cd ..
+
+    mkdir -p build/mflowgen_weight_manager
+    cd build/mflowgen_weight_manager
+    mflowgen run --design ../../designs/weight_manager
+    make synopsys-dc-synthesis
+    cd ..
 fi

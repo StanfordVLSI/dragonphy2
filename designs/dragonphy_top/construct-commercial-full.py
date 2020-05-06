@@ -30,10 +30,6 @@ def construct():
     if DRAGONPHY_PROCESS == 'FREEPDK45':
         parameters['adk_name'] = 'freepdk-45nm'
         parameters['adk_view'] = 'view-standard'
-        # override some timing parameters
-        parameters['clk_retimer_period'] = 10.0
-        parameters['clk_in_period'] = 10.0
-        parameters['clk_jtag_period'] = 100.0
 
         # update timing parameters
         slowdown=10
