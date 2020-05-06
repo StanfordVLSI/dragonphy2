@@ -74,48 +74,11 @@ module test;
 	jtag_drv jtag_drv_i (jtag_intf_i);
 
 	// TX data
-
-	logic tx_clk;
-	logic tx_data;
-
-	tx_prbs #(
-		.freq((full_rate*1000)/1000)
-	) tx_prbs_i (
-		.clk(tx_clk),
-		.out(tx_data)
-	);
-
-	// TX driver
-
-	pwl tx_p;
-	pwl tx_n;
-
-	diff_tx_driver diff_tx_driver_i (
-		.in(tx_data),
-		.out_p(tx_p),
-		.out_n(tx_n)
-	);
-
-	// Differential channel
-
-	diff_channel diff_channel_i (
-		.in_p(tx_p),
-		.in_n(tx_n),
-		.out_p(ch_outp),
-		.out_n(ch_outn)
-	);
-
 	// Save TX output and RX ADC data
 
 	logic should_record;
-
-	tx_output_recorder tx_output_recorder_i (
-		.in(tx_data),
-		.clk(tx_clk),
-		.en(should_record)
-	);
-
-	ti_adc_recorder ti_adc_recorder_i (
+	
+ti_adc_recorder ti_adc_recorder_i (
 		.in(top_i.idcore.adcout_unfolded[Nti-1:0]),
 		.clk(top_i.clk_adc),
 		.en(should_record)
@@ -143,7 +106,7 @@ module test;
 
 		$display("Disabling external PI CTL code...");
 		#(1us)
-		jtag_drv_i.write_tc_reg(en_ext_pi_ctl_cdr, 'b0);
+		jtag_drv_i.write_tc_reg(en_ext_pi_ctl, 'b0);
 		$display("Enabling external offset for PI CTL...");
 		//jtag_drv_i.write_tc_reg(sel_ext_pd_offset, 'b1);
 
