@@ -2,6 +2,8 @@
 |----------------------------|---------|------------------------|------------------|--------------|----------|-----------|
 | ext_pi_ctl_offset          |         | Npi-1:0                | Nout-1:0         | Test         | out      | 0&135&270&405|
 | en_ext_pfd_offset          |         |                        |                  | Test         | out      | 'b1       |
+| bypass_pi_ctl              |         | Npi-1:0                | Nout-1:0         | Test         | out      | 0         |
+| en_bypass_pi_ctl           |         |                        |                  | Test         | out      | 0         |
 | ext_pfd_offset             |         | Nadc-1:0               | Nti-1:0          | Test         | out      | 'd47      |
 | en_ext_pfd_offset_rep      |         |                        |                  | Test         | out      | 'b1       |
 | ext_pfd_offset_rep         |         | Nadc-1:0               | Nti_rep-1:0      | Test         | out      | 'd27      |
@@ -39,3 +41,9 @@
 | Ndiv_trigbuff 			 | 		   | 2:0					|				   | Test		  | out 	 |   0		 |
 | bypass_out				 | 		   |     					|				   | Test		  | out 	 |   1		 |
 | bypass_trig				 | 		   |     					|				   | Test		  | out 	 |   1		 |
+| ffe_shift                  |         | 4:0                    | Nti-1:0          | Test         | out      |   1       |
+| mlsd_shift                 |         | 3:0                    | Nti-1:0          | Test         | out      |   1       |
+| cmp_thresh                 |   yes   | 9:0                    | Nti-1:0          | Test         | out      |   0       |
+| disable_product            |         | Nti-1:0                | 9:0              | Test         | out      |   0       |
+
+

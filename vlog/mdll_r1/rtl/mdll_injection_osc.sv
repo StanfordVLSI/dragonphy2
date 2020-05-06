@@ -73,12 +73,17 @@ wire osc_180_int;
 wire osc_270_int;
 wire sel_inj;
 wire en_osc_b;
-`ANALOG_WIRE VREG;
+`ANALOG_WIRE vout;
 
+wire tiehigh;
+wire tielow;
 
 //---------------------
 // INSTANTIATION
 //---------------------
+
+mdll_tieh uTIEH ( .HI(tiehigh) );
+mdll_tiel uTIEL ( .LO(tielow) );
 
 mdll_inv_x1 uINV_EN_OSC ( .A(en_osc), .ZN(en_osc_b) );
 
@@ -103,13 +108,11 @@ mdll_dcdl_supply_dac uDAC (
     .ctl_dac_bw_thm(ctl_dac_bw_thm),
     .ctlb_dac_gain_oc(ctlb_dac_gain_oc),
     .dinb_sel(ctlb_dac_sel),
-    .VREG(VREG)
+    .vout(vout)
 );
 
 mdll_dcdl_u uDCDL1 (
-`ifdef SIMULATION
-	.VREG(VREG),
-`endif
+	.vout(vout),
 	.sel_inj(sel_inj),
 	.ctl_offset_thm(ctl_offset_thm),
 	.ctl_fine_msb_thm(ctl_fine_msb_thm),
@@ -126,17 +129,15 @@ mdll_dcdl_u uDCDL1 (
 );
 
 mdll_dcdl_u uDCDL2 (
-`ifdef SIMULATION
-	.VREG(VREG),
-`endif
-	.sel_inj(1'b0),
+	.vout(vout),
+	.sel_inj(tielow),
 	.ctl_offset_thm(ctl_offset_thm),
 	.ctl_fine_msb_thm(ctl_fine_msb_thm),
 	.ctl_fine_lsb_thm(ctl_fine_lsb_thm),
 	.inp(osc_90_int),
 	.inn(osc_270_int),
-	.inj_inp(1'b0), 
-	.inj_inn(1'b1), 
+	.inj_inp(tielow), 
+	.inj_inn(tiehigh), 
 	.outp(osc_180_int),
 	.outn(osc_0_int),
 	.mux_p(clk_90_int),
