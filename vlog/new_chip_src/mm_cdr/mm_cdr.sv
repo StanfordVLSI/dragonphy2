@@ -30,7 +30,7 @@ module mm_cdr import const_pack::*; #(
     assign Kr = cdbg_intf_i.Kr;
 
     logic signed [Nadc+1:0] phase_error;
-    logic signed [Nadc+1+phase_est_shift:0] phase_est_d, phase_est_q;
+    logic signed [Nadc+1+phase_est_shift:0] phase_est_d, phase_est_q, phase_est_update;
 
     logic signed [Nadc+1+phase_est_shift:0] ramp_est_pls_d, ramp_est_pls_q, ramp_est_pls_update;
     logic signed [Nadc+1+phase_est_shift:0] ramp_est_neg_d, ramp_est_neg_q, ramp_est_neg_update;
@@ -60,7 +60,9 @@ module mm_cdr import const_pack::*; #(
         freq_est_d       = cdbg_intf_i.en_freq_est ? freq_est_update : 0;
         freq_diff        = freq_est_update - prev_freq_update_q;
 
-        phase_est_d      = phase_est_q + (phase_error << Kp) + freq_est_q;
+        phase_est_update = ((phase_error << Kp) + freq_est_q);
+
+        phase_est_d      = phase_est_q + phase_est_update;
         phase_est_out    = phase_est_q >> phase_est_shift;
     end
 
