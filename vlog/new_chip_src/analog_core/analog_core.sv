@@ -11,11 +11,11 @@ module analog_core import const_pack::*; #(
     input `pwl_t rx_inn_test,                            // RX input (-) for replica ADC (from pad)
     
 	input wire logic ext_clk,                           // (+) 4GHz clock input (from pad)
+	input wire logic mdll_clk,                           // (+) 4GHz clock input (from pad)
 
 	input wire logic ext_clk_test0,                      // (+) 4GHz clock input (from pad)
     input wire logic ext_clk_test1,                      // (-) 4GHz clock input (from pad)
     	
-	input wire logic clk_cdr,                            // cdr loop filter clock (from DCORE)
 	input wire logic clk_async,                          // asynchronous clock for phase measurement
 	                                                     // (from DCORE)
 	input wire logic [Npi-1:0] ctl_pi[Nout-1:0],         // PI control code (from DCORE)
@@ -240,7 +240,9 @@ module analog_core import const_pack::*; #(
 	input_divider iindiv (
 	    // inputs
 		.in(ext_clk),
-  		.en(adbg_intf_i.en_inbuf),
+		.in_mdll(mdll_clk),
+		.sel_clk_source(adbg_intf_i.sel_clk_source),
+		.en(adbg_intf_i.en_inbuf),
 		.bypass_div(adbg_intf_i.bypass_inbuf_div),
 		.bypass_div2(adbg_intf_i.bypass_inbuf_div2),
 		.ndiv(adbg_intf_i.inbuf_ndiv),
