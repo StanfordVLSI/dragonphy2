@@ -308,6 +308,7 @@ module digital_core import const_pack::*; (
     assign mux_prbs_rx_bits[0] = bits_adc_r;
     assign mux_prbs_rx_bits[1] = bits_ffe_r;
     assign mux_prbs_rx_bits[2] = bits_mlsd_r;
+    assign mux_prbs_rx_bits[3] = 0;
 
 
     generate
