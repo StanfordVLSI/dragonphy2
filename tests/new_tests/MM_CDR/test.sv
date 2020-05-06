@@ -18,7 +18,6 @@ module test;
 	// Analog inputs
 	`pwl_t ch_outp;
 	`pwl_t ch_outn;
-    `voltage_t v_cal;
 
 	// Clock inputs 
 	logic clk_async;
@@ -43,31 +42,28 @@ module test;
 	jtag_intf jtag_intf_i();
 
 	// instantiate top module
-	butterphy_top top_i (
-		// analog inputs
+	dragonphy_top top_i (
+	    // analog inputs
 		.ext_rx_inp(ch_outp),
 		.ext_rx_inn(ch_outn),
 		.ext_Vcm(v_cm),
-		.ext_Vcal(v_cal),
+	    .ext_Vcal(0.23),
 
-		// clock inputs 
+		// clock inputs
 		.ext_clkp(ext_clkp),
 		.ext_clkn(ext_clkn),
 
-		// clock outputs
-		.clk_out_p(clk_out_p),
-		.clk_out_n(clk_out_n),
-		.clk_trig_p(clk_trig_p),
-		.clk_trig_n(clk_trig_n),
-		// dump control
-		.ext_dump_start(dump_start),
+        // reset
         .ext_rstb(rstb),
-		// JTAG
+
+        // JTAG
 		.jtag_intf_i(jtag_intf_i)
+		// other I/O not used..
 	);
 
+	localparam real ext_clk_freq = full_rate/2;
 	clock #(
-		.freq(full_rate/2), // Depends on divider!
+		.freq(ext_clk_freq), // Depends on divider!
 		.duty(0.5),
 		.td(0)
 	) iEXTCLK (
