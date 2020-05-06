@@ -5,3 +5,6 @@ commands:
 
 outputs:
   - design.v
+
+parameters:
+  design_name: None
