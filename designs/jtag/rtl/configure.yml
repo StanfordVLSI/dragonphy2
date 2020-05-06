@@ -1,0 +1,10 @@
+name: rtl
+
+commands:
+  - python gen_rtl.py
+
+outputs:
+  - design.v
+
+parameters:
+  design_name: None
