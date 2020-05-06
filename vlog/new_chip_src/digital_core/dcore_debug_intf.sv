@@ -96,7 +96,7 @@ interface dcore_debug_intf import const_pack::*; (
 		input bypass_pi_ctl,
 		input adc_thresh,
 		input ffe_thresh,
-		input sel_prbs_mux
+		input sel_prbs_mux,
 
 		output adcout_avg ,
 		output adcout_sum,
@@ -149,7 +149,7 @@ interface dcore_debug_intf import const_pack::*; (
 		output bypass_pi_ctl,
 		output adc_thresh,
 		output ffe_thresh,
-		output sel_prbs_mux
+		output sel_prbs_mux,
 
 
 		input adcout_avg ,

@@ -45,5 +45,7 @@
 | mlsd_shift                 |         | 3:0                    | Nti-1:0          | Test         | out      |   1       |
 | cmp_thresh                 |   yes   | 9:0                    | Nti-1:0          | Test         | out      |   0       |
 | disable_product            |         | Nti-1:0                | 9:0              | Test         | out      |   0       |
-
+| ffe_thresh                 |   yes   | 9:0                    | Nti-1:0          | Test         | out      |   0       |
+| adc_thresh                 |   yes   | 7:0                    | Nti-1:0          | Test         | out      |   0       |
+| sel_prbs_mux               |         | 1:0                    |                  | Test         | out      |   0       |
 
