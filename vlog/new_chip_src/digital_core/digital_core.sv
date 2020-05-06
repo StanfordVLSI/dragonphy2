@@ -31,7 +31,7 @@ module digital_core import const_pack::*; (
     prbs_debug_intf pdbg_intf_i ();
     wme_debug_intf wdbg_intf_i ();
 
-    
+
     // internal signals
 
     wire logic rstb;
@@ -211,6 +211,7 @@ module digital_core import const_pack::*; (
     assign dsp_dbg_intf_i.mlsd_shift      = ddbg_intf_i.mlsd_shift;
     assign dsp_dbg_intf_i.thresh          = ddbg_intf_i.cmp_thresh;
 
+    `ifndef SYNTHESIS_DEBUG
     weight_manager #(.width(Nti), .depth(10), .bitwidth(10)) wme_ffe_i (
         .data    (wdbg_intf_i.wme_ffe_data),
         .inst    (wdbg_intf_i.wme_ffe_inst),
@@ -230,6 +231,7 @@ module digital_core import const_pack::*; (
         .read_reg(wdbg_intf_i.wme_mlsd_read),
         .weights (dsp_dbg_intf_i.channel_est)
     );
+    `endif
 
     dsp_backend dsp_i(
         .codes(adcout_unfolded[Nti-1:0]),

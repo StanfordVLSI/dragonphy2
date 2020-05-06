@@ -11,6 +11,9 @@ outputs:
 parameters:
   # time in ns and capacitance in pF
 
+  # Name of the design
+  design_name: undefined
+
   # Main clocks in the design
   clk_retimer_period: 0.7
   clk_in_period: 0.7
