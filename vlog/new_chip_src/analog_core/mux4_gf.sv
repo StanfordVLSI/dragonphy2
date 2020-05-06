@@ -13,7 +13,7 @@ module mux4_gf (
     wire [1:0] sel_mux;
     wire out_d;
 
-    mux4 imux4_dont_touch (
+    mux4_fixed imux4_dont_touch (
         .in(in),
         .sel(sel_mux),
         .out(out)
@@ -27,11 +27,9 @@ module mux4_gf (
         end
     end
 
-    del_PI idel_PI_dont_touch (
-        .in(out),
-        .out(out_d)
-    );
-
+	inv_gf iinv_gf_1(.in(out), .out(out_b));
+	inv_gf iinv_gf_2(.in(out_b), .out(out_d));
+	
    mux_fixed imux_dont_touch[1:0] (.in0(sel), .in1(sel_retimed), .sel(en_gf), .out(sel_mux));
 
 endmodule
