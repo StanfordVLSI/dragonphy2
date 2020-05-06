@@ -315,10 +315,11 @@ module digital_core import const_pack::*; (
             assign bits_adc_r[k] = bits_adc[k];
             assign bits_ffe_r[k] = bits_ffe[k];
             assign bits_mlsd_r[k] = checked_bits[k];
-
-            assign prbs_rx_bits = mux_prbs_rx_bits[ddbg_intf_i.sel_prbs_mux];
         end
     endgenerate
+
+    assign prbs_rx_bits = mux_prbs_rx_bits[ddbg_intf_i.sel_prbs_mux];
+
 
     prbs_checker #(
         .n_prbs(Nprbs),
