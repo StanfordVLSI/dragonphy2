@@ -8,12 +8,14 @@ module digital_core import const_pack::*; (
     input wire logic [Nti_rep-1:0] adcout_sign_rep,
     input wire logic ext_rstb,
     input wire logic clk_async,
+    input wire logic ramp_clock,
     output wire logic clk_cdr,  
     output wire logic  [Npi-1:0] int_pi_ctl_cdr [Nout-1:0],
     output wire logic clock_out_p,
     output wire logic clock_out_n,
     output wire logic trigg_out_p,
     output wire logic trigg_out_n,
+    output wire logic freq_lvl_cross,
     input wire logic ext_dump_start,
     acore_debug_intf.dcore adbg_intf_i,
     jtag_intf.target jtag_intf_i
@@ -21,10 +23,13 @@ module digital_core import const_pack::*; (
     // interfaces
 
     cdr_debug_intf cdbg_intf_i ();
-    sram_debug_intf #(.N_mem_tiles(4)) sm_dbg_intf_i ();
+    sram_debug_intf #(.N_mem_tiles(4)) sm1_dbg_intf_i ();
+    sram_debug_intf #(.N_mem_tiles(4)) sm2_dbg_intf_i ();
+
     dcore_debug_intf ddbg_intf_i ();
     dsp_debug_intf dsp_dbg_intf_i();
     prbs_debug_intf pdbg_intf_i ();
+    wme_debug_intf wdbg_intf_i ();
 
     
     // internal signals
@@ -44,11 +49,40 @@ module digital_core import const_pack::*; (
     wire logic signed [Nadc-1:0] adcout_unfolded [Nti+Nti_rep-1:0];
 
     wire logic signed [ffe_gpack::output_precision-1:0] estimated_bits [constant_gpack::channel_width-1:0];
+    wire logic signed [7:0] trunc_est_bits [Nti+Nti_rep-1:0];
+
+    //Sample the FFE output
+    genvar gi, gj;
+    generate
+        for(gi=0; gi<constant_gpack::channel_width; gi = gi + 1 ) begin
+            assign trunc_est_bits[gi] = estimated_bits[gi][9:2];
+        end
+    endgenerate
+
     wire logic checked_bits [constant_gpack::channel_width-1:0];
+    //Sample the MLSD output
+    generate
+        for(gi=0; gi<8; gi = gi + 1) begin
+            for(gj=0; gj<2; gj = gj + 1 ) begin
+                assign trunc_est_bits[16+gj][gi] = checked_bits[gi + gj*8];
+            end
+        end
+    endgenerate
 
     wire logic [Npi-1:0] scale_value [Nout-1:0];
     wire logic [Npi-1:0] unscaled_pi_ctl [Nout-1:0];
     wire logic [Npi+Npi-1:0] scaled_pi_ctl [Nout-1:0];
+
+//    initial begin
+//        $shm_open("waves.shm");
+//        $shm_probe("ACT"); 
+//        $shm_probe(pi_ctl_cdr);
+//        $shm_probe(ddbg_intf_i.disable_product);
+//        $shm_probe(dsp_i.disable_product);
+//    end
+
+    
+
 
     // derived reset signals
 
@@ -156,6 +190,8 @@ module digital_core import const_pack::*; (
         .din(adcout_unfolded[Nti-1:0]),
         .clk(clk_adc),
         .ext_rstb(cdr_rstb),
+        .ramp_clock    (ramp_clock),
+        .freq_lvl_cross(freq_lvl_cross),
         .pi_ctl(pi_ctl_cdr),
         .cdbg_intf_i(cdbg_intf_i)
     );
@@ -163,12 +199,37 @@ module digital_core import const_pack::*; (
     genvar j;
     generate
         for (j=0; j<Nout; j=j+1) begin
-            assign scale_value[j]        = (ddbg_intf_i.en_ext_max_sel_mux ? ddbg_intf_i.ext_max_sel_mux[j] : adbg_intf_i.max_sel_mux[j])<<4;
+            assign scale_value[j]        = (((ddbg_intf_i.en_ext_max_sel_mux ? ddbg_intf_i.ext_max_sel_mux[j]: adbg_intf_i.max_sel_mux[j]) + 1)<<4) -1;
             assign unscaled_pi_ctl[j]    = pi_ctl_cdr[j] + ddbg_intf_i.ext_pi_ctl_offset[j];
             assign scaled_pi_ctl[j]      = unscaled_pi_ctl[j]*scale_value[j];
-            assign int_pi_ctl_cdr[j]     = scaled_pi_ctl[j] >> Npi;
+            assign int_pi_ctl_cdr[j]     = ddbg_intf_i.en_bypass_pi_ctl[j] ?  ddbg_intf_i.bypass_pi_ctl[j] : (scaled_pi_ctl[j] >> Npi);
         end
     endgenerate
+
+    assign dsp_dbg_intf_i.disable_product = ddbg_intf_i.disable_product;
+    assign dsp_dbg_intf_i.ffe_shift       = ddbg_intf_i.ffe_shift;
+    assign dsp_dbg_intf_i.mlsd_shift      = ddbg_intf_i.mlsd_shift;
+    assign dsp_dbg_intf_i.thresh          = ddbg_intf_i.cmp_thresh;
+
+    weight_manager #(.width(Nti), .depth(10), .bitwidth(10)) wme_ffe_i (
+        .data    (wdbg_intf_i.wme_ffe_data),
+        .inst    (wdbg_intf_i.wme_ffe_inst),
+        .exec    (wdbg_intf_i.wme_ffe_exec),
+        .clk     (clk_adc),
+        .rstb    (rstb),
+        .read_reg(wdbg_intf_i.wme_ffe_read),
+        .weights (dsp_dbg_intf_i.weights)
+    );
+
+    weight_manager #(.width(Nti), .depth(30), .bitwidth(8)) wme_channel_est_i (
+        .data    (wdbg_intf_i.wme_mlsd_data),
+        .inst    (wdbg_intf_i.wme_mlsd_inst),
+        .exec    (wdbg_intf_i.wme_mlsd_exec),
+        .clk     (clk_adc),
+        .rstb    (rstb),
+        .read_reg(wdbg_intf_i.wme_mlsd_read),
+        .weights (dsp_dbg_intf_i.channel_est)
+    );
 
     dsp_backend dsp_i(
         .codes(adcout_unfolded[Nti-1:0]),
@@ -191,10 +252,26 @@ module digital_core import const_pack::*; (
 
         .in_start_write(ext_dump_start),
 
-        .in_addr(sm_dbg_intf_i.in_addr),
+        .in_addr(sm1_dbg_intf_i.in_addr),
 
-        .out_data(sm_dbg_intf_i.out_data),
-        .addr(sm_dbg_intf_i.addr)
+        .out_data(sm1_dbg_intf_i.out_data),
+        .addr(sm1_dbg_intf_i.addr)
+    );
+
+    oneshot_multimemory #(
+        .N_mem_tiles(4)
+    ) omm_ffe_i(
+        .clk(clk_adc),
+        .rstb(sram_rstb),
+        
+        .in_bytes(trunc_est_bits),
+
+        .in_start_write(ext_dump_start),
+
+        .in_addr(sm2_dbg_intf_i.in_addr),
+
+        .out_data(sm2_dbg_intf_i.out_data),
+        .addr(sm2_dbg_intf_i.addr)
     );
 
     // PRBS
@@ -282,8 +359,10 @@ module digital_core import const_pack::*; (
         .ddbg_intf_i(ddbg_intf_i),
         .adbg_intf_i(adbg_intf_i),
         .cdbg_intf_i(cdbg_intf_i),
-        .sdbg_intf_i(sm_dbg_intf_i),
+        .sdbg1_intf_i(sm1_dbg_intf_i),
+        .sdbg2_intf_i(sm2_dbg_intf_i),
         .pdbg_intf_i(pdbg_intf_i),
+        .wdbg_intf_i(wdbg_intf_i),
         .jtag_intf_i(jtag_intf_i)
     );
     `endif

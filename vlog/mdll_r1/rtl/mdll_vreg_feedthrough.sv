@@ -7,10 +7,10 @@ property of #LICENSOR#, and may not be disclosed or
 reproduced in whole or in part without explicit written 
 authorization from #LICENSOR#.
 
-* Filename   : mdll_supply_dac_buffer.sv
+* Filename   : mdll_vreg_feedthrough.sv
 * Author     : Byongchan Lim (bclim@alumni.stanford.edu)
 * Description:
-  - Source follower
+  - Feedthrough to trick Innovus
 
 * Note       :
   -
@@ -27,13 +27,13 @@ authorization from #LICENSOR#.
 ****************************************************************/
 
 
-module mdll_supply_dac_buffer import mdll_pkg::*; #(
+module mdll_vreg_feedthrough #(
 // parameters here
 
 ) (
 // I/Os here
-    input `ANALOG_WIRE ana_vref,
-    output `ANALOG_WIRE vout
+    input `ANALOG_WIRE vin,    //
+    input vout
 );
 
 //synopsys translate_off
@@ -45,23 +45,15 @@ timeprecision 1fs;
 // VARIABLES, WIRES
 //---------------------
 
-`ifndef SIMULATION
 
 //---------------------
 // INSTANTIATION
 //---------------------
 
 
-    // source follower
-    mdll_sourcefollower uBUFFER[3:0] ( .G(ana_vref), .S(vout) ); // connect S to VREG
-    // decap at the SF output
-    mdll_decap u_decap[69:0] (.TOP(vout), .BOT(1'b0));
-
-`endif // ~SIMULATION
 //---------------------
 // COMBINATIONAL
 //---------------------
-
 
 
 //---------------------
@@ -75,7 +67,6 @@ timeprecision 1fs;
 
 // synopsys translate_off
 
-assign vout = ana_vref - V_GS_LDO;  // source follower
 
 // synopsys translate_on
 
