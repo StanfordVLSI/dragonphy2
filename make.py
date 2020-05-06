@@ -19,6 +19,8 @@ def create_fpga_graph():
     graph.add_input('acore_intf', ext='md', folders=['md'])
     graph.add_input('cdr_intf', ext='md', folders=['md'])
     graph.add_input('sram_multi_intf', ext='md', folders=['md'])
+    graph.add_input('sm_ffe_intf', ext='md', folders=['md'])
+
     graph.add_input('dcore_intf', ext='md', folders=['md'])
     graph.add_input('prbs_intf', ext='md', folders=['md'])
 
@@ -29,7 +31,7 @@ def create_fpga_graph():
     graph.add_python('jtag', 'jtag', 'JTAG', view='all',
                      folders=['dragonphy'], 
                      configs={'jtag_config'},
-                     sources={'acore_intf', 'cdr_intf', 'sram_multi_intf', 'dcore_intf', 'prbs_intf'})
+                     sources={'acore_intf', 'cdr_intf', 'sram_multi_intf','sm_ffe_intf', 'dcore_intf', 'prbs_intf'})
     graph.add_python('chan_core', 'chan_core', 'ChannelCore', view='fpga_models',
                      folders=['dragonphy', 'fpga_models'], sources={'adapt_fir'},
                      configs={'chan'})
@@ -61,6 +63,7 @@ def create_asic_graph():
     graph.add_input('sram_multi_intf', ext='md', folders=['md'])
     graph.add_input('dcore_intf', ext='md', folders=['md'])
     graph.add_input('prbs_intf', ext='md', folders=['md'])
+    graph.add_input('sm_ffe_intf', ext='md', folders=['md'])
 
 
 
@@ -70,7 +73,7 @@ def create_asic_graph():
     graph.add_python('jtag', 'jtag', 'JTAG', view='all',
                      folders=['dragonphy'], 
                      configs={'jtag_config'},
-                     sources={'acore_intf', 'cdr_intf', 'sram_multi_intf', 'dcore_intf', 'prbs_intf'})
+                     sources={'acore_intf', 'cdr_intf', 'sram_multi_intf', 'sm_ffe_intf','dcore_intf', 'prbs_intf'})
 
     return graph
 
@@ -91,6 +94,7 @@ def create_cpu_graph():
     graph.add_input('sram_multi_intf', ext='md', folders=['md'])
     graph.add_input('dcore_intf', ext='md', folders=['md'])
     graph.add_input('prbs_intf', ext='md', folders=['md'])
+    graph.add_input('sm_ffe_intf', ext='md', folders=['md'])
 
 
     # Add msdsl scripts to build list
@@ -99,7 +103,7 @@ def create_cpu_graph():
     graph.add_python('jtag', 'jtag', 'JTAG', view='all',
                      folders=['dragonphy'], 
                      configs={'jtag_config'},
-                     sources={'acore_intf', 'cdr_intf', 'sram_multi_intf', 'dcore_intf', 'prbs_intf'})
+                     sources={'acore_intf', 'cdr_intf', 'sram_multi_intf', 'sm_ffe_intf','dcore_intf', 'prbs_intf'})
     graph.add_python('chan_core', 'chan_core', 'ChannelCore', view='chip_src',
                      folders=['dragonphy', 'fpga_models'], sources={'adapt_fir'},
                      configs={'chan'})

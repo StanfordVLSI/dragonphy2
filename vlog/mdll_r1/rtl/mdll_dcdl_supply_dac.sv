@@ -38,7 +38,7 @@ module mdll_dcdl_supply_dac import mdll_pkg::*; #(
 	input [N_DAC_BW-1:0] ctl_dac_bw_thm,        	// DAC bandwidth control (thermometer)
 	input [N_DAC_GAIN-1:0] ctlb_dac_gain_oc,	// r-dac gain control (one cold)
 	input [2**N_DAC_TI-1:0] dinb_sel,			// index of vref to vref_out
-    output `ANALOG_WIRE VREG
+    output `ANALOG_WIRE vout
 );
 
 //synopsys translate_off
@@ -76,10 +76,10 @@ timeprecision 1fs;
 
 
 	// gain control switches
-	mdll_psw uGAIN_SW0 ( .G(ctlb_dac_gain_oc[0]), .D(ana_vref[N_DAC_REF-1]), .S(ana_vref[200]) );
-	mdll_psw uGAIN_SW1 ( .G(ctlb_dac_gain_oc[1]), .D(ana_vref[N_DAC_REF-1]), .S(ana_vref[180]) );
-	mdll_psw uGAIN_SW2 ( .G(ctlb_dac_gain_oc[2]), .D(ana_vref[N_DAC_REF-1]), .S(ana_vref[160]) );
-	mdll_psw uGAIN_SW3 ( .G(ctlb_dac_gain_oc[3]), .D(ana_vref[N_DAC_REF-1]), .S(ana_vref[140]) );
+	mdll_psw uGAIN_SW0 ( .G(ctlb_dac_gain_oc[0]), .D(1'b0), .S(ana_vref[200]) );
+	mdll_psw uGAIN_SW1 ( .G(ctlb_dac_gain_oc[1]), .D(1'b0), .S(ana_vref[180]) );
+	mdll_psw uGAIN_SW2 ( .G(ctlb_dac_gain_oc[2]), .D(1'b0), .S(ana_vref[160]) );
+	mdll_psw uGAIN_SW3 ( .G(ctlb_dac_gain_oc[3]), .D(1'b0), .S(ana_vref[140]) );
 
 	// decoder
 	generate
@@ -91,8 +91,8 @@ timeprecision 1fs;
     // decap & its control
     generate
         for (k=0;k<N_DAC_BW;k++) begin: genblk2
-            mdll_tbuf uTERM ( .A(1'b1), .EN(ctl_dac_bw_thm[k]), .Z(cap_term[k]) );
-            mdll_decap u_decap[99:0] ( .TOP(ana_vref_out), .BOT(cap_term[k]) );
+            mdll_tbuf uTERM ( .EN(ctl_dac_bw_thm[k]), .Z(cap_term[k]) );
+            mdll_decap u_decap[5:0] ( .TOP(ana_vref_out), .BOT(cap_term[k]) );
         end
     endgenerate
 `endif // ~SIMULATION
@@ -110,7 +110,7 @@ timeprecision 1fs;
 
 mdll_supply_dac_buffer uSF (
     .ana_vref(ana_vref_out),
-    .VREG(VREG)
+    .vout(vout)
 );
     
     //---------------------

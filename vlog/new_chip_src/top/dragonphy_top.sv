@@ -22,11 +22,15 @@ module dragonphy_top import const_pack::*; (
 	input wire logic ext_clkp,
 	input wire logic ext_clkn,
 
+	input wire logic ramp_clock,
+
 	// clock outputs
 	output wire logic clk_out_p,
 	output wire logic clk_out_n,
 	output wire logic clk_trig_p,
 	output wire logic clk_trig_n,
+
+	output wire logic freq_lvl_cross,
 
 	//Reset Logic
 	input wire logic ext_rstb,
@@ -135,7 +139,8 @@ module dragonphy_top import const_pack::*; (
     	.clk_async(clk_async),
 		.clk_cdr(clk_cdr),						// CDR clock
 		.int_pi_ctl_cdr(pi_ctl_cdr),		// PI control code from CDR
-		
+		.ramp_clock     (ramp_clock),
+		.freq_lvl_cross (freq_lvl_cross),
 		.ext_dump_start(ext_dump_start),
 
 		.adbg_intf_i(adbg_intf_i),		
