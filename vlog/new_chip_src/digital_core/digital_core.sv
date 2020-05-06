@@ -275,7 +275,7 @@ module digital_core import const_pack::*; (
     );
 
     // JTAG
-
+    `ifndef SYNTHESIS_DEBUG
     jtag jtag_i (
         .clk(clk_adc),
         .rstb(ext_rstb),
@@ -286,6 +286,7 @@ module digital_core import const_pack::*; (
         .pdbg_intf_i(pdbg_intf_i),
         .jtag_intf_i(jtag_intf_i)
     );
+    `endif
 
 endmodule
 
