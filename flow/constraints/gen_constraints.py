@@ -109,7 +109,8 @@ set_false_path -from clk_jtag -to clk_retimer
 #  -lib_cell $ADK_DRIVING_CELL [all_inputs]
 
 # Make all signals limit their fanout
-# set_max_fanout 20 $dc_design_name
+# TODO: should this be included?
+# set_max_fanout 20 {e["design_name"]}
 
 # sr 02/2020
 # haha IOPAD cells already have dont_touch property but not ANAIOPAD :(
