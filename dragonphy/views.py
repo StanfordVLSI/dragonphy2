@@ -140,8 +140,17 @@ def get_deps_new_asic(cell_name=None, impl_file=None):
     deps += get_deps(
         cell_name=cell_name,
         impl_file=impl_file,
-        view_order=['new_pack', 'new_chip_src', 'new_chip_stubs'],
-        includes=[get_dir('inc/new_asic')]
+        view_order=['new_pack', 'new_chip_src'],
+        includes=[get_dir('inc/new_asic')],
+        override={
+            'sram': 'new_chip_stubs',
+            'output_buffer': 'new_chip_stubs',
+            'input_buffer': 'new_chip_stubs',
+            'analog_core': 'new_chip_stubs'
+        },
+        skip={
+            'DW_tap'  # Don't use a stub for a DesignWare block
+        }
     )
 
     deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/ffe_gpack.sv')

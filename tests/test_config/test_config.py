@@ -1,8 +1,8 @@
 from dragonphy import *
 
 def test_new_asic():
-    print('Test New ASIC Config (analog_core)')
-    print(get_deps_new_asic('analog_core'))
+    print('Test New ASIC Config')
+    print(get_deps_new_asic('dragonphy_top'))
 
 def test_new_chip_src_config():
     print('Test New Chip Source Config')
