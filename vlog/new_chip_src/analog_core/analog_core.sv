@@ -1,5 +1,4 @@
 `include "iotype.sv"
-//`include "/aha/sjkim85/github_repo/dragonphy/inc/new_asic/iotype.sv"
 
 module analog_core import const_pack::*; #(
 ) (
@@ -11,7 +10,7 @@ module analog_core import const_pack::*; #(
     input `pwl_t rx_inp_test,                            // RX input (+) for replica ADC (from pad)
     input `pwl_t rx_inn_test,                            // RX input (-) for replica ADC (from pad)
     
-	input wire logic ext_clk,                           // (+) 4GHz clock input (from pad)
+	input wire logic ext_clk,                            // (+) 4GHz clock input (from pad)
 	input wire logic mdll_clk,                           // (+) 4GHz clock input (from mdll)
 
 	input wire logic ext_clk_test0,                      // (+) 4GHz clock input (from pad)

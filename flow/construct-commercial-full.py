@@ -34,6 +34,38 @@ def construct():
         parameters['clk_retimer_period'] = 10.0
         parameters['clk_in_period'] = 10.0
         parameters['clk_jtag_period'] = 100.0
+
+        # update timing parameters
+        slowdown=10
+        parameters.update(dict(
+            clk_retimer_period=0.7*slowdown,
+            clk_in_period=0.7*slowdown,
+            clk_jtag_period=100.0*slowdown,
+
+            # Retimer clock uncertainty
+            clk_retimer_setup_uncertainty=0.03*slowdown,
+            clk_retimer_hold_uncertainty=0.03*slowdown,
+
+            # JTAG clock uncertainty
+            clk_jtag_setup_uncertainty=1.0*slowdown,
+            clk_jtag_hold_uncertainty=0.03*slowdown,
+
+            # Capacitance and transition time
+            max_capacitance=0.1*slowdown,
+            max_transition=0.2*slowdown,
+            max_clock_transition=0.1*slowdown,
+
+            # Clocks that can be monitored from analog_core
+            clk_hs_period=0.25*slowdown,
+            clk_hs_transition=0.025*slowdown,
+
+            # I/O delays and transitions
+            digital_input_delay=0.05*slowdown,
+            digital_input_transition=0.5*slowdown,
+            input_transition=0.03*slowdown,
+            output_load=0.02*slowdown,
+            output_delay=0.7*slowdown
+        ))
     elif DRAGONPHY_PROCESS == 'TSMC16':
         parameters['adk_name'] = 'tsmc16'
         parameters['adk_view'] = 'stdview'
@@ -56,11 +88,11 @@ def construct():
 
     rtl = Step(this_dir + '/rtl')
     constraints = Step(this_dir + '/constraints')
+    dc = Step(this_dir + '/synopsys-dc-synthesis')
 
     # Default steps
 
     info           = Step( 'info',                           default=True )
-    dc             = Step( 'synopsys-dc-synthesis',          default=True )
     iflow          = Step( 'cadence-innovus-flowsetup',      default=True )
     init           = Step( 'cadence-innovus-init',           default=True )
     power          = Step( 'cadence-innovus-power',          default=True )
