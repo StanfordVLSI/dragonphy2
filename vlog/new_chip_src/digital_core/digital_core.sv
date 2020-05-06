@@ -285,7 +285,7 @@ module digital_core import const_pack::*; (
     logic bits_ffe [Nti-1:0];
 
     comb_comp #(.numChannels(16), .inputBitwidth(Nadc), .thresholdBitwidth(Nadc)) dig_comp_adc_i (
-        .codes     (adcout_unfolded),
+        .codes     (adcout_unfolded[15:0]),
         .thresh    (ddbg_intf_i.adc_thresh),
         .clk       (clk_adc),
         .rstb      (rstb),
