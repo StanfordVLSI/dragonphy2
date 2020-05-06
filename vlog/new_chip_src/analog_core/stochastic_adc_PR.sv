@@ -1,4 +1,6 @@
 `include "iotype.sv"
+//`include "/aha/sjkim85/github_repo/dragonphy2/inc/new_asic/iotype.sv"
+
 
 module stochastic_adc_PR #(
     parameter Nctl_v2t = 5,
@@ -44,17 +46,17 @@ module stochastic_adc_PR #(
     reg en_TDC_phase_reverse_sampled;
     reg clk_TDC_phase_reverse;
 
-    bin2thm_5b ib2tn (
+    bin2thm #(.Nbit(5)) ib2tn (
         .bin(ctl_v2t_n),
         .thm(thm_ctl_v2t_n)
     );
 
-    bin2thm_5b ib2tp (
+    bin2thm #(.Nbit(5)) ib2tp (
         .bin(ctl_v2t_p),
         .thm(thm_ctl_v2t_p)
     );
 
-    bin2thm_5b ib2t_tdc (
+    bin2thm #(.Nbit(5)) ib2t_tdc (
         .bin(ctl_dcdl),
         .thm(thm_ctl_dcdl)
     );
@@ -120,7 +122,7 @@ module stochastic_adc_PR #(
 
     assign clk_TDC = sel_clk_TDC ? clk_async : clk_adder;
 
-    dcdl_coarse idcdl_coarse_dont_touch (
+    dcdl_coarse idcdl_coarse (
         .thm(thm_ctl_dcdl),
         .out(clk_TDC_d),
         .in(clk_TDC)
@@ -153,14 +155,14 @@ module stochastic_adc_PR #(
         .clk(clk_adder)
     );
 
-    mux ipm_mux1_dont_touch (
+    mux_fixed ipm_mux1_dont_touch (
         .in0(clk_v2t),
         .in1(v2t_out_p),
         .sel(sel_pm_in[1]),
         .out(ph_ref)
     );
 
-    mux ipm_mux0_dont_touch (
+    mux_fixed ipm_mux0_dont_touch (
         .in0(clk_in),
         .in1(v2t_out_n),
         .sel(sel_pm_in[0]),

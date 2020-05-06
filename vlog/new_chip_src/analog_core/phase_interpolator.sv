@@ -62,7 +62,7 @@ module phase_interpolator #(
 	
     inv_chain #(
         .Ninv(4)
-    ) iinv_chain_dont_touch (
+    ) iinv_chain (
         .in(and_ph_out),
         .out(and_ph_out_d)
     );
@@ -109,7 +109,7 @@ module phase_interpolator #(
         .out_dmm(cal_out_dmm)
     );
 
-    dcdl_fine idcdl_fine0_dont_touch (
+    dcdl_fine idcdl_fine0 (
         .disable_state(disable_state),
         .out(clk_out_sw),
         .en(en_clk_sw),
@@ -117,7 +117,7 @@ module phase_interpolator #(
         .ctl(ctl_dcdl_sw)
     );
 
-    dcdl_fine idcdl_fine1_dont_touch (
+    dcdl_fine idcdl_fine1 (
         .disable_state(1'b0),
         .out(clk_out_slice),
         .en(1'b1),
@@ -125,7 +125,7 @@ module phase_interpolator #(
         .ctl(ctl_dcdl_slice)
     );
     
-	dcdl_fine idcdl_fine2_dont_touch (
+	dcdl_fine idcdl_fine2 (
         .disable_state(1'b0),
         .out(clk_encoder_d),
         .en(1'b1),
