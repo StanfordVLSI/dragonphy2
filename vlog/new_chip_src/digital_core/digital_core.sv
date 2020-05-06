@@ -277,10 +277,46 @@ module digital_core import const_pack::*; (
     // PRBS
     // TODO: refine data decision from ADC (custom threshold, gain, invert option, etc.)
     // TODO: mux PRBS input between ADC, FFE, and MLSD
+
+    logic [Nti-1:0]   mux_prbs_rx_bits [3:0];
     logic [(Nti-1):0] prbs_rx_bits;
+
+    logic bits_adc [Nti-1:0];
+    logic bits_ffe [Nti-1:0];
+
+    comb_comp #(.numChannels(16), .inputBitwidth(Nadc), .thresholdBitwidth(Nadc)) dig_comp_adc_i (
+        .codes     (adcout_unfolded),
+        .thresh    (ddbg_intf_i.adc_thresh),
+        .clk       (clk_adc),
+        .rstb      (rstb),
+        .bit_out   (bits_adc)
+    );
+
+    comb_comp #(.numChannels(16), .inputBitwidth(ffe_gpack::output_precision), .thresholdBitwidth(ffe_gpack::output_precision)) dig_comp_ffe_i (
+        .codes     (estimated_bits),
+        .thresh    (ddbg_intf_i.ffe_thresh),
+        .clk       (clk_adc),
+        .rstb      (rstb),
+        .bit_out   (bits_ffe)
+    );
+
+
+    logic [Nti-1:0] bits_adc_r;
+    logic [Nti-1:0] bits_ffe_r;
+    logic [Nti-1:0] bits_mlsd_r;
+
+    assign mux_prbs_rx_bits[0] = bits_adc_r;
+    assign mux_prbs_rx_bits[1] = bits_ffe_r;
+    assign mux_prbs_rx_bits[2] = bits_mlsd_r;
+
+
     generate
         for (k=0; k<Nti; k=k+1) begin
-            assign prbs_rx_bits[k] = ~adcout_unfolded[k][Nadc-1];
+            assign bits_adc_r[k] = bits_adc[k];
+            assign bits_ffe_r[k] = bits_ffe[k];
+            assign bits_mlsd_r[k] = checked_bits[k];
+
+            assign prbs_rx_bits = mux_prbs_rx_bits[ddbg_intf_i.sel_prbs_mux];
         end
     endgenerate
 
