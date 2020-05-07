@@ -151,7 +151,8 @@ def get_deps_new_asic(cell_name=None, impl_file=None, process='tsmc16'):
         override['sram'] = 'new_chip_src_freepdk45'
         skip.add('sram_144_1024_freepdk45')
     elif process == 'tsmc16':
-        raise Exception('The SRAM view for TSMC16 has not been implemented yet.')
+        override['sram'] = 'new_chip_src_tsmc16'
+        skip.add('TS1N16FFCLLSBLVTC1024X144M4SW')
     else:
         raise Exception(f'Unknown process: {process}')
 

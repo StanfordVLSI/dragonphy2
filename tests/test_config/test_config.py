@@ -1,8 +1,10 @@
+import pytest
 from dragonphy import *
 
-def test_new_asic():
-    print('Test New ASIC Config')
-    print(get_deps_new_asic('dragonphy_top', process='freepdk-45nm'))
+@pytest.mark.parametrize('process', ['freepdk-45nm', 'tsmc16'])
+def test_new_asic_config(process):
+    print(f'Test New ASIC Config (process={process})')
+    print(get_deps_new_asic('dragonphy_top', process=process))
 
 def test_new_chip_src_config():
     print('Test New Chip Source Config')
