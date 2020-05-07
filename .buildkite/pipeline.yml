@@ -1,31 +1,70 @@
 steps:
-  - command: |
+  - label: "test"
+    command: |
       # set up environment
       source /cad/modules/tcl/init/bash
-      module load base xcelium dc_shell
-      export DRAGONPHY_PYTHON=/usr/local/miniconda/bin/python3.7
+      module load base xcelium
       export DW_TAP=/cad/synopsys/syn/L-2016.03-SP5-5/dw/sim_ver/DW_tap.v
       export BUILD_VIEW=cpu
       printenv
 
+      # create virtual environment
+      /usr/local/miniconda/bin/python3.7 -m venv venv
+      source venv/bin/activate
+
       # run regression script
       source regress.sh
-    label: "test"
+
+      # deactivate virtual environment
+      deactivate
+    artifact_paths:
+      - "tests/new_tests/*/build/*.eps"
     timeout_in_minutes: 60
     agents:
       fault2: "true"
-  - command: |
+  - label: "test_mflowgen"
+    command: |
+      # set up environment
+      # modules loaded aim to match those used by Garnet
+      source /cad/modules/tcl/init/bash
+      module load base xcelium lc pts syn/latest genus innovus/19.10.000 icadv/12.30.712 calibre/2019.1
+      export BUILD_VIEW=asic
+      export DRAGONPHY_PROCESS=FREEPDK45
+      export FREEPDK45=/cad/freepdk/FreePDK45
+      printenv
+
+      # create virtual environment
+      /usr/local/miniconda/bin/python3.7 -m venv venv
+      source venv/bin/activate
+
+      # run mflowgen script
+      source mflowgen.sh
+
+      # deactivate virtual environment
+      deactivate
+    artifact_paths:
+      - "tests/new_tests/*/build/*.eps"
+    timeout_in_minutes: 60
+    agents:
+      fault2: "true"
+  - label: "test_emu"
+    command: |
       # set up environment
       source /etc/environment
-      export DRAGONPHY_PYTHON=python3.7
       export FPGA_SERVER=1
       export DW_TAP=/tools/synopsys/syn/L-2016.03-SP5-5/dw/sim_ver/DW_tap.v
       export BUILD_VIEW=fpga
       printenv
 
+      # create virtual environment
+      python3.7 -m venv venv
+      source venv/bin/activate
+
       # run regression script
       source regress.sh
-    label: "test_emu"
+
+      # deactivate virtual environment
+      deactivate 
     timeout_in_minutes: 60
     agents:
         fpga_verif: "true"

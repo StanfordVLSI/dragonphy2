@@ -34,9 +34,11 @@ module prbs_generator #(
         end else if (n_prbs == 31) begin
             assign next_bit = data[30] ^ data[27];
         end else begin
+            // synopsys translate_off
             initial begin
                 $error("Invalid value for n_prbs: %0d", n_prbs);
             end
+            // synopsys translate_on
         end
     endgenerate
 
