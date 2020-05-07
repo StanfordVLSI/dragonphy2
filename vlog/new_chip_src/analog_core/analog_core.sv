@@ -1,5 +1,5 @@
 `include "iotype.sv"
-//`include "/aha/sjkim85/github_repo/dragonphy/inc/new_asic/iotype.sv"
+//`include "/aha/sjkim85/github_repo/dragonphy2/inc/new_asic/iotype.sv"
 
 module analog_core import const_pack::*; #(
 ) (
@@ -12,15 +12,15 @@ module analog_core import const_pack::*; #(
     input `pwl_t rx_inn_test,                            // RX input (-) for replica ADC (from pad)
     
 	input wire logic ext_clk,                           // (+) 4GHz clock input (from pad)
-	input wire logic mdll_clk,                           // (+) 4GHz clock input (from mdll)
+	input wire logic mdll_clk,                           // (+) 4GHz clock input (from pad)
 
 	input wire logic ext_clk_test0,                      // (+) 4GHz clock input (from pad)
     input wire logic ext_clk_test1,                      // (-) 4GHz clock input (from pad)
     	
-	input wire logic clk_cdr,                            // cdr loop filter clock (from DCORE)
 	input wire logic clk_async,                          // asynchronous clock for phase measurement
 	                                                     // (from DCORE)
 	input wire logic [Npi-1:0] ctl_pi[Nout-1:0],         // PI control code (from DCORE)
+	input wire logic ctl_valid,                          // PI control valid flag (from DCORE) 
 
 	input `real_t Vcal,                                  // bias voltage for V2T (from pad)
 	
@@ -122,8 +122,9 @@ module analog_core import const_pack::*; #(
                 .rstb(adbg_intf_i.rstb),
                 .clk_in(clk_in_pi),
                 .clk_async(clk_async),
-                .clk_cdr(clk_cdr),
+                .clk_encoder(clk_adc),
                 .ctl(ctl_pi[k]),
+                .ctl_valid(ctl_valid),
 
                 .en_gf(adbg_intf_i.en_gf),
                 .en_arb(adbg_intf_i.en_arb_pi[k]),
@@ -136,6 +137,7 @@ module analog_core import const_pack::*; #(
                 .inc_del(adbg_intf_i.del_inc[k]),
                 .ctl_dcdl_slice(adbg_intf_i.ctl_dcdl_slice[k]),
                 .ctl_dcdl_sw(adbg_intf_i.ctl_dcdl_sw[k]),
+                .ctl_dcdl_clk_encoder(adbg_intf_i.ctl_dcdl_clk_encoder[k]),
                 .disable_state(adbg_intf_i.disable_state[k]),
                 .en_clk_sw(adbg_intf_i.en_clk_sw[k]),
 

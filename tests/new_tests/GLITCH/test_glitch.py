@@ -28,7 +28,7 @@ def test_sim():
         # max, repeating until N_TRIAL transitions
         # have been tested.  as a result, this value
         # should be at least twice the number of codes
-        'N_TRIALS': 1100,
+        'N_TRIALS': 550,
 
         # how long should the test monitor for glitches
         # before switching to the next test?  empirically,
@@ -70,5 +70,5 @@ def test_sim():
         defines=defines,
         flags=flags,
         simulator=SIMULATOR,
-        num_cycles=1e12
+		num_cycles=1e12
     ).run()

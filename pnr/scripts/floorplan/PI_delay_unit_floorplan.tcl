@@ -104,8 +104,6 @@ placeInstance iinc_delay/itri_buff2_dont_touch/u__tmp100 [expr $FP_width-$wellta
 
 
 createRouteBlk -box 0 $FP_height $FP_width [expr $FP_height-$cell_height/2] -layer 6
-
-
 #########################
 ## vertical power strip #
 #########################
@@ -133,11 +131,9 @@ setPinAssignMode -pinEditInBatch true
 editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 3 -layer 3 -spreadType start -spacing $metal_space -offsetStart [expr $welltap_width+$ff_width] -pin chain_in
 editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection clockwise -edge 1 -layer 3 -spreadType start -spacing $metal_space -offsetStart [expr $welltap_width+$ff_width] -pin chain_out
 
-editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 2 -layer 2 -spreadType center -spacing $metal_space -pin buf_out
+editPin -pinWidth $PI_MS_net_width -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 2 -layer 2 -spreadType center -spacing $metal_space -pin buf_out
 
 editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 0 -layer 2 -spreadType center -spacing [expr 2*$metal_space] -pin {arb_out en_mixer inc_del en_arb}
-
-#editPin -pinWidth $pin_width -pinDepth $FP_height -fixOverlap 0 -unit MICRON -spreadDirection clockwise -edge 1 -layer 3 -spreadType start -spacing [expr 2*$metal_space] -offsetStart 0.5 -pin en_arb
 
 editPin -pinWidth [expr $arb_in_width] -pinDepth [expr $FP_height] -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 3 -layer 5 -spreadType start -spacing [expr 2*$metal_space] -offsetStart [expr $FP_width/2] -pin arb_in
 
@@ -154,10 +150,9 @@ set fid [open "${pnrDir}/pnr_vars.txt" a]
 puts -nonewline $fid "${DesignName}_width:$FP_width\n"
 puts -nonewline $fid "${DesignName}_height:$FP_height\n"
 puts -nonewline $fid "${DesignName}_M7_power_offset:[expr $welltap_width/2]\n"
-
 close $fid
 
-saveDesign ${saveDir}/${vars(db_name)}.enc
+#saveDesign ${saveDir}/${vars(db_name)}.enc
 
 
 

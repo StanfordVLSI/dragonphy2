@@ -1,5 +1,5 @@
 
-setMultiCpuUsage -localCpu 4
+setMultiCpuUsage -localCpu 5
 
 #-----------------------------------------------------------------------
 # paths
@@ -44,6 +44,8 @@ set DB_width 0.36
 set pin_width 0.038
 set pin_depth 0.194
 set metal_space 0.08
+set V2T_MS_net_width 0.16
+set PI_MS_net_width 0.064
 
 #-----------------------------------------------------------------------
 # add macro lef/gds
