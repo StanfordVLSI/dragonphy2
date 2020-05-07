@@ -58,10 +58,13 @@ wire [N_STG-1:0] cin_fb;
 wire [N_STG-1:0] cout_ff;
 wire [N_STG-1:0] cout_fb;
 
+wire tiehigh;
 
 //---------------------
 // INSTANTIATION
 //---------------------
+
+mdll_tieh uTIEH ( .HI(tiehigh) );
 
 generate
     for (k=0;k<N_STG;k++) begin: genblk1
@@ -87,7 +90,7 @@ endgenerate
 
 assign cout = cout_fb[0];
 assign cin_ff[0] = cin;
-assign cin_fb[N_STG-1] = 1'b1;
+assign cin_fb[N_STG-1] = tiehigh;
 
 generate
     for (k=1;k<N_STG;k++) begin: genblk2
