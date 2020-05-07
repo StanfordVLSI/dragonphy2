@@ -143,13 +143,15 @@ def get_deps_new_asic(cell_name=None, impl_file=None):
         view_order=['new_pack', 'new_chip_src'],
         includes=[get_dir('inc/new_asic')],
         override={
+            # TODO: replace all of these with *.db files
             'sram': 'new_chip_stubs',
-            'output_buffer': 'new_chip_stubs',
             'input_buffer': 'new_chip_stubs',
             'analog_core': 'new_chip_stubs'
         },
         skip={
-            'DW_tap'  # Don't use a stub for a DesignWare block
+            # these blocks are defined from *.db files
+            'DW_tap',
+            'output_buffer'
         }
     )
 

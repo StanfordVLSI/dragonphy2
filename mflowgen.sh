@@ -9,10 +9,16 @@ export PATH="$GENESIS_HOME/bin:$PATH"
 export PATH="$GENESIS_HOME/gui/bin:$PATH"
 /bin/rm -rf $GENESIS_HOME/PerlLibs/ExtrasForOldPerlDistributions/Compress
 
-# install DaVE
-# TODO: install from master branch
-git clone --single-branch --branch pwl_cos https://github.com/StanfordVLSI/DaVE.git
-export mLINGUA_DIR=`realpath DaVE/mLingua`
+# install mflowgen
+git clone https://github.com/cornell-brg/mflowgen
+cd mflowgen
+pip install -e .
+cd ..
+
+# install OpenRAM
+git clone https://github.com/VLSIDA/OpenRAM.git
+export OPENRAM_HOME=`realpath OpenRAM/compiler`
+export OPENRAM_TECH=`realpath OpenRAM/technology`
 
 # install dragonphy
 pip install -e .
@@ -23,9 +29,9 @@ python make.py --view asic
 python make.py --view fpga
 python make.py --view cpu
 
-# install pytest
-pip install pytest pytest-cov
-
-# run tests and upload coverage
-# pytest tests -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
-# bash <(curl -s https://codecov.io/bash)
+# run mflowgen
+mkdir -p build/mflowgen_dragonphy_top
+cd build/mflowgen_dragonphy_top
+mflowgen run --design ../../designs/dragonphy_top
+make synopsys-dc-synthesis
+cd ../..
