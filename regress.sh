@@ -39,6 +39,10 @@ pip install pytest pytest-cov
 # run mflowgen as long as we're not on the FPGA server
 if [ -z "$FPGA_SERVER" ]
 then
+    git clone https://github.com/VLSIDA/OpenRAM.git
+    export OPENRAM_HOME=`realpath OpenRAM/compiler`
+    export OPENRAM_TECH=`realpath OpenRAM/technology`
+
     mkdir -p build/mflowgen_dragonphy_top
     cd build/mflowgen_dragonphy_top
     mflowgen run --design ../../designs/dragonphy_top
