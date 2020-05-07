@@ -5,7 +5,6 @@ from sklearn import linear_model
 from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
-
 # AHA imports
 import fault
 import magma as m
@@ -69,9 +68,9 @@ def test_sim():
         mixers.append(mixer)
         t.print('Testing thm_sel_bld=%0b\n', (1<<val)-1)
         t.poke(dut.thm_sel_bld, (1 << val)-1)
-        for k in range(-124, 125):
-            t.poke(dut.delay0, 125e-12)
-            t.poke(dut.delay1, (125+k)*1e-12)
+        for k in list(range(-60, 0))+list(range(1,60))+list(range(60,0,-1))+list(range(-1,-60,-1)):
+            t.poke(dut.delay0, 60e-12)
+            t.poke(dut.delay1, (60+k)*1e-12)
             t.delay(20e-9)
             mixer.log()
 
@@ -103,7 +102,7 @@ def test_sim():
 
     # gather list of times
     test_del = []
-    for k in range(-124, 125):
+    for k in list(range(-60, 0))+list(range(1,60))+list(range(60,0,-1))+list(range(-1,-60,-1)):
         test_del.append(k*1e-12)
     test_del = np.array(test_del, dtype=float)
 

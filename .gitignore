@@ -44,7 +44,7 @@ __pycache__
 
 .idea
 .DS_Store
-
+.nfs*
 *.egg-info
 *.swp
 *.txt

@@ -17,7 +17,7 @@
 `endif
 
 `ifndef N_TRIALS
-    `define N_TRIALS 1100
+    `define N_TRIALS 550
 `endif
 
 `ifndef MONITOR_TIME
@@ -37,7 +37,6 @@
 `endif
 
 module test;
-
     import const_pack::*;
     import test_pack::*;
     import checker_pack::*;
@@ -110,7 +109,7 @@ module test;
 	        $shm_open("waves.shm");
 	        $shm_probe("ASMC");
         `endif
-
+	
         // initialize control signals
     	test_start = 1'b0;
     	test_stop = 1'b0;
