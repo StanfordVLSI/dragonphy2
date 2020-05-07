@@ -15,7 +15,7 @@ else:
 
 # Set DUMP_WAVEFORMS to True if you want to dump all waveforms for this
 # test.  The waveforms are stored in tests/new_tests/GLITCH/build/waves.shm
-DUMP_WAVEFORMS = True
+DUMP_WAVEFORMS = False
 
 @pytest.mark.wip
 def test_sim():

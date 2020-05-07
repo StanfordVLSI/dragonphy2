@@ -13,7 +13,7 @@ if 'FPGA_SERVER' in os.environ:
 else:
     SIMULATOR = 'ncsim'
 
-DUMP_WAVEFORMS = True
+DUMP_WAVEFORMS = False
 
 @pytest.mark.parametrize((), [pytest.param(marks=pytest.mark.slow) if SIMULATOR=='vivado' else ()])
 def test_sim():
