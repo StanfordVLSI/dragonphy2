@@ -54,7 +54,7 @@ module mdll_core import mdll_pkg::*; #(
 	input [N_BB_GB-1:0] gain_bb,					// BB gain (2**(gain_bb)) for dco tracking , false path
 	input [N_BB_GDAC-1:0] gain_bb_dac,				// BB gain (2**(gain_dac)) for dac tracking, false path
 	input [$clog2(N_DIV)-1:0] sel_sdm_clk,	// sdm clock select from feedback divider 
-	input [$clog2(N_DAC_TF)-1:0] prbs_mag, 		// prbs gain; 0: 0, 1: 1, 2: 2^1, 3: 2^2, ...
+//	input [$clog2(N_DAC_TF)-1:0] prbs_mag, 		// prbs gain; 0: 0, 1: 1, 2: 2^1, 3: 2^2, ...
 	input en_fcal,		// enable fcal mode
 	input [$clog2(N_FCAL_CNT)-1:0] fcal_ndiv_ref,	// divide clk_refp by 2**ndiv_ref to create a ref_pulse
 	input fcal_start,						// start counter (request)
@@ -214,7 +214,7 @@ mdll_lf uDLF (
 	.gain_bb(gain_bb),
 	.gain_bb_dac(gain_bb_dac),
 	.en_sdm(en_dac_sdm),
-	.prbs_mag(prbs_mag),
+//	.prbs_mag(prbs_mag),
 	.dco_ctl_fine(dco_ctl_fine),
 	.dac_ctl(dac_ctl)
 );
