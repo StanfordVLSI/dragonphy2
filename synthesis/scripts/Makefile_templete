@@ -6,7 +6,7 @@ aprDir := /aha/sjkim85/apr_flow
 
 SYNTH_HOME := ${aprDir}/synthesis_dragonphy
 DESIGN_HOME := ${SYNTH_HOME}/DesignName
-GIT_REPO := /aha/sjkim85/github_repo/dragonphy
+GIT_REPO := /aha/sjkim85/github_repo/dragonphy2
 SRC_PATH   	:= $(GIT_REPO)/vlog/new_chip_src/analog_core
 STUB_PATH 	:= $(GIT_REPO)/vlog/new_chip_stubs
 PRE_MAPPED  := $(aprDir)/netlist/mapped_gate

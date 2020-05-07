@@ -17,6 +17,7 @@ foreach block_data $pnr_data {
                     set $var_name $var_value
 }
 
+
 set boundary_width 0
 set boundary_height [expr 2*$cell_height]
 set blockage_width [expr 10*$cell_grid]
@@ -26,24 +27,28 @@ set V2T_clock_gen_height [expr ceil((2*$DVDD_M8_width+$DVDD_M8_space)/(2*$cell_h
 
 set digital_width 5
 
-set TDC_inv_area [get_property [get_cells idchain/iTDC_delay_unit_0_/iinv/U1] area] 
+set TDC_inv_area [get_property [get_cells idchain/iTDC_delay_unit_dont_touch_0_/iinv/U1] area] 
 set TDC_inv_width [expr round($TDC_inv_area/$cell_height/$cell_grid)*$cell_grid]
 
-set TDC_ff_area [get_property [get_cells idchain/iTDC_delay_unit_0_/ff_out_reg/Q_reg] area] 
+set TDC_ff_area [get_property [get_cells idchain/iTDC_delay_unit_dont_touch_0_/ff_out_reg/Q_reg] area] 
 set TDC_ff_width [expr round($TDC_ff_area/$cell_height/$cell_grid)*$cell_grid]
 
-set TDC_ff_PR_area [get_property [get_cells idchain/iTDC_delay_unit_0_/phase_reverse_reg/Q_reg] area] 
+set TDC_ff_PR_area [get_property [get_cells idchain/iTDC_delay_unit_dont_touch_0_/phase_reverse_reg/Q_reg] area] 
 set TDC_ff_PR_width [expr round($TDC_ff_PR_area/$cell_height/$cell_grid)*$cell_grid]
 
-set TDC_xnor_area [get_property [get_cells idchain/iTDC_delay_unit_0_/ix_nor/U1] area] 
+set TDC_xnor_area [get_property [get_cells idchain/iTDC_delay_unit_dont_touch_0_/ix_nor/U1] area] 
 set TDC_xnor_width [expr round($TDC_xnor_area/$cell_height/$cell_grid)*$cell_grid]
 
 
-set delay_chain_width [expr (2*($TDC_inv_width+$TDC_ff_width)+$TDC_ff_PR_width+$TDC_xnor_width)*($TDC_Nwidth+2)+$welltap_width]
+set delay_chain_width [expr (1*($TDC_inv_width+$TDC_ff_width)+$TDC_ff_PR_width+$TDC_xnor_width)*($TDC_Nwidth)+$welltap_width]
+#set delay_chain_width [expr (2*($TDC_inv_width+$TDC_ff_width))*($TDC_Nwidth)+$welltap_width]
 set delay_chain_height [expr $cell_height*($TDC_Nheight+8)]
+
 
 set routing_width [expr ceil(5/$cell_grid)*$cell_grid]
 set routing_height [expr 4*$cell_height]
+
+
 
 ##############
 # Floor Plan #
@@ -253,23 +258,42 @@ setAttribute -net {clk_v2t*} -non_default_rule NDR_4W4S
 #setObjFPlanBox Module V2T_clock_gen  0 [expr $origin1_y+$V2T_height] 20 [expr $FP_height-($origin1_y+$V2T_height)]
 #createFence iV2T_clock_gen 0 [expr $origin1_y+$V2T_height+$blockage_height+$cell_height] 20 [expr $FP_height-($origin1_y+$V2T_height+$blockage_height+$cell_height)]
 
+
+
+
+
+
+
+## placement groups -----------------------------------------------------------------------------------------
+
 set V2T_clock_gen_width $Vcal_M7_offset
+
+set PM_area [get_property [get_cells iPM] area]
+set PM_width [expr ceil(($PM_area/$V2T_height*1.2)/$cell_grid)*$cell_grid]
+
+set PM_area [get_property [get_cells iPM] area]
+set PM_width [expr ceil(10/$cell_grid)*$cell_grid]
 
 createInstGroup grp0 -region 0 [expr $FP_height/2-$V2T_clock_gen_height/2] $V2T_clock_gen_width [expr $FP_height/2+$V2T_clock_gen_height/2]
 addInstToInstGroup grp0 {iV2T_clock_gen}
 
-createInstGroup grp1 -region [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width] $origin2_y $FP_width [expr $origin2_y+$delay_chain_height]
+createInstGroup grp1 -region [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width+$PM_width] $origin2_y $FP_width [expr $origin2_y+$delay_chain_height]
 addInstToInstGroup grp1 {idchain}
 
-#createRouteBlk -box [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width] $origin2_y $FP_width [expr $origin2_y+$delay_chain_height] -layer 4
-
-
-
-createInstGroup grp2 -region [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width] 0 $FP_width $origin2_y 
+createInstGroup grp2 -region [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width+$PM_width] 0 $FP_width $origin2_y 
 addInstToInstGroup grp2 {iadder}
 
-createInstGroup grp3 -region $V2T_clock_gen_width [expr $FP_height/2-$V2T_clock_gen_height/2] [expr $origin1_x+$V2T_width] [expr $FP_height/2+$V2T_clock_gen_height/2]
-addInstToInstGroup grp3 {iPM/iPM_sub/* ipm_mux*} 
+createInstGroup grp3 -region [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width] [expr $FP_height/2+$V2T_clock_gen_height/2] [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width+$PM_width] $FP_height
+addInstToInstGroup grp3 {idcdl_coarse/* ib2t_tdc/*}
+
+createInstGroup grp5 -region $V2T_clock_gen_width [expr $FP_height/2-$V2T_clock_gen_height/2] [expr $origin1_x+$V2T_width] [expr $FP_height/2+$V2T_clock_gen_height/2]
+addInstToInstGroup grp5 {iPM/iPM_sub/* ipm_mux*} 
+
+createInstGroup grp4 -region [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width] 0 [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width+$PM_width] [expr $FP_height/2-$V2T_clock_gen_height/2] 
+addInstToInstGroup grp4 {iPM/*}
+
+createInstGroup grp6 -region [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width] [expr $FP_height/2+$V2T_clock_gen_height/2] [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width+$PM_width] [expr $FP_height/2-$V2T_clock_gen_height/2] 
+addInstToInstGroup grp6 {iPFD/*}
 
 
 
@@ -326,9 +350,6 @@ editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MIC
 #rstb
 editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection clockwise -edge 0 -layer 2 -spreadType start -spacing $metal_space -offsetStart [expr $FP_height/2+4*$cell_height] -pin rstb
 
-#rstb
-editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection clockwise -edge 0 -layer 2 -spreadType start -spacing $metal_space -offsetStart [expr $FP_height/2+3*$cell_height] -pin en_TDC_phase_reverse
-
 #PM outputs
 editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 2 -layer 2 -spreadType start -spacing [expr 4*$metal_space] -offsetStart [expr $boundary_height+2*$cell_height] -pin {ctl_v2t_p* pm_out*}
 
@@ -336,7 +357,7 @@ editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MIC
 editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 2 -layer 2 -spreadType start -spacing [expr 8*$metal_space] -offsetStart [expr $boundary_height+32*(4*$metal_space+$pin_width)] -pin {adder_out* sign_out clk_adder}
 
 # controls
-editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection clockwise -edge 2 -layer 2 -spreadType start -spacing [expr 4*$metal_space] -offsetStart [expr $boundary_height+2*$cell_height] -pin {ctl_v2t_n* ctl_dcdl* sel* alws_on del_out en_pm en_slice init* }
+editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection clockwise -edge 2 -layer 2 -spreadType start -spacing [expr 4*$metal_space] -offsetStart [expr $boundary_height+2*$cell_height] -pin {ctl_v2t_n* ctl_dcdl* sel* alws_on del_out en_pm en_slice init* en_TDC_phase_reverse}
 
 saveIoFile -locations ${ioDir}/${DesignName}.io
 

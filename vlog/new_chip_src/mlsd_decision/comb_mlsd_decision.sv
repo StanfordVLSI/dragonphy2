@@ -42,6 +42,7 @@ generate
 		always_comb begin
 			predict_bits[gi] = 0;
 			for(ii=1; ii<2**nbit; ii=ii+1) begin
+				//Compare and set the smallest error energy as the predicted bit
 				predict_bits[gi] = error_energ[ii][gi] < error_energ[predict_bits[gi]][gi] ? ii : predict_bits[gi];
 			end
 		end

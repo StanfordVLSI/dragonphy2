@@ -309,8 +309,6 @@ deletePlaceBlockage welltap_blk
 ################
 
 add_ndr -name NDR_2W1S -spacing {M1:M2 0.032 M3 0.038 M4:M7 0.04} -width {M1:M2 0.064 M3 0.076 M4:M7 0.08} 
-add_ndr -name NDR_3W2S -spacing {M1:M2 0.05 M1 0.05 M4:M7 0.05} -width {M1:M2 0.12 M3 0.12 M4:M7 0.12} 
-add_ndr -name NDR_5W2S -spacing {M1:M2 0.05 M1 0.05 M4:M7 0.05} -width {M1:M2 0.18 M1 0.18 M4:M7 0.2} 
 add_ndr -name NDR_WIDE -spacing {M1:M2 0.2 M1 0.2 M4:M7 0.2 M8 0.2} -width {M1:M2 1 M1 1 M4:M7 1.2 M8 1.3} 
 
 setAttribute -net Vin -non_default_rule NDR_WIDE
