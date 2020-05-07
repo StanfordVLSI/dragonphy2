@@ -1,5 +1,5 @@
 /********************************************************************
-filename: n_and_arb_fixed.sv
+filename: n_and.sv
 
 Description: 
 a parameterized nand cell 

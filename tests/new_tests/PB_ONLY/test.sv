@@ -32,15 +32,22 @@ module test #(
         ph_in[1] <= #(delay1*1s) ph_ref;
     end
 
-    // instantiate the phase blender
+	// cotrol sync (added by sjkim85)
+	reg [2**Nblender-1:0] thm_sel_bld_sampled;
+	assign and_ph_in = ph_in[0]&ph_in[1];
+	initial thm_sel_bld_sampled <= 0;
+	always @(posedge and_ph_in) thm_sel_bld_sampled <= thm_sel_bld;	
+    
+	// instantiate the phase blender
     logic ph_out;
     phase_blender #(
         .Nblender(Nblender)
     ) pb_i (
         .ph_in(ph_in),
-        .thm_sel_bld(thm_sel_bld),
+        .thm_sel_bld(thm_sel_bld_sampled),
         .ph_out(ph_out)
     );
+
 
     // measure the delay of the output phase
     real delay_out_imm;

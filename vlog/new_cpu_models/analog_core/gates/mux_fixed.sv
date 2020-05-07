@@ -1,8 +1,15 @@
 /********************************************************************
+<<<<<<< HEAD
+filename: mux4_fixed.sv
+
+Description: 
+a parameterized mux4 cell 
+=======
 filename: mux_fixed.sv
 
 Description: 
 a parameterized mux cell 
+>>>>>>> master
 
 Assumptions:
 

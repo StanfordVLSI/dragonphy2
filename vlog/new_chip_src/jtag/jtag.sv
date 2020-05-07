@@ -43,6 +43,7 @@ module jtag (
 	assign adbg_intf_i.del_inc= rjtag_intf_i.del_inc;
 	assign adbg_intf_i.ctl_dcdl_slice= rjtag_intf_i.ctl_dcdl_slice;
 	assign adbg_intf_i.ctl_dcdl_sw= rjtag_intf_i.ctl_dcdl_sw;
+	assign adbg_intf_i.ctl_dcdl_clk_encoder= rjtag_intf_i.ctl_dcdl_clk_encoder;
 	assign adbg_intf_i.disable_state= rjtag_intf_i.disable_state;
 	assign adbg_intf_i.en_clk_sw= rjtag_intf_i.en_clk_sw;
 	assign adbg_intf_i.en_meas_pi=rjtag_intf_i.en_meas_pi;
