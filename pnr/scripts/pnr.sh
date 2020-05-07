@@ -84,6 +84,11 @@ if [ $DESIGN == "V2T" ]
   then
     TOP_BLK_LAYER="M9"
 fi
+if [ $DESIGN == "mux4_gf" ] 
+  then
+    TOP_BLK_LAYER="M4"
+fi
+
 
 mkdir -p $pnrDir/$DESIGN
 \cp ${pnrDir}/scripts/run_all_templete.tcl ${pnrDir}/$DESIGN/${DESIGN}_run_all.tcl
@@ -107,7 +112,7 @@ sed -i "1 i\#---------------- HEADER ----------------" ${DESIGN}_run_all.tcl
 echo ""
 echo "[PnR] Innovus is running for block [$DESIGN] ..."
 echo ""
-innovus -batch -no_gui -files ${DESIGN}_run_all.tcl -no_logv -overwrite > ${DESIGN}_innovus.log 
+#innovus -batch -no_gui -files ${DESIGN}_run_all.tcl -no_logv -overwrite > ${DESIGN}_innovus.log 
 
 if grep -q "PnR is done" ${DESIGN}_innovus.log
 then

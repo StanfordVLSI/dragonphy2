@@ -10,6 +10,7 @@ set suppress_errors WL-40
 #############################
 # Read designs
 #############################
+set search_path {$GITDIR/inc/new_asic}
 
 ## TODO ---------------------------------------------------------------
 analyze -format sverilog [list ${mappedDIR}/mux_fixed.mapped.v]
@@ -18,7 +19,7 @@ analyze -format sverilog [list ${mappedDIR}/inv_bld_1_fixed.mapped.v]
 analyze -format sverilog [list ${mappedDIR}/inv_bld_2_fixed.mapped.v]
 analyze -format sverilog [list ${mappedDIR}/inv_bld_3_fixed.mapped.v]
 analyze -format sverilog [list ${mappedDIR}/mux_bld_fixed.mapped.v]
-#analyze -format sverilog [list ${mappedDIR}/n_and4.sv]
+analyze -format sverilog [list ${mappedDIR}/n_and4.sv]
 
 ## --------------------------------------------------------------------
 
@@ -45,8 +46,9 @@ analyze -format sverilog [list ${RTLDIR}/ff_cn_sn_rn_fixed.sv]
 analyze -format sverilog [list ${RTLDIR}/tiel.sv]
 analyze -format sverilog [list ${RTLDIR}/inv.sv]
 analyze -format sverilog [list ${RTLDIR}/a_nd.sv]
+analyze -format sverilog [list ${RTLDIR}/o_r.sv]
 analyze -format sverilog [list ${RTLDIR}/n_and.sv]
-analyze -format sverilog [list ${RTLDIR}/n_and4.sv]
+#analyze -format sverilog [list ${RTLDIR}/n_and4.sv]
 analyze -format sverilog [list ${RTLDIR}/n_or.sv]
 analyze -format sverilog [list ${RTLDIR}/x_or.sv]
 analyze -format sverilog [list ${RTLDIR}/x_nor.sv]
@@ -71,14 +73,15 @@ analyze -format sverilog [list ${RTLDIR}/V2T_buffer.sv]
 analyze -format sverilog [list ${RTLDIR}/V2T_clock_gen.sv]
 analyze -format sverilog [list ${RTLDIR}/PFD.sv]
 analyze -format sverilog [list ${RTLDIR}/dcdl_coarse.sv]
-analyze -format sverilog [list ${RTLDIR}/TDC_delay_unit_PR.sv]
+#analyze -format sverilog [list ${RTLDIR}/TDC_delay_unit_PR.sv]
+analyze -format sverilog [list /aha/sjkim85/apr_flow/synthesis_dragonphy/TDC_delay_unit_PR/DC_WORK/TDC_delay_unit_PR/results/TDC_delay_unit_PR.mapped.v]
 analyze -format sverilog [list ${RTLDIR}/TDC_delay_chain_PR.sv]
 analyze -format sverilog [list ${RTLDIR}/wallace_adder.sv]
 }
 "phase_interpolator" {
 analyze -format sverilog [list ${PNR_RESULTS}/PI_delay_unit/results/PI_delay_unit.pnr.v]
 analyze -format sverilog [list ${RTLDIR}/PI_delay_chain.sv]
-analyze -format sverilog [list ${RTLDIR}/mux4_gf.sv]
+analyze -format sverilog [list ${PNR_RESULTS}/mux4_gf/results/mux4_gf.pnr.v]
 analyze -format sverilog [list ${RTLDIR}/mux_network.sv]
 analyze -format sverilog [list ${PNR_RESULTS}/phase_blender/results/phase_blender.pnr.v]
 analyze -format sverilog [list ${RTLDIR}/PI_local_encoder.sv]

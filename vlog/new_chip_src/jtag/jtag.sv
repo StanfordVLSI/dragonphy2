@@ -6,8 +6,10 @@ module jtag (
 	acore_debug_intf.dcore adbg_intf_i,
 	cdr_debug_intf.jtag cdbg_intf_i,
 	dcore_debug_intf.jtag ddbg_intf_i,
-	sram_debug_intf.jtag sdbg_intf_i,
+	sram_debug_intf.jtag sdbg1_intf_i,
+	sram_debug_intf.jtag sdbg2_intf_i,
 	prbs_debug_intf.jtag pdbg_intf_i,
+	wme_debug_intf.jtag wdbg_intf_i,
 	jtag_intf.target jtag_intf_i
 );
 	raw_jtag_ifc_unq1 rjtag_intf_i(.Clk(clk), .Reset(rstb));
@@ -41,6 +43,7 @@ module jtag (
 	assign adbg_intf_i.del_inc= rjtag_intf_i.del_inc;
 	assign adbg_intf_i.ctl_dcdl_slice= rjtag_intf_i.ctl_dcdl_slice;
 	assign adbg_intf_i.ctl_dcdl_sw= rjtag_intf_i.ctl_dcdl_sw;
+	assign adbg_intf_i.ctl_dcdl_clk_encoder= rjtag_intf_i.ctl_dcdl_clk_encoder;
 	assign adbg_intf_i.disable_state= rjtag_intf_i.disable_state;
 	assign adbg_intf_i.en_clk_sw= rjtag_intf_i.en_clk_sw;
 	assign adbg_intf_i.en_meas_pi=rjtag_intf_i.en_meas_pi;
@@ -100,6 +103,8 @@ module jtag (
 	//Digital Input
 	assign ddbg_intf_i.ext_pi_ctl_offset = rjtag_intf_i.ext_pi_ctl_offset;
 	assign ddbg_intf_i.en_ext_pfd_offset = rjtag_intf_i.en_ext_pfd_offset;
+	assign ddbg_intf_i.en_bypass_pi_ctl  = rjtag_intf_i.en_bypass_pi_ctl;
+	assign ddbg_intf_i.bypass_pi_ctl     = rjtag_intf_i.bypass_pi_ctl;
 	assign ddbg_intf_i.ext_pfd_offset=rjtag_intf_i.ext_pfd_offset;
 	assign ddbg_intf_i.en_ext_pfd_offset_rep=rjtag_intf_i.en_ext_pfd_offset_rep;
 	assign ddbg_intf_i.ext_pfd_offset_rep=rjtag_intf_i.ext_pfd_offset_rep;
@@ -128,6 +133,12 @@ module jtag (
 	assign ddbg_intf_i.cdr_rstb 	 = rjtag_intf_i.cdr_rstb;
     assign ddbg_intf_i.prbs_rstb 	 = rjtag_intf_i.prbs_rstb;
 
+	assign ddbg_intf_i.disable_product	= rjtag_intf_i.disable_product;
+	assign ddbg_intf_i.ffe_shift		= rjtag_intf_i.ffe_shift;
+	assign ddbg_intf_i.mlsd_shift		= rjtag_intf_i.mlsd_shift;
+	assign ddbg_intf_i.cmp_thresh		= rjtag_intf_i.cmp_thresh;
+
+
 	//Digital Output
 	assign rjtag_intf_i.adcout_avg=ddbg_intf_i.adcout_avg;
 	assign rjtag_intf_i.adcout_sum=ddbg_intf_i.adcout_sum;
@@ -141,23 +152,35 @@ module jtag (
 	assign rjtag_intf_i.pfd_offset_rep=ddbg_intf_i.pfd_offset_rep;
 	
 	//SRAM Input
-	assign sdbg_intf_i.in_addr = rjtag_intf_i.in_addr_multi;
-	assign rjtag_intf_i.addr_multi = sdbg_intf_i.addr;
+	assign sdbg1_intf_i.in_addr = rjtag_intf_i.in_addr_multi;
+	assign rjtag_intf_i.addr_multi = sdbg1_intf_i.addr;
 	//SRAM Output
-	assign rjtag_intf_i.out_data_multi = sdbg_intf_i.out_data;
+	assign rjtag_intf_i.out_data_multi = sdbg1_intf_i.out_data;
+
+	//SRAM Input FFE/MLSD
+	assign sdbg2_intf_i.in_addr = rjtag_intf_i.in_addr_multi_ffe;
+	assign rjtag_intf_i.addr_multi_ffe = sdbg2_intf_i.addr;
+	//SRAM Output FFE/MLSD
+	assign rjtag_intf_i.out_data_multi_ffe = sdbg2_intf_i.out_data;
+
 
 	//CDR Input
 	assign cdbg_intf_i.pd_offset_ext = rjtag_intf_i.pd_offset_ext;
 	assign cdbg_intf_i.Ki    = rjtag_intf_i.Ki;
 	assign cdbg_intf_i.Kp 	 = rjtag_intf_i.Kp;
+	assign cdbg_intf_i.Kr 	 = rjtag_intf_i.Kr;
 	assign cdbg_intf_i.en_ext_pi_ctl = rjtag_intf_i.en_ext_pi_ctl;
-	assign cdbg_intf_i.ext_pi_ctl = rjtag_intf_i.ext_pi_ctl;
+	assign cdbg_intf_i.ext_pi_ctl    = rjtag_intf_i.ext_pi_ctl;
 	assign cdbg_intf_i.en_freq_est   = rjtag_intf_i.en_freq_est;
+	assign cdbg_intf_i.en_ramp_est   = rjtag_intf_i.en_ramp_est;
+
 	assign cdbg_intf_i.sample_state = rjtag_intf_i.sample_state;
 
 	//CDR Output
-	assign rjtag_intf_i.phase_est    = cdbg_intf_i.phase_est;
+	assign rjtag_intf_i.phase_est   = cdbg_intf_i.phase_est;
 	assign rjtag_intf_i.freq_est    = cdbg_intf_i.freq_est;
+	assign rjtag_intf_i.ramp_est    = cdbg_intf_i.ramp_est;
+
 
 
     // PRBS Input
@@ -169,6 +192,16 @@ module jtag (
     assign rjtag_intf_i.prbs_total_bits_upper = pdbg_intf_i.prbs_total_bits_upper;
     assign rjtag_intf_i.prbs_total_bits_lower = pdbg_intf_i.prbs_total_bits_lower;
     assign rjtag_intf_i.prbs_rx_shift = pdbg_intf_i.prbs_rx_shift;
+
+    //WME Input
+    assign wdbg_intf_i.wme_ffe_data  = rjtag_intf_i.wme_ffe_data;
+    assign wdbg_intf_i.wme_ffe_inst  = rjtag_intf_i.wme_ffe_inst;
+    assign wdbg_intf_i.wme_ffe_exec  = rjtag_intf_i.wme_ffe_exec;
+    assign wdbg_intf_i.wme_mlsd_data = rjtag_intf_i.wme_mlsd_data;
+    assign wdbg_intf_i.wme_mlsd_inst = rjtag_intf_i.wme_mlsd_inst;
+    assign wdbg_intf_i.wme_mlsd_exec = rjtag_intf_i.wme_mlsd_exec;
+    assign rjtag_intf_i.wme_ffe_read  = wdbg_intf_i.wme_ffe_read;
+    assign rjtag_intf_i.wme_mlsd_read = wdbg_intf_i.wme_mlsd_read;
 
 	//JTAG Interface - Output Buffer Enable is not passed through *
 	assign rjtag_intf_i.tck    = jtag_intf_i.phy_tck;
