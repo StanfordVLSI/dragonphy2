@@ -55,7 +55,9 @@ interface dcore_debug_intf import const_pack::*; (
     	logic signed [Nadc-1:0] adc_thresh [constant_gpack::channel_width-1:0];
 		logic signed [ffe_gpack::output_precision-1:0] ffe_thresh [constant_gpack::channel_width-1:0];
 		logic [1:0] sel_prbs_mux;
-		logic [Nti-1:0] retimer_mux_ctrl [1:0];
+		logic [Nti-1:0] retimer_mux_ctrl_1;
+		logic [Nti-1:0] retimer_mux_ctrl_2;
+
 
     modport dcore ( 	
 		input en_ext_pi_ctl_cdr,
@@ -98,7 +100,9 @@ interface dcore_debug_intf import const_pack::*; (
 		input adc_thresh,
 		input ffe_thresh,
 		input sel_prbs_mux,
-		input retimer_mux_ctrl,
+		input retimer_mux_ctrl_1,
+		input retimer_mux_ctrl_2,
+
 
 		output adcout_avg ,
 		output adcout_sum,
@@ -152,7 +156,8 @@ interface dcore_debug_intf import const_pack::*; (
 		output adc_thresh,
 		output ffe_thresh,
 		output sel_prbs_mux,
-		output retimer_mux_ctrl,
+		output retimer_mux_ctrl_1,
+		output retimer_mux_ctrl_2,
 
 		input adcout_avg ,
 		input adcout_sum,

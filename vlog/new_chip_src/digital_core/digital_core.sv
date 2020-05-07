@@ -103,8 +103,8 @@ module digital_core import const_pack::*; (
         .in_data_rep(adcout_rep),
         .in_sign_rep(adcout_sign_rep),
 
-        .mux_ctrl_1(ddbg_intf_i.retimer_mux_ctrl[0]),
-        .mux_ctrl_2(ddbg_intf_i.retimer_mux_ctrl[1]),
+        .mux_ctrl_1(ddbg_intf_i.retimer_mux_ctrl_1),
+        .mux_ctrl_2(ddbg_intf_i.retimer_mux_ctrl_2),
 
         .out_data(adcout_retimed),            // parallel data
         .out_sign(adcout_sign_retimed),
