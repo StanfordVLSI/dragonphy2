@@ -95,13 +95,16 @@ module digital_core import const_pack::*; (
 
     // ADC Output Retimer
 
-    ti_adc_retimer retimer_i (
+    ti_adc_retimer_v2 retimer_i (
         .clk_retimer(clk_adc),                // clock for serial to parallel retiming
 
         .in_data(adcout),                     // serial data
         .in_sign(adcout_sign),                // sign of serial data
         .in_data_rep(adcout_rep),
         .in_sign_rep(adcout_sign_rep),
+
+        .mux_ctrl_1(ddbg_intf_i.retimer_mux_ctrl[0]),
+        .mux_ctrl_2(ddbg_intf_i.retimer_mux_ctrl[1]),
 
         .out_data(adcout_retimed),            // parallel data
         .out_sign(adcout_sign_retimed),

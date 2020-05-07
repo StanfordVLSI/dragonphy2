@@ -22,8 +22,8 @@ module ti_adc_retimer_v2 import const_pack::*; (
     input wire logic [Nadc-1:0] in_data_rep [1:0],
     input wire logic [1:0]      in_sign_rep,
 
-    input wire logic mux_ctrl_1 [Nti-1:0],
-    input wire logic mux_ctrl_2 [Nti-1:0],
+    input wire logic [Nti-1:0] mux_ctrl_1,
+    input wire logic [Nti-1:0] mux_ctrl_2,
 
 
     output logic [Nadc-1:0] out_data [Nti-1:0], // parallel data
@@ -37,20 +37,19 @@ module ti_adc_retimer_v2 import const_pack::*; (
 wire [Nadc-1:0] do_reorder[Nti-1:0];
 wire [Nti-1:0]  do_reorder_sign;
 
-wire logic [Nadc-1:0] mux_out_1;
-wire logic [Nadc-1:0] mux_out_1_sign;
-
-wire logic [Nadc-1:0] mux_out_2;
-wire logic [Nadc-1:0] mux_out_2_sign;
+wire logic [Nadc-1:0] mux_out_1 [Nti-1:0];
+wire logic [Nadc-1:0] mux_out_2 [Nti-1:0];
 
 reg  [Nadc-1:0] neg_latch      [Nti-1:0];
-reg             neg_latch_sign [Nti-1:0];
+reg  [Nadc-1:0] pos_flop_1     [Nti-1:0];
+reg  [Nadc-1:0] pos_flop_2     [Nti-1:0];
 
-reg  [Nadc-1:0] pos_flop_1      [Nti-1:0];
-reg             pos_flop_1_sign [Nti-1:0];
+wire logic mux_out_1_sign [Nti-1:0]; 
+wire logic mux_out_2_sign [Nti-1:0];
 
-reg  [Nadc-1:0] pos_flop_2      [Nti-1:0];
-reg             pos_flop_2_sign [Nti-1:0];
+reg  neg_latch_sign  [Nti-1:0];
+reg  pos_flop_1_sign [Nti-1:0];
+reg  pos_flop_2_sign [Nti-1:0];
 
 genvar k;
 
