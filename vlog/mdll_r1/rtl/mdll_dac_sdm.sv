@@ -37,7 +37,7 @@ module mdll_dac_sdm import mdll_pkg::*; #(
 	input clk,	// clock
 	input rstn,	// reset, active low
 	input en_sdm,	// enable sdm; active high; false path
-	input [$clog2(N_DAC_TF)-1:0] prbs_mag, 	// prbs gain; 0: 0, 1: 1, 2: 2^1, 3: 2^2, ..., false path
+//	input [$clog2(N_DAC_TF)-1:0] prbs_mag, 	// prbs gain; 0: 0, 1: 1, 2: 2^1, 3: 2^2, ..., false path
 	input [N_DAC_TF-1:0] din,			// fractional part of tracking control
 	output [N_DAC_DITH-1:0] dout_sdm 	// DSM output
 );
@@ -52,7 +52,7 @@ timeprecision 1fs;
 // VARIABLES, WIRES
 //---------------------
 
-wire signed [N_DAC_TF-1:0] dither_prbs;
+//wire signed [N_DAC_TF-1:0] dither_prbs;
 wire [N_DAC_DITH-1:0] o1; 
 //wire o2, o3;
 //wire [N_DAC_TF-1:0] ne1;
