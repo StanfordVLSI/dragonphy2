@@ -3,7 +3,7 @@ steps:
     command: |
       # set up environment
       source /cad/modules/tcl/init/bash
-      module load base xcelium dc_shell
+      module load base xcelium
       export DW_TAP=/cad/synopsys/syn/L-2016.03-SP5-5/dw/sim_ver/DW_tap.v
       export BUILD_VIEW=cpu
       printenv
