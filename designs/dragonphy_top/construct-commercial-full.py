@@ -85,6 +85,7 @@ def construct():
     rtl = Step(this_dir + '/rtl')
     constraints = Step(this_dir + '/constraints')
     dc = Step(this_dir + '/synopsys-dc-synthesis')
+    qtm = Step(this_dir + '/qtm')
 
     # Default steps
 
@@ -105,6 +106,11 @@ def construct():
     lvs            = Step( 'mentor-calibre-lvs',             default=True )
     debugcalibre   = Step( 'cadence-innovus-debug-calibre',  default=True )
 
+    # Add *.db files to synthesis inputs
+    dc.extend_inputs([
+        'output_buffer.db'
+    ])
+
     #-----------------------------------------------------------------------
     # Graph -- Add nodes
     #-----------------------------------------------------------------------
@@ -113,6 +119,7 @@ def construct():
     g.add_step( rtl            )
     g.add_step( constraints    )
     g.add_step( dc             )
+    g.add_step( qtm            )
     g.add_step( iflow          )
     g.add_step( init           )
     g.add_step( power          )
@@ -152,6 +159,7 @@ def construct():
 
     g.connect_by_name( rtl,            dc             )
     g.connect_by_name( constraints,    dc             )
+    g.connect_by_name( qtm,            dc             )
 
     g.connect_by_name( dc,             iflow          )
     g.connect_by_name( dc,             init           )

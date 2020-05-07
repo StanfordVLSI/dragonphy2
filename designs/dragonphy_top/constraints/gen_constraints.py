@@ -35,6 +35,7 @@ set primary_digital_inputs {{ext_rstb ext_dump_start jtag_intf_i.phy_tdi \\
 create_clock -name clk_retimer -period {e["clk_retimer_period"]} [get_pins {{iacore/clk_adc}}]
 create_clock -name clk_in -period {e["clk_in_period"]} [get_ports ext_clkp]
 create_clock -name clk_jtag -period {e["clk_jtag_period"]} [get_ports jtag_intf_i.phy_tck]
+
 set_dont_touch_network [get_pins {{iacore/clk_adc}}]
 set_dont_touch_network [get_port jtag_intf_i.phy_tck]
 
@@ -47,7 +48,9 @@ set_clock_uncertainty -hold {e["clk_jtag_hold_uncertainty"]} clk_jtag
 # Net const
 ###########
 
-set_max_capacitance {e["max_capacitance"]} [current_design]
+# This constraint causes a huge number of buffers to be inserted
+# set_max_capacitance {e["max_capacitance"]} [current_design]
+
 set_max_transition {e["max_transition"]} [current_design]
 set_max_transition {e["max_clock_transition"]} [all_clocks]
 
@@ -85,8 +88,31 @@ set_output_delay {e["output_delay"]} [all_outputs]
 # False path
 ############
 
+# asynchronous clock domains
 set_false_path -from clk_retimer -to clk_jtag
 set_false_path -from clk_jtag -to clk_retimer
+
+# top-level ports
+set_false_path -through [get_ports]
+
+# analog core
+set_false_path -through [get_pins -of_objects iacore]
+
+# digital core
+set_false_path -through [get_pins -of_objects idcore]
+
+# black box buffers
+set_false_path -through [get_pins -of_objects ibuf_async]
+set_false_path -through [get_pins -of_objects ibuf_main]
+set_false_path -through [get_pins -of_objects ibuf_test0]
+set_false_path -through [get_pins -of_objects ibuf_test1]
+
+################
+# Other options
+################
+
+# Make all signals limit their fanout
+set_max_fanout 20 {e["design_name"]}
 
 ################
 # DONT USE CELLS
@@ -107,10 +133,6 @@ set_false_path -from clk_jtag -to clk_retimer
 
 # set_driving_cell -no_design_rule \\
 #  -lib_cell $ADK_DRIVING_CELL [all_inputs]
-
-# Make all signals limit their fanout
-# TODO: should this be included?
-# set_max_fanout 20 {e["design_name"]}
 
 # sr 02/2020
 # haha IOPAD cells already have dont_touch property but not ANAIOPAD :(

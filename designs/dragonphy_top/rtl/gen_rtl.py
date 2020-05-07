@@ -24,9 +24,6 @@ src_files += get_deps_new_asic(TOP_CELL)
 # generate the output text
 output = ''
 
-# TODO: remove this!
-# output += '`define SYNTHESIS_DEBUG\n'
-
 inc_pat = re.compile(r'\s*`include\s+"?([a-zA-Z0-9_./]+)"?')
 for src_file in src_files:
     output += f'// Content from file: {src_file}\n'
