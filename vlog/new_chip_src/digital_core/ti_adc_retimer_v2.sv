@@ -81,8 +81,8 @@ generate
             mux_out_1[k]      = mux_ctrl_1[k] ? do_reorder[k]      : neg_latch[k];
             mux_out_1_sign[k] = mux_ctrl_1[k] ? do_reorder_sign[k] : neg_latch_sign[k];
 
-            mux_out_2[k]      = mux_crtl_2[k] ? pos_flop_1[k]      : pos_flop_2[k];
-            mux_out_2_sign[k] = mux_crtl_2[k] ? pos_flop_1_sign[k] : pos_flop_2_sign[k];
+            mux_out_2[k]      = mux_ctrl_2[k] ? pos_flop_1[k]      : pos_flop_2[k];
+            mux_out_2_sign[k] = mux_ctrl_2[k] ? pos_flop_1_sign[k] : pos_flop_2_sign[k];
 
             out_data[k]       = mux_out_2[k];
             out_sign[k]       = mux_out_2_sign[k];
