@@ -79,7 +79,7 @@ module dragonphy_top import const_pack::*; (
 		.clk(ext_clk_test1)
 	);
 
-
+	logic mdll_clk;
 	logic clk_cdr;
 	logic [Npi-1:0]		pi_ctl_cdr[Nout-1:0];
 
@@ -90,6 +90,10 @@ module dragonphy_top import const_pack::*; (
 	logic [Nti_rep-1:0] adcout_sign_rep;
 
 
+// temp setting for sim ultil DCORE is fixed ---------------------------
+	logic ctl_valid;
+	assign ctl_valid = 1;	
+//---------------------------------------------------------------------------
 	
 	// Analog core instantiation
 	analog_core iacore (
@@ -101,11 +105,12 @@ module dragonphy_top import const_pack::*; (
 		.rx_inn_test(ext_rx_inn_test),
 
 		.ext_clk(clk_main),					// External clock (+)
+		.mdll_clk(mdll_clk),					// External clock (+)
 		.ext_clk_test0(ext_clk_test0),
 		.ext_clk_test1(ext_clk_test1),
-		.clk_cdr(clk_cdr),						// CDR clock
 		.clk_async(clk_async),
 		.ctl_pi(pi_ctl_cdr),  // PI control code from CDR
+		.ctl_valid(ctl_valid),  // PI control valid flag from CDR
 		
 		.Vcal(ext_Vcal),
 		
@@ -117,7 +122,7 @@ module dragonphy_top import const_pack::*; (
 
 		.adbg_intf_i(adbg_intf_i) 				// debug IO
 	);
-
+	
 	// digital core instantiation
 
 	digital_core idcore (
@@ -132,7 +137,7 @@ module dragonphy_top import const_pack::*; (
     	.trigg_out_p(clk_trig_p),
     	.trigg_out_n(clk_trig_n),
     	.clk_async(clk_async),
-		.clk_cdr(clk_cdr),						// CDR clock
+		.clk_cdr(clk_cdr),						// CDR clock (<-- this should be removed)
 		.int_pi_ctl_cdr(pi_ctl_cdr),		// PI control code from CDR
 		.ramp_clock     (ramp_clock),
 		.freq_lvl_cross (freq_lvl_cross),

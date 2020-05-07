@@ -150,3 +150,4 @@ def check_pi(x, y):
         print('PI resolution is low.')
         print(f'Worst-case code is {worst} with delta {deltas[worst]*1e12:0.3f} ps.')
         raise Exception(f'Assertion failed.')
+    print(f'Resolution check OK with max change {np.max(np.diff(y))*1e12:0.3f} ps.')
