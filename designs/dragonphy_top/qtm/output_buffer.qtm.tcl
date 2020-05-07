@@ -41,6 +41,6 @@ set_qtm_port_drive { \
 } -value 1
 
 report_qtm_model
-save_qtm_model -format lib -library_cell
+save_qtm_model -format {lib db} -library_cell
 
 exit

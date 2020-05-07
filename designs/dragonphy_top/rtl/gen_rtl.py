@@ -19,7 +19,7 @@ def resolve_include_file(name):
 # build up a list of source files
 src_files = []
 src_files += [get_file('vlog/new_chip_src/jtag/jtag_intf.sv')]
-src_files += get_deps_new_asic(TOP_CELL)
+src_files += get_deps_new_asic(TOP_CELL, process=os.environ['adk_name'])
 
 # generate the output text
 output = ''

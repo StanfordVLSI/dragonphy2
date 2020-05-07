@@ -2,7 +2,7 @@ from dragonphy import *
 
 def test_new_asic():
     print('Test New ASIC Config')
-    print(get_deps_new_asic('dragonphy_top'))
+    print(get_deps_new_asic('dragonphy_top', process='freepdk-45nm'))
 
 def test_new_chip_src_config():
     print('Test New Chip Source Config')

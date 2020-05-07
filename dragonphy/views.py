@@ -135,32 +135,45 @@ def get_deps(cell_name=None, view_order=None, override=None,
 
     return deps
 
-def get_deps_new_asic(cell_name=None, impl_file=None):
+def get_deps_new_asic(cell_name=None, impl_file=None, process='tsmc16'):
+    # List of views to override with stubs
+    override = {
+       'input_buffer': 'new_chip_stubs',
+       'analog_core': 'new_chip_stubs'
+    }
+
+    # List of views to skip and replace with *.db files
+    skip = {
+        'DW_tap',
+        'output_buffer'
+    }
+    if process == 'freepdk-45nm':
+        override['sram'] = 'new_chip_src_freepdk45'
+        skip.add('sram_144_1024_freepdk45')
+    elif process == 'tsmc16':
+        raise Exception('The SRAM view for TSMC16 has not been implemented yet.')
+    else:
+        raise Exception(f'Unknown process: {process}')
+
+    # Build up the dependency list
     deps = []
     deps += get_deps(
         cell_name=cell_name,
         impl_file=impl_file,
         view_order=['new_pack', 'new_chip_src'],
         includes=[get_dir('inc/new_asic')],
-        override={
-            # TODO: replace all of these with *.db files
-            'sram': 'new_chip_stubs',
-            'input_buffer': 'new_chip_stubs',
-            'analog_core': 'new_chip_stubs'
-        },
-        skip={
-            # these blocks are defined from *.db files
-            'DW_tap',
-            'output_buffer'
-        }
+        override=override,
+        skip=skip
     )
 
+    # manual modifications
     deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/ffe_gpack.sv')
     deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/cmp_gpack.sv')
     deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/mlsd_gpack.sv')
     deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/constant_gpack.sv')
     deps.insert(0, Directory.path() + '/vlog/new_pack/dsp_pack.sv')
 
+    # Return the dependencies
     return deps
 
 def get_deps_cpu_sim_new(cell_name=None, impl_file=None):
