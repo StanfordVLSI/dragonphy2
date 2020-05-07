@@ -1,0 +1,11 @@
+name: rtl
+
+commands:
+  - python gen_rtl.py
+
+outputs:
+  - design.v
+
+parameters:
+  adk_name: "tsmc16"
+  design_name: None
