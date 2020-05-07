@@ -33,11 +33,11 @@ module mdll_r1_top import mdll_pkg::*; #(
 ) (
 // I/Os here
 // clock & reset
-	input clk_refp,		// (+) reference clock
-	input clk_refn,		// (-) reference clock
-	input rstn,			// reset ; active low
-	input clk_monp,     //(+) clk for jitter measurement
-	input clk_monn,     //(-) clk for jitter measurement
+	input clk_refp,		// (+) reference clock, external input
+	input clk_refn,		// (-) reference clock, external input
+	input rstn,			// reset ; active low; Note that this signal is also from jtag
+	input clk_monp,     //(+) clk for jitter measurement, external input
+	input clk_monn,     //(-) clk for jitter measurement, external input
 // core
 	input en_osc_jtag,		// enable osc; active high, false path
 	input en_dac_sdm_jtag,	// enable dco sdm; active high, false path
@@ -57,16 +57,16 @@ module mdll_r1_top import mdll_pkg::*; #(
 	input [N_BB_GB-1:0] gain_bb_jtag,					// BB gain (2**(gain_bb)) for dco tracking , false path
 	input [N_BB_GDAC-1:0] gain_bb_dac_jtag,				// BB gain (2**(gain_dac)) for dac tracking, false path
 	input [$clog2(N_DIV)-1:0] sel_sdm_clk_jtag,	// sdm clock select from feedback divider 
-	input [$clog2(N_DAC_TF)-1:0] prbs_mag_jtag, 		// prbs gain; 0: 0, 1: 1, 2: 2^1, 3: 2^2, ...
+//	input [$clog2(N_DAC_TF)-1:0] prbs_mag_jtag, 		// prbs gain; 0: 0, 1: 1, 2: 2^1, 3: 2^2, ...
 	input en_fcal_jtag,		// enable fcal mode
 	input [$clog2(N_FCAL_CNT)-1:0] fcal_ndiv_ref_jtag,	// divide clk_refp by 2**ndiv_ref to create a ref_pulse
 	input fcal_start_jtag,						// start counter (request)
 	input [N_DAC_BW-1:0] ctl_dac_bw_thm_jtag, 		// DAC bandwidth control (thermometer)
 	input [N_DAC_GAIN-1:0] ctlb_dac_gain_oc_jtag,	// r-dac gain control (one cold)
-	output clk_0,	// I output clock
-	output clk_90,	// Q output clock
-	output clk_180,	// /I output clock
-	output clk_270,	// /Q output clock
+	output clk_0,	// I output clock, to phy core
+	output clk_90,	// Q output clock, to phy core
+	output clk_180,	// /I output clock, to phy core
+	output clk_270,	// /Q output clock, to phy core
 	output [N_FCAL_CNT-1:0] fcal_cnt_2jtag, // fcal counter value
 	output fcal_ready_2jtag,	// fcal result ready (acknowledge)
 	output [N_DCO_TI-1:0] dco_ctl_fine_mon_2jtag,
@@ -74,7 +74,7 @@ module mdll_r1_top import mdll_pkg::*; #(
 // measurement
     input [2:0] jm_sel_clk_jtag,    // select clock being measured
 	input jm_bb_out_pol_jtag,		// 1: take the internal bb_out_mon (inside the measurement module) as it is, 0: invert it
-    output jm_clk_fb_out,   // 1/32 feedback clock output for direct jitter measurement by sampling scope
+    output jm_clk_fb_out,   // 1/32 feedback clock output for direct jitter measurement by sampling scope, to phy core
 	output [N_JIT_CNT-1:0] jm_cdf_out_2jtag // to jatag
 );
 
@@ -90,6 +90,7 @@ wire osc_90;           // Q clock for jitter measurement
 wire osc_180;          // /I clock for jitter measurement
 wire osc_270;          // /Q clock for jitter measurement
 wire clk_fb_mon;       // 1/32 feedback clock to jitter measurement module
+wire jm_bb_out_mon;
 
 //---------------------
 // INSTANTIATION
@@ -116,7 +117,7 @@ mdll_core uCORE (
 	.gain_bb(gain_bb_jtag),
 	.gain_bb_dac(gain_bb_dac_jtag),
 	.sel_sdm_clk(sel_sdm_clk_jtag),
-	.prbs_mag(prbs_mag_jtag), 
+//	.prbs_mag(prbs_mag_jtag), 
 	.en_fcal(en_fcal_jtag),
 	.fcal_ndiv_ref(fcal_ndiv_ref_jtag),
 	.fcal_start(fcal_start_jtag),
@@ -137,18 +138,26 @@ mdll_core uCORE (
 	.dac_ctl_mon(dac_ctl_mon_2jtag)
 );
 
-mdll_jmeas uJM (
+mdll_jmeas_core uJM_C (
 	.clk_monp(clk_monp),
 	.clk_monn(clk_monn),
     .en_monitor(en_monitor_jtag),
     .jm_sel_clk(jm_sel_clk_jtag),
-	.jm_bb_out_pol(jm_bb_out_pol_jtag),
     .osc_0(osc_0),
     .osc_90(osc_90),
     .osc_180(osc_180),
     .osc_270(osc_270),
     .clk_fb_mon(clk_fb_mon),
     .jm_clk_fb_out(jm_clk_fb_out),
+	.jm_bb_out_mon(jm_bb_out_mon)
+);
+
+mdll_jmeas uJM (
+	.clk_monp(clk_monp),
+	.clk_monn(clk_monn),
+    .en_monitor(en_monitor_jtag),
+	.jm_bb_out_pol(jm_bb_out_pol_jtag),
+	.jm_bb_out_mon(jm_bb_out_mon),
 	.jm_cdf_out(jm_cdf_out_2jtag) 
 );
 

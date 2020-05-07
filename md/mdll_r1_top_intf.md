@@ -21,7 +21,6 @@
 | gain_bb_jtag             |           | 3:0        |               | Test         | out      | 'h8       |
 | gain_bb_dac_jtag         |           | 3:0        |               | Test         | out      | 'h1       |
 | sel_sdm_clk_jtag         |           | 2:0        |               | Test         | out      | 'h1       |
-| prbs_mag_jtag            |           | 3:0        |               | Test         | out      | 'h0       |
 | fcal_ndiv_ref_jtag       |           | 3:0        |               | Test         | out      | 'h8       |
 | ctl_dac_bw_thm_jtag      |           | 6:0        |               | Test         | out      | 'h7f      |
 | ctlb_dac_gain_oc_jtag    |           | 3:0        |               | Test         | out      | 'he       |
