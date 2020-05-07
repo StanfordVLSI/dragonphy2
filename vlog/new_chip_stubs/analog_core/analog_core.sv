@@ -16,10 +16,10 @@ module analog_core import const_pack::*; #(
 	input wire logic ext_clk_test0,                      // (+) 4GHz clock input (from pad)
     input wire logic ext_clk_test1,                      // (-) 4GHz clock input (from pad)
 
-	input wire logic clk_cdr,                            // cdr loop filter clock (from DCORE)
 	input wire logic clk_async,                          // asynchronous clock for phase measurement
 	                                                     // (from DCORE)
 	input wire logic [Npi-1:0] ctl_pi[Nout-1:0],         // PI control code (from DCORE)
+	input wire logic ctl_valid,                          // PI control valid flag (from DCORE)
 
 	input `real_t Vcal,                                  // bias voltage for V2T (from pad)
 

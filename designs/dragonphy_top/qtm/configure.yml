@@ -1,12 +1,18 @@
-# Adapted from Garnet
+# Adapted from Garnet and ButterPHY
 
 name: qtm
 
 commands:
-  - mkdir -p build
-  - mkdir -p outputs
-  - cd build && pt_shell -f ../output_buffer.qtm.tcl
-  - cd build && dc_shell-xg-t -f ../run_dc.tcl
+  - |
+    mkdir -p build
+    mkdir -p outputs
+    cd build
+
+    mkdir -p output_buffer
+    cd output_buffer
+    pt_shell -f ../../output_buffer.qtm.tcl
+    cp output_buffer_lib.db ../../outputs/.
+    cd ..
 
 outputs:
-  - output_buffer.db
+  - output_buffer_lib.db

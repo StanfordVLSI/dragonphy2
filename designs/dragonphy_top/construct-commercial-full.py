@@ -13,7 +13,7 @@ def construct():
     if 'DRAGONPHY_PROCESS' in os.environ:
         DRAGONPHY_PROCESS = os.environ['DRAGONPHY_PROCESS']
     else:
-        DRAGONPHY_PROCESS = 'FREEPDK45'
+        DRAGONPHY_PROCESS = 'TSMC16'
 
     g = Graph()
 
@@ -65,7 +65,7 @@ def construct():
     elif DRAGONPHY_PROCESS == 'TSMC16':
         parameters['adk_name'] = 'tsmc16'
         parameters['adk_view'] = 'stdview'
-        # use default timing parameters specified in configure.yml
+        # default parameters are for TSMC16, so no need to override them here
     else:
         raise Exception(f'Unknown process: {DRAGONPHY_PROCESS}')
 
@@ -86,6 +86,13 @@ def construct():
     constraints = Step(this_dir + '/constraints')
     dc = Step(this_dir + '/synopsys-dc-synthesis')
     qtm = Step(this_dir + '/qtm')
+
+    if DRAGONPHY_PROCESS == 'FREEPDK45':
+        sram = Step(this_dir + '/openram-gen-sram')
+    elif DRAGONPHY_PROCESS == 'TSMC16':
+        sram = Step(this_dir + '/mc-gen-sram')
+    else:
+        raise Exception(f'Unknown process: {DRAGONPHY_PROCESS}')
 
     # Default steps
 
@@ -108,7 +115,8 @@ def construct():
 
     # Add *.db files to synthesis inputs
     dc.extend_inputs([
-        'output_buffer.db'
+        'output_buffer_lib.db',
+        'sram_tt.db'
     ])
 
     #-----------------------------------------------------------------------
@@ -118,8 +126,9 @@ def construct():
     g.add_step( info           )
     g.add_step( rtl            )
     g.add_step( constraints    )
-    g.add_step( dc             )
     g.add_step( qtm            )
+    g.add_step( sram           )
+    g.add_step( dc             )
     g.add_step( iflow          )
     g.add_step( init           )
     g.add_step( power          )
@@ -160,6 +169,7 @@ def construct():
     g.connect_by_name( rtl,            dc             )
     g.connect_by_name( constraints,    dc             )
     g.connect_by_name( qtm,            dc             )
+    g.connect_by_name( sram,           dc             )
 
     g.connect_by_name( dc,             iflow          )
     g.connect_by_name( dc,             init           )

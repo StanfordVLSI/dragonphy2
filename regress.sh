@@ -27,5 +27,5 @@ python make.py --view cpu
 pip install pytest pytest-cov
 
 # run tests and upload coverage
-# pytest tests -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
-# bash <(curl -s https://codecov.io/bash)
+pytest tests -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
+bash <(curl -s https://codecov.io/bash)
