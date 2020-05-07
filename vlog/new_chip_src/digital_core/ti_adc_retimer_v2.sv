@@ -33,19 +33,18 @@ module ti_adc_retimer_v2 import const_pack::*; (
 );
 
 // wires, regs
-
 wire [Nadc-1:0] do_reorder[Nti-1:0];
 wire [Nti-1:0]  do_reorder_sign;
 
-wire logic [Nadc-1:0] mux_out_1 [Nti-1:0];
-wire logic [Nadc-1:0] mux_out_2 [Nti-1:0];
+logic [Nadc-1:0] mux_out_1 [Nti-1:0];
+logic [Nadc-1:0] mux_out_2 [Nti-1:0];
 
 reg  [Nadc-1:0] neg_latch      [Nti-1:0];
 reg  [Nadc-1:0] pos_flop_1     [Nti-1:0];
 reg  [Nadc-1:0] pos_flop_2     [Nti-1:0];
 
-wire logic mux_out_1_sign [Nti-1:0]; 
-wire logic mux_out_2_sign [Nti-1:0];
+logic mux_out_1_sign [Nti-1:0]; 
+logic mux_out_2_sign [Nti-1:0];
 
 reg  neg_latch_sign  [Nti-1:0];
 reg  pos_flop_1_sign [Nti-1:0];

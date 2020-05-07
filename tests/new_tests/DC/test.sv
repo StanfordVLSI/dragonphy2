@@ -43,7 +43,7 @@ module test;
 
 	localparam real v_diff_min = -0.4;
 	localparam real v_diff_max = +0.4;
-	localparam real v_diff_step = 0.0025;
+	localparam real v_diff_step = 0.025;
 	localparam real v_cm = 0.40;
 
 	// mLingua initialization
