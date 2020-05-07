@@ -41,8 +41,8 @@ module mdll_lf import mdll_pkg::*; #(
 	input freeze_lf_dco_track,	// freeze dco_ctl_track value in the loop filter; active high, false path
 	input freeze_lf_dac_track,	// freeze dac_ctl_track value in the loop filter; active high, false path
 	input load,		// 1: load "load_val" into dco_ctl_track reg; 0: normal loop filter ops, false path
-	input [N_DCO_T-1:0] ld_value,		// init load value to dco_ctl_track, false path, false path
-	input [N_DAC_T-1:0] ld_value_dac,   // init load value to dac_ctl_track, false path, false path
+	input [N_DCO_T-N_DCO_TF-1:0] ld_value,		// init load value to dco_ctl_track, false path, false path
+	input [N_DAC_T-N_DAC_TF-1:0] ld_value_dac,   // init load value to dac_ctl_track, false path, false path
 	input sel_dac_loop,	                // 1: dac-based bb loop; 0: nominal bb loop, false path
     input en_hold,                      // enable holding dco_ctl_track value in dac tracking mode; active high
 	input bb_out_inc,					// bang-bang pd output (1: inc delay, 0: dec delay)
@@ -160,7 +160,7 @@ assign dco_ctl_fine_frac = dco_ctl_track[N_DCO_TF-1:0];
 assign bb_out_scaled = (gain_bb_sync==0)? '0 : (bb_out_inc ? (1 << gain_bb_sync) : (-1 << gain_bb_sync)) ;
 assign inc = bb_out_scaled ;
 
-assign dco_ctl_track_nxt_unclipped = load_sync ? $signed({2'b0,ld_value}) : (dco_ctl_track + inc);
+assign dco_ctl_track_nxt_unclipped = load_sync ? $signed({2'b0,ld_value,{N_DCO_TF{1'b0}}}) : (dco_ctl_track + inc);
 assign ovfw_dco_ctl_track = (dco_ctl_track_nxt_unclipped[(N_DCO_T+1)-:(2+N_DCO_TI)] == {2'b01,{(N_DCO_TI){1'b1}}});
 assign udfw_dco_ctl_track = dco_ctl_track_nxt_unclipped[N_DCO_T+1];	
 assign dco_ctl_track_nxt = ovfw_dco_ctl_track ? {{(N_DCO_TI){1'b1}},{(N_DCO_TF){1'b0}}} : ( udfw_dco_ctl_track ? '0 : dco_ctl_track_nxt_unclipped ) ;
@@ -171,7 +171,7 @@ assign dac_ctl_frac = dac_ctl_track[N_DAC_TF-1:0];
 assign dac_bb_out_scaled = (gain_bb_dac_sync==0)? '0 : (bb_out_inc ? (1 << gain_bb_dac_sync) : (-1 << gain_bb_dac_sync)) ;
 assign dac_inc = dac_bb_out_scaled ;
 
-assign dac_ctl_track_nxt_unclipped = load_sync ? $signed({2'b0,ld_value_dac}) : (dac_ctl_track + dac_inc );
+assign dac_ctl_track_nxt_unclipped = load_sync ? $signed({2'b0,ld_value_dac,{N_DAC_TF{1'b0}}}) : (dac_ctl_track + dac_inc );
 assign ovfw_dac_ctl_track = (dac_ctl_track_nxt_unclipped[(N_DAC_T+1)-:(2+N_DAC_TI)] == {2'b01,{(N_DAC_TI){1'b1}}});
 assign udfw_dac_ctl_track = dac_ctl_track_nxt_unclipped[N_DAC_T+1];	
 assign dac_ctl_track_nxt = ovfw_dac_ctl_track ? {{(N_DAC_TI){1'b1}},{(N_DAC_TF){1'b0}}} : ( udfw_dac_ctl_track ? '0 : dac_ctl_track_nxt_unclipped ) ;
@@ -187,7 +187,7 @@ assign reset_dac_ctl_track = (sel_dac_loop_d[2:1]==2'b00);  // low
 
 // bb-loop integrator
 always @(posedge clk_lf, negedge resetn_sync_clk_lf) 
-	if (!resetn_sync_clk_lf) dco_ctl_track <= ld_value;
+	if (!resetn_sync_clk_lf) dco_ctl_track <= {ld_value,{N_DCO_TF{1'b0}}};
 	else if (~freeze_dco_sync) begin
         if (latch_dco_ctl_track) begin
 			if (dco_ctl_track_nxt[(N_DCO_T-1)-:N_DCO_TI]!=0) 
@@ -200,9 +200,9 @@ always @(posedge clk_lf, negedge resetn_sync_clk_lf)
 
 // supply-dac integrator
 always @(posedge clk_lf, negedge resetn_sync_clk_lf) 
-	if (!resetn_sync_clk_lf) dac_ctl_track <= ld_value_dac;
+	if (!resetn_sync_clk_lf) dac_ctl_track <= {ld_value_dac,{N_DAC_TF{1'b0}}};
 	else if (~freeze_dac_sync) begin
-        if (reset_dac_ctl_track) dac_ctl_track <= ld_value_dac;
+        if (reset_dac_ctl_track) dac_ctl_track <= {ld_value_dac,{N_DAC_TF{1'b0}}};
         else dac_ctl_track <= dac_ctl_track_nxt;
     end
 
