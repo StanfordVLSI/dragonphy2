@@ -49,7 +49,7 @@ module mdll_lf import mdll_pkg::*; #(
 	input [N_BB_GB-1:0] gain_bb,			// 2**(gain_bb) for bb_out in bb loop, false path
 	input [N_BB_GDAC-1:0] gain_bb_dac,		// 2**(gain_bb_dac) for bb_out in dac supply loop, false path
 	input en_sdm,	// enable sdm; active high, false path
-	input [$clog2(N_DAC_TF)-1:0] prbs_mag, 	// prbs gain; 0: 0, 1: 1, 2: 2^1, 3: 2^2, ..., false path
+//	input [$clog2(N_DAC_TF)-1:0] prbs_mag, 	// prbs gain; 0: 0, 1: 1, 2: 2^1, 3: 2^2, ..., false path
 	output [N_DCO_TI-1:0] dco_ctl_fine, // dco fine control word
 	output [N_DAC_TI-1:0] dac_ctl       // dac control word 
 );
@@ -143,7 +143,7 @@ mdll_dac_sdm uSDM (
 	.clk(clk_sdm),
 	.rstn(resetn),
 	.en_sdm(en_sdm),
-	.prbs_mag(prbs_mag),
+//	.prbs_mag(prbs_mag),
 	.din(dac_ctl_frac),     // CDC
 	.dout_sdm(dac_ctl_dither)
 );
