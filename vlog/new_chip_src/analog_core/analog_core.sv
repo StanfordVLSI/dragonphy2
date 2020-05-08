@@ -1,4 +1,5 @@
-`include "iotype.sv"
+//`include "iotype.sv"
+`include "/aha/sjkim85/github_repo/dragonphy2/inc/new_asic/iotype.sv"
 
 module analog_core import const_pack::*; #(
 ) (

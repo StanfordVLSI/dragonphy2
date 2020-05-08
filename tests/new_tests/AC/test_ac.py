@@ -42,7 +42,7 @@ def test_sim():
         ext_srcs=deps,
         directory=BUILD_DIR,
         top_module='test',
-        inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/new_cpu')],
+        inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/new_cpu'), get_dir('')],
         defines=defines,
         simulator=SIMULATOR,
         flags=flags

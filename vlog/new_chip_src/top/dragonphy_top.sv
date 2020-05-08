@@ -21,7 +21,7 @@ module dragonphy_top import const_pack::*; (
 	input wire logic ext_clk_test1_n,
 	
 	input wire logic ext_clkp,
-	input wire logic ext_clkp,
+	input wire logic ext_clkn,
 	
 	input wire logic ext_mdll_clkp,
 	input wire logic ext_mdll_clkn,
@@ -50,6 +50,7 @@ module dragonphy_top import const_pack::*; (
 
 	// analog core debug interface
 	acore_debug_intf adbg_intf_i ();
+	mdll_r1_debug_intf mdbg_intf_i ();
 
 	wire logic clk_main;
 	wire logic clk_async;
@@ -85,6 +86,7 @@ module dragonphy_top import const_pack::*; (
 		.clk(ext_clk_test1)
 	);
 
+	logic mdll_clk_out;
 	logic mdll_clk;
 	logic clk_cdr;
 	logic [Npi-1:0]		pi_ctl_cdr[Nout-1:0];
@@ -150,52 +152,52 @@ module dragonphy_top import const_pack::*; (
 		.ext_dump_start(ext_dump_start),
 
 		.adbg_intf_i(adbg_intf_i),		
-		.jtag_intf_i(jtag_intf_i)
+		.jtag_intf_i(jtag_intf_i),
+    	.mdbg_intf_i(mdbg_intf_i)
 	);
 
 
-	mdll_r1_top imdll (
-		.clk_refp(mdll_ext_clkp),     // (+) reference clock
-	    .clk_refn(mdll_ext_clkn),     // (-) reference clock
-	    .clk_monp(mdll_ext_clk_monp),     //(+) clk for jitter measurement
-	    .clk_monn(mdll_ext_clk_minn),     //(-) clk for jitter measurement
-	    
-    	.rstn(mall_rstb),         // reset ; active low
-		.en_osc_jtag(mdll_en_osc),      // enable osc; active high, false path
-	    .en_dac_sdm_jtag(mdll_en_dac_sdm),  // enable dco sdm; active high, false path
-	    .en_monitor_jtag(mdll_en_monitor),  // enable measurement mode
-	    .inj_mode_jtag(mdll_inj_mode),    // 0: ring oscillator mode; 1: injection oscillator mode, false path
-	    .freeze_lf_dco_track_jtag(mdll_freeze_lf_dco_track), // freeze dco_ctl_track value in the loop filter; active high, false path
-	    .freeze_lf_dac_track_jtag(mdll_freeze_lf_dac_track), // freeze dac_ctl_track value in the loop filter; active high, false path
-	    .load_lf_jtag(mdll_load_lf),     // 1: load "load_val" into dco_ctl_fine reg; 0: normal loop filter ops, false path
-	    .sel_dac_loop_jtag(mdll_sel_dac_loop),    // 1: dac-based bb loop; 0: nominal bb loop, false path
-	    .en_hold_jtag(mdll_en_hold),      // enable holding dco_ctl_track value in dac tracking mode; active high, false path
-	    .fb_ndiv_jtag(mdll_fb_ndiv),   // 2**fb_ndiv is the feedback divider ratio
-	    .load_offset_jtag(mdll_load_offset), // 1: load dco_ctl_offset value, 0: keep the current offset value
-	    .dco_ctl_offset_jtag(mdll_dco_ctl_offset),            // # of delay coarse stages for supply modulation, false path
-    	.dco_ctl_track_lv_jtag(mdll_dco_ctl_track_lv),     // init load value of dco_ctl_track in digital loop filter, false path
-	    .dac_ctl_track_lv_jtag(mdll_dac_ctl_track_lv),     // init load value of dac_ctl_track in digital loop filter, false path
-	    .gain_bb_jtag(mdll_gain_bb),                   // BB gain (2**(gain_bb)) for dco tracking , false path
-	    .gain_bb_dac_jtag(mdll_gain_bb_dac),             // BB gain (2**(gain_dac)) for dac tracking, false path
-	    .sel_sdm_clk_jtag(mdll_sel_sdm_clk), // sdm clock select from feedback divider
-	    .en_fcal_jtag(mdll_en_fcal),     // enable fcal mode
-	    .fcal_ndiv_ref_jtag(mdll_fcal_ndiv_ref),  // divide clk_refp by 2**ndiv_ref to create a ref_pulse
-	    .fcal_start_jtag(mdll_fcal_start),                      // start counter (request)
-	    .ctl_dac_bw_thm_jtag(mdll_ctl_dac_bw_thm),       // DAC bandwidth control (thermometer)
-	    .ctlb_dac_gain_oc_jtag(mdll_ctlb_dac_gain_oc),   // r-dac gain control (one cold)
-	    
-		.clk_0(mdll_clk_out),   // I .clock
-	    .clk_90(),  // Q .clock
-	    .clk_180(), // /I .clock
-	    .clk_270(), // /Q .clock
-	    .fcal_cnt_2jtag(mdll_fcal_cnt), // fcal counter value
-	    .fcal_ready_2jtag(mdll_fcal_ready),    // fcal result ready (acknowledge)
-	    .dco_ctl_fine_mon_2jtag(mdll_dco_ctl_fine_mon),
-	    .dac_ctl_mon_2jtag(mdll_dac_ctl_mon),
-	    .jm_sel_clk_jtag(mdll_jm_sel_clk),    // select clock being measured
-	    .jm_bb_out_pol_jtag(mdll_jm_bb_out_pol),       // 1: take the internal bb_out_mon (inside the measurement module) as it is, 0: invert it
-	    .jm_clk_fb_out(mdll_jm_clk_fb_out),   // 1/32 feedback clock .for direct jitter measurement by sampling scope
-	    .jm_cdf_out_2jtag(mdll_jm_cdf_out) // to jatag
+	 mdll_r1_top imdll (
+        .clk_refp(ext_mdll_clkp),
+        .clk_refn(ext_mdll_clkn),
+        .rstn_jtag(mdbg_intf_i.rstn_jtag),
+        .clk_monp(ext_mdll_clk_monp),
+        .clk_monn(ext_mdll_clk_monn),
+        .en_osc_jtag(mdbg_intf_i.en_osc_jtag),
+        .en_dac_sdm_jtag(mdbg_intf_i.en_dac_sdm_jtag),
+        .en_monitor_jtag(mdbg_intf_i.en_monitor_jtag),
+        .inj_mode_jtag(mdbg_intf_i.inj_mode_jtag),
+        .freeze_lf_dco_track_jtag(mdbg_intf_i.freeze_lf_dco_track_jtag),
+        .freeze_lf_dac_track_jtag(mdbg_intf_i.freeze_lf_dac_track_jtag),
+        .load_lf_jtag(mdbg_intf_i.load_lf_jtag),
+        .sel_dac_loop_jtag(mdbg_intf_i.sel_dac_loop_jtag),
+    	.en_hold_jtag(mdbg_intf_i.en_hold_jtag),
+        .fb_ndiv_jtag(mdbg_intf_i.fb_ndiv_jtag),
+        .load_offset_jtag(mdbg_intf_i.load_offset_jtag),
+        .dco_ctl_offset_jtag(mdbg_intf_i.dco_ctl_offset_jtag),
+        .dco_ctl_track_lv_jtag(mdbg_intf_i.dco_ctl_track_lv_jtag),
+        .dac_ctl_track_lv_jtag(mdbg_intf_i.dac_ctl_track_lv_jtag),
+        .gain_bb_jtag(mdbg_intf_i.gain_bb_jtag),
+        .gain_bb_dac_jtag(mdbg_intf_i.gain_bb_dac_jtag),
+        .sel_sdm_clk_jtag(mdbg_intf_i.sel_sdm_clk_jtag),
+        .en_fcal_jtag(mdbg_intf_i.en_fcal_jtag),
+        .fcal_ndiv_ref_jtag(mdbg_intf_i.fcal_ndiv_ref_jtag),
+        .fcal_start_jtag(mdbg_intf_i.fcal_start_jtag),
+        .ctl_dac_bw_thm_jtag(mdbg_intf_i.ctl_dac_bw_thm_jtag),
+        .ctlb_dac_gain_oc_jtag(mdbg_intf_i.ctlb_dac_gain_oc_jtag),
+        .jm_sel_clk_jtag(mdbg_intf_i.jm_sel_clk_jtag),
+        .jm_bb_out_pol_jtag(mdbg_intf_i.jm_bb_out_pol_jtag),
+
+        .clk_0(mdll_clk_out),
+        .clk_90(),
+        .clk_180(),
+        .clk_270(),
+        .fcal_cnt_2jtag(mdbg_intf_i.fcal_cnt_2jtag),
+        .fcal_ready_2jtag(mdbg_intf_i.fcal_ready_2jtag),
+        .dco_ctl_fine_mon_2jtag(mdbg_intf_i.dco_ctl_fine_mon_2jtag),
+        .dac_ctl_mon_2jtag(mdbg_intf_i.dac_ctl_mon_2jtag),
+        .jm_clk_fb_out(),
+        .jm_cdf_out_2jtag(mdbg_intf_i.jm_cdf_out_2jtag)
 	);
 
 endmodule
