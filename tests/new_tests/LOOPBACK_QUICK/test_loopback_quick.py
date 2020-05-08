@@ -13,7 +13,7 @@ if 'FPGA_SERVER' in os.environ:
 else:
     SIMULATOR = 'ncsim'
 
-@pytest.mark.wip
+#@pytest.mark.wip
 def test_sim():
     deps = get_deps_cpu_sim_new(impl_file=THIS_DIR / 'test.sv')
     print(deps)

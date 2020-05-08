@@ -54,7 +54,7 @@ module test;
 	jtag_intf jtag_intf_i();
 
 	// instantiate top module
-	butterphy_top top_i (
+	dragonphy_top top_i (
 		// analog inputs
 		.ext_rx_inp(ch_outp),
 		.ext_rx_inn(ch_outn),
