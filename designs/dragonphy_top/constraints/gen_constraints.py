@@ -24,9 +24,9 @@ set analog_io {{ext_rx_inp ext_rx_inn ext_Vcm ext_Vcal ext_rx_inp_test \\
 
 set analog_net [get_pins ibuf_*/clk]
 
-set primary_digital_inputs {{ext_rstb ext_dump_start jtag_intf_i.phy_tdi \\
-                            jtag_intf_i.phy_tck jtag_intf_i.phy_tms \\
-                            jtag_intf_i.phy_trst_n}}
+set primary_digital_inputs {{ext_rstb ext_dump_start jtag_intf_i_phy_tdi \\
+                            jtag_intf_i_phy_tck jtag_intf_i_phy_tms \\
+                            jtag_intf_i_phy_trst_n}}
 
 #########
 # Clocks
@@ -34,10 +34,10 @@ set primary_digital_inputs {{ext_rstb ext_dump_start jtag_intf_i.phy_tdi \\
 
 create_clock -name clk_retimer -period {e["clk_retimer_period"]} [get_pins {{iacore/clk_adc}}]
 create_clock -name clk_in -period {e["clk_in_period"]} [get_ports ext_clkp]
-create_clock -name clk_jtag -period {e["clk_jtag_period"]} [get_ports jtag_intf_i.phy_tck]
+create_clock -name clk_jtag -period {e["clk_jtag_period"]} [get_ports jtag_intf_i_phy_tck]
 
 set_dont_touch_network [get_pins {{iacore/clk_adc}}]
-set_dont_touch_network [get_port jtag_intf_i.phy_tck]
+set_dont_touch_network [get_port jtag_intf_i_phy_tck]
 
 set_clock_uncertainty -setup {e["clk_retimer_setup_uncertainty"]} clk_retimer
 set_clock_uncertainty -hold {e["clk_retimer_hold_uncertainty"]} clk_retimer
