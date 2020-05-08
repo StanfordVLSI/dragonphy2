@@ -1,0 +1,20 @@
+name: mc-gen-sram
+
+commands:
+  - bash gen_srams.sh
+
+outputs:
+  - sram.v
+  - sram_pwr.v
+  - sram.lef
+  - sram_tt.lib
+  - sram_tt.db
+  - sram.gds
+  - sram.spi
+
+parameters:
+  sram_word_size: 144
+  sram_num_words: 1024
+  sram_mux_size: 4
+  sram_corner: "tt0p8v25c"
+  sram_partial_write: False
