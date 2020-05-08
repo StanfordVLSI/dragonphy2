@@ -10,10 +10,43 @@ module jtag (
 	sram_debug_intf.jtag sdbg2_intf_i,
 	prbs_debug_intf.jtag pdbg_intf_i,
 	wme_debug_intf.jtag wdbg_intf_i,
+    mdll_r1_debug_intf.jtag mdbg_intf_i,
 	jtag_intf.target jtag_intf_i
-
 );
 	raw_jtag_ifc_unq1 rjtag_intf_i(.Clk(clk), .Reset(rstb));
+
+	//Mdll
+	assign mdbg_intf_i.rstn_jtag = rstb & rjtag_intf_i.rstn_jtag ;
+	assign mdbg_intf_i.en_osc_jtag = rjtag_intf_i.en_osc_jtag ;
+	assign mdbg_intf_i.en_dac_sdm_jtag = rjtag_intf_i.en_dac_sdm_jtag ;
+	assign mdbg_intf_i.en_monitor_jtag = rjtag_intf_i.en_monitor_jtag ;
+	assign mdbg_intf_i.inj_mode_jtag = rjtag_intf_i.inj_mode_jtag ;
+	assign mdbg_intf_i.freeze_lf_dco_track_jtag = rjtag_intf_i.freeze_lf_dco_track_jtag ;
+	assign mdbg_intf_i.freeze_lf_dac_track_jtag = rjtag_intf_i.freeze_lf_dac_track_jtag ;
+	assign mdbg_intf_i.load_lf_jtag = rjtag_intf_i.load_lf_jtag ;
+	assign mdbg_intf_i.sel_dac_loop_jtag = rjtag_intf_i.sel_dac_loop_jtag ;
+	assign mdbg_intf_i.en_hold_jtag = rjtag_intf_i.en_hold_jtag ;
+	assign mdbg_intf_i.fb_ndiv_jtag = rjtag_intf_i.fb_ndiv_jtag ;
+  	assign mdbg_intf_i.load_offset_jtag = rjtag_intf_i.load_offset_jtag ;
+ 	assign mdbg_intf_i.dco_ctl_offset_jtag = rjtag_intf_i.dco_ctl_offset_jtag ;
+  	assign mdbg_intf_i.dco_ctl_track_lv_jtag = rjtag_intf_i.dco_ctl_track_lv_jtag ;
+  	assign mdbg_intf_i.dac_ctl_track_lv_jtag = rjtag_intf_i.dac_ctl_track_lv_jtag ;
+  	assign mdbg_intf_i.gain_bb_jtag = rjtag_intf_i.gain_bb_jtag ;
+  	assign mdbg_intf_i.gain_bb_dac_jtag = rjtag_intf_i.gain_bb_dac_jtag ;
+ 	assign mdbg_intf_i.sel_sdm_clk_jtag = rjtag_intf_i.sel_sdm_clk_jtag ;
+  	assign mdbg_intf_i.en_fcal_jtag = rjtag_intf_i.en_fcal_jtag ;
+ 	assign mdbg_intf_i.fcal_ndiv_ref_jtag = rjtag_intf_i.fcal_ndiv_ref_jtag ;
+  	assign mdbg_intf_i.fcal_start_jtag = rjtag_intf_i.fcal_start_jtag ;
+  	assign mdbg_intf_i.ctl_dac_bw_thm_jtag = rjtag_intf_i.ctl_dac_bw_thm_jtag ;
+  	assign mdbg_intf_i.ctlb_dac_gain_oc_jtag = rjtag_intf_i.ctlb_dac_gain_oc_jtag ;
+  	assign mdbg_intf_i.jm_sel_clk_jtag = rjtag_intf_i.jm_sel_clk_jtag ;
+  	assign mdbg_intf_i.jm_bb_out_pol_jtag = rjtag_intf_i.jm_bb_out_pol_jtag ;
+
+  	assign rjtag_intf_i.fcal_cnt_2jtag = mdbg_intf_i.fcal_cnt_2jtag ;
+  	assign rjtag_intf_i.fcal_ready_2jtag = mdbg_intf_i.fcal_ready_2jtag ;
+  	assign rjtag_intf_i.dco_ctl_fine_mon_2jtag = mdbg_intf_i.dco_ctl_fine_mon_2jtag ;
+  	assign rjtag_intf_i.dac_ctl_mon_2jtag = mdbg_intf_i.dac_ctl_mon_2jtag ;
+  	assign rjtag_intf_i.jm_cdf_out_2jtag = mdbg_intf_i.jm_cdf_out_2jtag ;
 
 	//Analog Input 
 	assign adbg_intf_i.rstb   = rstb && ddbg_intf_i.int_rstb;

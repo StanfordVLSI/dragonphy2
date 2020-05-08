@@ -18,7 +18,8 @@ module digital_core import const_pack::*; (
     output wire logic freq_lvl_cross,
     input wire logic ext_dump_start,
     acore_debug_intf.dcore adbg_intf_i,
-    jtag_intf.target jtag_intf_i
+    jtag_intf.target jtag_intf_i,
+    mdll_r1_debug_intf.jtag mdbg_intf_i
 );
     // interfaces
 
@@ -363,6 +364,7 @@ module digital_core import const_pack::*; (
         .sdbg2_intf_i(sm2_dbg_intf_i),
         .pdbg_intf_i(pdbg_intf_i),
         .wdbg_intf_i(wdbg_intf_i),
+        .mdbg_intf_i(mdbg_intf_i),
         .jtag_intf_i(jtag_intf_i)
     );
 
