@@ -21,7 +21,12 @@ module dragonphy_top import const_pack::*; (
 	input wire logic ext_clk_test1_n,
 	
 	input wire logic ext_clkp,
-	input wire logic ext_clkn,
+	input wire logic ext_clkp,
+	
+	input wire logic ext_mdll_clkp,
+	input wire logic ext_mdll_clkn,
+	input wire logic ext_mdll_clk_monp,
+	input wire logic ext_mdll_clk_monn,
 	
 	input wire logic ramp_clock,
 
@@ -105,8 +110,8 @@ module dragonphy_top import const_pack::*; (
 		.rx_inp_test(ext_rx_inp_test),
 		.rx_inn_test(ext_rx_inn_test),
 
-		.ext_clk(clk_main),					// External clock (+)
-		.mdll_clk(mdll_clk),					// External clock (+)
+		.ext_clk(clk_main),					// External clock 
+		.mdll_clk(mdll_clk_out),			// clock from MDLL
 		.ext_clk_test0(ext_clk_test0),
 		.ext_clk_test1(ext_clk_test1),
 		.clk_async(clk_async),
@@ -147,7 +152,8 @@ module dragonphy_top import const_pack::*; (
 		.adbg_intf_i(adbg_intf_i),		
 		.jtag_intf_i(jtag_intf_i)
 	);
-/*
+
+
 	mdll_r1_top imdll (
 		.clk_refp(mdll_ext_clkp),     // (+) reference clock
 	    .clk_refn(mdll_ext_clkn),     // (-) reference clock
@@ -191,13 +197,6 @@ module dragonphy_top import const_pack::*; (
 	    .jm_clk_fb_out(mdll_jm_clk_fb_out),   // 1/32 feedback clock .for direct jitter measurement by sampling scope
 	    .jm_cdf_out_2jtag(mdll_jm_cdf_out) // to jatag
 	);
-*/
-
-
-
-
-
-
 
 endmodule
 
