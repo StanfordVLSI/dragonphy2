@@ -39,22 +39,17 @@ wire [Nti-1:0]  do_reorder_sign;
 logic [Nadc-1:0] mux_out_1 [Nti-1:0];
 logic [Nadc-1:0] mux_out_2 [Nti-1:0];
 
-reg  [Nadc-1:0] neg_latch      [Nti-1:0];
+reg  [Nadc-1:0] pos_latch      [Nti-1:0];
 reg  [Nadc-1:0] pos_flop_1     [Nti-1:0];
 reg  [Nadc-1:0] pos_flop_2     [Nti-1:0];
-
-reg [Nadc-1:0] pos_latch [Nti-1:0];
-reg [Nadc-1:0] neg_flop_1 [Nti-1:0];
 
 logic mux_out_1_sign [Nti-1:0]; 
 logic mux_out_2_sign [Nti-1:0];
 
-reg  neg_latch_sign  [Nti-1:0];
+reg [Nadc-1:0] pos_latch_sign [Nti-1:0];
 reg  pos_flop_1_sign [Nti-1:0];
 reg  pos_flop_2_sign [Nti-1:0];
 
-reg [Nadc-1:0] pos_latch_sign [Nti-1:0];
-reg [Nadc-1:0] neg_flop_1_sign [Nti-1:0];
 
 genvar k;
 
@@ -76,38 +71,32 @@ generate
         // Negative Edge Latch
         // Pos Edge Latch
         always_latch begin
-            if(!clk_retimer) begin
-                neg_latch[k]      <= do_reorder[k];
-                neg_latch_sign[k] <= do_reorder_sign[k];
-            end else begin
+            if(clk_retimer) begin
                 pos_latch[k]      <= do_reorder[k];
                 pos_latch_sign[k] <= do_reorder_sign[k];
             end
         end
 
+
+
+
         //Mux 1 and Mux 2
         always_comb begin
-            mux_out_1[k]      = mux_ctrl_1[k] ? neg_flop_1[k]      : pos_flop_1[k];
-            mux_out_1_sign[k] = mux_ctrl_1[k] ? neg_flop_1_sign[k] : pos_flop_1_sign[k];
+            mux_out_1[k]      = mux_ctrl_1[k] ? do_reorder[k]      : pos_latch[k];
+            mux_out_1_sign[k] = mux_ctrl_1[k] ? do_reorder_sign[k] : pos_latch_sign[k];
 
-            mux_out_2[k]      = mux_ctrl_2[k] ? mux_out_1[k]      : pos_flop_1[k];
-            mux_out_2_sign[k] = mux_ctrl_2[k] ? mux_out_1_sign[k] : pos_flop_1_sign[k];
+            mux_out_2[k]      = mux_ctrl_2[k] ? pos_flop_1[k]      : pos_flop_2[k];
+            mux_out_2_sign[k] = mux_ctrl_2[k] ? pos_flop_1_sign[k] : pos_flop_2_sign[k];
 
             out_data[k]       = mux_out_2[k];
             out_sign[k]       = mux_out_2_sign[k];
         end
         // Both flops
         always_ff @(posedge clk_retimer) begin
-            pos_flop_1[k]      <= neg_latch[k];
-            pos_flop_1_sign[k] <= neg_latch_sign[k];
-
-            pos_flop_2[k]      <= mux_out_1[k];
-            pos_flop_2_sign[k] <= mux_out_1_sign[k];
-        end
-
-        always_ff @(negedge clk_retimer) begin 
-            neg_flop_1[k]      <= pos_latch[k];
-            neg_flop_1_sign[k] <= pos_latch_sign[k];
+            pos_flop_1[k]      <= mux_out_1[k];
+            pos_flop_1_sign[k] <= mux_out_1_sign[k];
+            pos_flop_2[k]      <= pos_flop_1[k];
+            pos_flop_2_sign[k] <= pos_flop_1_sign[k];
         end
     end
 endgenerate
