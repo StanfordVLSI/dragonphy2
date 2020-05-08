@@ -115,6 +115,8 @@ def construct():
 
     # Add *.db files to synthesis inputs
     dc.extend_inputs([
+        'analog_core_lib.db',
+        'input_buffer_lib.db',
         'output_buffer_lib.db',
         'sram_tt.db'
     ])
