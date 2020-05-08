@@ -23,8 +23,8 @@ module dragonphy_top import const_pack::*; (
 	input wire logic ext_clkp,
 	input wire logic ext_clkn,
 	
-	input wire logic ext_mdll_clkp,
-	input wire logic ext_mdll_clkn,
+	input wire logic ext_mdll_clk_refp,
+	input wire logic ext_mdll_clk_refn,
 	input wire logic ext_mdll_clk_monp,
 	input wire logic ext_mdll_clk_monn,
 	
@@ -86,8 +86,27 @@ module dragonphy_top import const_pack::*; (
 		.clk(ext_clk_test1)
 	);
 
+	input_buffer ibuf_mdll_ref (
+		.inp(ext_mdll_clk_refp),
+		.inm(ext_mdll_clk_refn),
+		.pd(adbg_intf_i.disable_ibuf_mdll_ref),
+		.clk(mdll_clk_refp),
+		.clk_b(mdll_clk_refn)
+	);
+	
+	input_buffer ibuf_mdll_mon (
+		.inp(ext_mdll_clk_monp),
+		.inm(ext_mdll_clk_monn),
+		.pd(adbg_intf_i.disable_ibuf_mdll_mon),
+		.clk(mdll_clk_monp),
+		.clk_b(mdll_clk_monn),
+	);
+
+
+
 	logic mdll_clk_out;
-	logic mdll_clk;
+	logic mdll_jm_clk_fb_out;
+	
 	logic clk_cdr;
 	logic [Npi-1:0]		pi_ctl_cdr[Nout-1:0];
 
@@ -146,6 +165,8 @@ module dragonphy_top import const_pack::*; (
     	.trigg_out_n(clk_trig_n),
     	.clk_async(clk_async),
 		.clk_cdr(clk_cdr),						// CDR clock (<-- this should be removed)
+		.mdll_clk(mdll_clk_out),				// goes to output buffer
+		.mdll_jm_clk(mdll_jm_clk_fb_out),		// goes to output buffer
 		.int_pi_ctl_cdr(pi_ctl_cdr),		// PI control code from CDR
 		.ramp_clock     (ramp_clock),
 		.freq_lvl_cross (freq_lvl_cross),
@@ -158,11 +179,11 @@ module dragonphy_top import const_pack::*; (
 
 
 	 mdll_r1_top imdll (
-        .clk_refp(ext_mdll_clkp),
-        .clk_refn(ext_mdll_clkn),
+        .clk_refp(mdll_clk_refp),
+        .clk_refn(mdll_clk_refn),
         .rstn_jtag(mdbg_intf_i.rstn_jtag),
-        .clk_monp(ext_mdll_clk_monp),
-        .clk_monn(ext_mdll_clk_monn),
+        .clk_monp(mdll_clk_monp),
+        .clk_monn(mdll_clk_monn),
         .en_osc_jtag(mdbg_intf_i.en_osc_jtag),
         .en_dac_sdm_jtag(mdbg_intf_i.en_dac_sdm_jtag),
         .en_monitor_jtag(mdbg_intf_i.en_monitor_jtag),
@@ -196,7 +217,7 @@ module dragonphy_top import const_pack::*; (
         .fcal_ready_2jtag(mdbg_intf_i.fcal_ready_2jtag),
         .dco_ctl_fine_mon_2jtag(mdbg_intf_i.dco_ctl_fine_mon_2jtag),
         .dac_ctl_mon_2jtag(mdbg_intf_i.dac_ctl_mon_2jtag),
-        .jm_clk_fb_out(),
+        .jm_clk_fb_out(mdll_jm_clk_fb_out),
         .jm_cdf_out_2jtag(mdbg_intf_i.jm_cdf_out_2jtag)
 	);
 

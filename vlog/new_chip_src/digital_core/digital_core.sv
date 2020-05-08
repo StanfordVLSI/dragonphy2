@@ -9,7 +9,10 @@ module digital_core import const_pack::*; (
     input wire logic ext_rstb,
     input wire logic clk_async,
     input wire logic ramp_clock,
-    output wire logic clk_cdr,  
+    input wire logic mdll_clk,
+    input wire logic mdll_jm_clk,
+	
+	output wire logic clk_cdr,  
     output wire logic  [Npi-1:0] int_pi_ctl_cdr [Nout-1:0],
     output wire logic clock_out_p,
     output wire logic clock_out_n,
@@ -331,8 +334,8 @@ module digital_core import const_pack::*; (
     assign buffered_signals[10] = adbg_intf_i.pfd_inn_meas;
     assign buffered_signals[11] = clk_cdr;
     assign buffered_signals[12] = clk_async;
-    assign buffered_signals[13] = 0;
-    assign buffered_signals[14] = 0;
+    assign buffered_signals[13] = mdll_clk;
+    assign buffered_signals[14] = mdll_jm_clk;
     assign buffered_signals[15] = 0;
 
     output_buffer out_buff_i (
