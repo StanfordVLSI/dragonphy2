@@ -122,23 +122,26 @@ def construct():
 
     # Add *.lib / *.lef as needed
 
-    # hier_steps = [
-    #     iflow,
-    #     init,
-    #     power,
-    #     place,
-    #     cts,
-    #     postcts_hold,
-    #     route,
-    #     postroute,
-    #     signoff
-    # ]
-    #
-    # for step in hier_steps:
-    #     step.extend_inputs( ['tile_array_tt.lib', 'tile_array.lef'] )
-    #     step.extend_inputs( ['glb_top_tt.lib', 'glb_top.lef'] )
-    #     step.extend_inputs( ['global_controller_tt.lib', 'global_controller.lef'] )
-    #     step.extend_inputs( ['sram_tt.lib', 'sram.lef'] )
+    hier_steps = [
+        iflow,
+        init,
+        power,
+        place,
+        cts,
+        postcts_hold,
+        route,
+        postroute,
+        signoff
+    ]
+
+    for step in hier_steps:
+        step.extend_inputs( ['sram_tt.lib', 'sram.lef'] )
+
+    # Add GDS files to merge into the final layout
+    gdsmerge.extend_inputs(['sram.gds'])
+
+    # Add spice files needed to run LVS
+    lvs.extend_inputs(['sram.spi'])
 
     #-----------------------------------------------------------------------
     # Graph -- Add nodes
@@ -207,6 +210,20 @@ def construct():
     g.connect_by_name( iflow,          postroute      )
     g.connect_by_name( iflow,          postroute_hold )
     g.connect_by_name( iflow,          signoff        )
+
+    g.connect_by_name( sram,           dc             )
+    g.connect_by_name( sram,           iflow          )
+    g.connect_by_name( sram,           init           )
+    g.connect_by_name( sram,           power          )
+    g.connect_by_name( sram,           place          )
+    g.connect_by_name( sram,           cts            )
+    g.connect_by_name( sram,           postcts_hold   )
+    g.connect_by_name( sram,           route          )
+    g.connect_by_name( sram,           postroute      )
+    g.connect_by_name( sram,           signoff        )
+    g.connect_by_name( sram,           gdsmerge       )
+    g.connect_by_name( sram,           drc            )
+    g.connect_by_name( sram,           lvs            )
 
     g.connect_by_name( init,           power          )
     g.connect_by_name( power,          place          )
