@@ -1,4 +1,3 @@
-`include "mdll_param.vh"
 /****************************************************************
 
 Copyright (c) #YEAR# #LICENSOR#. All rights reserved.
@@ -27,7 +26,6 @@ authorization from #LICENSOR#.
 
 ****************************************************************/
 
-`define SIMULATION
 
 module mdll_tieh import mdll_pkg::*; #(
 // parameters here

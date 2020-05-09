@@ -1,4 +1,3 @@
-`include "mdll_param.vh"
 /****************************************************************
 
 Copyright (c) #YEAR# #LICENSOR#. All rights reserved.
@@ -30,12 +29,11 @@ authorization from #LICENSOR#.
 
 `include "iotype.sv"
 
-
 module mdll_dcdl_u import mdll_pkg::*; #(
 // parameters here
 ) (
 // I/Os here
-    input real vout,
+    input `real_t vout,
 	input sel_inj,	// 1: take inj_inp(n); 0: take inp(n) inputs
 	input [2**N_DCO_O-2:0] ctl_offset_thm,// offset control of the delay (thermometer)
 	input [2**(N_DCO_TI-N_PI)-2:0] ctl_fine_msb_thm,	// MSB fine control of the delay (thermometer)

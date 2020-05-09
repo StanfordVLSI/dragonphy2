@@ -1,4 +1,3 @@
-`include "mdll_param.vh"
 /****************************************************************
 
 Copyright (c) #YEAR# #LICENSOR#. All rights reserved.
@@ -26,7 +25,6 @@ authorization from #LICENSOR#.
   - 00/00/00: Initial commit
 
 ****************************************************************/
-`include "iotype.sv"
 
 
 module mdll_dcdl_nd2 import mdll_pkg::*; #(

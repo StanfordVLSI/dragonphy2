@@ -1,4 +1,3 @@
-`include "mdll_param.vh"
 /****************************************************************
 
 Copyright (c) #YEAR# #LICENSOR#. All rights reserved.
@@ -26,8 +25,8 @@ authorization from #LICENSOR#.
   - 00/00/00: Initial commit
 
 ****************************************************************/
-`include "iotype.sv"
 
+`include "iotype.sv"
 
 module mdll_injection_osc import mdll_pkg::*; #(
 // parameters here
@@ -76,7 +75,7 @@ wire osc_270_int;
 wire sel_inj;
 wire en_osc_b;
 
-real vout;
+`real_t vout;
 
 wire tiehigh;
 wire tielow;
