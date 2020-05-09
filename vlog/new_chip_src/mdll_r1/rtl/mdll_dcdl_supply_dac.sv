@@ -1,4 +1,3 @@
-`include "mdll_param.vh"
 /****************************************************************
 
 Copyright (c) #YEAR# #LICENSOR#. All rights reserved.
@@ -26,8 +25,8 @@ authorization from #LICENSOR#.
   - 00/00/00: Initial commit
 
 ****************************************************************/
-`include "iotype.sv"
 
+`include "iotype.sv"
 
 module mdll_dcdl_supply_dac import mdll_pkg::*; #(
 // parameters here
@@ -40,7 +39,7 @@ module mdll_dcdl_supply_dac import mdll_pkg::*; #(
 	input [N_DAC_BW-1:0] ctl_dac_bw_thm,        	// DAC bandwidth control (thermometer)
 	input [N_DAC_GAIN-1:0] ctlb_dac_gain_oc,	// r-dac gain control (one cold)
 	input [2**N_DAC_TI-1:0] dinb_sel,			// index of vref to vref_out
-    output real vout
+    output `real_t vout
 );
 
 //synopsys translate_off

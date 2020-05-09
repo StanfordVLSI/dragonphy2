@@ -26,12 +26,6 @@ authorization from #LICENSOR#.
 
 ****************************************************************/
 
-`ifdef SIMULATION
-    `define ANALOG_WIRE real
-`else
-    `define ANALOG_WIRE wire
-`endif
-
 package mdll_pkg;
 
 // synopsys translate_off

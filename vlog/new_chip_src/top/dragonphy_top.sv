@@ -86,6 +86,7 @@ module dragonphy_top import const_pack::*; (
 		.clk(ext_clk_test1)
 	);
 
+    logic mdll_clk_refp, mdll_clk_refn;
 	input_buffer ibuf_mdll_ref (
 		.inp(ext_mdll_clk_refp),
 		.inm(ext_mdll_clk_refn),
@@ -93,7 +94,8 @@ module dragonphy_top import const_pack::*; (
 		.clk(mdll_clk_refp),
 		.clk_b(mdll_clk_refn)
 	);
-	
+
+	logic mdll_clk_monp, mdll_clk_monn;
 	input_buffer ibuf_mdll_mon (
 		.inp(ext_mdll_clk_monp),
 		.inm(ext_mdll_clk_monn),

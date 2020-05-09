@@ -1,4 +1,3 @@
-`include "mdll_param.vh"
 /****************************************************************
 
 Copyright (c) #YEAR# #LICENSOR#. All rights reserved.
@@ -26,16 +25,16 @@ authorization from #LICENSOR#.
   - 00/00/00: Initial commit
 
 ****************************************************************/
-`include "iotype.sv"
 
+`include "iotype.sv"
 
 module mdll_supply_dac_buffer import mdll_pkg::*; #(
 // parameters here
 
 ) (
 // I/Os here
-    input real ana_vref,
-    output real vout
+    input `real_t ana_vref,
+    output `real_t vout
 );
 
 //synopsys translate_off

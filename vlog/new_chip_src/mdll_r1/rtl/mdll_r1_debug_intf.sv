@@ -1,4 +1,3 @@
-`include "mdll_param.vh"
 `default_nettype none
 
 interface mdll_r1_debug_intf import mdll_pkg::*; (

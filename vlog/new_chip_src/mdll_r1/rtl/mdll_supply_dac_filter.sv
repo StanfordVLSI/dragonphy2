@@ -1,4 +1,3 @@
-`include "mdll_param.vh"
 /****************************************************************
 
 Copyright (c) #YEAR# #LICENSOR#. All rights reserved.
@@ -29,7 +28,6 @@ authorization from #LICENSOR#.
 
 `include "iotype.sv"
 
-
 module mdll_supply_dac_filter import mdll_pkg::*; #(
 // parameters here
 
@@ -39,8 +37,8 @@ module mdll_supply_dac_filter import mdll_pkg::*; #(
 	input iir_clk,				// virtual clock for updating filter
 `endif
 	input [N_DAC_BW-1:0] ctl_dac_bw_thm, // DAC bandwidth control 
-	input real vin,		// analog input
-	output real vout	// analog output
+	input `real_t vin,		// analog input
+	output `real_t vout	// analog output
 );
 
 //synopsys translate_off

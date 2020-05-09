@@ -1,4 +1,3 @@
-`include "mdll_param.vh"
 /****************************************************************
 
 Copyright (c) #YEAR# #LICENSOR#. All rights reserved.
@@ -26,15 +25,15 @@ authorization from #LICENSOR#.
   - 00/00/00: Initial commit
 
 ****************************************************************/
-`include "iotype.sv"
 
+`include "iotype.sv"
 
 module mdll_vreg_feedthrough #(
 // parameters here
 
 ) (
 // I/Os here
-    input real vin,    //
+    input `real_t vin,    //
     input vout
 );
 
