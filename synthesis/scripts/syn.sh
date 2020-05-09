@@ -53,4 +53,3 @@ make
 sed -i '1i source '"${pnrDir}"'/scripts/floorplan/'"${DESIGN}"'_dont_touch.tcl' ${pnrDir}/data/sdc/${DESIGN}.mapped.sdc
 
 
-

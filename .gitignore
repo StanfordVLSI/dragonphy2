@@ -33,6 +33,8 @@ qrcTechFile*
 tcbn16*
 pnr/data
 pnr/gate_size_test
+flow/*/outputs
+designs/*/*/temp/
 
 #########################
 # other files to ignore #
@@ -42,7 +44,7 @@ __pycache__
 
 .idea
 .DS_Store
-
+.nfs*
 *.egg-info
 *.swp
 *.txt
