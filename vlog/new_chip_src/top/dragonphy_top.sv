@@ -99,7 +99,7 @@ module dragonphy_top import const_pack::*; (
 		.inm(ext_mdll_clk_monn),
 		.pd(adbg_intf_i.disable_ibuf_mdll_mon),
 		.clk(mdll_clk_monp),
-		.clk_b(mdll_clk_monn),
+		.clk_b(mdll_clk_monn)
 	);
 
 
