@@ -8,12 +8,6 @@ commands:
     mkdir -p outputs
     cd build
 
-    mkdir -p analog_core
-    cd analog_core
-    pt_shell -f ../../analog_core.qtm.tcl
-    cp analog_core_lib.db ../../outputs/.
-    cd ..
-
     mkdir -p input_buffer
     cd input_buffer
     pt_shell -f ../../input_buffer.qtm.tcl
@@ -27,6 +21,5 @@ commands:
     cd ..
 
 outputs:
-  - analog_core_lib.db
   - input_buffer_lib.db
   - output_buffer_lib.db

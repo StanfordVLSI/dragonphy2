@@ -20,24 +20,17 @@ file_list += get_deps_new_asic(e['design_name'], process=e['adk_name'])
 
 # create the text of the TCL script
 output = f'''\
-# set the search path (for include files)
+# Set the search path for include files
 set_app_var search_path "{inc_dir} $search_path"
 
-# read design
+# Read design
 set file_list {tcl_list(file_list)}
 analyze -format sverilog $file_list
 
-# change to lower insensitive names to pass LVS
-define_name_rules verilog -type net -allowed "a-z0-9_[]" -add_dummy_nets
-report_name_rules verilog  
-
-# Elaborate the design target: check verilog syntax here
-elaborate {e['design_name']}
-
-change_names -rules verilog -hierarchy -verbose 
+# Elaborate the design target
+elaborate {e['design_name']} 
 '''
 
 # write output text
 with open('outputs/read_design.tcl', 'w') as f:
     f.write(output)
-

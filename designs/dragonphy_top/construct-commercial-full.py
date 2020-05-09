@@ -32,35 +32,36 @@ def construct():
         parameters['adk_view'] = 'view-standard'
 
         # update timing parameters
-        slowdown=10
+        scale=10
         parameters.update(dict(
-            clk_retimer_period=0.7*slowdown,
-            clk_in_period=0.7*slowdown,
-            clk_jtag_period=100.0*slowdown,
+            clk_retimer_period=0.7*scale,
+            clk_in_period=0.7*scale,
+            clk_jtag_period=100.0*scale,
 
             # Retimer clock uncertainty
-            clk_retimer_setup_uncertainty=0.03*slowdown,
-            clk_retimer_hold_uncertainty=0.03*slowdown,
+            clk_retimer_setup_uncertainty=0.03*scale,
+            clk_retimer_hold_uncertainty=0.03*scale,
 
             # JTAG clock uncertainty
-            clk_jtag_setup_uncertainty=1.0*slowdown,
-            clk_jtag_hold_uncertainty=0.03*slowdown,
+            clk_jtag_setup_uncertainty=1.0*scale,
+            clk_jtag_hold_uncertainty=0.03*scale,
 
             # Capacitance and transition time
-            max_capacitance=0.1*slowdown,
-            max_transition=0.2*slowdown,
-            max_clock_transition=0.1*slowdown,
+            # Note that capacitance is in fF for this PDK!
+            max_capacitance=0.1*scale*1e3,
+            max_transition=0.2*scale,
+            max_clock_transition=0.1*scale,
 
             # Clocks that can be monitored from analog_core
-            clk_hs_period=0.25*slowdown,
-            clk_hs_transition=0.025*slowdown,
+            clk_hs_period=0.25*scale,
+            clk_hs_transition=0.025*scale,
 
             # I/O delays and transitions
-            digital_input_delay=0.05*slowdown,
-            digital_input_transition=0.5*slowdown,
-            input_transition=0.03*slowdown,
-            output_load=0.02*slowdown,
-            output_delay=0.7*slowdown
+            digital_input_delay=0.05*scale,
+            digital_input_transition=0.5*scale,
+            input_transition=0.03*scale,
+            output_load=0.02*scale,
+            output_delay=0.7*scale
         ))
     elif DRAGONPHY_PROCESS == 'TSMC16':
         parameters['adk_name'] = 'tsmc16'
@@ -95,7 +96,6 @@ def construct():
         raise Exception(f'Unknown process: {DRAGONPHY_PROCESS}')
 
     # Default steps
-
     info           = Step( 'info',                           default=True )
     iflow          = Step( 'cadence-innovus-flowsetup',      default=True )
     init           = Step( 'cadence-innovus-init',           default=True )
@@ -115,7 +115,6 @@ def construct():
 
     # Add *.db files to synthesis inputs
     dc.extend_inputs([
-        'analog_core_lib.db',
         'input_buffer_lib.db',
         'output_buffer_lib.db',
         'sram_tt.db'
