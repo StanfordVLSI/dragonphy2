@@ -55,7 +55,10 @@ def test_sim():
 
         # options for DaVE
         'DAVE_TIMEUNIT': '1fs',
-        'NCVLOG': None
+        'NCVLOG': None,
+
+        # options for MDLL
+        'SIMULATION': None
     }
     flags = ['-unbuffered']
     if DUMP_WAVEFORMS:
