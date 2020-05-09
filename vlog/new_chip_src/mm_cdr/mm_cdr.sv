@@ -70,6 +70,9 @@ module mm_cdr import const_pack::*; #(
         if(~ext_rstb) begin
             phase_est_q <= 0;
             freq_est_q  <= 0;
+            prev_freq_update_q <= 0;
+            ramp_est_pls_q <= 0;
+            ramp_est_neg_q <= 0;
         end else begin
             phase_est_q <= phase_est_d;
             freq_est_q  <= freq_est_d;
