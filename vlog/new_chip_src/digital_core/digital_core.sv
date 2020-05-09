@@ -193,7 +193,7 @@ module digital_core import const_pack::*; (
 
     generate
         for(k = 0; k < Nti; k = k + 1) begin
-            assign mm_cdr_input[k] = cdg_intf_i.sel_inp_mux[k] ? estimated_bits[k][ffe_gpack::output_precision-1:(ffe_gpack::output_precision-Nadc)] : adcout_unfolded[k];
+            assign mm_cdr_input[k] = cdbg_intf_i.sel_inp_mux ? estimated_bits[k][ffe_gpack::output_precision-1:(ffe_gpack::output_precision-Nadc)] : adcout_unfolded[k];
         end
     endgenerate
 
