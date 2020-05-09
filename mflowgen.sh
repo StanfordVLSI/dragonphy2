@@ -33,5 +33,5 @@ python make.py --view cpu
 mkdir -p build/mflowgen_dragonphy_top
 cd build/mflowgen_dragonphy_top
 mflowgen run --design ../../designs/dragonphy_top
-make synopsys-dc-synthesis
+make cadence-innovus-place
 cd ../..

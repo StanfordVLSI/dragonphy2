@@ -8,7 +8,6 @@ create_qtm_port { \
 
 create_qtm_port {
     clk \
-    clk_b \
 } -type output
 
 set_qtm_port_load { \
@@ -19,7 +18,6 @@ set_qtm_port_load { \
 
 set_qtm_port_drive { \
     clk \
-    clk_b \
 } -value 100
 
 report_qtm_model

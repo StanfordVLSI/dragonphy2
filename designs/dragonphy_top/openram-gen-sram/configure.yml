@@ -4,13 +4,25 @@ name: openram-gen-sram
 
 commands:
   - |
-    # Option 1 (slow): Run OpenRAM to generate a *.lib file
+    ### Option 1 (slow): Run OpenRAM
+    ## generate config file for OpemRAM
     # python gen_config.py
+    ## run OpenRAM
     # python $OPENRAM_HOME/openram.py myconfig
+    ## fix metal names in LEF file
+    # cd temp
+    # sed -i 's/LAYER\s+m1/LAYER metal1/g' *.lef
+    # sed -i 's/LAYER\s+m2/LAYER metal2/g' *.lef
+    # sed -i 's/LAYER\s+m3/LAYER metal3/g' *.lef
+    # sed -i 's/LAYER\s+m4/LAYER metal4/g' *.lef
+    # cd ..
 
-    # Option 2 (fast): Download pre-compiled SRAM
-    wget https://github.com/StanfordVLSI/dragonphy2/releases/download/v0.0.1/sram_144_1024_freepdk45.tar.gz
+    ### Option 2 (fast): Download pre-compiled SRAM
+    # Download tarball from GitHub
+    wget https://github.com/StanfordVLSI/dragonphy2/releases/download/v0.0.3/sram_144_1024_freepdk45.tar.gz
+    # Untar
     tar xzvf sram_144_1024_freepdk45.tar.gz
+    # Rename folder to match output of OpenRAM
     mv sram_144_1024_freepdk45 temp
 
     # Link the outputs needed for mflowgen
