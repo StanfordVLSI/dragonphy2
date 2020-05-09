@@ -8,14 +8,25 @@ commands:
     # python gen_config.py
     # python $OPENRAM_HOME/openram.py myconfig
 
-    # Option 2 (fast): Copy over a pre-compiled *.lib file
-    # Note that if the memory size changes the file will
-    # have to be recompiled.
-    mkdir -p temp
-    cp lib.openram temp/sram_144_1024_freepdk45_TT_1p0V_25C.lib
+    # Option 2 (fast): Download pre-compiled SRAM
+    wget https://github.com/StanfordVLSI/dragonphy2/releases/download/v0.0.1/sram_144_1024_freepdk45.tar.gz
+    tar xzvf sram_144_1024_freepdk45.tar.gz
+    mv sram_144_1024_freepdk45 temp
+
+    # Link the outputs needed for mflowgen
+    mkdir -p outputs
+    cd outputs
+    ln -s ../temp/*.lib sram_tt.lib
+    ln -s ../temp/*.lef sram.lef
+    ln -s ../temp/*.gds sram.gds
+    ln -s ../temp/*.sp sram.spi
+    cd ..
 
     # run script to generate a *.db file from the *.lib model
-    dc_shell-xg-t -f generate_db.tcl
+    mkdir -p build
+    cd build
+    dc_shell-xg-t -f ../generate_db.tcl
+    cd ..
 
 parameters:
   sram_word_size: 144
@@ -24,4 +35,8 @@ parameters:
   sram_output_path: temp
 
 outputs:
+  - sram_tt.lib
+  - sram.lef
+  - sram.gds
+  - sram.spi
   - sram_tt.db
