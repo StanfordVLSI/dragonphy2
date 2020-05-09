@@ -120,6 +120,26 @@ def construct():
         'sram_tt.db'
     ])
 
+    # Add *.lib / *.lef as needed
+
+    # hier_steps = [
+    #     iflow,
+    #     init,
+    #     power,
+    #     place,
+    #     cts,
+    #     postcts_hold,
+    #     route,
+    #     postroute,
+    #     signoff
+    # ]
+    #
+    # for step in hier_steps:
+    #     step.extend_inputs( ['tile_array_tt.lib', 'tile_array.lef'] )
+    #     step.extend_inputs( ['glb_top_tt.lib', 'glb_top.lef'] )
+    #     step.extend_inputs( ['global_controller_tt.lib', 'global_controller.lef'] )
+    #     step.extend_inputs( ['sram_tt.lib', 'sram.lef'] )
+
     #-----------------------------------------------------------------------
     # Graph -- Add nodes
     #-----------------------------------------------------------------------
