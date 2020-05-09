@@ -194,9 +194,6 @@ def get_deps_cpu_sim_new(cell_name=None, impl_file=None):
             'DAVE_TIMEUNIT': '1fs',
             'NCVLOG': None,
             'SIMULATION': None  # for MDLL simulation
-        },
-        override={
-            'mdll_r1_top': 'new_chip_stubs'
         }
     )
 
