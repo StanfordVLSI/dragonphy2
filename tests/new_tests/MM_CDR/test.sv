@@ -1,6 +1,12 @@
 `include "mLingua_pwl.vh"
 `include "iotype.sv"
 
+
+`define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
+`define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
+`define FORCE_CDBG(name, value) force top_i.idcore.cdbg_intf_i.``name`` = ``value``
+
+
 `default_nettype none
 
 module test;
@@ -78,13 +84,23 @@ module test;
 
 	logic should_record;
 	
-ti_adc_recorder ti_adc_recorder_i (
+	ti_adc_recorder ti_adc_recorder_i (
 		.in(top_i.idcore.adcout_unfolded[Nti-1:0]),
 		.clk(top_i.clk_adc),
 		.en(should_record)
 	);
 
 	initial begin
+		$shm_open("waves.shm"); $shm_probe("ACT");
+		$shm_probe(dragonphy_top.idcore.iMM_CDR.phase_est_out);
+		$shm_probe(dragonphy_top.idcore.iMM_CDR.phase_est_d);
+		$shm_probe(dragonphy_top.idcore.iMM_CDR.phase_est_q);
+		$shm_probe(dragonphy_top.idcore.iMM_CDR.phase_est_update);
+		$shm_probe(dragonphy_top.idcore.iMM_CDR.freq_diff);
+		$shm_probe(dragonphy_top.idcore.iMM_CDR.freq_est_d);
+		$shm_probe(dragonphy_top.idcore.iMM_CDR.freq_est_q);
+		$shm_probe(dragonphy_top.idcore.iMM_CDR.freq_est_update);
+
 		// signal initialization
 		rstb = 1'b0;
 		should_record = 'b0;
@@ -99,14 +115,22 @@ ti_adc_recorder ti_adc_recorder_i (
 
 		// Enable the input buffer
 		$display("Enabling input buffer...");
-		jtag_drv_i.write_tc_reg(en_inbuf, 'b1);
-		$display("Enabling V2T...");
-		jtag_drv_i.write_tc_reg(en_v2t, 'b1);
-		jtag_drv_i.write_tc_reg(int_rstb, 'b1);
+      	`FORCE_DDBG(int_rstb, 1);
+      	`FORCE_CDBG(Kp, 7);
+
+        #(1ns);
+        `FORCE_ADBG(en_inbuf, 1);
+		#(1ns);
+        `FORCE_ADBG(en_gf, 1);
+        #(1ns);
+        `FORCE_ADBG(en_v2t, 1);
+        #(1ns);
+        $display("Enabling V2T...");
 
 		$display("Disabling external PI CTL code...");
 		#(1us)
-		jtag_drv_i.write_tc_reg(en_ext_pi_ctl, 'b0);
+
+		`FORCE_CDBG(en_ext_pi_ctl, 'b0);
 		$display("Enabling external offset for PI CTL...");
 		//jtag_drv_i.write_tc_reg(sel_ext_pd_offset, 'b1);
 
