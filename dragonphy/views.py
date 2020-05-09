@@ -162,7 +162,10 @@ def get_deps_new_asic(cell_name=None, impl_file=None, process='tsmc16'):
         cell_name=cell_name,
         impl_file=impl_file,
         view_order=['new_pack', 'new_chip_src'],
-        includes=[get_dir('inc/new_asic')],
+        includes=[
+            get_dir('inc/new_asic'),
+            get_dir('vlog/new_chip_src/mdll_r1/rtl')
+        ],
         override=override,
         skip=skip
     )
@@ -183,7 +186,11 @@ def get_deps_cpu_sim_new(cell_name=None, impl_file=None):
         cell_name=cell_name,
         impl_file=impl_file,
         view_order=['dw_tap', 'mlingua', 'new_pack', 'new_tb', 'new_cpu_models', 'new_chip_src'],
-        includes=[get_dir('inc/new_cpu'), get_mlingua_dir() / 'samples'],
+        includes=[
+            get_dir('inc/new_cpu'),
+            get_mlingua_dir() / 'samples',
+            get_dir('vlog/new_chip_src/mdll_r1/rtl')
+        ],
         defines={'DAVE_TIMEUNIT': '1fs', 'NCVLOG': None}
     )
 
