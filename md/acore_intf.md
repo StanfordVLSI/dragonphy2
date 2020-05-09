@@ -26,6 +26,7 @@
 | del_inc                    |         | Nunit_pi-1:0           | Nout-1:0     | Test         | out      |   0       |
 | ctl_dcdl_slice             |         | 1:0                    | Nout-1:0     | Test         | out      |   0       |
 | ctl_dcdl_sw                |         | 1:0                    | Nout-1:0     | Test         | out      |   0       |
+| ctl_dcdl_clk_encoder       |         | 1:0                    | Nout-1:0     | Test         | out      |   0       |
 | disable_state              |         | Nout-1:0               |              | Test         | out      |   0       |
 | en_clk_sw                  |         | Nout-1:0               |              | Test         | out      |   'hF     |
 | en_meas_pi                 |         | Nout-1:0               |              | Test         | out      |   0       |

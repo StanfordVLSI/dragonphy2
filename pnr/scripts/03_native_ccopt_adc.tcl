@@ -121,7 +121,12 @@ if { ${RUN_LAYOUT_ONLY} == 0 } {
   #set_ccopt_property sink_type -pin iV2T_clock_gen/clk_div_sampled_reg/D ignore 
   #set_ccopt_property sink_type_reasons -pin iV2T_clock_gen/clk_div_sampled_reg/D user 
   
-  set_ccopt_property sink_type -pin idchain/iTDC_delay_unit_dont_touch_*_/ff_out_reg/CP ignore 
+
+
+  #set_ccopt_property sink_type -pin {idchain/iTDC_delay_unit_*_/ff_out_reg/CP} ignore 
+
+
+
   #set_ccopt_property sink_type_reasons -pin idchain/iTDC_delay_unit_dont_touch_*_/ff_out_reg/CP user 
   
   #set_ccopt_property sink_type -pin iV2T_clock_gen/in_or1_dont_touch/U1/A2 stop 

@@ -47,7 +47,7 @@ module test;
 	pwl ch_outn;
 
 	// instantiate top module
-
+	real v_cm = 0.4;
 	dragonphy_top top_i (
 	    // analog inputs
 		.ext_rx_inp(ch_outp),

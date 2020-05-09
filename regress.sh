@@ -1,7 +1,3 @@
-# create virtual environment
-$DRAGONPHY_PYTHON -m venv venv
-source venv/bin/activate
-
 # upgrade pip
 pip install -U pip
 
@@ -27,15 +23,9 @@ python make.py --view asic
 python make.py --view fpga
 python make.py --view cpu
 
-
 # install pytest
 pip install pytest pytest-cov
 
-# run tests
+# run tests and upload coverage
 pytest tests -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
-
-# upload coverage
 bash <(curl -s https://codecov.io/bash)
-
-# deactivate virtual env
-deactivate
