@@ -61,7 +61,7 @@ module mm_cdr import const_pack::*; #(
         end else begin
             phase_error <= wait_on_reset_b ? pd_phase_error : 0;
             wait_on_reset_ii <=  wait_on_reset_b ? 0 : wait_on_reset_ii + 1;
-            wait_on_reset_b <= (wait_on_reset_ii == 5'b11111) : 1 : 0;
+            wait_on_reset_b <= (wait_on_reset_ii == 5'b11111) ? 1 : 0;
         end
     end
 
