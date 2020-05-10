@@ -46,6 +46,7 @@ module mm_cdr import const_pack::*; #(
 
     logic [5:0] wait_on_reset_ii;
     logic wait_on_reset_b;
+    
     mm_pd iMM_PD (
         .din(din),
         .pd_offset(cdbg_intf_i.pd_offset_ext),
@@ -59,7 +60,6 @@ module mm_cdr import const_pack::*; #(
             wait_on_reset_b <= 0;
             wait_on_reset_ii <= 0;
         end else begin
-            phase_error <= wait_on_reset_b ? pd_phase_error : 0;
             wait_on_reset_ii <=  wait_on_reset_b ? 0 : wait_on_reset_ii + 1;
             wait_on_reset_b <= (wait_on_reset_ii == 5'b11111) ? 1 : 0;
         end
@@ -93,13 +93,15 @@ module mm_cdr import const_pack::*; #(
             ramp_clock_ff <= 0;
             ramp_clock_sync <= 0;
         end else begin
-            phase_est_q <= phase_est_d;
-            freq_est_q  <= freq_est_d;
-            prev_freq_update_q <= freq_est_update;
-            ramp_est_pls_q <= ramp_est_pls_d;
-            ramp_est_neg_q <= ramp_est_neg_d;
-            ramp_clock_ff <= ramp_clock;
-            ramp_clock_sync <= ramp_clock_ff;
+            phase_error             <= wait_on_reset_b ? pd_phase_error : 0;
+            phase_est_q             <= wait_on_reset_b ? phase_est_d    : 0;
+            freq_est_q              <= wait_on_reset_b ? freq_est_d : 0;
+            prev_freq_update_q      <= wait_on_reset_b ? freq_est_update    : 0;
+            ramp_est_pls_q          <= wait_on_reset_b ? ramp_est_pls_d : 0;
+            ramp_est_neg_q          <= wait_on_reset_b ? ramp_est_neg_d : 0;
+
+            ramp_clock_ff           <= ramp_clock;
+            ramp_clock_sync         <= ramp_clock_ff;
         end
     end
 
