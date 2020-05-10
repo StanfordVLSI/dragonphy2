@@ -24,7 +24,8 @@ def test_sim():
 
     defines = {
         'DAVE_TIMEUNIT': '1fs',
-        'NCVLOG': None
+        'NCVLOG': None,
+        'SIMULATION': None
     }
 
     flags = ['-unbuffered']
