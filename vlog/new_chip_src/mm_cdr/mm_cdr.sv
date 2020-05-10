@@ -29,7 +29,7 @@ module mm_cdr import const_pack::*; #(
     assign Kp = cdbg_intf_i.Kp;
     assign Kr = cdbg_intf_i.Kr;
 
-    loigc ramp_clock_ff;
+    logic ramp_clock_ff;
     logic ramp_clock_sync;
     logic signed [Nadc+1:0] phase_error, pd_phase_error;
     logic signed [Nadc+1+phase_est_shift:0] phase_est_d, phase_est_q, phase_est_update;
@@ -45,7 +45,7 @@ module mm_cdr import const_pack::*; #(
     logic signed [Nadc+1:0] phase_est_out;
 
     logic [5:0] wait_on_reset_ii;
-
+    logic wait_on_reset_b;
     mm_pd iMM_PD (
         .din(din),
         .pd_offset(cdbg_intf_i.pd_offset_ext),
