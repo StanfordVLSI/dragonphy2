@@ -54,7 +54,7 @@ module test;
 		.ext_rx_inn(ch_outn),
 		.ext_Vcm(v_cm),
 	    .ext_Vcal(0.23),
-
+        .ramp_clock(0),
 		// clock inputs
 		.ext_clkp(ext_clkp),
 		.ext_clkn(ext_clkn),
@@ -91,15 +91,20 @@ module test;
 	);
 
 	initial begin
-		$shm_open("waves.shm"); $shm_probe("ACT");
-		$shm_probe(dragonphy_top.idcore.iMM_CDR.phase_est_out);
-		$shm_probe(dragonphy_top.idcore.iMM_CDR.phase_est_d);
-		$shm_probe(dragonphy_top.idcore.iMM_CDR.phase_est_q);
-		$shm_probe(dragonphy_top.idcore.iMM_CDR.phase_est_update);
-		$shm_probe(dragonphy_top.idcore.iMM_CDR.freq_diff);
-		$shm_probe(dragonphy_top.idcore.iMM_CDR.freq_est_d);
-		$shm_probe(dragonphy_top.idcore.iMM_CDR.freq_est_q);
-		$shm_probe(dragonphy_top.idcore.iMM_CDR.freq_est_update);
+		$shm_open("waves.shm"); $shm_probe("ASMC");
+		$shm_probe(top_i.idcore.iMM_CDR.phase_est_out);
+		$shm_probe(top_i.idcore.iMM_CDR.phase_est_d);
+		$shm_probe(top_i.idcore.iMM_CDR.phase_est_q);
+		$shm_probe(top_i.idcore.iMM_CDR.phase_est_update);
+		$shm_probe(top_i.idcore.iMM_CDR.freq_diff);
+		$shm_probe(top_i.idcore.iMM_CDR.freq_est_d);
+		$shm_probe(top_i.idcore.iMM_CDR.freq_est_q);
+		$shm_probe(top_i.idcore.iMM_CDR.freq_est_update);
+		$shm_probe(top_i.idcore.iMM_CDR.phase_error);
+		$shm_probe(top_i.idcore.iMM_CDR.din);
+		$shm_probe(top_i.idcore.mm_cdr_input);
+        $shm_probe(top_i.idcore.cdbg_intf_i.sel_inp_mux);
+
 
 		// signal initialization
 		rstb = 1'b0;

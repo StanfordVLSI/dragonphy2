@@ -11,5 +11,5 @@
 | phase_est      | yes       | Nadc+1+phase_est_shift:0  |               | System       | in       |           |
 | freq_est       | yes       | Nadc+1+phase_est_shift:0  |               | System       | in       |           |
 | ramp_est       | yes       | Nadc+1+phase_est_shift:0  |               | System       | in       |           |
-| sel_inp_mux    |           |                           |               | System       | in       | 0         |
+| sel_inp_mux    |           |                           |               | Test         | out      | 0         |
 | sample_state   |           |                           |               | Test         | out      | 0         |
