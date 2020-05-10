@@ -165,7 +165,7 @@ module test;
         // run desired number of trials
         for (int i=0; i<(`N_TRIALS); i=i+1) begin
             // synchronize to the beginning of the CDR clock period
-            @(posedge top_i.iacore.clk_cdr);
+            @(posedge top_i.iacore.clk_adc);
 
             // wait a random amount of time within the CDR clock period
             delay = (($urandom%10000)/10000.0)/(`CDR_CLK_FREQ);

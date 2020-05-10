@@ -88,7 +88,7 @@ module phase_interpolator #(
     );
 
     phase_blender iphase_blender_dont_touch (
-        .thm_sel_bld(thm_sel_bld_sampled_d),
+        .thm_sel_bld(thm_sel_bld_sampled),
         .ph_out(bld_out),
         .ph_in(ph_out)
     );
