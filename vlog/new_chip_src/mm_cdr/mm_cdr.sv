@@ -12,7 +12,7 @@ module mm_cdr import const_pack::*; #(
     input wire logic clk,
     input wire logic ext_rstb,
     
-    output logic  [Npi-1:0]pi_ctl[Nout-1:0],
+    output logic [Npi-1:0]pi_ctl[Nout-1:0],
     output logic freq_lvl_cross,
 
     cdr_debug_intf.cdr cdbg_intf_i
@@ -29,7 +29,9 @@ module mm_cdr import const_pack::*; #(
     assign Kp = cdbg_intf_i.Kp;
     assign Kr = cdbg_intf_i.Kr;
 
-    logic signed [Nadc+1:0] phase_error;
+    loigc ramp_clock_ff;
+    logic ramp_clock_sync;
+    logic signed [Nadc+1:0] phase_error, pd_phase_error;
     logic signed [Nadc+1+phase_est_shift:0] phase_est_d, phase_est_q, phase_est_update;
 
     logic signed [Nadc+1+phase_est_shift:0] ramp_est_pls_d, ramp_est_pls_q, ramp_est_pls_update;
@@ -42,12 +44,27 @@ module mm_cdr import const_pack::*; #(
     logic signed [Npi-1:0]  scaled_pi_ctl;
     logic signed [Nadc+1:0] phase_est_out;
 
+    logic [5:0] wait_on_reset_ii;
 
     mm_pd iMM_PD (
         .din(din),
         .pd_offset(cdbg_intf_i.pd_offset_ext),
-        .pd_out(phase_error)
+        .pd_out(pd_phase_error)
     );
+
+    //Wait 32 cycles on each reset
+
+    always_ff @(posedge clk or negedge ext_rstb) begin
+        if(~ext_rstb) begin
+            wait_on_reset_b <= 0;
+            wait_on_reset_ii <= 0;
+        end else begin
+            phase_error <= wait_on_reset_b ? pd_phase_error : 0;
+            wait_on_reset_ii <=  wait_on_reset_b ? 0 : wait_on_reset_ii + 1;
+            wait_on_reset_b <= (wait_on_reset_ii == 5'b11111) : 1 : 0;
+        end
+    end
+
 
     always @* begin
         ramp_est_pls_update  = ramp_est_pls_q + ramp_clock ? (phase_error << Kr) : 0 ;
@@ -56,7 +73,7 @@ module mm_cdr import const_pack::*; #(
         ramp_est_pls_d       = cdbg_intf_i.en_ramp_est ? ramp_est_pls_update : 0;
         ramp_est_neg_d       = cdbg_intf_i.en_ramp_est ? ramp_est_neg_update : 0;
 
-        freq_est_update  = freq_est_q + (phase_error << Ki) + ramp_clock ? ramp_est_pls_q : ramp_est_neg_q;
+        freq_est_update  = freq_est_q + (phase_error << Ki) + ramp_clock_sync ? ramp_est_pls_q : ramp_est_neg_q;
         freq_est_d       = cdbg_intf_i.en_freq_est ? freq_est_update : 0;
         freq_diff        = freq_est_update - prev_freq_update_q;
 
@@ -73,12 +90,16 @@ module mm_cdr import const_pack::*; #(
             prev_freq_update_q <= 0;
             ramp_est_pls_q <= 0;
             ramp_est_neg_q <= 0;
+            ramp_clock_ff <= 0;
+            ramp_clock_sync <= 0;
         end else begin
             phase_est_q <= phase_est_d;
             freq_est_q  <= freq_est_d;
             prev_freq_update_q <= freq_est_update;
             ramp_est_pls_q <= ramp_est_pls_d;
             ramp_est_neg_q <= ramp_est_neg_d;
+            ramp_clock_ff <= ramp_clock;
+            ramp_clock_sync <= ramp_clock_ff;
         end
     end
 
