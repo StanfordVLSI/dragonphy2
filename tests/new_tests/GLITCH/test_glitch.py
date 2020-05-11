@@ -17,7 +17,7 @@ else:
 # test.  The waveforms are stored in tests/new_tests/GLITCH/build/waves.shm
 DUMP_WAVEFORMS = False
 
-@pytest.mark.wip
+@pytest.mark.parametrize((), [pytest.param(marks=pytest.mark.slow) if SIMULATOR=='vivado' else ()])
 def test_sim():
     deps = get_deps_cpu_sim_new(impl_file=THIS_DIR / 'test.sv')
     print(deps)
@@ -55,7 +55,10 @@ def test_sim():
 
         # options for DaVE
         'DAVE_TIMEUNIT': '1fs',
-        'NCVLOG': None
+        'NCVLOG': None,
+
+        # options for MDLL
+        'SIMULATION': None
     }
     flags = ['-unbuffered']
     if DUMP_WAVEFORMS:

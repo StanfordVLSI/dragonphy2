@@ -33,7 +33,8 @@ def test_sim():
         'RX_INPUT_TXT': qwrap(BUILD_DIR / 'rx_input.txt'),
         'WIDTH_TXT': qwrap(BUILD_DIR / 'width.txt'),
         'DAVE_TIMEUNIT': '1fs',
-        'NCVLOG': None
+        'NCVLOG': None,
+        'SIMULATION': None
     }
 
     flags = ['-unbuffered']
