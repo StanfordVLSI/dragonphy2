@@ -1,6 +1,6 @@
 | Name                     | Signed?   | Packed Dim | Unpacked Dim  | Clock Domain | JTAG Dir | Reset Val |
 |--------------------------|-----------|------------|---------------|--------------|----------|-----------|
-| rstn                     |           |            |               | Test         | out      | 0         |
+| rstn_jtag                |           |            |               | Test         | out      | 0         |
 | en_osc_jtag              |           |            |               | Test         | out      | 0         |
 | en_dac_sdm_jtag          |           |            |               | Test         | out      | 1         |
 | en_monitor_jtag          |           |            |               | Test         | out      | 0         |

@@ -33,6 +33,8 @@ qrcTechFile*
 tcbn16*
 pnr/data
 pnr/gate_size_test
+flow/*/outputs
+designs/*/*/temp/
 
 #########################
 # other files to ignore #

@@ -135,21 +135,49 @@ def get_deps(cell_name=None, view_order=None, override=None,
 
     return deps
 
-def get_deps_new_asic(cell_name=None, impl_file=None):
+def get_deps_new_asic(cell_name=None, impl_file=None, process='tsmc16'):
+    # List of views to override with stubs
+    override = {
+        'input_buffer': 'new_chip_stubs',
+        'analog_core': 'new_chip_stubs',
+        'mdll_r1_top': 'new_chip_stubs'
+    }
+
+    # List of views to skip and replace with *.db files
+    skip = {
+        'DW_tap',
+        'output_buffer'
+    }
+    if process == 'freepdk-45nm':
+        override['sram'] = 'new_chip_src_freepdk45'
+        skip.add('sram_144_1024_freepdk45')
+    elif process == 'tsmc16':
+        override['sram'] = 'new_chip_src_tsmc16'
+        skip.add('TS1N16FFCLLSBLVTC1024X144M4SW')
+    else:
+        raise Exception(f'Unknown process: {process}')
+
+    # Build up the dependency list
     deps = []
     deps += get_deps(
         cell_name=cell_name,
         impl_file=impl_file,
-        view_order=['new_pack', 'new_chip_src', 'new_chip_stubs'],
-        includes=[get_dir('inc/new_asic')]
+        view_order=['new_pack', 'new_chip_src'],
+        includes=[
+            get_dir('inc/new_asic')
+        ],
+        override=override,
+        skip=skip
     )
 
+    # manual modifications
     deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/ffe_gpack.sv')
     deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/cmp_gpack.sv')
     deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/mlsd_gpack.sv')
     deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/constant_gpack.sv')
     deps.insert(0, Directory.path() + '/vlog/new_pack/dsp_pack.sv')
 
+    # Return the dependencies
     return deps
 
 def get_deps_cpu_sim_new(cell_name=None, impl_file=None):
@@ -158,8 +186,15 @@ def get_deps_cpu_sim_new(cell_name=None, impl_file=None):
         cell_name=cell_name,
         impl_file=impl_file,
         view_order=['dw_tap', 'mlingua', 'new_pack', 'new_tb', 'new_cpu_models', 'new_chip_src'],
-        includes=[get_dir('inc/new_cpu'), get_mlingua_dir() / 'samples'],
-        defines={'DAVE_TIMEUNIT': '1fs', 'NCVLOG': None}
+        includes=[
+            get_dir('inc/new_cpu'),
+            get_mlingua_dir() / 'samples'
+        ],
+        defines={
+            'DAVE_TIMEUNIT': '1fs',
+            'NCVLOG': None,
+            'SIMULATION': None  # for MDLL simulation
+        }
     )
 
     deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/ffe_gpack.sv')

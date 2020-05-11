@@ -42,7 +42,8 @@ def test_sim():
         'DELAY_TXT': qwrap(BUILD_DIR / 'delay.txt'),
         'SIGN_FLIP': SIGN_FLIP,
         'DAVE_TIMEUNIT': '1fs',
-        'NCVLOG': None
+        'NCVLOG': None,
+        'SIMULATION': None
     }
 
     flags = ['-unbuffered']
