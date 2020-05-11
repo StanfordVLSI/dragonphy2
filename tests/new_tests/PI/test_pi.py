@@ -39,7 +39,8 @@ def test_sim():
         'PI_CTL_TXT': qwrap(BUILD_DIR / 'pi_ctl.txt'),
         'DELAY_TXT': qwrap(BUILD_DIR / 'delay.txt'),
         'DAVE_TIMEUNIT': '1fs',
-        'NCVLOG': None
+        'NCVLOG': None,
+        'SIMULATION': None
     }
 
     flags = ['-unbuffered']

@@ -14,6 +14,12 @@ commands:
     cp input_buffer_lib.db ../../outputs/.
     cd ..
 
+    mkdir -p analog_core
+    cd analog_core
+    pt_shell -f ../../analog_core.qtm.tcl
+    cp analog_core_lib.db ../../outputs/.
+    cd ..
+
     mkdir -p output_buffer
     cd output_buffer
     pt_shell -f ../../output_buffer.qtm.tcl
