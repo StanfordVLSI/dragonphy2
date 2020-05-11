@@ -60,8 +60,6 @@ module jtag (
 	assign adbg_intf_i.sel_pm_in =rjtag_intf_i.sel_pm_in;
 	assign adbg_intf_i.sel_clk_TDC =rjtag_intf_i.sel_clk_TDC;
 	assign adbg_intf_i.en_pm =rjtag_intf_i.en_pm;
-	assign adbg_intf_i.en_v2t_clk_next=rjtag_intf_i.en_v2t_clk_next;
-	assign adbg_intf_i.en_sw_test =rjtag_intf_i.en_sw_test;
 	assign adbg_intf_i.ctl_dcdl_late=rjtag_intf_i.ctl_dcdl_late;
 	assign adbg_intf_i.ctl_dcdl_early=rjtag_intf_i.ctl_dcdl_early;
 	assign adbg_intf_i.ctl_dcdl_TDC = rjtag_intf_i.ctl_dcdl_TDC;
@@ -92,8 +90,6 @@ module jtag (
 	assign adbg_intf_i.sel_pm_in_rep =rjtag_intf_i.sel_pm_in_rep;
 	assign adbg_intf_i.sel_clk_TDC_rep =rjtag_intf_i.sel_clk_TDC_rep;
 	assign adbg_intf_i.en_pm_rep =rjtag_intf_i.en_pm_rep;
-	assign adbg_intf_i.en_v2t_clk_next_rep=rjtag_intf_i.en_v2t_clk_next_rep;
-	assign adbg_intf_i.en_sw_test_rep =rjtag_intf_i.en_sw_test_rep;
 	assign adbg_intf_i.ctl_dcdl_late_rep=rjtag_intf_i.ctl_dcdl_late_rep;
 	assign adbg_intf_i.ctl_dcdl_early_rep=rjtag_intf_i.ctl_dcdl_early_rep;
 	assign adbg_intf_i.ctl_dcdl_TDC_rep = rjtag_intf_i.ctl_dcdl_TDC_rep;
@@ -106,8 +102,6 @@ module jtag (
 
 	assign adbg_intf_i.disable_ibuf_async = rjtag_intf_i.disable_ibuf_async;
 	assign adbg_intf_i.disable_ibuf_main   = rjtag_intf_i.disable_ibuf_main;
-	assign adbg_intf_i.disable_ibuf_test0 = rjtag_intf_i.disable_ibuf_test0;
-	assign adbg_intf_i.disable_ibuf_test1 = rjtag_intf_i.disable_ibuf_test1;
 	assign adbg_intf_i.disable_ibuf_mdll_ref = rjtag_intf_i.disable_ibuf_mdll_ref;
 	assign adbg_intf_i.disable_ibuf_mdll_mon = rjtag_intf_i.disable_ibuf_mdll_mon;
 
