@@ -1,10 +1,10 @@
 `default_nettype none
 
 module mm_cdr import const_pack::*; #(
-    parameter integer prop_width = 3,
-    parameter integer intg_width = 3,
-    parameter integer ramp_width = 3,
-    parameter integer phase_est_shift = 8
+    parameter integer prop_width = 4,
+    parameter integer intg_width = 4,
+    parameter integer ramp_width = 4,
+    parameter integer phase_est_shift = 16
 ) (
     input wire logic signed [Nadc-1:0] din[Nti-1:0],    // adc outputs
     input wire logic ramp_clock,
@@ -44,6 +44,8 @@ module mm_cdr import const_pack::*; #(
     logic signed [Npi-1:0]  scaled_pi_ctl;
     logic signed [Nadc+1:0] phase_est_out;
 
+    logic cond1, cond2;
+
     logic [5:0] wait_on_reset_ii;
     logic wait_on_reset_b;
     
@@ -73,13 +75,23 @@ module mm_cdr import const_pack::*; #(
         ramp_est_pls_d       = cdbg_intf_i.en_ramp_est ? ramp_est_pls_update : 0;
         ramp_est_neg_d       = cdbg_intf_i.en_ramp_est ? ramp_est_neg_update : 0;
 
-        freq_est_update  = (phase_error << Ki) + (ramp_clock_sync ? ramp_est_pls_q : ramp_est_neg_q);
+        freq_est_update  = (phase_error << Ki) + (ramp_clock_sync ? ramp_est_pls_q : -ramp_est_neg_q);
         freq_est_d       = freq_est_q          + (cdbg_intf_i.en_freq_est ? freq_est_update : 0);
         freq_diff        = freq_est_update - prev_freq_update_q;
 
         phase_est_update = ((phase_error << Kp) + freq_est_q);
 
-        phase_est_d      = phase_est_q + phase_est_update;
+        cond1 = (phase_est_q + phase_est_update) > (((phase_est_q  + (1 << phase_est_shift)) >> phase_est_shift ) << phase_est_shift);
+        cond2 = (phase_est_q + phase_est_update) < (((phase_est_q  - (1 << phase_est_shift)) >> phase_est_shift ) << phase_est_shift);
+        if(cond1) begin
+            phase_est_d      = phase_est_q + (1 << phase_est_shift);
+        end else begin
+            if (cond2) begin
+                phase_est_d      = phase_est_q - (1 << phase_est_shift);
+            end
+        end else begin
+            phase_est_d      = phase_est_q + phase_est_update;
+        end
         phase_est_out    = phase_est_q >> phase_est_shift;
     end
 

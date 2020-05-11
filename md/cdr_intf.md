@@ -1,9 +1,9 @@
 | Name           | Signed?   | Packed Dim                | Unpacked Dim  | Clock Domain | JTAG Dir | Reset Val |
 |----------------|-----------|---------------------------|---------------|--------------|----------|-----------|
 | pd_offset_ext  | yes       | Nadc-1:0                  |               | Test         | out      | 0         |
-| Ki             | yes       | 2:0                       |               | Test         | out      | 0         |
-| Kp             | yes       | 2:0                       |               | Test         | out      | 0         |
-| Kr             | yes       | 2:0                       |               | Test         | out      | 0         |
+| Ki             | yes       | 3:0                       |               | Test         | out      | 0         |
+| Kp             | yes       | 3:0                       |               | Test         | out      | 0         |
+| Kr             | yes       | 3:0                       |               | Test         | out      | 0         |
 | en_ext_pi_ctl  |           |                           |               | Test         | out      | 1         |
 | ext_pi_ctl     |           | Npi-1:0                   |               | Test         | out      | 'h0       |
 | en_freq_est    |           |                           |               | Test         | out      | 0         |
