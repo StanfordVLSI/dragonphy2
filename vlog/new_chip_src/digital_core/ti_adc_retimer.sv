@@ -18,9 +18,9 @@ module ti_adc_retimer import const_pack::*; #(
     parameter integer left_edge=4,
     parameter integer rght_edge=12
 )(
-    input wire logic clk_retimer,   // clock for serial to parallel retiming
+    input wire logic clk_retimer,                    // clock for serial to parallel retiming
     input wire logic [Nadc-1:0] in_data [Nti-1:0],   // serial data
-    input wire logic [Nti-1:0] in_sign,                     // sign of serial data
+    input wire logic [Nti-1:0] in_sign,             // sign of serial data
 
     input wire logic [Nadc-1:0] in_data_rep [1:0],
     input wire logic [1:0] in_sign_rep,

@@ -99,13 +99,16 @@ module digital_core import const_pack::*; (
 
     // ADC Output Retimer
 
-    ti_adc_retimer retimer_i (
+    ti_adc_retimer_v2 retimer_i (
         .clk_retimer(clk_adc),                // clock for serial to parallel retiming
 
         .in_data(adcout),                     // serial data
         .in_sign(adcout_sign),                // sign of serial data
         .in_data_rep(adcout_rep),
         .in_sign_rep(adcout_sign_rep),
+
+        .mux_ctrl_1(ddbg_intf_i.retimer_mux_ctrl_1),
+        .mux_ctrl_2(ddbg_intf_i.retimer_mux_ctrl_2),
 
         .out_data(adcout_retimed),            // parallel data
         .out_sign(adcout_sign_retimed),
@@ -281,12 +284,50 @@ module digital_core import const_pack::*; (
     // PRBS
     // TODO: refine data decision from ADC (custom threshold, gain, invert option, etc.)
     // TODO: mux PRBS input between ADC, FFE, and MLSD
+
+    logic [Nti-1:0]   mux_prbs_rx_bits [3:0];
     logic [(Nti-1):0] prbs_rx_bits;
+
+    logic bits_adc [Nti-1:0];
+    logic bits_ffe [Nti-1:0];
+
+    comb_comp #(.numChannels(16), .inputBitwidth(Nadc), .thresholdBitwidth(Nadc)) dig_comp_adc_i (
+        .codes     (adcout_unfolded[15:0]),
+        .thresh    (ddbg_intf_i.adc_thresh),
+        .clk       (clk_adc),
+        .rstb      (rstb),
+        .bit_out   (bits_adc)
+    );
+
+    comb_comp #(.numChannels(16), .inputBitwidth(ffe_gpack::output_precision), .thresholdBitwidth(ffe_gpack::output_precision)) dig_comp_ffe_i (
+        .codes     (estimated_bits),
+        .thresh    (ddbg_intf_i.ffe_thresh),
+        .clk       (clk_adc),
+        .rstb      (rstb),
+        .bit_out   (bits_ffe)
+    );
+
+
+    logic [Nti-1:0] bits_adc_r;
+    logic [Nti-1:0] bits_ffe_r;
+    logic [Nti-1:0] bits_mlsd_r;
+
+    assign mux_prbs_rx_bits[0] = bits_adc_r;
+    assign mux_prbs_rx_bits[1] = bits_ffe_r;
+    assign mux_prbs_rx_bits[2] = bits_mlsd_r;
+    assign mux_prbs_rx_bits[3] = 0;
+
+
     generate
         for (k=0; k<Nti; k=k+1) begin
-            assign prbs_rx_bits[k] = ~adcout_unfolded[k][Nadc-1];
+            assign bits_adc_r[k] = bits_adc[k];
+            assign bits_ffe_r[k] = bits_ffe[k];
+            assign bits_mlsd_r[k] = checked_bits[k];
         end
     endgenerate
+
+    assign prbs_rx_bits = mux_prbs_rx_bits[ddbg_intf_i.sel_prbs_mux];
+
 
     prbs_checker #(
         .n_prbs(Nprbs),
