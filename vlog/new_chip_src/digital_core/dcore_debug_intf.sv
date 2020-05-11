@@ -52,6 +52,11 @@ interface dcore_debug_intf import const_pack::*; (
     	logic signed [cmp_gpack::thresh_precision-1:0] cmp_thresh  [constant_gpack::channel_width-1:0];
     	logic [mlsd_gpack::shift_precision-1:0] mlsd_shift [constant_gpack::channel_width-1:0];
     	logic [constant_gpack::channel_width-1:0] disable_product [ffe_gpack::length-1:0];
+    	logic signed [Nadc-1:0] adc_thresh [constant_gpack::channel_width-1:0];
+		logic signed [ffe_gpack::output_precision-1:0] ffe_thresh [constant_gpack::channel_width-1:0];
+		logic [1:0] sel_prbs_mux;
+		logic [Nti-1:0] retimer_mux_ctrl_1;
+		logic [Nti-1:0] retimer_mux_ctrl_2;
 
 
     modport dcore ( 	
@@ -92,6 +97,12 @@ interface dcore_debug_intf import const_pack::*; (
 		input disable_product,
 		input en_bypass_pi_ctl,
 		input bypass_pi_ctl,
+		input adc_thresh,
+		input ffe_thresh,
+		input sel_prbs_mux,
+		input retimer_mux_ctrl_1,
+		input retimer_mux_ctrl_2,
+
 
 		output adcout_avg ,
 		output adcout_sum,
@@ -142,6 +153,11 @@ interface dcore_debug_intf import const_pack::*; (
 		output disable_product,
 		output en_bypass_pi_ctl,
 		output bypass_pi_ctl,
+		output adc_thresh,
+		output ffe_thresh,
+		output sel_prbs_mux,
+		output retimer_mux_ctrl_1,
+		output retimer_mux_ctrl_2,
 
 		input adcout_avg ,
 		input adcout_sum,

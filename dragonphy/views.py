@@ -138,7 +138,8 @@ def get_deps(cell_name=None, view_order=None, override=None,
 def get_deps_new_asic(cell_name=None, impl_file=None, process='tsmc16'):
     # Set of views to override with a specific view
     override = {
-        'analog_core': 'new_chip_stubs'
+        'analog_core': 'new_chip_stubs',
+        'mdll_r1_top': 'new_chip_stubs'
     }
 
     # Set of views to skip (since a *.db will be provided)
@@ -164,7 +165,9 @@ def get_deps_new_asic(cell_name=None, impl_file=None, process='tsmc16'):
         cell_name=cell_name,
         impl_file=impl_file,
         view_order=['new_pack', 'new_chip_src'],
-        includes=[get_dir('inc/new_asic')],
+        includes=[
+            get_dir('inc/new_asic')
+        ],
         override=override,
         skip=skip
     )
@@ -185,8 +188,15 @@ def get_deps_cpu_sim_new(cell_name=None, impl_file=None):
         cell_name=cell_name,
         impl_file=impl_file,
         view_order=['dw_tap', 'mlingua', 'new_pack', 'new_tb', 'new_cpu_models', 'new_chip_src'],
-        includes=[get_dir('inc/new_cpu'), get_mlingua_dir() / 'samples'],
-        defines={'DAVE_TIMEUNIT': '1fs', 'NCVLOG': None}
+        includes=[
+            get_dir('inc/new_cpu'),
+            get_mlingua_dir() / 'samples'
+        ],
+        defines={
+            'DAVE_TIMEUNIT': '1fs',
+            'NCVLOG': None,
+            'SIMULATION': None  # for MDLL simulation
+        }
     )
 
     deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/ffe_gpack.sv')
