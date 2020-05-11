@@ -60,21 +60,21 @@ module mm_cdr import const_pack::*; #(
             wait_on_reset_b <= 0;
             wait_on_reset_ii <= 0;
         end else begin
-            wait_on_reset_ii <=  wait_on_reset_b ? 0 : wait_on_reset_ii + 1;
-            wait_on_reset_b <= (wait_on_reset_ii == 5'b11111) ? 1 : 0;
+            wait_on_reset_ii <=  (wait_on_reset_ii == 5'b11111) ? wait_on_reset_ii : wait_on_reset_ii + 1;
+            wait_on_reset_b <=   (wait_on_reset_ii == 5'b11111) ? 1 : 0;
         end
     end
 
 
     always @* begin
-        ramp_est_pls_update  = ramp_est_pls_q + ramp_clock ? (phase_error << Kr) : 0 ;
-        ramp_est_neg_update  = ramp_est_neg_q + ramp_clock ? 0 : (phase_error << Kr);
+        ramp_est_pls_update  = ramp_est_pls_q + (ramp_clock ? (phase_error << Kr) : 0 );
+        ramp_est_neg_update  = ramp_est_neg_q + (ramp_clock ? 0 : (phase_error << Kr));
 
         ramp_est_pls_d       = cdbg_intf_i.en_ramp_est ? ramp_est_pls_update : 0;
         ramp_est_neg_d       = cdbg_intf_i.en_ramp_est ? ramp_est_neg_update : 0;
 
-        freq_est_update  = freq_est_q + (phase_error << Ki) + ramp_clock_sync ? ramp_est_pls_q : ramp_est_neg_q;
-        freq_est_d       = cdbg_intf_i.en_freq_est ? freq_est_update : 0;
+        freq_est_update  = (phase_error << Ki) + (ramp_clock_sync ? ramp_est_pls_q : ramp_est_neg_q);
+        freq_est_d       = freq_est_q          + (cdbg_intf_i.en_freq_est ? freq_est_update : 0);
         freq_diff        = freq_est_update - prev_freq_update_q;
 
         phase_est_update = ((phase_error << Kp) + freq_est_q);
@@ -105,7 +105,7 @@ module mm_cdr import const_pack::*; #(
         end
     end
 
-    assign scaled_pi_ctl = phase_est_out >> (Nadc + 2 - Npi);
+    assign scaled_pi_ctl = phase_est_out;// >> (Nadc + 2 - Npi);
 
     genvar k;
     generate

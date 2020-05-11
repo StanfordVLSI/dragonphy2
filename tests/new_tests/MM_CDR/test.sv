@@ -100,10 +100,15 @@ module test;
 		$shm_probe(top_i.idcore.iMM_CDR.freq_est_d);
 		$shm_probe(top_i.idcore.iMM_CDR.freq_est_q);
 		$shm_probe(top_i.idcore.iMM_CDR.freq_est_update);
-		$shm_probe(top_i.idcore.iMM_CDR.phase_error);
+        $shm_probe(top_i.idcore.iMM_CDR.phase_error);
+		$shm_probe(top_i.idcore.iMM_CDR.scaled_pi_ctl);
+		$shm_probe(top_i.idcore.iMM_CDR.pi_ctl);
+		$shm_probe(top_i.idcore.iMM_CDR.wait_on_reset_b);
+		$shm_probe(top_i.idcore.iMM_CDR.wait_on_reset_ii);
 		$shm_probe(top_i.idcore.iMM_CDR.din);
 		$shm_probe(top_i.idcore.mm_cdr_input);
         $shm_probe(top_i.idcore.cdbg_intf_i.sel_inp_mux);
+        $shm_probe(top_i.idcore.cdbg_intf_i.en_freq_est);
 
 
 		// signal initialization
@@ -121,8 +126,9 @@ module test;
 		// Enable the input buffer
 		$display("Enabling input buffer...");
       	`FORCE_DDBG(int_rstb, 1);
-      	`FORCE_CDBG(Kp, 7);
-
+      	`FORCE_CDBG(Kp, 2);
+      	`FORCE_CDBG(Ki, 0);
+		`FORCE_CDBG(en_freq_est, 1);
         #(1ns);
         `FORCE_ADBG(en_inbuf, 1);
 		#(1ns);
@@ -135,7 +141,7 @@ module test;
 		$display("Disabling external PI CTL code...");
 		#(1us)
 
-		`FORCE_CDBG(en_ext_pi_ctl, 'b0);
+		`FORCE_CDBG(en_ext_pi_ctl, 0);
 		$display("Enabling external offset for PI CTL...");
 		//jtag_drv_i.write_tc_reg(sel_ext_pd_offset, 'b1);
 
