@@ -1,10 +1,10 @@
 `default_nettype none
 
 module mm_cdr import const_pack::*; #(
-    parameter integer prop_width = 4,
-    parameter integer intg_width = 4,
-    parameter integer ramp_width = 4,
-    parameter integer phase_est_shift = 16
+    parameter integer prop_width = 5,
+    parameter integer intg_width = 5,
+    parameter integer ramp_width = 5,
+    parameter integer phase_est_shift = 20
 ) (
     input wire logic signed [Nadc-1:0] din[Nti-1:0],    // adc outputs
     input wire logic ramp_clock,
