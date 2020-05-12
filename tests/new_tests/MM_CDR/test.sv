@@ -104,6 +104,8 @@ module test;
 		$shm_probe(top_i.idcore.iMM_CDR.scaled_pi_ctl);
 		$shm_probe(top_i.idcore.iMM_CDR.pi_ctl);
 		$shm_probe(top_i.idcore.iMM_CDR.wait_on_reset_b);
+		$shm_probe(top_i.idcore.iMM_CDR.cond1);
+		$shm_probe(top_i.idcore.iMM_CDR.cond2);
 		$shm_probe(top_i.idcore.iMM_CDR.wait_on_reset_ii);
 		$shm_probe(top_i.idcore.iMM_CDR.din);
 		$shm_probe(top_i.idcore.mm_cdr_input);
