@@ -31,7 +31,7 @@ module mm_cdr import const_pack::*; #(
 
     logic ramp_clock_ff;
     logic ramp_clock_sync;
-    logic signed [Nadc+1:0] phase_error, pd_phase_error;
+    logic signed [Nadc+1:0] phase_error, pd_phase_error, phase_error_inv;
     logic signed [Nadc+1+phase_est_shift:0] phase_est_d, phase_est_q, phase_est_update;
 
     logic signed [Nadc+1+phase_est_shift:0] ramp_est_pls_d, ramp_est_pls_q, ramp_est_pls_update;
@@ -46,7 +46,7 @@ module mm_cdr import const_pack::*; #(
 
     //logic cond1, cond2;
 
-    logic [5:0] wait_on_reset_ii;
+    logic [4:0] wait_on_reset_ii;
     logic wait_on_reset_b;
     
     mm_pd iMM_PD (
@@ -105,7 +105,8 @@ module mm_cdr import const_pack::*; #(
             ramp_clock_ff <= 0;
             ramp_clock_sync <= 0;
         end else begin
-            phase_error             <= wait_on_reset_b ? pd_phase_error : 0;
+            phase_error_inv         <= cdbg_intf_i.invert ? -1*pd_phase_error : pd_phase_error;
+            phase_error             <= wait_on_reset_b ? phase_error_inv : 0;
             phase_est_q             <= wait_on_reset_b ? phase_est_d    : 0;
             freq_est_q              <= wait_on_reset_b ? freq_est_d : 0;
             prev_freq_update_q      <= wait_on_reset_b ? freq_est_update    : 0;
