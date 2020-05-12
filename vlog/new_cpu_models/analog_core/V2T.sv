@@ -14,13 +14,15 @@ Todo:
 ********************************************************************/
 
 `include "mLingua_pwl.vh"
+`include "voltage_net.sv"
+
 `timescale 1fs/1fs
 
 module V2T import const_pack::*; #(
     parameter real TD_V2T_OFFSET = 0.0
 ) (
     output reg v2t_out,                 // output pulse
-    input real Vcal,                    // gate bias voltage of a current source
+    input voltage Vcal,                 // gate bias voltage of a current source
     input pwl Vin,                      // input voltage being sampled
     input wire logic clk_v2t,           // sampling clock for the input switch
     input wire logic clk_v2tb,          // ~clk_v2t
@@ -70,7 +72,7 @@ real Vin_s; // sampled input voltage (debugging purpose)
 // MODEL BODY
 ///////////////////
 
-assign Iunit = v2t_obj.get_current(Vcal);
+assign Iunit = v2t_obj.get_current(Vcal.V);
 assign Iramp = Iunit*$countones(ctl);
 
 // sample on negative clock edge of clk_v2t
