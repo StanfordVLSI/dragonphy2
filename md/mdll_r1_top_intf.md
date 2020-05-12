@@ -16,7 +16,7 @@
 | jm_bb_out_pol_jtag       |           |            |               | Test         | out      | 1         |
 | fb_ndiv_jtag             |           | 3:0        |               | Test         | out      | 'h5       |
 | dco_ctl_offset_jtag      |           | 1:0        |               | Test         | out      | 'h0       |
-| dco_ctl_track_lv_jtag    |           | 8:0        |               | Test         | out      | 'h1       |
+| dco_ctl_track_lv_jtag    |           | 9:0        |               | Test         | out      | 'h1       |
 | dac_ctl_track_lv_jtag    |           | 5:0        |               | Test         | out      | 'hf       |
 | gain_bb_jtag             |           | 3:0        |               | Test         | out      | 'h8       |
 | gain_bb_dac_jtag         |           | 3:0        |               | Test         | out      | 'h1       |
@@ -27,6 +27,6 @@
 | jm_sel_clk_jtag          |           | 2:0        |               | Test         | out      | 'h0       |
 | fcal_ready_2jtag         |           |            |               | System       | in       |           |
 | fcal_cnt_2jtag           |           | 9:0        |               | System       | in       |           |
-| dco_ctl_fine_mon_2jtag   |           | 8:0        |               | System       | in       |           |
+| dco_ctl_fine_mon_2jtag   |           | 9:0        |               | System       | in       |           |
 | dac_ctl_mon_2jtag        |           | 5:0        |               | System       | in       |           |
 | jm_cdf_out_2jtag         |           | 24:0       |               | System       | in       |           |

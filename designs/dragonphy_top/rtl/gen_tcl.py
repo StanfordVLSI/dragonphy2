@@ -27,8 +27,15 @@ set_app_var search_path "{inc_dir} $search_path"
 set file_list {tcl_list(file_list)}
 analyze -format sverilog $file_list
 
+# Set up name rules
+define_name_rules verilog -type net -allowed "a-z0-9_[]" -add_dummy_nets
+report_name_rules verilog
+
 # Elaborate the design target
-elaborate {e['design_name']} 
+elaborate {e['design_name']}
+
+# Flatten out names of port arrays and interfaces
+change_names -rules verilog -hierarchy
 '''
 
 # write output text
