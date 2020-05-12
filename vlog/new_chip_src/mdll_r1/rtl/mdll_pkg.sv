@@ -56,7 +56,7 @@ package mdll_pkg;
 	// coarse delay; set by FCAL
     //parameter int N_DCO_C = 4; // bit width of coarse control
 	// tracking delay
-	parameter int N_DCO_TI_MSB = 4;	// bit width of tracking control word (MSB)
+	parameter int N_DCO_TI_MSB = 5;	// bit width of tracking control word (MSB)
 	parameter int N_DCO_TI_LSB = 5;	// bit width of tracking control word (LSB)
 	parameter int N_PI = N_DCO_TI_LSB;// bit width of PI control
     parameter int N_DCO_TI = (N_DCO_TI_MSB+N_PI); 	// bit width of tracking control (integer)
