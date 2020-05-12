@@ -1,4 +1,5 @@
 `include "mLingua_pwl.vh"
+//`include "mdll_param.vh"
 
 `define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
 `define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
