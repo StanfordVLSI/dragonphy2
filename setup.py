@@ -36,7 +36,7 @@ requires_list = [
     'html5lib',
     'lxml',
     'BeautifulSoup4',
-    'justag==0.0.2.9',
+    'justag==0.0.3.3',
     # general requirements with special versions to prevent
     # warnings that clutter pytest output
     'jinja2>=2.11.1',
