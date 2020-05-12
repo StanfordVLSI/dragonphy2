@@ -23,7 +23,7 @@ module sram #(
 		.D(D),
 		.Q(Q),
 		// additional connections
-		.BWEB(BWEB),
+		.BWEB(BWEB), 
 		.RTSEL(2'b01),
 		.WTSEL(2'b00)
 	);

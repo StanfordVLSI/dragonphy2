@@ -1,0 +1,15 @@
+# Adapted from Garnet and ButterPHY
+
+name: input_buffer
+
+commands:
+  - |
+    mkdir -p outputs
+# Uncomment this line and the outputs when this block is ready
+#    tar -xzvf /home/sjkim85/dragonphy_tarballs/input_buffer-latest.tar.gz -C outputs
+
+outputs:
+#  - input_buffer.lef
+#  - input_buffer.gds
+#  - input_buffer.lvs.v
+#  - input_buffer.version
