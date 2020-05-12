@@ -14,31 +14,8 @@ parameters:
   # Name of the design
   design_name: undefined
 
-  # Main clocks in the design
-  clk_retimer_period: 0.7
-  clk_in_period: 0.7
-  clk_jtag_period: 100.0
+  # Scale factor for timing constraints
+  constr_time_scale: 1.0
 
-  # Retimer clock uncertainty
-  clk_retimer_setup_uncertainty: 0.03
-  clk_retimer_hold_uncertainty: 0.03
-
-  # JTAG clock uncertainty
-  clk_jtag_setup_uncertainty: 1.0
-  clk_jtag_hold_uncertainty: 0.03
-
-  # Capacitance and transition time
-  max_capacitance: 0.1
-  max_transition: 0.2
-  max_clock_transition: 0.1
-
-  # Clocks that can be monitored from analog_core
-  clk_hs_period: 0.25
-  clk_hs_transition: 0.025
-
-  # I/O delays and transitions
-  digital_input_delay: 0.05
-  digital_input_transition: 0.5
-  input_transition: 0.03
-  output_load: 0.02
-  output_delay: 0.7
+  # Scale factor for capacitance constraints
+  constr_cap_scale: 1.0
