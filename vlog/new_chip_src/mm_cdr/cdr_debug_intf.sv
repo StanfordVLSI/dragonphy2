@@ -18,6 +18,7 @@ interface cdr_debug_intf;
     logic sel_inp_mux;
 
 	logic sample_state;
+	logic invert;
 
 	modport cdr (
 	 input  pd_offset_ext,
@@ -32,7 +33,9 @@ interface cdr_debug_intf;
 	 output freq_est,
 	 output ramp_est,
 	 input sel_inp_mux,
-	 input sample_state
+	 input sample_state,
+	 input invert
+
 	);
 
 	modport jtag (
@@ -48,7 +51,8 @@ interface cdr_debug_intf;
      input freq_est,
      input ramp_est,
      output sel_inp_mux,
-	 output sample_state
+	 output sample_state,
+	 output invert
 	);
 
 endinterface
