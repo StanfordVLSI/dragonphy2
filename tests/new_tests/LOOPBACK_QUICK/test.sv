@@ -153,7 +153,6 @@ module test;
 	tx_output_recorder tx_output_recorder_i (
 		.in(tx_data),
 		.clk(tx_clk),
-		//.en(1'b1)
 		.en(should_record)
 	);
 
@@ -161,7 +160,7 @@ module test;
     ///////// Inserting magic reordering
     logic signed [Nadc-1:0] adcout_unfolded [Nti-1:0];
     reg recording_clk;
-// Re-ordering
+    // Re-ordering
     // TODO: clean this up because it is likely a real bug
     integer tmp;
     integer idx_order [Nti] = '{0, 5, 10, 15,
@@ -195,8 +194,6 @@ module test;
     //////// End magic reordering
 
 	ti_adc_recorder ti_adc_recorder_i (
-		//.in(top_i.idcore.adcout_unfolded[Nti-1:0]),
-		//.clk(top_i.clk_adc),
         .in(adcout_unfolded),
         .clk(recording_clk),
 		.en(should_record)
