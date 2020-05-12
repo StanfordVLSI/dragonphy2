@@ -21,7 +21,7 @@ module analog_core import const_pack::*; #(
 	input wire logic [Npi-1:0] ctl_pi[Nout-1:0],         // PI control code (from DCORE)
 	input wire logic ctl_valid,                          // PI control valid flag (from DCORE) 
 
-	input `real_t Vcal,                                  // bias voltage for V2T (from pad)
+	inout `voltage_t Vcal,                               // bias voltage for V2T (from pad)
 	
 	output wire logic clk_adc,                           // clock for retiming adc data assigned from ADC_0
 	                                                     // (to DCORE)
