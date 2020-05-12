@@ -75,7 +75,7 @@ module mm_cdr import const_pack::*; #(
         ramp_est_pls_d       = cdbg_intf_i.en_ramp_est ? ramp_est_pls_update : 0;
         ramp_est_neg_d       = cdbg_intf_i.en_ramp_est ? ramp_est_neg_update : 0;
 
-        freq_est_update  = (phase_error << Ki) + (ramp_clock_sync ? ramp_est_pls_q : -ramp_est_neg_q);
+        freq_est_update  = (phase_error << Ki) + (ramp_clock_sync ? ramp_est_pls_q : -1*ramp_est_neg_q);
         freq_est_d       = freq_est_q          + (cdbg_intf_i.en_freq_est ? freq_est_update : 0);
         freq_diff        = freq_est_update - prev_freq_update_q;
 
