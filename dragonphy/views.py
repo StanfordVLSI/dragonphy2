@@ -136,23 +136,26 @@ def get_deps(cell_name=None, view_order=None, override=None,
     return deps
 
 def get_deps_new_asic(cell_name=None, impl_file=None, process='tsmc16'):
-    # List of views to override with stubs
+    # Set of views to override with a specific view
     override = {
-        'input_buffer': 'new_chip_stubs',
         'analog_core': 'new_chip_stubs',
         'mdll_r1_top': 'new_chip_stubs'
     }
 
-    # List of views to skip and replace with *.db files
+    # Set of views to skip (since a *.db will be provided)
     skip = {
-        'DW_tap',
-        'output_buffer'
+        'input_buffer',
+        'output_buffer',
+        'DW_tap'
     }
+
+    # Process-dependent stubs
     if process == 'freepdk-45nm':
         override['sram'] = 'new_chip_src_freepdk45'
         skip.add('sram_144_1024_freepdk45')
     elif process == 'tsmc16':
         override['sram'] = 'new_chip_src_tsmc16'
+        skip.add('TS1N16FFCLLSBLVTC1024X144M4S')
         skip.add('TS1N16FFCLLSBLVTC1024X144M4SW')
     else:
         raise Exception(f'Unknown process: {process}')
