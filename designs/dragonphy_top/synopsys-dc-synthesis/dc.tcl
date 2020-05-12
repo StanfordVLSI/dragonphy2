@@ -380,6 +380,7 @@ check_design -summary
 check_design \
   > ${dc_reports_dir}/${dc_design_name}.premapped.checkdesign.rpt
 
+link
 #-------------------------------------------------------------------------
 # Compile
 #-------------------------------------------------------------------------
@@ -405,6 +406,8 @@ if {!([info exists DC_SKIP_OPTIMIZE_NETLIST] && $DC_SKIP_OPTIMIZE_NETLIST)} {
 
 check_design -summary
 check_design > ${dc_reports_dir}/${dc_design_name}.mapped.checkdesign.rpt
+
+link
 
 # Write the .namemap file for the Energy analysis
 
