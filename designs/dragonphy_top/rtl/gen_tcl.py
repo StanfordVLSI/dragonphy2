@@ -35,7 +35,7 @@ report_name_rules verilog
 elaborate {e['design_name']}
 
 # Flatten out names of port arrays and interfaces
-change_names -rules verilog -hierarchy -verbose 
+change_names -rules verilog -hierarchy
 '''
 
 # write output text
