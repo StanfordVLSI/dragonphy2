@@ -30,39 +30,9 @@ def construct():
     if DRAGONPHY_PROCESS == 'FREEPDK45':
         parameters['adk_name'] = 'freepdk-45nm'
         parameters['adk_view'] = 'view-standard'
-
-        # update timing parameters
-        scale=10
-        parameters.update(dict(
-            clk_retimer_period=0.7*scale,
-            clk_in_period=0.7*scale,
-            clk_jtag_period=100.0*scale,
-
-            # Retimer clock uncertainty
-            clk_retimer_setup_uncertainty=0.03*scale,
-            clk_retimer_hold_uncertainty=0.03*scale,
-
-            # JTAG clock uncertainty
-            clk_jtag_setup_uncertainty=1.0*scale,
-            clk_jtag_hold_uncertainty=0.03*scale,
-
-            # Capacitance and transition time
-            # Note that capacitance is in fF for this PDK!
-            max_capacitance=0.1*scale*1e3,
-            max_transition=0.2*scale,
-            max_clock_transition=0.1*scale,
-
-            # Clocks that can be monitored from analog_core
-            clk_hs_period=0.25*scale,
-            clk_hs_transition=0.025*scale,
-
-            # I/O delays and transitions
-            digital_input_delay=0.05*scale,
-            digital_input_transition=0.5*scale,
-            input_transition=0.03*scale,
-            output_load=0.02*scale,
-            output_delay=0.7*scale
-        ))
+        # override default scale factors for an older, slower process
+        parameters['constr_time_scale'] = 10.0
+        parameters['constr_cap_scale'] = 10.0*1e3
     elif DRAGONPHY_PROCESS == 'TSMC16':
         parameters['adk_name'] = 'tsmc16'
         parameters['adk_view'] = 'stdview'
@@ -84,16 +54,32 @@ def construct():
     # Custom steps
 
     rtl = Step(this_dir + '/rtl')
+    # genlibdb_constraints = Step(this_dir + '/custom-genlibdb-constraints')
     constraints = Step(this_dir + '/constraints')
+
+    if DRAGONPHY_PROCESS == 'FREEPDK45':
+        gen_sram = Step(this_dir + '/openram-gen-sram')
+    elif DRAGONPHY_PROCESS == 'TSMC16':
+        gen_sram = Step(this_dir + '/mc-gen-sram')
+    else:
+        raise Exception(f'Unknown process: {DRAGONPHY_PROCESS}')
+
+    # custom_init = Step(this_dir + '/custom-init')
+    # custom_lvs = Step(this_dir + '/custom-lvs-rules')
+    # custom_power = Step(this_dir + '/custom-power')
+
     dc = Step(this_dir + '/synopsys-dc-synthesis')
     qtm = Step(this_dir + '/qtm')
 
-    if DRAGONPHY_PROCESS == 'FREEPDK45':
-        sram = Step(this_dir + '/openram-gen-sram')
-    elif DRAGONPHY_PROCESS == 'TSMC16':
-        sram = Step(this_dir + '/mc-gen-sram')
-    else:
-        raise Exception(f'Unknown process: {DRAGONPHY_PROCESS}')
+    # Block-level designs (only work in TSMC16)
+    blocks = []
+    if DRAGONPHY_PROCESS == 'TSMC16':
+        blocks += [
+            Step( this_dir + '/analog_core'       ),
+            Step( this_dir + '/input_buffer'      ),
+            Step( this_dir + '/output_buffer'     ),
+            Step( this_dir + '/global_controller' )
+        ]
 
     # Default steps
     info           = Step( 'info',                           default=True )
@@ -105,69 +91,103 @@ def construct():
     postcts_hold   = Step( 'cadence-innovus-postcts_hold',   default=True )
     route          = Step( 'cadence-innovus-route',          default=True )
     postroute      = Step( 'cadence-innovus-postroute',      default=True )
-    postroute_hold = Step( 'cadence-innovus-postroute_hold', default=True )
     signoff        = Step( 'cadence-innovus-signoff',        default=True )
+    pt_signoff     = Step( 'synopsys-pt-timing-signoff',     default=True )
     genlibdb       = Step( 'synopsys-ptpx-genlibdb',         default=True )
     gdsmerge       = Step( 'mentor-calibre-gdsmerge',        default=True )
     drc            = Step( 'mentor-calibre-drc',             default=True )
     lvs            = Step( 'mentor-calibre-lvs',             default=True )
     debugcalibre   = Step( 'cadence-innovus-debug-calibre',  default=True )
 
-    # Add *.db files to synthesis inputs
-    dc.extend_inputs([
+    # Add *.db files for macros to downstream nodes
+    dbs = [
+        'analog_core_lib.db',
         'input_buffer_lib.db',
         'output_buffer_lib.db',
         'sram_tt.db'
-    ])
+    ]
+    dc.extend_inputs(dbs)
+    pt_signoff.extend_inputs(dbs)
+    genlibdb.extend_inputs(dbs)
 
-    # Add *.lib / *.lef as needed
-
-    hier_steps = [
-        iflow,
-        init,
-        power,
-        place,
-        cts,
-        postcts_hold,
-        route,
-        postroute,
-        signoff
+    # These steps need timing and lef info for black boxes
+    libs = [
+        'analog_core.lib'
+        'input_buffer.lib'
+        'output_buffer.lib'
+        'sram_tt.lib'
     ]
 
-    for step in hier_steps:
-        step.extend_inputs( ['sram_tt.lib', 'sram.lef'] )
+    lefs = [
+        # TODO: uncomment these LEFs as they are ready
+        # analog_core.lef,
+        # input_buffer.lef,
+        # output_buffer.lef,
+        # mdll_r1.lef
+        'sram.lef'
+    ]
 
-    # Add GDS files to merge into the final layout
-    gdsmerge.extend_inputs(['sram.gds'])
+    lib_lef_steps = \
+        [iflow, init, power, place, cts, postcts_hold, route, postroute, signoff]
+    for step in lib_lef_steps:
+        step.extend_inputs(libs + lefs)
 
-    # Add spice files needed to run LVS
-    lvs.extend_inputs(['sram.spi'])
+    # Add GDS files for black boxes to GDS merge step
+    gds_list = [
+        # TODO: uncomment these GDS files as they are ready
+        # analog_core.gds,
+        # input_buffer.gds,
+        # output_buffer.gds,
+        # mdll_r1.gds,
+        'sram.gds'
+    ]
+    gdsmerge.extend_inputs(gds_list)
+
+    # Need Spice or Verilog netlists files for black boxes for LVS
+    spi_list = [
+        # analog_core.lvs.v,
+        # input_buffer.lvs.v,
+        # output_buffer.lvs.v,
+        # mdll_r1.lvs.v,
+        'sram.spi'
+    ]
+    lvs.extend_inputs(spi_list)
 
     #-----------------------------------------------------------------------
     # Graph -- Add nodes
     #-----------------------------------------------------------------------
 
-    g.add_step( info           )
-    g.add_step( rtl            )
-    g.add_step( constraints    )
-    g.add_step( qtm            )
-    g.add_step( sram           )
-    g.add_step( dc             )
-    g.add_step( iflow          )
-    g.add_step( init           )
-    g.add_step( power          )
-    g.add_step( place          )
-    g.add_step( cts            )
-    g.add_step( postcts_hold   )
-    g.add_step( route          )
-    g.add_step( postroute      )
-    g.add_step( postroute_hold )
-    g.add_step( signoff        )
-    g.add_step( genlibdb       )
-    g.add_step( gdsmerge       )
-    g.add_step( drc            )
-    g.add_step( lvs            )
-    g.add_step( debugcalibre   )
+    g.add_step( info                 )
+    g.add_step( rtl                  )
+    g.add_step( gen_sram             )
+    g.add_step( constraints          )
+    g.add_step( dc                   )
+    g.add_step( iflow                )
+    g.add_step( init                 )
+    # g.add_step( custom_init          )
+    g.add_step( power                )
+    # g.add_step( custom_power         )
+    g.add_step( place                )
+    g.add_step( cts                  )
+    g.add_step( postcts_hold         )
+    g.add_step( route                )
+    g.add_step( postroute            )
+    g.add_step( signoff              )
+    g.add_step( pt_signoff           )
+    # g.add_step( genlibdb_constraints )
+    g.add_step( genlibdb             )
+    g.add_step( gdsmerge             )
+    g.add_step( drc                  )
+    g.add_step( lvs                  )
+    # g.add_step( custom_lvs           )
+    g.add_step( debugcalibre         )
+
+    # blocks like analog_core, input_buffer, etc.
+    for block in blocks:
+        g.add_step( block )
+
+    # *.lib and *.db files for some blocks
+    g.add_step( qtm )
 
     #-----------------------------------------------------------------------
     # Graph -- Add edges
@@ -184,16 +204,33 @@ def construct():
     g.connect_by_name( adk,            postcts_hold   )
     g.connect_by_name( adk,            route          )
     g.connect_by_name( adk,            postroute      )
-    g.connect_by_name( adk,            postroute_hold )
     g.connect_by_name( adk,            signoff        )
     g.connect_by_name( adk,            gdsmerge       )
     g.connect_by_name( adk,            drc            )
     g.connect_by_name( adk,            lvs            )
 
+    # Connect up blocks like analog_core, input_buffer, etc.
+    # The QTM step is also included here because it provides
+    # *.lib and *.db files for some of the blocks
+    for block in blocks + [gen_sram, qtm]:
+        g.connect_by_name(block, dc)
+        g.connect_by_name(block, iflow)
+        g.connect_by_name(block, init)
+        g.connect_by_name(block, power)
+        g.connect_by_name(block, place)
+        g.connect_by_name(block, cts)
+        g.connect_by_name(block, postcts_hold)
+        g.connect_by_name(block, route)
+        g.connect_by_name(block, postroute)
+        g.connect_by_name(block, signoff)
+        g.connect_by_name(block, genlibdb)
+        g.connect_by_name(block, pt_signoff)
+        g.connect_by_name(block, gdsmerge)
+        g.connect_by_name(block, drc)
+        g.connect_by_name(block, lvs)
+
     g.connect_by_name( rtl,            dc             )
     g.connect_by_name( constraints,    dc             )
-    g.connect_by_name( qtm,            dc             )
-    g.connect_by_name( sram,           dc             )
 
     g.connect_by_name( dc,             iflow          )
     g.connect_by_name( dc,             init           )
@@ -208,22 +245,11 @@ def construct():
     g.connect_by_name( iflow,          postcts_hold   )
     g.connect_by_name( iflow,          route          )
     g.connect_by_name( iflow,          postroute      )
-    g.connect_by_name( iflow,          postroute_hold )
     g.connect_by_name( iflow,          signoff        )
 
-    g.connect_by_name( sram,           dc             )
-    g.connect_by_name( sram,           iflow          )
-    g.connect_by_name( sram,           init           )
-    g.connect_by_name( sram,           power          )
-    g.connect_by_name( sram,           place          )
-    g.connect_by_name( sram,           cts            )
-    g.connect_by_name( sram,           postcts_hold   )
-    g.connect_by_name( sram,           route          )
-    g.connect_by_name( sram,           postroute      )
-    g.connect_by_name( sram,           signoff        )
-    g.connect_by_name( sram,           gdsmerge       )
-    g.connect_by_name( sram,           drc            )
-    g.connect_by_name( sram,           lvs            )
+    # g.connect_by_name( custom_init,    init           )
+    # g.connect_by_name( custom_power,   power          )
+    # g.connect_by_name( custom_lvs,     lvs            )
 
     g.connect_by_name( init,           power          )
     g.connect_by_name( power,          place          )
@@ -231,18 +257,19 @@ def construct():
     g.connect_by_name( cts,            postcts_hold   )
     g.connect_by_name( postcts_hold,   route          )
     g.connect_by_name( route,          postroute      )
-    g.connect_by_name( postroute,      postroute_hold )
-    g.connect_by_name( postroute_hold, signoff        )
+    g.connect_by_name( postroute,      signoff        )
+    g.connect_by_name( signoff,        gdsmerge       )
+    g.connect_by_name( signoff,        drc            )
+    g.connect_by_name( signoff,        lvs            )
+    g.connect_by_name( gdsmerge,       drc            )
+    g.connect_by_name( gdsmerge,       lvs            )
 
     g.connect_by_name( signoff,        genlibdb       )
     g.connect_by_name( adk,            genlibdb       )
+    # g.connect_by_name( genlibdb_constraints, genlibdb )
 
-    g.connect_by_name( signoff,        gdsmerge       )
-
-    g.connect_by_name( signoff,        drc            )
-    g.connect_by_name( gdsmerge,       drc            )
-    g.connect_by_name( signoff,        lvs            )
-    g.connect_by_name( gdsmerge,       lvs            )
+    g.connect_by_name( adk,            pt_signoff     )
+    g.connect_by_name( signoff,        pt_signoff     )
 
     g.connect_by_name( adk,            debugcalibre   )
     g.connect_by_name( dc,             debugcalibre   )
