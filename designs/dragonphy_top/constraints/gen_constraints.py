@@ -7,7 +7,9 @@ design_name = os.environ['design_name']
 time_scale = float(os.environ['constr_time_scale'])
 cap_scale = float(os.environ['constr_cap_scale'])
 
-output = f'''\
+output = ''
+
+output += f'''
 # Modified from ButterPHY and Garnet constraints
 
 #########
@@ -23,9 +25,9 @@ set analog_io {{ext_rx_inp ext_rx_inn ext_Vcm ext_Vcal ext_rx_inp_test \\
 
 set analog_net [get_pins ibuf_*/clk]
 
-set primary_digital_inputs {{ext_rstb ext_dump_start jtag_intf_i.phy_tdi \\
-                            jtag_intf_i.phy_tck jtag_intf_i.phy_tms \\
-                            jtag_intf_i.phy_trst_n}}
+set primary_digital_inputs {{ext_rstb ext_dump_start jtag_intf_i_phy_tdi \\
+                            jtag_intf_i_phy_tck jtag_intf_i_phy_tms \\
+                            jtag_intf_i_phy_trst_n}}
 
 #########
 # Clocks
@@ -33,10 +35,10 @@ set primary_digital_inputs {{ext_rstb ext_dump_start jtag_intf_i.phy_tdi \\
 
 create_clock -name clk_retimer -period {0.7*time_scale} [get_pins {{iacore/clk_adc}}]
 create_clock -name clk_in -period {0.7*time_scale} [get_ports ext_clkp]
-create_clock -name clk_jtag -period {100.0*time_scale} [get_ports jtag_intf_i.phy_tck]
+create_clock -name clk_jtag -period {100.0*time_scale} [get_ports jtag_intf_i_phy_tck]
 
 set_dont_touch_network [get_pins {{iacore/clk_adc}}]
-set_dont_touch_network [get_port jtag_intf_i.phy_tck]
+set_dont_touch_network [get_port jtag_intf_i_phy_tck]
 
 set_clock_uncertainty -setup {0.03*time_scale} clk_retimer
 set_clock_uncertainty -hold {0.3*time_scale} clk_retimer
@@ -93,6 +95,9 @@ set_false_path -from clk_jtag -to clk_retimer
 # analog core (black box)
 set_false_path -through [get_pins -of_objects iacore]
 
+# mdll_r1 (black box)
+set_false_path -through [get_pins -of_objects imdll]
+
 # input buffers
 set_false_path -through [get_pins -of_objects ibuf_async]
 set_false_path -through [get_pins -of_objects ibuf_main]
@@ -116,25 +121,29 @@ set_max_fanout 20 {design_name}
 # your inputs.
 
 set_driving_cell -no_design_rule -lib_cell $ADK_DRIVING_CELL [all_inputs]
+'''
 
+# process-specific constraints
+if os.environ['adk_name'] == 'tsmc16':
+    output += f'''
 # From ButterPHY
-# TODO: re-enable this for tsmc16!
 
+# TODO: what is mvt_target_libs?
 # foreach lib $mvt_target_libs {{
 #   set_dont_use [file rootname [file tail $lib]]/*D0BWP*
 # }}
 
 # From Garnet
-# TODO: re-enable these for tsmc16!
+# Apparently ANAIOPAD and IOPAD cells don't all have the dont_touch property
+# As a result, set the property here if there are any such cells
 
-# sr 02/2020
-# haha IOPAD cells already have dont_touch property but not ANAIOPAD :(
-# Without dont_touch, they disappear during dc-synthesis
-# set_dont_touch [ get_cells ANAIOPAD* ]
+if {{[llength [get_cells ANAIOPAD*]] > 0}} {{
+    set_dont_touch [get_cells ANAIOPAD*]
+}}
 
-# sr 02/2020
-# Arg turns out not all IOPAD cells have dont_touch property I guess
-# set_dont_touch [ get_cells IOPAD* ]
+if {{[llength [get_cells IOPAD*]] > 0}} {{
+    set_dont_touch [get_cells IOPAD*]
+}}
 '''
 
 # create output directory
