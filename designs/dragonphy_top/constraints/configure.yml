@@ -9,10 +9,12 @@ outputs:
   - constraints.tcl
 
 parameters:
-  # time in ns and capacitance in pF
 
   # Name of the design
   design_name: undefined
+
+  # Name of the ADK
+  adk_name: tsmc16
 
   # Scale factor for timing constraints
   constr_time_scale: 1.0
