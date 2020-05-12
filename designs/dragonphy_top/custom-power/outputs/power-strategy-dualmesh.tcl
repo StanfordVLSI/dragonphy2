@@ -1,11 +1,3 @@
-# TODO: remove inbuf_aux-related stuff
-
-# TODO: add ibuf_main-related stuff
-# TODO: add ibuf_mdll_ref-related stuff
-# TODO: add imdll-related stuff
-
-# TODO: add stuff for the various SRAM instances
-
 ##############################
 # Begin Variable Definitions #
 ##############################
@@ -43,9 +35,36 @@ set FP_height [expr ceil(700/$cell_height)*$cell_height]
 
 set center_x [expr $FP_width/2]
 
+# acore
+set origin1_x [expr $center_x-$acore_width/2]
+set origin1_y [expr $FP_height-2*$boundary_height-2*$blockage_height-$acore_height-2*$cell_height]
+
+# input_buffer_async
+set origin0_x [expr 6*$blockage_width+2*$DB_width+$welltap_width+2]
+set origin0_y [expr (ceil(260-$input_buffer_height/2)/$cell_height)*$cell_height]
+
+# memory
+set origin2_x [expr $origin1_x+4*$blockage_width]
+set origin2_y [expr 2*$boundary_height+2*$blockage_height+$cell_height]
+
+# input_buffer_test
+set origin3_x [expr $FP_width-$origin0_x-$input_buffer_width]
+set origin3_y [expr (ceil(260-$input_buffer_height/2)/$cell_height)*$cell_height-$input_buffer_height+57*$cell_height]
+
+# output_buffer_test
+set origin4_x [expr $origin3_x+$input_buffer_width/2+$blockage_width+10*$welltap_width+$DB_width]
+set origin4_y [expr ceil((87-$output_buffer_height/2)/$cell_height)*$cell_height]
+
 ##############################
 #  End Variable Definitions  #
 ##############################
+
+# General tasks:
+# TODO: remove inbuf_aux-related stuff
+# TODO: add ibuf_main-related stuff
+# TODO: add ibuf_mdll_ref-related stuff
+# TODO: add imdll-related stuff
+# TODO: add stuff for the various SRAM instances
 
 createRouteBlk -box \
     [expr $origin0_x-$blockage_width] \
