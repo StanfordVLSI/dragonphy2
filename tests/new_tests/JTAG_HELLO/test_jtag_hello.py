@@ -19,25 +19,12 @@ else:
 DUMP_WAVEFORMS = False
 
 
-def calc_id_code():
-    # get short git hash as an int
-    git_hash_short = get_git_hash_short()
-
-    # build up ID code, requiring that the repo is clean
-    id_code = 0
-    id_code |= git_hash_short << 4
-    id_code |= 3
-
-    # return the ID code
-    return id_code
-
-
 @pytest.mark.parametrize((), [pytest.param(marks=pytest.mark.slow) if SIMULATOR=='vivado' else ()])
 def test_sim():
-    # determine the expected JTAG ID
-    id_code = calc_id_code()
-    EXPECTED_JTAG_ID = f"32'h{id_code:08x}"
-    print(f'EXPECTED_JTAG_ID={EXPECTED_JTAG_ID}')
+    # determine the git hash
+    git_hash_short = get_git_hash_short()
+    GIT_HASH = f"28'h{git_hash_short:07x}"
+    print(f'GIT_HASH={GIT_HASH}')
 
     deps = get_deps_cpu_sim_new(impl_file=THIS_DIR / 'test.sv')
     print(deps)
@@ -48,7 +35,7 @@ def test_sim():
         'DAVE_TIMEUNIT': '1fs',
         'NCVLOG': None,
         'SIMULATION': None,
-        'EXPECTED_JTAG_ID': EXPECTED_JTAG_ID
+        'GIT_HASH': GIT_HASH
     }
 
     if DUMP_WAVEFORMS:
