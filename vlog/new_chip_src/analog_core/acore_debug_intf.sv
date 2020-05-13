@@ -55,6 +55,8 @@ interface acore_debug_intf import const_pack::*; (
         logic disable_ibuf_main;
         logic disable_ibuf_test0;
         logic disable_ibuf_test1;
+        logic disable_ibuf_mdll_ref;
+        logic disable_ibuf_mdll_mon;
 
 		//ADCtest(only for ADCrep1)
  		logic sel_pfd_in;									// from JTAG (0) x
@@ -156,6 +158,8 @@ interface acore_debug_intf import const_pack::*; (
         input disable_ibuf_main,
         input disable_ibuf_test0,
         input disable_ibuf_test1,
+        input disable_ibuf_mdll_ref,
+        input disable_ibuf_mdll_mon,
 
 		input en_inbuf,
 		input sel_clk_source,
@@ -249,6 +253,8 @@ interface acore_debug_intf import const_pack::*; (
         output disable_ibuf_main,
         output disable_ibuf_test0,
         output disable_ibuf_test1,
+        output disable_ibuf_mdll_ref,
+        output disable_ibuf_mdll_mon,
 
         output en_inbuf,
         output sel_clk_source,

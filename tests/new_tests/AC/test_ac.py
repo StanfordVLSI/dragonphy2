@@ -30,7 +30,8 @@ def test_sim():
     defines = {
         'TI_ADC_TXT': qwrap(BUILD_DIR / 'ti_adc.txt'),
         'DAVE_TIMEUNIT': '1fs',
-        'NCVLOG': None
+        'NCVLOG': None,
+        'SIMULATION': None
     }
 
     flags = ['-unbuffered']
@@ -42,7 +43,7 @@ def test_sim():
         ext_srcs=deps,
         directory=BUILD_DIR,
         top_module='test',
-        inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/new_cpu')],
+        inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/new_cpu'), get_dir('')],
         defines=defines,
         simulator=SIMULATOR,
         flags=flags
