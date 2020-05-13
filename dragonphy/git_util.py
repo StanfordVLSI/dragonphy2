@@ -4,7 +4,7 @@ import subprocess
 def get_git_is_clean():
     result = subprocess.run(['git', 'status', '--porcelain'], capture_output=True)
     print(result.stdout)
-    if result.stdout == '':
+    if result.stdout == b'':
         return True
     else:
         return False
