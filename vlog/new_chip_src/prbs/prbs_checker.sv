@@ -53,6 +53,7 @@ module prbs_checker #(
                 .cke(cke),
                 .eqn(eqn),
                 .inv_chicken(inv_chicken),
+                .rx_bit(rx_bits[k]),
                 .error(error_signals[k])
             );
         end
