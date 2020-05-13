@@ -10,6 +10,7 @@ class JTAG:
         build_dir = Path(filename).parent
 
         justag_inputs = []
+        justag_inputs += ["123"]
         justag_inputs += list(get_dir('md').glob('*.md'))
         justag_inputs += [get_file('vlog/new_pack/const_pack.sv')]
         print(justag_inputs)
