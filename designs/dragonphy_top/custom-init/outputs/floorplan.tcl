@@ -48,6 +48,37 @@ setFlipping s
 
 # Use automatic floorplan synthesis to pack macros (e.g., SRAMs) together
 
+###################
+# Place Instances #
+###################
+
+# TODO: place multiple memory instances, i.e.
+# idcore/oneshot_multimemory_i/sram_i[k]/memory
+# idcore/omm_ffe_i/sram_i[k]/memory
+# for 0 <= k <= N_mem_tiles-1
+for {set k 0} {$k<($::env(num_mem_tiles)-1)} {incr k} {
+    placeInstance \
+        idcore/oneshot_multimemory_i/sram_i[k]/memory \
+        [expr $origin_sram_ffe_x + $k*($sram_width + 8*$welltap_width)] \
+        [expr $origin_sram_ffe_y + $sram_height    + 4*$cell_height]
+
+    placeInstance \
+        idcore/omm_ffe_i/sram_i[k]/memory \
+        [expr $origin_sram_ffe_x + $k*($sram_width + 8*$welltap_width)] \
+        [expr $origin_sram_ffe_y ]
+}
+
+###################
+# Place Blockages #
+###################
+
+createPlaceBlockage -box \
+    [expr $origin_sram_ffe_x - $blockage_width] \
+    [expr $origin_sram_ffe_y - $blockage_width] \
+    [expr $origin_sram_ffe_x + 4*$sram_width  + 24*$welltap_width + $blockage_width] \
+    [expr $origin_sram_ffe_y + 2*$sram_height + 4*$cell_height + $blockage_width]
+
+
 planDesign
 
 
