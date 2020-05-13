@@ -67,6 +67,7 @@ def construct():
     custom_init = Step(this_dir + '/custom-init')
     # custom_lvs = Step(this_dir + '/custom-lvs-rules')
     custom_power = Step(this_dir + '/custom-power')
+    custom_geom = Step(this_dir + '/custom-geom')
 
     dc = Step(this_dir + '/synopsys-dc-synthesis')
     qtm = Step(this_dir + '/qtm')
@@ -102,7 +103,10 @@ def construct():
     # Add extra input edges to innovus steps that need custom tweaks
 
     init.extend_inputs(custom_init.all_outputs())
+    init.extend_inputs(custom_geom.all_outputs())
+
     power.extend_inputs(custom_power.all_outputs())
+    power.extend_inputs(custom_geom.all_outputs())
 
     # Add *.db files for macros to downstream nodes
     dbs = [
@@ -194,6 +198,9 @@ def construct():
     # *.lib and *.db files for some blocks
     g.add_step( qtm )
 
+    # variables related to the design geometry
+    g.add_step( custom_geom )
+
     #-----------------------------------------------------------------------
     # Graph -- Add edges
     #-----------------------------------------------------------------------
@@ -253,7 +260,11 @@ def construct():
     g.connect_by_name( iflow,          signoff        )
 
     g.connect_by_name( custom_init,    init           )
+    g.connect_by_name( custom_geom,    init           )
+
     g.connect_by_name( custom_power,   power          )
+    g.connect_by_name( custom_geom,    power          )
+
     # g.connect_by_name( custom_lvs,     lvs            )
 
     g.connect_by_name( init,           power          )
@@ -289,12 +300,31 @@ def construct():
 
     g.update_params( parameters )
 
-    # init -- Add 'add-endcaps-welltaps.tcl' after 'floorplan.tcl'
+    ####
+    # modify script order for init
+    ####
 
     order = init.get_param('order')  # get the default script run order
+
+    # Add 'add-endcaps-welltaps.tcl' after 'floorplan.tcl'
     floorplan_idx = order.index('floorplan.tcl')  # find floorplan.tcl
     order.insert(floorplan_idx + 1, 'add-endcaps-welltaps.tcl')  # add here
+
+    # Add 'set-geom-vars.tcl' at the beginning
+    order.insert(0, 'set-geom-vars.tcl')
+
     init.update_params({'order': order})
+
+    ####
+    # modify script order for power
+    ####
+
+    order = power.get_param('order')  # get the default script run order
+
+    # Add 'set-geom-vars.tcl' at the beginning
+    order.insert(0, 'set-geom-vars.tcl')
+
+    power.update_params({'order': order})
 
     return g
 
