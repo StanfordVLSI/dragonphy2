@@ -63,7 +63,7 @@ def test_sim(n_prbs, n_channels=16, n_trials=256):
             checker_mode=m.In(m.Bits[2]),
             delay=m.In(m.Bits[5]),
             clk_div=m.BitOut,
-            error_bits=m.Out(m.Bits[64]),
+            err_bits=m.Out(m.Bits[64]),
             total_bits=m.Out(m.Bits[64]),
             clk_bogus=m.ClockIn  # need to have clock signal in order to wait on posedges (possible fault bug?)
         )
@@ -93,7 +93,7 @@ def test_sim(n_prbs, n_channels=16, n_trials=256):
     t.poke(dut.checker_mode, FREEZE)
     for _ in range(10):
         t.wait_until_posedge(dut.clk_div)
-    error_bits_case_1 = t.get_value(dut.error_bits)
+    err_bits_case_1 = t.get_value(dut.err_bits)
     total_bits_case_1 = t.get_value(dut.total_bits)
 
     # initialize with the wrong equation
@@ -111,7 +111,7 @@ def test_sim(n_prbs, n_channels=16, n_trials=256):
     t.poke(dut.checker_mode, FREEZE)
     for _ in range(10):
         t.wait_until_posedge(dut.clk_div)
-    error_bits_case_2 = t.get_value(dut.error_bits)
+    err_bits_case_2 = t.get_value(dut.err_bits)
     total_bits_case_2 = t.get_value(dut.total_bits)
 
     # run the test
@@ -134,18 +134,18 @@ def test_sim(n_prbs, n_channels=16, n_trials=256):
         directory=BUILD_DIR
     )
 
-    print(f'error_bits_case_1: {error_bits_case_1.value}')
+    print(f'err_bits_case_1: {err_bits_case_1.value}')
     print(f'total_bits_case_1: {total_bits_case_1.value}')
-    print(f'error_bits_case_2: {error_bits_case_2.value}')
+    print(f'err_bits_case_2: {err_bits_case_2.value}')
     print(f'total_bits_case_2: {total_bits_case_2.value}')
 
-    assert error_bits_case_1.value == 0, \
+    assert err_bits_case_1.value == 0, \
         'Should be no errors (case 1)'
 
     assert total_bits_case_1.value == n_channels*n_trials, \
         'Wrong number of total bits (case 1)'
 
-    assert error_bits_case_2.value > 0, \
+    assert err_bits_case_2.value > 0, \
         'Some errors should be detected when the wrong equation is used'
 
     assert total_bits_case_2.value == n_channels*n_trials, \

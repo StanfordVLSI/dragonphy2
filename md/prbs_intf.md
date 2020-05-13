@@ -5,7 +5,7 @@
 | prbs_chan_sel              |         | Nti-1:0         |                | Test         | out      | 'hFFFF                                       |
 | prbs_inv_chicken           |         | 1:0             |                | Test         | out      | 'b00                                         |
 | prbs_checker_mode          |         | 1:0             |                | Test         | out      | 'b00                                         |
-| prbs_error_bits_upper      |         | 31:0            |                | System       | in       |                                              |
-| prbs_error_bits_lower      |         | 31:0            |                | System       | in       |                                              |
+| prbs_err_bits_upper        |         | 31:0            |                | System       | in       |                                              |
+| prbs_err_bits_lower        |         | 31:0            |                | System       | in       |                                              |
 | prbs_total_bits_upper      |         | 31:0            |                | System       | in       |                                              |
 | prbs_total_bits_lower      |         | 31:0            |                | System       | in       |                                              |

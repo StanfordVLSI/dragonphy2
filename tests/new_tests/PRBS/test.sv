@@ -119,8 +119,8 @@ module test;
 	// Main test
 
 	logic [31:0] result;
-    longint error_bits_1, total_bits_1;
-    longint error_bits_2, total_bits_2;
+    longint err_bits_1, total_bits_1;
+    longint err_bits_2, total_bits_2;
     integer rx_shift;
 	initial begin
 		`ifdef DUMP_WAVEFORMS
@@ -168,10 +168,10 @@ module test;
         `FORCE_PDBG(prbs_checker_mode, 3);
         #(10ns);
 
-        error_bits_1 = 0;
-        error_bits_1 |= `GET_PDBG(prbs_error_bits_upper);
-        error_bits_1 <<= 32;
-        error_bits_1 |= `GET_PDBG(prbs_error_bits_lower);
+        err_bits_1 = 0;
+        err_bits_1 |= `GET_PDBG(prbs_err_bits_upper);
+        err_bits_1 <<= 32;
+        err_bits_1 |= `GET_PDBG(prbs_err_bits_lower);
 
         total_bits_1 = 0;
         total_bits_1 |= `GET_PDBG(prbs_total_bits_upper);
@@ -193,10 +193,10 @@ module test;
         `FORCE_PDBG(prbs_checker_mode, 3);
         #(10ns);
 
-        error_bits_2 = 0;
-        error_bits_2 |= `GET_PDBG(prbs_error_bits_upper);
-        error_bits_2 <<= 32;
-        error_bits_2 |= `GET_PDBG(prbs_error_bits_lower);
+        err_bits_2 = 0;
+        err_bits_2 |= `GET_PDBG(prbs_err_bits_upper);
+        err_bits_2 <<= 32;
+        err_bits_2 |= `GET_PDBG(prbs_err_bits_lower);
 
         total_bits_2 = 0;
         total_bits_2 |= `GET_PDBG(prbs_total_bits_upper);
@@ -205,9 +205,9 @@ module test;
 
         // print results
         $display("n_delay: %0d", `PRBS_DEL);
-        $display("error_bits_1: %0d", error_bits_1);
+        $display("err_bits_1: %0d", err_bits_1);
         $display("total_bits_1: %0d", total_bits_1);
-        $display("error_bits_2: %0d", error_bits_2);
+        $display("err_bits_2: %0d", err_bits_2);
         $display("total_bits_2: %0d", total_bits_2);
 
         // check results
@@ -218,7 +218,7 @@ module test;
             $display("Number of bits transmitted is OK (case 1)");
         end
 
-        if (!(error_bits_1 == 0)) begin
+        if (!(err_bits_1 == 0)) begin
             $error("Bit error detected (case 1)");
         end else begin
             $display("No bit errors detected (case 1)");
@@ -230,7 +230,7 @@ module test;
             $display("Number of bits transmitted is OK (case 2)");
         end
 
-        if (!(error_bits_2 > 0)) begin
+        if (!(err_bits_2 > 0)) begin
             $error("Bit errors should be detected (case 2)");
         end else begin
             $display("Bit errors detected, as expected for case 2");

@@ -231,8 +231,8 @@ module jtag (
     assign pdbg_intf_i.prbs_inv_chicken = rjtag_intf_i.prbs_inv_chicken;
     assign pdbg_intf_i.prbs_checker_mode = rjtag_intf_i.prbs_checker_mode;
     // PRBS Output
-    assign rjtag_intf_i.prbs_error_bits_upper = pdbg_intf_i.prbs_error_bits_upper;
-    assign rjtag_intf_i.prbs_error_bits_lower = pdbg_intf_i.prbs_error_bits_lower;
+    assign rjtag_intf_i.prbs_err_bits_upper = pdbg_intf_i.prbs_err_bits_upper;
+    assign rjtag_intf_i.prbs_err_bits_lower = pdbg_intf_i.prbs_err_bits_lower;
     assign rjtag_intf_i.prbs_total_bits_upper = pdbg_intf_i.prbs_total_bits_upper;
     assign rjtag_intf_i.prbs_total_bits_lower = pdbg_intf_i.prbs_total_bits_lower;
 

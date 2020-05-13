@@ -10,7 +10,7 @@ module test_prbs_checker_core #(
     input wire logic [4:0] delay,
     // outputs
     output reg clk_div,
-    output error,
+    output err,
     // bogus input needed for fault
     input wire logic clk_bogus
 );
@@ -79,6 +79,6 @@ module test_prbs_checker_core #(
         .eqn(eqn),
         .inv_chicken(2'b00),
         .rx_bit(rx_bit),
-        .error(error)
+        .err(err)
     );
 endmodule

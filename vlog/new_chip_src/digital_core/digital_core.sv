@@ -348,7 +348,7 @@ module digital_core import const_pack::*; (
         // checker mode
         .checker_mode(pdbg_intf_i.prbs_checker_mode),
         // outputs
-        .error_bits({pdbg_intf_i.prbs_error_bits_upper, pdbg_intf_i.prbs_error_bits_lower}),
+        .err_bits({pdbg_intf_i.prbs_err_bits_upper, pdbg_intf_i.prbs_err_bits_lower}),
         .total_bits({pdbg_intf_i.prbs_total_bits_upper, pdbg_intf_i.prbs_total_bits_lower})
     );
 

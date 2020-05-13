@@ -31,7 +31,7 @@ module prbs_checker #(
     input wire logic [1:0] checker_mode,
 
     // outputs
-    output wire logic [63:0] error_bits,
+    output wire logic [63:0] err_bits,
     output wire logic [63:0] total_bits
 );
     // TODO: consider using enum here
@@ -41,7 +41,7 @@ module prbs_checker #(
     localparam logic [1:0] FREEZE = 2'b11;
 
     // instantiate the core prbs checker
-    logic [(n_channels-1):0] error_signals;
+    logic [(n_channels-1):0] err_signals;
     genvar k;
     generate
         for (k=0; k<n_channels; k=k+1) begin
@@ -54,7 +54,7 @@ module prbs_checker #(
                 .eqn(eqn),
                 .inv_chicken(inv_chicken),
                 .rx_bit(rx_bits[k]),
-                .error(error_signals[k])
+                .err(err_signals[k])
             );
         end
     endgenerate
@@ -68,34 +68,34 @@ module prbs_checker #(
         err_count = 0;
         tot_count = 0;
         for (i=0; i<n_channels; i=i+1) begin
-            err_count = err_count + (error_signals[i] & chan_sel[i]);
+            err_count = err_count + (err_signals[i] & chan_sel[i]);
             tot_count = tot_count + chan_sel[i];
         end
     end
 
     // check the RX data
 
-    logic [63:0] error_bits_reg;
+    logic [63:0] err_bits_reg;
     logic [63:0] total_bits_reg;
 
     always @(posedge clk) begin
         if (checker_mode == RESET) begin
-            error_bits_reg <= 0;
+            err_bits_reg <= 0;
             total_bits_reg <= 0;
         end else if (checker_mode == ALIGN) begin
-            error_bits_reg <= error_bits_reg;
+            err_bits_reg <= err_bits_reg;
             total_bits_reg <= total_bits_reg;
         end else if (checker_mode == TEST) begin
-            error_bits_reg <= error_bits_reg + err_count;
+            err_bits_reg <= err_bits_reg + err_count;
             total_bits_reg <= total_bits_reg + tot_count;
         end else begin
-            error_bits_reg <= error_bits_reg;
+            err_bits_reg <= err_bits_reg;
             total_bits_reg <= total_bits_reg;
         end
     end
 
     // assign outputs
-    assign error_bits = error_bits_reg;
+    assign err_bits = err_bits_reg;
     assign total_bits = total_bits_reg;
 
 endmodule
