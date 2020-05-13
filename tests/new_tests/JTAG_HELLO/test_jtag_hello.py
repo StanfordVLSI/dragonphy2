@@ -56,3 +56,8 @@ def test_sim():
         simulator=SIMULATOR,
         unbuffered=True
     ).run()
+
+
+if __name__=="__main__":
+    test_sim()
+
