@@ -23,6 +23,10 @@ def test_sim():
         directory=BUILD_DIR,
         top_module='test',
         inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/new_cpu')],
-        defines={'DAVE_TIMEUNIT': '1fs', 'NCVLOG': None},
+        defines={
+            'DAVE_TIMEUNIT': '1fs',
+            'NCVLOG': None,
+            'SIMULATION': None
+        },
         simulator=SIMULATOR
     ).run()
