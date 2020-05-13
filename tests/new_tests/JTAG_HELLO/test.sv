@@ -63,7 +63,7 @@ module test;
 		// ID read test
 		$display("Reading the JTAG ID.");
 		jtag_drv_i.read_id(result);
-		assert (result == 1'b1);
+		assert (result == 'h7b);
 
 		// TC domain write/read test
 		$display("Writing TC register 0x%0H...", pd_offset_ext);

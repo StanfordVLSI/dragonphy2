@@ -104,13 +104,14 @@ module test;
 		$shm_probe(top_i.idcore.iMM_CDR.scaled_pi_ctl);
 		$shm_probe(top_i.idcore.iMM_CDR.pi_ctl);
 		$shm_probe(top_i.idcore.iMM_CDR.wait_on_reset_b);
-		$shm_probe(top_i.idcore.iMM_CDR.cond1);
-		$shm_probe(top_i.idcore.iMM_CDR.cond2);
 		$shm_probe(top_i.idcore.iMM_CDR.wait_on_reset_ii);
 		$shm_probe(top_i.idcore.iMM_CDR.din);
 		$shm_probe(top_i.idcore.mm_cdr_input);
         $shm_probe(top_i.idcore.cdbg_intf_i.sel_inp_mux);
         $shm_probe(top_i.idcore.cdbg_intf_i.en_freq_est);
+        $shm_probe(top_i.idcore.iMM_CDR.phase_error_inv);
+        $shm_probe(top_i.idcore.iMM_CDR.pd_phase_error);
+
 
 
 		// signal initialization
@@ -130,6 +131,7 @@ module test;
       	`FORCE_DDBG(int_rstb, 1);
       	`FORCE_CDBG(Kp, 2);
       	`FORCE_CDBG(Ki, 0);
+      	`FORCE_CDBG(invert, 1);
 		`FORCE_CDBG(en_freq_est, 1);
         #(1ns);
         `FORCE_ADBG(en_inbuf, 1);
