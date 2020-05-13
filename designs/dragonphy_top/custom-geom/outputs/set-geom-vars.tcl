@@ -20,6 +20,9 @@ set output_buffer_height [expr 32*$cell_height]
 set memory_width 64.175
 set memory_height 249.84
 
+set sram_width  64.175
+set sram_height 249.840
+ 
 set blockage_width [expr 0.9]
 set blockage_height [expr 2*$cell_height]
 
@@ -47,3 +50,6 @@ set origin3_y [expr (ceil(260-$input_buffer_height/2)/$cell_height)*$cell_height
 # output_buffer_test
 set origin4_x [expr $origin3_x+$input_buffer_width/2+$blockage_width+10*$welltap_width+$DB_width]
 set origin4_y [expr ceil((87-$output_buffer_height/2)/$cell_height)*$cell_height]
+
+set origin_sram_ffe_x [expr $origin1_x+4*$blockage_width]
+set origin_sram_ffe_y [expr 2*$boundary_height+2*$blockage_height+$cell_height]
