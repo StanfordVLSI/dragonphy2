@@ -105,8 +105,6 @@ class JTAG:
 
         # find out if the git repo is clean/dirty
         git_is_clean = get_git_is_clean()
-        print(git_is_clean)
-        raise Exception()
 
         # build up ID code
         id_code = 0
