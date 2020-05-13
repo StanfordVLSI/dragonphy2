@@ -1,5 +1,9 @@
 `include "mLingua_pwl.vh"
 
+`ifndef EXPECTED_JTAG_ID
+    `define EXPECTED_JTAG_ID 32'h0
+`endif
+
 module test;
 	
 	import const_pack::*;
@@ -63,7 +67,7 @@ module test;
 		// ID read test
 		$display("Reading the JTAG ID.");
 		jtag_drv_i.read_id(result);
-		assert (result == 'h7b);
+		assert (result == `EXPECTED_JTAG_ID);
 
 		// TC domain write/read test
 		$display("Writing TC register 0x%0H...", pd_offset_ext);
