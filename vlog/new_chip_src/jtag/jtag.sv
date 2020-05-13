@@ -214,8 +214,9 @@ module jtag (
 	assign cdbg_intf_i.ext_pi_ctl    = rjtag_intf_i.ext_pi_ctl;
 	assign cdbg_intf_i.en_freq_est   = rjtag_intf_i.en_freq_est;
 	assign cdbg_intf_i.en_ramp_est   = rjtag_intf_i.en_ramp_est;
-
+	assign cdbg_intf_i.sel_inp_mux  = rjtag_intf_i.sel_inp_mux;
 	assign cdbg_intf_i.sample_state = rjtag_intf_i.sample_state;
+	assign cdbg_intf_i.invert = rjtag_intf_i.invert;
 
 	//CDR Output
 	assign rjtag_intf_i.phase_est   = cdbg_intf_i.phase_est;
