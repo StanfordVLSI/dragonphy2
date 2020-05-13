@@ -29,8 +29,7 @@ FREEZE = 0b11
 if SIMULATOR == 'vivado':
     pytest_params = [pytest.param(7, marks=pytest.mark.slow)]
 else:
-    #pytest_params = [7, 9, 11, 15, 17, 20, 23, 29, 31]
-    pytest_params = [7]
+    pytest_params = [7, 9, 11, 15, 17, 20, 23, 29, 31]
 @pytest.mark.parametrize('n_prbs', pytest_params)
 def test_sim(n_prbs, n_channels=16, n_trials=256):
     # determine the right equation

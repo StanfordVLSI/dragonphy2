@@ -70,7 +70,7 @@ module test;
     logic prbs_out;
     logic stim_rst;
     prbs_generator #(
-        .n_prbs(Nprbs)
+        .n_prbs(7)
     ) prbs_gen_i (
         .clk(clk_full_rate),
         .rst(stim_rst),
@@ -119,7 +119,8 @@ module test;
 	// Main test
 
 	logic [31:0] result;
-    longint correct_bits, total_bits;
+    longint error_bits_1, total_bits_1;
+    longint error_bits_2, total_bits_2;
     integer rx_shift;
 	initial begin
 		`ifdef DUMP_WAVEFORMS
@@ -152,50 +153,87 @@ module test;
         #(1ns);
 
         // Toggle the PRBS block reset
+        $display("Reset the PRBS tester (case 1)");
         `FORCE_DDBG(prbs_rstb, 0);
         #(10ns);
         `FORCE_DDBG(prbs_rstb, 1);
         #(10ns);
 
-        // align the PRBS tester
-        $display("Aligning the PRBS tester");
-        `FORCE_PDBG(prbs_checker_mode, 1);
-        #(625ns);
-
         // run the PRBS tester
-        $display("Running the PRBS tester");
+        $display("Running the PRBS tester (case 1)");
         `FORCE_PDBG(prbs_checker_mode, 2);
         #(625ns);
 
         // get results
-        correct_bits = 0;
-        correct_bits |= `GET_PDBG(prbs_correct_bits_upper);
-        correct_bits <<= 32;
-        correct_bits |= `GET_PDBG(prbs_correct_bits_lower);
+        `FORCE_PDBG(prbs_checker_mode, 3);
+        #(10ns);
 
-        total_bits = 0;
-        total_bits |= `GET_PDBG(prbs_total_bits_upper);
-        total_bits <<= 32;
-        total_bits |= `GET_PDBG(prbs_total_bits_lower);
+        error_bits_1 = 0;
+        error_bits_1 |= `GET_PDBG(prbs_error_bits_upper);
+        error_bits_1 <<= 32;
+        error_bits_1 |= `GET_PDBG(prbs_error_bits_lower);
 
-        rx_shift = `GET_PDBG(prbs_rx_shift);
+        total_bits_1 = 0;
+        total_bits_1 |= `GET_PDBG(prbs_total_bits_upper);
+        total_bits_1 <<= 32;
+        total_bits_1 |= `GET_PDBG(prbs_total_bits_lower);
+
+        // Change the PRBS equation and reset the tester
+        $display("Reset the PRBS tester (case 2)");
+        `FORCE_PDBG(prbs_checker_mode, 0);
+        `FORCE_PDBG(prbs_eqn, 7'b1100001);
+        #(100ns);
+
+        // run the PRBS tester
+        $display("Running the PRBS tester (case 2)");
+        `FORCE_PDBG(prbs_checker_mode, 2);
+        #(625ns);
+
+        // get results
+        `FORCE_PDBG(prbs_checker_mode, 3);
+        #(10ns);
+
+        error_bits_2 = 0;
+        error_bits_2 |= `GET_PDBG(prbs_error_bits_upper);
+        error_bits_2 <<= 32;
+        error_bits_2 |= `GET_PDBG(prbs_error_bits_lower);
+
+        total_bits_2 = 0;
+        total_bits_2 |= `GET_PDBG(prbs_total_bits_upper);
+        total_bits_2 <<= 32;
+        total_bits_2 |= `GET_PDBG(prbs_total_bits_lower);
 
         // print results
         $display("n_delay: %0d", `PRBS_DEL);
-        $display("correct_bits: %0d", correct_bits);
-        $display("total_bits: %0d", total_bits);
-        $display("rx_shift: %0d", rx_shift);
+        $display("error_bits_1: %0d", error_bits_1);
+        $display("total_bits_1: %0d", total_bits_1);
+        $display("error_bits_2: %0d", error_bits_2);
+        $display("total_bits_2: %0d", total_bits_2);
 
-        if (!(total_bits >= 9500)) begin
-            $error("Not enough bits transmitted.");
+        // check results
+
+        if (!(total_bits_1 >= 9500)) begin
+            $error("Not enough bits transmitted (case 1)");
         end else begin
-            $display("Number of bits transmitted is OK.");
+            $display("Number of bits transmitted is OK (case 1)");
         end
 
-        if (!(correct_bits == total_bits)) begin
-            $error("Bit error detected.");
+        if (!(error_bits_1 == 0)) begin
+            $error("Bit error detected (case 1)");
         end else begin
-            $display("No bit errors detected :-)");
+            $display("No bit errors detected (case 1)");
+        end
+
+        if (!(total_bits_2 >= 9500)) begin
+            $error("Not enough bits transmitted (case 2)");
+        end else begin
+            $display("Number of bits transmitted is OK (case 2)");
+        end
+
+        if (!(error_bits_2 > 0)) begin
+            $error("Bit errors should be detected (case 2)");
+        end else begin
+            $display("Bit errors detected, as expected for case 2");
         end
 
 		// Finish test
