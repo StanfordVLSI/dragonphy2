@@ -5,11 +5,12 @@
 
 # Write config file for the memory compiler
 # This specifies the dimensions of the SRAM
-echo "${sram_num_words}x${sram_word_size}m${mux_size}s" >> config.txt
+echo "${sram_num_words}x${sram_word_size}m${sram_mux_size}s" >> config.txt
 
 # Set some environment variables
 export MC_HOME=mc/tsn16ffcllhdspsbsram_20131200_130a
-export PATH="${PATH}:mc/MC2_2013.12.00.f/bin"
+#export PATH="${PATH}:mc/MC2_2013.12.00.f/bin"
+
 
 # Determine the name of the SRAM
 sram_name="ts1n16ffcllsblvtc${sram_num_words}x${sram_word_size}m${sram_mux_size}s"
