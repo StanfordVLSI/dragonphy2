@@ -6,7 +6,7 @@ commands:
   - |
     mkdir -p outputs
 # Uncomment this line and the outputs when this block is ready
-#    tar -xzvf /home/bclim/dragonphy_tarballs/mdll_r1-latest.tar.gz -C outputs
+#    tar -xzvf /home/sjkim85/dragonphy_tarballs/mdll_r1-latest.tar.gz -C outputs
 
 outputs:
 #  - mdll_r1.lef
