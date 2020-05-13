@@ -83,7 +83,7 @@ set dc_alib_dir                 alib
 #-------------------------------------------------------------------------
 
 set dc_pre_synthesis_plugin     pre_synth.tcl
-set dc_read_design_plugin       read_design.tcl
+set dc_read_design_plugin       inputs/read_design.tcl
 set dc_constraints_plugin       inputs/constraints.tcl
 set dc_post_synthesis_plugin    post_synth.tcl
 
