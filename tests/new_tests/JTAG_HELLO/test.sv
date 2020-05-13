@@ -1,7 +1,7 @@
 `include "mLingua_pwl.vh"
 
-`ifndef EXPECTED_JTAG_ID
-    `define EXPECTED_JTAG_ID 32'h0
+`ifndef GIT_HASH
+    `define GIT_HASH 28'h0
 `endif
 
 module test;
@@ -67,7 +67,7 @@ module test;
 		// ID read test
 		$display("Reading the JTAG ID.");
 		jtag_drv_i.read_id(result);
-		assert (result == `EXPECTED_JTAG_ID);
+		assert ((result[31:4] == `GIT_HASH) && (result[0] == 1'b1));
 
 		// TC domain write/read test
 		$display("Writing TC register 0x%0H...", pd_offset_ext);
