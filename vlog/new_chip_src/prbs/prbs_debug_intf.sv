@@ -8,8 +8,8 @@ interface prbs_debug_intf;
     logic [1:0] prbs_inv_chicken;
     logic [1:0] prbs_checker_mode;
 
-    logic [31:0] prbs_error_bits_upper;
-    logic [31:0] prbs_error_bits_lower;
+    logic [31:0] prbs_err_bits_upper;
+    logic [31:0] prbs_err_bits_lower;
     logic [31:0] prbs_total_bits_upper;
     logic [31:0] prbs_total_bits_lower;
 
@@ -19,8 +19,8 @@ interface prbs_debug_intf;
         input prbs_chan_sel,
         input prbs_inv_chicken,
         input prbs_checker_mode,
-        output prbs_error_bits_upper,
-        output prbs_error_bits_lower,
+        output prbs_err_bits_upper,
+        output prbs_err_bits_lower,
         output prbs_total_bits_upper,
         output prbs_total_bits_lower
     );
@@ -31,8 +31,8 @@ interface prbs_debug_intf;
         output prbs_chan_sel,
         output prbs_inv_chicken,
         output prbs_checker_mode,
-        input prbs_error_bits_upper,
-        input prbs_error_bits_lower,
+        input prbs_err_bits_upper,
+        input prbs_err_bits_lower,
         input prbs_total_bits_upper,
         input prbs_total_bits_lower
     );

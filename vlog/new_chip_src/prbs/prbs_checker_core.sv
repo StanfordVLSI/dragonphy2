@@ -15,7 +15,7 @@ module prbs_checker_core #(
     // input bit
     input wire logic rx_bit,
     // output signal indicating if there is an error
-    output wire logic error
+    output wire logic err
 );
     // register input
     logic rx_bit_reg;
@@ -51,23 +51,23 @@ module prbs_checker_core #(
     assign rx_mem_xor = ^rx_mem_select;
 
     // determine if an error occured
-    logic error_imm;
-    assign error_imm = rx_mem_xor ^ rx_bit_reg ^ inv_chicken[1];
+    logic err_imm;
+    assign err_imm = rx_mem_xor ^ rx_bit_reg ^ inv_chicken[1];
 
     // register output
-    logic error_reg;
+    logic err_reg;
     always @(posedge clk) begin
         if (rst) begin
-            error_reg <= 0;
+            err_reg <= 0;
         end else if (cke) begin
-            error_reg <= error_imm;
+            err_reg <= err_imm;
         end else begin
-            error_reg <= error_reg;
+            err_reg <= err_reg;
         end
     end
 
     // assign output
-    assign error = error_reg;
+    assign err = err_reg;
 endmodule
 
 `default_nettype wire

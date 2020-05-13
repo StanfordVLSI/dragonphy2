@@ -57,7 +57,7 @@ def test_sim(n_prbs, n_channels=16, n_trials=256):
             eqn=m.In(m.Bits[n_prbs]),
             delay=m.In(m.Bits[5]),
             clk_div=m.BitOut,
-            error=m.BitOut,
+            err=m.BitOut,
             clk_bogus=m.ClockIn  # need to have clock signal in order to wait on posedges (possible fault bug?)
         )
 
@@ -79,7 +79,7 @@ def test_sim(n_prbs, n_channels=16, n_trials=256):
     # check for errors
     for _ in range(n_trials):
         t.wait_until_posedge(dut.clk_div)
-        t.expect(dut.error, 0)
+        t.expect(dut.err, 0)
 
     # initialize with the wrong equation
     t.poke(dut.rst, 1)
@@ -96,7 +96,7 @@ def test_sim(n_prbs, n_channels=16, n_trials=256):
     vals_with_wrong_equation = []
     for _ in range(n_trials):
         t.wait_until_posedge(dut.clk_div)
-        vals_with_wrong_equation.append(t.get_value(dut.error))
+        vals_with_wrong_equation.append(t.get_value(dut.err))
 
     # run the test
     t.compile_and_run(
