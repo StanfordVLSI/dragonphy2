@@ -306,10 +306,6 @@ def construct():
 
     order = init.get_param('order')  # get the default script run order
 
-    # Add 'add-endcaps-welltaps.tcl' after 'floorplan.tcl'
-    floorplan_idx = order.index('floorplan.tcl')  # find floorplan.tcl
-    order.insert(floorplan_idx + 1, 'add-endcaps-welltaps.tcl')  # add here
-
     # Add 'set-geom-vars.tcl' at the beginning
     order.insert(0, 'set-geom-vars.tcl')
 
