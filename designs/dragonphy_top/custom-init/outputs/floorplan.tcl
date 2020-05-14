@@ -78,7 +78,7 @@
     set origin_sram_ffe_x [expr $blockage_width  + $core_margin_l]
     set origin_sram_ffe_y [expr $blockage_height + $core_margin_b]
 
-    set origin_sram_adc_x [expr $blockage_width  + 2*sram_pair_spacing + $core_margin_l + 2*$sram_width + $sram_to_sram_spacing]
+    set origin_sram_adc_x [expr $blockage_width  + 2*$sram_pair_spacing + $core_margin_l + 2*$sram_width + $sram_to_sram_spacing]
     set origin_sram_adc_y [expr $blockage_height + $core_margin_b]
 
 
