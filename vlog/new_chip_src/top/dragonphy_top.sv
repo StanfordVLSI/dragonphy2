@@ -7,7 +7,7 @@ module dragonphy_top import const_pack::*; (
 	input `pwl_t ext_rx_inp,
 	input `pwl_t ext_rx_inn,
 	input `real_t ext_Vcm,
-	input `real_t ext_Vcal,
+	inout `voltage_t ext_Vcal,
 	input `pwl_t ext_rx_inp_test,
 	input `pwl_t ext_rx_inn_test,
 

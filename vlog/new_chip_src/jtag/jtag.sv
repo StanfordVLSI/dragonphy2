@@ -220,14 +220,16 @@ module jtag (
 
 
     // PRBS Input
+    assign pdbg_intf_i.prbs_cke = rjtag_intf_i.prbs_cke;
+    assign pdbg_intf_i.prbs_eqn = rjtag_intf_i.prbs_eqn;
+    assign pdbg_intf_i.prbs_chan_sel = rjtag_intf_i.prbs_chan_sel;
+    assign pdbg_intf_i.prbs_inv_chicken = rjtag_intf_i.prbs_inv_chicken;
     assign pdbg_intf_i.prbs_checker_mode = rjtag_intf_i.prbs_checker_mode;
-    assign pdbg_intf_i.prbs_init_vals = rjtag_intf_i.prbs_init_vals;
     // PRBS Output
-    assign rjtag_intf_i.prbs_correct_bits_upper = pdbg_intf_i.prbs_correct_bits_upper;
-    assign rjtag_intf_i.prbs_correct_bits_lower = pdbg_intf_i.prbs_correct_bits_lower;
+    assign rjtag_intf_i.prbs_err_bits_upper = pdbg_intf_i.prbs_err_bits_upper;
+    assign rjtag_intf_i.prbs_err_bits_lower = pdbg_intf_i.prbs_err_bits_lower;
     assign rjtag_intf_i.prbs_total_bits_upper = pdbg_intf_i.prbs_total_bits_upper;
     assign rjtag_intf_i.prbs_total_bits_lower = pdbg_intf_i.prbs_total_bits_lower;
-    assign rjtag_intf_i.prbs_rx_shift = pdbg_intf_i.prbs_rx_shift;
 
     //WME Input
     assign wdbg_intf_i.wme_ffe_data  = rjtag_intf_i.wme_ffe_data;

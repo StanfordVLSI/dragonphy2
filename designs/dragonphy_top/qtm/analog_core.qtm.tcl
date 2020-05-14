@@ -40,10 +40,9 @@ set_qtm_port_load -value 0.010000 { ctl_pi[35:0] }
 create_qtm_port -type input { ctl_valid }
 set_qtm_port_load -value 0.010000 { ctl_valid }
 
-# TODO: make Vcal bidirectional
-create_qtm_port -type input { Vcal }
+create_qtm_port -type inout { Vcal }
 set_qtm_port_load -value 0.010000 { Vcal }
-# set_qtm_port_drive -value 1.000000 { Vcal }
+set_qtm_port_drive -value 1.000000 { Vcal }
 
 create_qtm_port -type output { clk_adc }
 set_qtm_port_drive -value 1.000000 { clk_adc }

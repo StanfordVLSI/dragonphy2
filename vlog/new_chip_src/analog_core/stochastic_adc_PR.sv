@@ -10,7 +10,7 @@ module stochastic_adc_PR #(
     input clk_in,
     input `pwl_t VinN,
     input `pwl_t VinP,
-    input `real_t Vcal,
+    input `voltage_t Vcal,
     input rstb,
     input en_slice,
     input en_sync_in,
