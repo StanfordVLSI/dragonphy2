@@ -1,0 +1,15 @@
+# Adapted from Garnet and ButterPHY
+
+name: mdll_r1
+
+commands:
+  - |
+    mkdir -p outputs
+# Uncomment this line and the outputs when this block is ready
+#    tar -xzvf /home/bclim/dragonphy_tarballs/mdll_r1-latest.tar.gz -C outputs
+
+outputs:
+#  - mdll_r1.lef
+#  - mdll_r1.gds
+#  - mdll_r1.lvs.v
+#  - mdll_r1.version

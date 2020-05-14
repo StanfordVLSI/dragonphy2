@@ -17,4 +17,4 @@ parameters:
   sram_num_words: 1024
   sram_mux_size: 4
   sram_corner: "tt0p8v25c"
-  sram_partial_write: False
+  sram_partial_write: True

@@ -1,10 +1,12 @@
 name: rtl
 
 commands:
-  - python gen_rtl.py
+  - |
+    mkdir -p outputs
+    python gen_tcl.py
 
 outputs:
-  - design.v
+  - read_design.tcl
 
 parameters:
   adk_name: "tsmc16"
