@@ -78,7 +78,7 @@
     set origin_sram_ffe_x [expr $blockage_width  + $core_margin_l]
     set origin_sram_ffe_y [expr $blockage_height + $core_margin_b]
 
-    set origin_sram_adc_x [expr $blockage_width  + $core_margin_l + 2*$sram_width + $sram_to_sram_spacing]
+    set origin_sram_adc_x [expr $blockage_width  + 2*sram_pair_spacing + $core_margin_l + 2*$sram_width + $sram_to_sram_spacing]
     set origin_sram_adc_y [expr $blockage_height + $core_margin_b]
 
 
@@ -90,10 +90,15 @@
 
     for {set k 0} {$k<4} {incr k} {
         if {[expr $k % 2] == 0} {
+            #placeInstance \
+            #idcore/omm_ffe_i/genblk3_$k\__sram_i/memory \
+            #    $origin_sram_ffe_x \
+            #    [expr $origin_sram_ffe_y + ($sram_vert_spacing + $sram_height - $core_margin_t - $core_margin_b)*($k/2)]
+
             placeInstance \
             idcore/omm_ffe_i/genblk3_$k\__sram_i/memory \
-                $origin_sram_ffe_x \
-                [expr $origin_sram_ffe_y + ($sram_vert_spacing + $sram_height - $core_margin_t - $core_margin_b)*($k/2)]
+                [expr $origin_sram_ffe_x + $sram_pair_spacing*($k/2)] \
+                $origin_sram_ffe_y
 
             placeInstance \
             idcore/oneshot_multimemory_i/genblk3_$k\__sram_i/memory \
@@ -101,10 +106,21 @@
                 $origin_sram_adc_y
 
         } else {
+            #placeInstance \
+            #idcore/omm_ffe_i/genblk3_$k\__sram_i/memory \
+            #    [expr $origin_sram_ffe_x + $sram_neighbor_spacing] \
+            #    [expr $origin_sram_ffe_y + ($sram_vert_spacing + $sram_height - $core_margin_t - $core_margin_b)*($k/2)] MY
+
+            #placeInstance \
+            #idcore/oneshot_multimemory_i/genblk3_$k\__sram_i/memory \
+            #    [expr $origin_sram_adc_x + $sram_neighbor_spacing +  $sram_pair_spacing*($k/2)] \
+            #    $origin_sram_adc_y MY
+
             placeInstance \
             idcore/omm_ffe_i/genblk3_$k\__sram_i/memory \
-                [expr $origin_sram_ffe_x + $sram_neighbor_spacing] \
-                [expr $origin_sram_ffe_y + ($sram_vert_spacing + $sram_height - $core_margin_t - $core_margin_b)*($k/2)] MY
+                [expr $origin_sram_ffe_x + $sram_neighbor_spacing +  $sram_pair_spacing*($k/2)] \
+                $origin_sram_ffe_y MY
+
 
             placeInstance \
             idcore/oneshot_multimemory_i/genblk3_$k\__sram_i/memory \
