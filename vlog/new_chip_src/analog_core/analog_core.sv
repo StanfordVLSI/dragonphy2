@@ -1,4 +1,5 @@
 `include "iotype.sv"
+//`include "/aha/sjkim85/github_repo/dragonphy2/inc/new_asic/iotype.sv"
 
 module analog_core import const_pack::*; #(
 ) (
@@ -48,7 +49,8 @@ module analog_core import const_pack::*; #(
 	
 	logic [Nout-1:0] clk_interp_slice;
 	logic [Nout-1:0] clk_interp_sw;
-	logic [Nout-1:0] clk_interp_swb;
+	logic [Nout-1:0] clk_interp_sw_s2d;
+	logic [Nout-1:0] clk_interp_swb_s2d;
 	logic clk_in_pi;
 	
 	assign clk_adc = clk_div[0];
@@ -62,13 +64,16 @@ module analog_core import const_pack::*; #(
 
     // 1st-level SnH
     snh iSnH (
-        .clk(clk_interp_sw),
-        .clkb(clk_interp_swb),
+        .clk(clk_interp_sw_s2d),
+        .clkb(clk_interp_swb_s2d),
         .in_p(rx_inp),
         .in_n(rx_inn),
         .out_p(VinP_slice),
         .out_n(VinN_slice)
     );
+
+   //assign clk_interp_swb[k] = ~clk_interp_sw[k];
+	V2T_clock_gen_S2D isw_s2d[Nout-1:0] (.in(clk_interp_sw), .out(clk_interp_sw_s2d), .outb(clk_interp_swb_s2d));	
 
     // 16-way TI ADC
     generate
@@ -149,7 +154,6 @@ module analog_core import const_pack::*; #(
                 .pm_out(adbg_intf_i.pm_out_pi[k]),
                 .max_sel_mux(adbg_intf_i.max_sel_mux[k])
             );
-            assign clk_interp_swb[k] = ~clk_interp_sw[k];
             assign adbg_intf_i.pi_out_meas[k] = (adbg_intf_i.sel_meas_pi[k] ?
                                                  clk_interp_slice[k] :
                                                  clk_interp_sw[k]) & adbg_intf_i.en_meas_pi[k];

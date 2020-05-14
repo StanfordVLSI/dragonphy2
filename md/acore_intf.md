@@ -10,8 +10,6 @@
 | sel_pm_in                  |         | 1:0                    | Nti-1:0      | Test         | out      |   0       |
 | sel_clk_TDC                |         | Nti-1:0                |              | Test         | out      |   0       |
 | en_pm                      |         | Nti-1:0                |              | Test         | out      |   0       |
-| en_v2t_clk_next            |         | Nti-1:0                |              | Test         | out      |   0       |
-| en_sw_test                 |         | Nti-1:0                |              | Test         | out      |   0       |
 | ctl_dcdl_late              |         | 1:0                    | Nti-1:0      | Test         | out      |   0       |
 | ctl_dcdl_early             |         | 1:0                    | Nti-1:0      | Test         | out      |   0       |
 | ctl_dcdl_TDC               |         | 4:0                    | Nti-1:0      | Test         | out      |   0       |
@@ -40,8 +38,6 @@
 | sel_pm_in_rep              |         | 1:0                    | 1:0          | Test         | out      |   0       |
 | sel_clk_TDC_rep            |         | 1:0                    |              | Test         | out      |   0       |
 | en_pm_rep                  |         | 1:0                    |              | Test         | out      |   0       |
-| en_v2t_clk_next_rep        |         | 1:0                    |              | Test         | out      |   0       |
-| en_sw_test_rep             |         | 1:0                    |              | Test         | out      |   0       |
 | ctl_dcdl_late_rep          |         | 1:0                    | 1:0          | Test         | out      |   0       |
 | ctl_dcdl_early_rep         |         | 1:0                    | 1:0          | Test         | out      |   0       |
 | ctl_dcdl_TDC_rep           |         | 4:0                    | 1:0          | Test         | out      |   0       |
@@ -52,8 +48,6 @@
 | sel_del_out                |         |                        |              | Test         | out      |   0       |
 | disable_ibuf_async         |         |                        |              | Test         | out      |   1       |
 | disable_ibuf_main          |         |                        |              | Test         | out      |   0       |
-| disable_ibuf_test0         |         |                        |              | Test         | out      |   1       |
-| disable_ibuf_test1         |         |                        |              | Test         | out      |   1       |
 | disable_ibuf_mdll_ref      |         |                        |              | Test         | out      |   1       |
 | disable_ibuf_mdll_mon      |         |                        |              | Test         | out      |   1       |
 | en_inbuf                   |         |                        |              | Test         | out      |   0       |
