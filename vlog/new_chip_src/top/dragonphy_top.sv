@@ -102,7 +102,6 @@ module dragonphy_top import const_pack::*; (
     logic [Nti_rep-1:0] adcout_sign_rep;
 
 // temp setting for sim ultil DCORE is fixed -------------
-    assign ctl_valid = 1;
 //--------------------------------------------------------
 	
 	// Analog core instantiation
