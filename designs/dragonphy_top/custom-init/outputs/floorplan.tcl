@@ -75,12 +75,11 @@
     set origin_acore_x    [expr $sram_pair_spacing + $sram_to_acore_spacing_x ]
     set origin_acore_y    [expr $sram_height + $sram_to_acore_spacing_y ]
 
-    set origin_sram_ffe_x [expr $blockage_width  + $core_margin_l]
-    set origin_sram_ffe_y [expr $blockage_height + $core_margin_b]
+    set origin_sram_ffe_x [expr 3*$blockage_width  + $core_margin_l]
+    set origin_sram_ffe_y [expr 3*$blockage_height + $core_margin_b]
 
-    set origin_sram_adc_x [expr $blockage_width  + 2*$sram_pair_spacing + $core_margin_l + 2*$sram_width + $sram_to_sram_spacing]
-    set origin_sram_adc_x [expr $FP_width - $blockage_width  - 2*$sram_pair_spacing - $core_margin_l]
-
+    set origin_sram_adc_x [expr $FP_width - 3*$blockage_width  - 2*$sram_pair_spacing - $core_margin_l]
+    set origin_sram_adc_y [expr 3*$blockage_height + $core_margin_b]
 
     # Use automatic floorplan synthesis to pack macros (e.g., SRAMs) together
 
@@ -93,11 +92,17 @@
     #    $origin0_x \
     #    $origin0_y
 
+
+    #placeInstance \
+    #    imdll \
+    #    [expr $origin_acore_x + [snap_to_grid 50 $horiz_pitch]] \
+    #    [expr $origin_sram_adc_y + [snap_to_grid 50 $horiz_pitch]]
+
     #placeInstance \
     #    iacore \
     #    $origin_acore_x \
     #    $origin_acore_y
-
+    
     #placeInstance \
     #    ibuf_main \
     #    [expr $origin3_x] \
@@ -165,14 +170,19 @@
     createPlaceBlockage -box \
         [expr $origin_sram_ffe_x - $blockage_width] \
         [expr $origin_sram_ffe_y - $blockage_height] \
-        [expr $origin_sram_ffe_x + $sram_pair_spacing + $blockage_width] \
+        [expr $origin_sram_ffe_x + 2*$sram_pair_spacing + $blockage_width] \
         [expr $origin_sram_ffe_y + $sram_height       + $blockage_height]
 
-    createPlaceBlockage -box \
-        [expr $origin_sram_ffe_x - $blockage_width] \
-        [expr $origin_sram_ffe_y + $sram_vert_spacing + $sram_height - $blockage_height] \
-        [expr $origin_sram_ffe_x + $sram_pair_spacing + $blockage_width] \
-        [expr $origin_sram_ffe_y + $sram_vert_spacing + 2*$sram_height + $blockage_height]
+    #createPlaceBlockage -box \
+    #    [expr $origin_sram_ffe_x - $blockage_width] \
+    #    [expr $origin_sram_ffe_y - $blockage_height] \
+    #    [expr $origin_sram_ffe_x + $sram_pair_spacing + $blockage_width] \
+    #    [expr $origin_sram_ffe_y + $sram_height       + $blockage_height]
+    #createPlaceBlockage -box \
+    #    [expr $origin_sram_ffe_x - $blockage_width] \
+    #    [expr $origin_sram_ffe_y + $sram_vert_spacing + $sram_height - $blockage_height] \
+    #    [expr $origin_sram_ffe_x + $sram_pair_spacing + $blockage_width] \
+    #    [expr $origin_sram_ffe_y + $sram_vert_spacing + 2*$sram_height + $blockage_height]
 
     createPlaceBlockage -box \
         [expr $origin_sram_adc_x - $blockage_width] \
@@ -180,11 +190,12 @@
         [expr $origin_sram_adc_x + 2*$sram_pair_spacing + $blockage_width] \
         [expr $origin_sram_adc_y + $sram_height         + $blockage_height]
 
-    createPlaceBlockage -box \
-        [expr $origin_sram_adc_x - $blockage_width] \
-        [expr $origin_sram_adc_y - $blockage_height] \
-        [expr $origin_sram_adc_x + 2*$sram_pair_spacing + $blockage_width] \
-        [expr $origin_sram_adc_y + $sram_height         + $blockage_height]
+    #createPlaceBlockage -box \
+    #    [expr $origin_sram_adc_x - $blockage_width] \
+    #    [expr $origin_sram_adc_y - $blockage_height] \
+    #    [expr $origin_sram_adc_x + 2*$sram_pair_spacing + $blockage_width] \
+    #    [expr $origin_sram_adc_y + $sram_height         + $blockage_height]
+
 
     createPlaceBlockage -box \
         [expr $origin_acore_x - $blockage_width] \

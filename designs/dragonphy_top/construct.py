@@ -129,10 +129,10 @@ def construct():
 
     lefs = [
         # TODO: uncomment these LEFs as they are ready
-        # analog_core.lef,
-        # input_buffer.lef,
-        # output_buffer.lef,
-        # mdll_r1.lef
+         'analog_core.lef',
+         'input_buffer.lef',
+         'output_buffer.lef',
+         'mdll_r1.lef',
         'sram.lef'
     ]
 
@@ -144,10 +144,10 @@ def construct():
     # Add GDS files for black boxes to GDS merge step
     gds_list = [
         # TODO: uncomment these GDS files as they are ready
-        # analog_core.gds,
-        # input_buffer.gds,
-        # output_buffer.gds,
-        # mdll_r1.gds,
+         'analog_core.gds',
+         'input_buffer.gds',
+         'output_buffer.gds',
+         'mdll_r1.gds',
         'sram.gds'
     ]
     gdsmerge.extend_inputs(gds_list)
