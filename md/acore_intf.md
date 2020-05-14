@@ -48,6 +48,8 @@
 | sel_del_out                |         |                        |              | Test         | out      |   0       |
 | disable_ibuf_async         |         |                        |              | Test         | out      |   1       |
 | disable_ibuf_main          |         |                        |              | Test         | out      |   0       |
+| disable_ibuf_test0         |         |                        |              | Test         | out      |   1       |
+| disable_ibuf_test1         |         |                        |              | Test         | out      |   1       |
 | disable_ibuf_mdll_ref      |         |                        |              | Test         | out      |   1       |
 | disable_ibuf_mdll_mon      |         |                        |              | Test         | out      |   1       |
 | en_inbuf                   |         |                        |              | Test         | out      |   0       |
