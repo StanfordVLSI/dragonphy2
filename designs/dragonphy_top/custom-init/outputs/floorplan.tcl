@@ -78,7 +78,7 @@
     set origin_sram_ffe_x [expr $blockage_width  + $core_margin_l]
     set origin_sram_ffe_y [expr $blockage_height + $core_margin_b]
 
-    set origin_sram_adc_x [expr $blockage_width  + 2*sram_pair_spacing + $core_margin_l + 2*$sram_width + $sram_to_sram_spacing]
+    set origin_sram_adc_x [expr $FP_width - $blockage_width  - 2*$sram_pair_spacing - $core_margin_l]
     set origin_sram_adc_y [expr $blockage_height + $core_margin_b]
 
 
@@ -86,8 +86,37 @@
 
     ###################
     # Place Instances #
-    ###################
+    ###################\
 
+    #placeInstance \
+    #    ibuf_async \
+    #    $origin0_x \
+    #    $origin0_y
+
+    #placeInstance \
+    #    iacore \
+    #    $origin_acore_x \
+    #    $origin_acore_y
+
+    #placeInstance \
+    #    ibuf_main \
+    #    [expr $origin3_x] \
+    #    [expr $origin3_y] \
+    #   R180
+
+    #placeInstance \
+    #    ibuf_mdll_ref \
+    #    [expr $origin3_x] \
+    #    [expr $origin3_y+$input_buffer_height+4*$cell_height] \
+    #    MY
+
+    #placeInstance \
+    #    idcore/out_buff_i \
+    #    $origin4_x \
+    #    $origin4_y
+
+
+    #Memory Macros
     for {set k 0} {$k<4} {incr k} {
         if {[expr $k % 2] == 0} {
             #placeInstance \
