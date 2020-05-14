@@ -15,16 +15,11 @@ cd mflowgen
 pip install -e .
 cd ..
 
-# install OpenRAM
-git clone https://github.com/VLSIDA/OpenRAM.git
-export OPENRAM_HOME=`realpath OpenRAM/compiler`
-export OPENRAM_TECH=`realpath OpenRAM/technology`
-
 # install dragonphy
 pip install -e .
 
 # make dependencies for design
-# TODO: should other views be used as well?
+# TODO: do we need to create fpga and cpu views here?
 python make.py --view asic
 python make.py --view fpga
 python make.py --view cpu
