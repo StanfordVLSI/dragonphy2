@@ -22,5 +22,5 @@ package const_pack;
     localparam integer phase_est_shift = 8;
     localparam integer N_mem_width = 18;
     localparam integer N_mem_tiles  = 4;
-    localparam integer Nprbs = 7;       // length of LFSR used in PRBS checker
+    localparam integer Nprbs = 32;      // length of LFSR used in PRBS checker
 endpackage

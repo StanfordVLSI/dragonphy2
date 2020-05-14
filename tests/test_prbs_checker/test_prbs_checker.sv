@@ -3,48 +3,19 @@
 module test_prbs_checker #(
     parameter integer n_prbs=7,
     parameter integer n_channels=16,
-    parameter integer n_shift_bits=$clog2(n_channels)
+    parameter [(n_prbs-1):0] prbs_init=1
 ) (
-    // checker inputs
     input wire logic rst,
+    input wire logic [(n_prbs-1):0] eqn,
     input wire logic [1:0] checker_mode,
-    // stimulus configuration
-    input wire logic [(n_prbs-1):0] prbs_init,
-    input wire logic [7:0] prbs_del,
+    input wire logic [4:0] delay,
     // outputs
     output reg clk_div,
+    output wire logic [63:0] err_bits,
     output wire logic [63:0] total_bits,
-    output wire logic [63:0] correct_bits,
-    output wire logic [(n_shift_bits-1):0] rx_shift,
     // bogus input needed for fault
     input wire logic clk_bogus
 );
-    // assign the initial values for the PRBS generators
-    // only valid for n_prbs=7 and n_channels=16
-    logic [(n_prbs-1):0] prbs_init_vals [n_channels];
-    assign prbs_init_vals[0] = 3;
-    assign prbs_init_vals[1] = 10;
-    assign prbs_init_vals[2] = 60;
-    assign prbs_init_vals[3] = 11;
-    assign prbs_init_vals[4] = 58;
-    assign prbs_init_vals[5] = 31;
-    assign prbs_init_vals[6] = 67;
-    assign prbs_init_vals[7] = 9;
-    assign prbs_init_vals[8] = 54;
-    assign prbs_init_vals[9] = 55;
-    assign prbs_init_vals[10] = 49;
-    assign prbs_init_vals[11] = 37;
-    assign prbs_init_vals[12] = 92;
-    assign prbs_init_vals[13] = 74;
-    assign prbs_init_vals[14] = 63;
-    assign prbs_init_vals[15] = 1;
-
-    initial begin
-        if (!((n_prbs == 7) && (n_channels == 16))) begin
-            $error("Invalid combination of n_prbs and n_channels.");
-        end
-    end
-
     // fast and slow clock
     // note that the period of the fast clock is actually "2us" due to a limit in fault
     logic clk;
@@ -77,25 +48,21 @@ module test_prbs_checker #(
     );
 
     // store up a history of PRBS bits
-    logic [269:0] prbs_mem;
+    logic [(31+n_channels-1):0] prbs_mem;
     always @(posedge clk) begin
         if (rst == 1'b1) begin
             prbs_mem <= 0;
         end else begin
-            prbs_mem <= {prbs_out, prbs_mem[269:1]};
+            prbs_mem <= {prbs_mem[(31+n_channels-2):0], prbs_out};
         end
     end
 
-    // add current PRBS bit to the history
-    logic [270:0] prbs_concat;
-    assign prbs_concat = {prbs_out, prbs_mem};
-
-    // select a delayed slice of those PRBS bits
+    // select one of those bits from the memory
     logic [(n_channels-1):0] rx_bits_imm;
+    assign rx_bits_imm = prbs_mem[(delay+n_channels-1) -: n_channels];
+
+    // register that bit to the divided clock
     logic [(n_channels-1):0] rx_bits;
-
-    assign rx_bits_imm = prbs_concat[(270-prbs_del) -: n_channels];
-
     always @(posedge clk_div) begin
         if (rst == 1'b1) begin
             rx_bits <= 0;
@@ -104,19 +71,20 @@ module test_prbs_checker #(
         end
     end
 
-    // instantiate the checker
+    // instantiate the checker core
     prbs_checker #(
         .n_prbs(n_prbs),
-        .n_channels(n_channels),
-        .n_shift_bits(n_shift_bits)
+        .n_channels(n_channels)
     ) prbs_checker_i (
         .clk(clk_div),
         .rst(rst),
-        .prbs_init_vals(prbs_init_vals),
+        .cke(1'b1),
+        .eqn(eqn),
+        .chan_sel({n_channels{1'b1}}),
+        .inv_chicken(2'b00),
         .rx_bits(rx_bits),
         .checker_mode(checker_mode),
-        .correct_bits(correct_bits),
-        .total_bits(total_bits),
-        .rx_shift(rx_shift)
+        .err_bits(err_bits),
+        .total_bits(total_bits)
     );
 endmodule

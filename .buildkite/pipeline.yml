@@ -44,7 +44,7 @@ steps:
       deactivate
     artifact_paths:
       - "tests/new_tests/*/build/*.eps"
-      - "build/mflowgen/*-synopsys-dc-synthesis/logs/dc.log"
+      - "build/*/*-synopsys-dc-synthesis/logs/dc.log"
     timeout_in_minutes: 60
     agents:
       fault2: "true"

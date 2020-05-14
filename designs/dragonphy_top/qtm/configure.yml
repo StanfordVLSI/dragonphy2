@@ -29,11 +29,11 @@ commands:
     # link build products into output folder
     cd ../outputs
     ln -s ../build/analog_core/analog_core_lib.db analog_core_lib.db
-    ln -s ../build/analog_core/analog_core.db analog_core.db
+    ln -s ../build/analog_core/analog_core.lib analog_core.lib
     ln -s ../build/input_buffer/input_buffer_lib.db input_buffer_lib.db
-    ln -s ../build/input_buffer/input_buffer.db input_buffer.db
+    ln -s ../build/input_buffer/input_buffer.lib input_buffer.lib
     ln -s ../build/output_buffer/output_buffer_lib.db output_buffer_lib.db
-    ln -s ../build/output_buffer/output_buffer.db output_buffer.db
+    ln -s ../build/output_buffer/output_buffer.lib output_buffer.lib
 
 outputs:
   - analog_core_lib.db
