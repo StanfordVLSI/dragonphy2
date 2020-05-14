@@ -138,6 +138,3 @@ createPlaceBlockage -box \
 #   sram_ADR_BITS10_DAT_BITS144_6 genblk3_1__sram_i
 #   sram_ADR_BITS10_DAT_BITS144_5 genblk3_2__sram_i
 #   sram_ADR_BITS10_DAT_BITS144_4 genblk3_3__sram_i
-
-
-
