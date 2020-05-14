@@ -14,11 +14,6 @@ module dragonphy_top import const_pack::*; (
 	// clock inputs 
 	input wire logic ext_clk_async_p,
 	input wire logic ext_clk_async_n,
-
-	input wire logic ext_clk_test0_p,
-	input wire logic ext_clk_test0_n,
-	input wire logic ext_clk_test1_p,
-	input wire logic ext_clk_test1_n,
 	
 	input wire logic ext_clkp,
 	input wire logic ext_clkn,
@@ -72,19 +67,6 @@ module dragonphy_top import const_pack::*; (
 		.clk(clk_main)
 	);
 
-	input_buffer ibuf_test0 (
-		.inp(ext_clk_test0_p),
-		.inm(ext_clk_test0_n),
-		.pd(adbg_intf_i.disable_ibuf_test0),
-		.clk(ext_clk_test0)
-	);
-
-	input_buffer ibuf_test1 (
-		.inp(ext_clk_test1_p),
-		.inm(ext_clk_test1_n),
-		.pd(adbg_intf_i.disable_ibuf_test1),
-		.clk(ext_clk_test1)
-	);
 
     logic mdll_clk_refp, mdll_clk_refn;
 	input_buffer ibuf_mdll_ref (
@@ -103,7 +85,6 @@ module dragonphy_top import const_pack::*; (
 		.clk(mdll_clk_monp),
 		.clk_b(mdll_clk_monn)
 	);
-
 
 
 	logic mdll_clk_out;
