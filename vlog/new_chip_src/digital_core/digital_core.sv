@@ -193,8 +193,17 @@ module digital_core import const_pack::*; (
 
     // CDR
 
+    logic signed [Nadc-1:0] mm_cdr_input [Nti-1:0];
+
+    generate
+        for(k = 0; k < Nti; k = k + 1) begin
+            assign mm_cdr_input[k] = cdbg_intf_i.sel_inp_mux ? estimated_bits[k][ffe_gpack::output_precision-1:(ffe_gpack::output_precision-Nadc)] : adcout_unfolded[k];
+        end
+    endgenerate
+
+
     mm_cdr iMM_CDR (
-        .din(adcout_unfolded[Nti-1:0]),
+        .din(mm_cdr_input),
         .clk(clk_adc),
         .ext_rstb(cdr_rstb),
         .ramp_clock    (ramp_clock),
@@ -328,7 +337,6 @@ module digital_core import const_pack::*; (
 
     assign prbs_rx_bits = mux_prbs_rx_bits[ddbg_intf_i.sel_prbs_mux];
 
-
     prbs_checker #(
         .n_prbs(Nprbs),
         .n_channels(Nti)
@@ -336,14 +344,21 @@ module digital_core import const_pack::*; (
         // clock and reset
         .clk(clk_adc),
         .rst(~prbs_rstb),
-        // inputs
-        .prbs_init_vals(pdbg_intf_i.prbs_init_vals),
+        // clock gating
+        .cke(pdbg_intf_i.prbs_cke),
+        // define the PRBS equation
+        .eqn(pdbg_intf_i.prbs_eqn),
+        // bits for selecting / de-selecting certain channels from the PRBS test
+        .chan_sel(pdbg_intf_i.prbs_chan_sel),
+        // "chicken" bits for flipping the sign of various bits
+        .inv_chicken(pdbg_intf_i.prbs_inv_chicken),
+        // recovered data from ADC, FFE, MLSD, etc.
         .rx_bits(prbs_rx_bits),
+        // checker mode
         .checker_mode(pdbg_intf_i.prbs_checker_mode),
         // outputs
-        .correct_bits({pdbg_intf_i.prbs_correct_bits_upper, pdbg_intf_i.prbs_correct_bits_lower}),
-        .total_bits({pdbg_intf_i.prbs_total_bits_upper, pdbg_intf_i.prbs_total_bits_lower}),
-        .rx_shift(pdbg_intf_i.prbs_rx_shift)
+        .err_bits({pdbg_intf_i.prbs_err_bits_upper, pdbg_intf_i.prbs_err_bits_lower}),
+        .total_bits({pdbg_intf_i.prbs_total_bits_upper, pdbg_intf_i.prbs_total_bits_lower})
     );
 
     // Output buffer

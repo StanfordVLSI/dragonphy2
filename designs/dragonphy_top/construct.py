@@ -64,9 +64,10 @@ def construct():
     else:
         raise Exception(f'Unknown process: {DRAGONPHY_PROCESS}')
 
-    # custom_init = Step(this_dir + '/custom-init')
+    custom_init = Step(this_dir + '/custom-init')
     # custom_lvs = Step(this_dir + '/custom-lvs-rules')
-    # custom_power = Step(this_dir + '/custom-power')
+    custom_power = Step(this_dir + '/custom-power')
+    custom_geom = Step(this_dir + '/custom-geom')
 
     dc = Step(this_dir + '/synopsys-dc-synthesis')
     qtm = Step(this_dir + '/qtm')
@@ -78,7 +79,7 @@ def construct():
             Step( this_dir + '/analog_core'       ),
             Step( this_dir + '/input_buffer'      ),
             Step( this_dir + '/output_buffer'     ),
-            Step( this_dir + '/global_controller' )
+            Step( this_dir + '/mdll_r1' )
         ]
 
     # Default steps
@@ -98,6 +99,14 @@ def construct():
     drc            = Step( 'mentor-calibre-drc',             default=True )
     lvs            = Step( 'mentor-calibre-lvs',             default=True )
     debugcalibre   = Step( 'cadence-innovus-debug-calibre',  default=True )
+
+    # Add extra input edges to innovus steps that need custom tweaks
+
+    init.extend_inputs(custom_init.all_outputs())
+    init.extend_inputs(custom_geom.all_outputs())
+
+    power.extend_inputs(custom_power.all_outputs())
+    power.extend_inputs(custom_geom.all_outputs())
 
     # Add *.db files for macros to downstream nodes
     dbs = [
@@ -164,9 +173,9 @@ def construct():
     g.add_step( dc                   )
     g.add_step( iflow                )
     g.add_step( init                 )
-    # g.add_step( custom_init          )
+    g.add_step( custom_init          )
     g.add_step( power                )
-    # g.add_step( custom_power         )
+    g.add_step( custom_power         )
     g.add_step( place                )
     g.add_step( cts                  )
     g.add_step( postcts_hold         )
@@ -188,6 +197,9 @@ def construct():
 
     # *.lib and *.db files for some blocks
     g.add_step( qtm )
+
+    # variables related to the design geometry
+    g.add_step( custom_geom )
 
     #-----------------------------------------------------------------------
     # Graph -- Add edges
@@ -247,8 +259,12 @@ def construct():
     g.connect_by_name( iflow,          postroute      )
     g.connect_by_name( iflow,          signoff        )
 
-    # g.connect_by_name( custom_init,    init           )
-    # g.connect_by_name( custom_power,   power          )
+    g.connect_by_name( custom_init,    init           )
+    g.connect_by_name( custom_geom,    init           )
+
+    g.connect_by_name( custom_power,   power          )
+    g.connect_by_name( custom_geom,    power          )
+
     # g.connect_by_name( custom_lvs,     lvs            )
 
     g.connect_by_name( init,           power          )
@@ -283,6 +299,28 @@ def construct():
     #-----------------------------------------------------------------------
 
     g.update_params( parameters )
+
+    ####
+    # modify script order for init
+    ####
+
+    order = init.get_param('order')  # get the default script run order
+
+    # Add 'set-geom-vars.tcl' at the beginning
+    order.insert(0, 'set-geom-vars.tcl')
+
+    init.update_params({'order': order})
+
+    ####
+    # modify script order for power
+    ####
+
+    order = power.get_param('order')  # get the default script run order
+
+    # Add 'set-geom-vars.tcl' at the beginning
+    order.insert(0, 'set-geom-vars.tcl')
+
+    power.update_params({'order': order})
 
     return g
 

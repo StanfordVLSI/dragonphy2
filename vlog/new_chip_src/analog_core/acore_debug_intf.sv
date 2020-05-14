@@ -13,8 +13,6 @@ interface acore_debug_intf import const_pack::*; (
     	logic [1:0] sel_pm_in[Nti-1:0];						// from JTAG (all 0)x
     	logic [Nti-1:0] sel_clk_TDC;						// from JTAG (all 0)x
     	logic [Nti-1:0] en_pm;								// from JTAG (all 0)x
-    	logic [Nti-1:0] en_v2t_clk_next;					// from JTAG (all 0)x
-		logic [Nti-1:0] en_sw_test;							// from JTAG (all 0)x
     	logic [1:0] ctl_dcdl_late[Nti-1:0];					// from JTAG (all 0)x
     	logic [1:0] ctl_dcdl_early[Nti-1:0];				// from JTAG (all 0)x
     	logic [4:0] ctl_dcdl_TDC[Nti-1:0];					// from JTAG (all 0)x
@@ -45,16 +43,12 @@ interface acore_debug_intf import const_pack::*; (
     	logic [1:0] sel_pm_in_rep[1:0];						// from JTAG (all 0) x
     	logic [1:0] sel_clk_TDC_rep;						// from JTAG (all 0) x
     	logic [1:0] en_pm_rep;								// from JTAG (all 0) x
-    	logic [1:0] en_v2t_clk_next_rep;					// from JTAG (all 0) x
-    	logic [1:0] en_sw_test_rep;							// from JTAG (all 0) x
     	logic [1:0] ctl_dcdl_late_rep[1:0];					// from JTAG (all 0) x
     	logic [1:0] ctl_dcdl_early_rep[1:0];				// from JTAG (all 0) x	
     	logic [4:0] ctl_dcdl_TDC_rep[1:0];					// from JTAG (all 0) x
 		// Input Buffers
         logic disable_ibuf_async;
         logic disable_ibuf_main;
-        logic disable_ibuf_test0;
-        logic disable_ibuf_test1;
         logic disable_ibuf_mdll_ref;
         logic disable_ibuf_mdll_mon;
 
@@ -116,8 +110,6 @@ interface acore_debug_intf import const_pack::*; (
     	input sel_pm_in,
     	input sel_clk_TDC,
     	input en_pm,
-    	input en_v2t_clk_next,
-    	input en_sw_test,
     	input ctl_dcdl_late,
     	input ctl_dcdl_early,
     	input ctl_dcdl_TDC,
@@ -148,16 +140,12 @@ interface acore_debug_intf import const_pack::*; (
     	input sel_pm_in_rep,
     	input sel_clk_TDC_rep,
     	input en_pm_rep,
-    	input en_v2t_clk_next_rep,
-    	input en_sw_test_rep,
     	input ctl_dcdl_late_rep,
     	input ctl_dcdl_early_rep,
     	input ctl_dcdl_TDC_rep,
 
         input disable_ibuf_async,
         input disable_ibuf_main,
-        input disable_ibuf_test0,
-        input disable_ibuf_test1,
         input disable_ibuf_mdll_ref,
         input disable_ibuf_mdll_mon,
 
@@ -211,8 +199,6 @@ interface acore_debug_intf import const_pack::*; (
         output sel_pm_in,
         output sel_clk_TDC,
         output en_pm,
-        output en_v2t_clk_next,
-        output en_sw_test,
         output ctl_dcdl_late,
         output ctl_dcdl_early,
         output ctl_dcdl_TDC,
@@ -243,16 +229,12 @@ interface acore_debug_intf import const_pack::*; (
         output sel_pm_in_rep,
         output sel_clk_TDC_rep,
         output en_pm_rep,
-        output en_v2t_clk_next_rep,
-        output en_sw_test_rep,
         output ctl_dcdl_late_rep,
         output ctl_dcdl_early_rep,
         output ctl_dcdl_TDC_rep,
         
         output disable_ibuf_async,
         output disable_ibuf_main,
-        output disable_ibuf_test0,
-        output disable_ibuf_test1,
         output disable_ibuf_mdll_ref,
         output disable_ibuf_mdll_mon,
 

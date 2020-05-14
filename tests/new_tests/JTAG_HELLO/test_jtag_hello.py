@@ -2,6 +2,7 @@
 import os
 import pytest
 from pathlib import Path
+from dragonphy.git_util import get_git_hash_short
 
 # DragonPHY imports
 from dragonphy import *
@@ -17,8 +18,14 @@ else:
 # test.  The waveforms are stored in tests/new_tests/JTAG_HELLO/build/waves.shm
 DUMP_WAVEFORMS = False
 
+
 @pytest.mark.parametrize((), [pytest.param(marks=pytest.mark.slow) if SIMULATOR=='vivado' else ()])
 def test_sim():
+    # determine the git hash
+    git_hash_short = get_git_hash_short()
+    GIT_HASH = f"28'h{git_hash_short:07x}"
+    print(f'GIT_HASH={GIT_HASH}')
+
     deps = get_deps_cpu_sim_new(impl_file=THIS_DIR / 'test.sv')
     print(deps)
 
@@ -27,7 +34,8 @@ def test_sim():
     defines = {
         'DAVE_TIMEUNIT': '1fs',
         'NCVLOG': None,
-        'SIMULATION': None
+        'SIMULATION': None,
+        'GIT_HASH': GIT_HASH
     }
 
     if DUMP_WAVEFORMS:
@@ -56,3 +64,8 @@ def test_sim():
         simulator=SIMULATOR,
         unbuffered=True
     ).run()
+
+
+if __name__=="__main__":
+    test_sim()
+

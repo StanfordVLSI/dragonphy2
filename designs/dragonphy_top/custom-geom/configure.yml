@@ -1,0 +1,11 @@
+# Set up variables related to the design geometry
+
+name: custom-geom
+
+#-------------------------------------------------------------------------
+# Inputs and Outputs
+#-------------------------------------------------------------------------
+
+outputs:
+  - set-geom-vars.tcl
+

@@ -15,8 +15,10 @@ interface cdr_debug_intf;
 	logic signed [Npi+1+phase_est_shift:0] phase_est;
     logic signed [Npi+1+phase_est_shift:0] freq_est;
     logic signed [Npi+1+phase_est_shift:0] ramp_est;
+    logic sel_inp_mux;
 
 	logic sample_state;
+	logic invert;
 
 	modport cdr (
 	 input  pd_offset_ext,
@@ -30,7 +32,10 @@ interface cdr_debug_intf;
 	 output phase_est,
 	 output freq_est,
 	 output ramp_est,
-	 input sample_state
+	 input sel_inp_mux,
+	 input sample_state,
+	 input invert
+
 	);
 
 	modport jtag (
@@ -45,7 +50,9 @@ interface cdr_debug_intf;
 	 input phase_est,
      input freq_est,
      input ramp_est,
-	 output sample_state
+     output sel_inp_mux,
+	 output sample_state,
+	 output invert
 	);
 
 endinterface
