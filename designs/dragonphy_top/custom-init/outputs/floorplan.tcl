@@ -57,7 +57,7 @@
     set acore_height [snap_to_grid 400 $vert_pitch]
 
     set FP_width [snap_to_grid 800 $horiz_pitch ]
-    set FP_height [snap_to_grid 750 $vert_pitch ]
+    set FP_height [snap_to_grid 700 $vert_pitch ]
 
     floorPlan -site core -s $FP_width $FP_height \
                             $core_margin_l $core_margin_b $core_margin_r $core_margin_t
