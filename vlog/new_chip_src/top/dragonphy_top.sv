@@ -15,10 +15,10 @@ module dragonphy_top import const_pack::*; (
 	input wire logic ext_clk_async_p,
 	input wire logic ext_clk_async_n,
 
-	input wire logic ext_clk_test0_p,
-	input wire logic ext_clk_test0_n,
-	input wire logic ext_clk_test1_p,
-	input wire logic ext_clk_test1_n,
+	//input wire logic ext_clk_test0_p,
+	//input wire logic ext_clk_test0_n,
+	//input wire logic ext_clk_test1_p,
+	//input wire logic ext_clk_test1_n,
 	
 	input wire logic ext_clkp,
 	input wire logic ext_clkn,
@@ -56,7 +56,10 @@ module dragonphy_top import const_pack::*; (
 	wire logic clk_async;
 	wire logic ext_clk_test0;
 	wire logic ext_clk_test1;
-
+	
+	assign ext_clk_test0 = 1'b0;
+	assign ext_clk_test1 = 1'b0;
+	
 	// Signal declaration
 	input_buffer ibuf_async (
 		.inp(ext_clk_async_p),
@@ -72,19 +75,19 @@ module dragonphy_top import const_pack::*; (
 		.clk(clk_main)
 	);
 
-	input_buffer ibuf_test0 (
-		.inp(ext_clk_test0_p),
-		.inm(ext_clk_test0_n),
-		.pd(adbg_intf_i.disable_ibuf_test0),
-		.clk(ext_clk_test0)
-	);
+//	input_buffer ibuf_test0 (
+//		.inp(ext_clk_test0_p),
+//		.inm(ext_clk_test0_n),
+//		.pd(adbg_intf_i.disable_ibuf_test0),
+//		.clk(ext_clk_test0)
+//	);
 
-	input_buffer ibuf_test1 (
-		.inp(ext_clk_test1_p),
-		.inm(ext_clk_test1_n),
-		.pd(adbg_intf_i.disable_ibuf_test1),
-		.clk(ext_clk_test1)
-	);
+//	input_buffer ibuf_test1 (
+//		.inp(ext_clk_test1_p),
+//		.inm(ext_clk_test1_n),
+//		.pd(adbg_intf_i.disable_ibuf_test1),
+//		.clk(ext_clk_test1)
+//	);
 
     logic mdll_clk_refp, mdll_clk_refn;
 	input_buffer ibuf_mdll_ref (
