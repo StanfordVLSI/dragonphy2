@@ -13,16 +13,15 @@ proc snap_to_grid {input granularity} {
    return $new_value
 }
 
-proc round {input} {
-    set new_value [expr floor($input / )]
-}
-
 # Set the floorplan to target a reasonable placement density with a good
 # aspect ratio (height:width). An aspect ratio of 2.0 here will make a
 # rectangular chip with a height that is twice the width.
 
 set core_aspect_ratio   1.00; # Aspect ratio 1.0 for a square chip
 set core_density_target 0.70; # Placement density of 70% is reasonable
+
+set vert_pitch  [dbGet top.fPlan.coreSite.size_y]
+set horiz_pitch [dbGet top.fPlan.coreSite.size_x]
 
 # Make room in the floorplan for the core power ring
 
@@ -54,12 +53,34 @@ set savedvars(p_ring_spacing) [expr 24 * $M1_min_spacing]; # Arbitrary!
 #floorPlan -r $core_aspect_ratio $core_density_target \
 #             $core_margin_l $core_margin_b $core_margin_r $core_margin_t
 
+set acore_width [snap_to_grid 400 $horiz_pitch]
+set acore_height [snap_to_grid 400 $vert_pitch]
 
+set FP_width [snap_to_grid 800 $horiz_pitch ]
+set FP_height [snap_to_grid 700 $vert_pitch ]
 
 floorPlan -site core -s $FP_width $FP_height \
                         $core_margin_l $core_margin_b $core_margin_r $core_margin_t
 
 setFlipping s
+
+set sram_to_acore_spacing_x [snap_to_grid 40 $horiz_pitch]
+set sram_to_acore_spacing_y [snap_to_grid 40 $vert_pitch]
+
+set sram_to_sram_spacing  [snap_to_grid 15 $horiz_pitch]
+set sram_neighbor_spacing $sram_width + $sram_to_sram_spacing
+set sram_pair_spacing 2*$sram_width + $sram_to_sram_spacing
+set sram_vert_spacing [snap_to_grid 200 $vert_pitch]
+
+set origin_acore_x    [expr $sram_pair_spacing + $sram_to_acore_spacing_x ]
+set origin_acore_y    [expr $sram_height + $sram_to_acore_spacing_y ]
+
+set origin_sram_ffe_x [expr $blockage_width  + $core_margin_l]
+set origin_sram_ffe_y [expr $blockage_height + $core_margin_b]
+
+set origin_sram_adc_x [expr $blockage_width  + $core_margin_l + 2*$sram_width + $sram_to_sram_spacing]
+set origin_sram_adc_y [expr $blockage_height + $core_margin_b]
+
 
 # Use automatic floorplan synthesis to pack macros (e.g., SRAMs) together
 
