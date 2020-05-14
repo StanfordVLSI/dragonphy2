@@ -77,9 +77,6 @@ generate
             end
         end
 
-
-
-
         //Mux 1 and Mux 2
         always_comb begin
             mux_out_1[k]      = mux_ctrl_1[k] ? do_reorder[k]      : pos_latch[k];

@@ -101,8 +101,8 @@ set_false_path -through [get_pins -of_objects imdll]
 # input buffers
 set_false_path -through [get_pins -of_objects ibuf_async]
 set_false_path -through [get_pins -of_objects ibuf_main]
-set_false_path -through [get_pins -of_objects ibuf_test0]
-set_false_path -through [get_pins -of_objects ibuf_test1]
+set_false_path -through [get_pins -of_objects ibuf_mdll_ref]
+set_false_path -through [get_pins -of_objects ibuf_mdll_mon]
 
 # output buffers
 set_false_path -through [get_pins -of_objects idcore/out_buff_i]
