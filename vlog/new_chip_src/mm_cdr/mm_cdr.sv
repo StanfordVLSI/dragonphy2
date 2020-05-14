@@ -14,7 +14,7 @@ module mm_cdr import const_pack::*; #(
     
     output logic [Npi-1:0]pi_ctl[Nout-1:0],
     output logic freq_lvl_cross,
-    output logic wait_on_reset_b;
+    output logic wait_on_reset_b,
     cdr_debug_intf.cdr cdbg_intf_i
 );
 

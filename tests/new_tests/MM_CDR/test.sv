@@ -53,8 +53,6 @@ module test;
 		.ext_rx_inp(ch_outp),
 		.ext_rx_inn(ch_outn),
 		.ext_Vcm(v_cm),
-	    .ext_Vcal(0.23),
-        .ramp_clock(0),
 		// clock inputs
 		.ext_clkp(ext_clkp),
 		.ext_clkn(ext_clkn),
