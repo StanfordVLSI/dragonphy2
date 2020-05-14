@@ -243,7 +243,7 @@ module digital_core import const_pack::*; (
         .codes(adcout_unfolded[Nti-1:0]),
         .clk(clk_adc),
         .rstb(rstb),
-        .estimated_bits(estimated_bits),
+        .estimated_bits_q(estimated_bits),
         .checked_bits(checked_bits),
         .dsp_dbg_intf_i(dsp_dbg_intf_i)
     );

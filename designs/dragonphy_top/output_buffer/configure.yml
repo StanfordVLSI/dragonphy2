@@ -5,11 +5,10 @@ name: output_buffer
 commands:
   - |
     mkdir -p outputs
-# Uncomment this line and the outputs when this block is ready
-#    tar -xzvf /home/sjkim85/dragonphy_tarballs/output_buffer-latest.tar.gz -C outputs
+    tar -xzvf /home/sjkim85/dragonphy_tarballs/output_buffer-latest.tar.gz -C outputs
 
 outputs:
-#  - output_buffer.lef
-#  - output_buffer.gds
-#  - output_buffer.lvs.v
-#  - output_buffer.version
+  - output_buffer.lef
+  - output_buffer.gds
+  - output_buffer.lvs.v
+  - output_buffer.version
