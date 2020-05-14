@@ -57,7 +57,7 @@
     set acore_height [snap_to_grid 400 $vert_pitch]
 
     set FP_width [snap_to_grid 800 $horiz_pitch ]
-    set FP_height [snap_to_grid 700 $vert_pitch ]
+    set FP_height [snap_to_grid 750 $vert_pitch ]
 
     floorPlan -site core -s $FP_width $FP_height \
                             $core_margin_l $core_margin_b $core_margin_r $core_margin_t
@@ -93,7 +93,7 @@
             placeInstance \
             idcore/omm_ffe_i/genblk3_$k\__sram_i/memory \
                 $origin_sram_ffe_x \
-                [expr $origin_sram_ffe_y + ($sram_vert_spacing + $sram_height)*($k/2)]
+                [expr $origin_sram_ffe_y + ($sram_vert_spacing + $sram_height - $core_margin_t - $core_margin_b)*($k/2)]
 
             placeInstance \
             idcore/oneshot_multimemory_i/genblk3_$k\__sram_i/memory \
@@ -104,7 +104,7 @@
             placeInstance \
             idcore/omm_ffe_i/genblk3_$k\__sram_i/memory \
                 [expr $origin_sram_ffe_x + $sram_neighbor_spacing] \
-                [expr $origin_sram_ffe_y + ($sram_vert_spacing + $sram_height)*($k/2)] MY
+                [expr $origin_sram_ffe_y + ($sram_vert_spacing + $sram_height - $core_margin_t - $core_margin_b)*($k/2)] MY
 
             placeInstance \
             idcore/oneshot_multimemory_i/genblk3_$k\__sram_i/memory \
