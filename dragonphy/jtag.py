@@ -1,16 +1,21 @@
 import sys
 import os
-from subprocess import call
+import subprocess
 from pathlib import Path
 from dragonphy.files import get_file, get_dir
+from dragonphy.git_util import *
 from justag import jtag_directory
+
 
 class JTAG:
     def __init__(self,  filename=None, **system_values):
         build_dir = Path(filename).parent
 
+        id_code = self.calc_id_code()
+        print(f'JTAG ID Code: 0x{id_code:08x}')
+
         justag_inputs = []
-        justag_inputs += ["123"]
+        justag_inputs += [str(id_code)]
         justag_inputs += list(get_dir('md').glob('*.md'))
         justag_inputs += [get_file('vlog/new_pack/const_pack.sv')]
         print(justag_inputs)
@@ -77,7 +82,7 @@ class JTAG:
         args = []
         args += [f'justag']
         args += list(inputs)
-        call(args, cwd=cwd)
+        subprocess.call(args, cwd=cwd)
 
     @staticmethod
     def genesis(top, *inputs, cwd=None):
@@ -87,8 +92,32 @@ class JTAG:
         args += ['-generate']
         args += ['-top', top]
         args += ['-input'] + list(inputs)
-        call(args, cwd=cwd)
+        subprocess.call(args, cwd=cwd)
 
     @staticmethod
     def required_values():
         return []
+
+    @staticmethod
+    def calc_id_code():
+        # get short git hash as an int
+        git_hash_short = get_git_hash_short()
+
+        # find out if the git repo is clean/dirty
+        git_is_clean = get_git_is_clean()
+
+        # build up ID code
+        id_code = 0
+
+        # add 7-character git hash
+        id_code |= git_hash_short << 4
+
+        # add bit to indicate clean/dirty status
+        if git_is_clean:
+            id_code |= 1 << 1
+
+        # lowest bit is always "1"
+        id_code |= 1
+
+        # return the ID code
+        return id_code
