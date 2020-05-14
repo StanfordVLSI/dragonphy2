@@ -104,10 +104,16 @@ module analog_core import const_pack::*; #(
                 .del_out(adbg_intf_i.del_out[k]),
                 .pm_out(adbg_intf_i.pm_out[k])
             );
-            if (k != 0) begin
-                assign en_sync_in[k] = en_sync_out[k-1];
-            end else begin
+            if (k == 12) begin
                 assign en_sync_in[k] = adbg_intf_i.en_v2t;
+            end else if (k == 8) begin
+                assign en_sync_in[k] = en_sync_out[15];
+            end else if (k == 4) begin
+                assign en_sync_in[k] = en_sync_out[11];
+            end else if (k == 0) begin
+                assign en_sync_in[k] = en_sync_out[7];
+            end else begin
+                assign en_sync_in[k] = en_sync_out[k-1];
             end
         end
     endgenerate
