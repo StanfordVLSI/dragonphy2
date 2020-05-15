@@ -1,8 +1,6 @@
 `include "mLingua_pwl.vh"
 
-`define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
-`define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
-`define FORCE_MDBG(name, value) force top_i.mdbg_intf_i.``name`` = ``value``
+`define FORCE_JTAG(name, value) force top_i.idcore.jtag_i.rjtag_intf_i.``name`` = ``value``
 
 module test;
 
@@ -100,42 +98,42 @@ module test;
 
         // Soft reset sequence
         $display("Soft reset sequence...");
-        `FORCE_DDBG(int_rstb, 1);
+        `FORCE_JTAG(int_rstb, 1);
         #(1ns);
-        `FORCE_ADBG(en_inbuf, 1);
+        `FORCE_JTAG(en_inbuf, 1);
 		#(1ns);
-        `FORCE_ADBG(en_gf, 1);
+        `FORCE_JTAG(en_gf, 1);
         #(1ns);
-        `FORCE_ADBG(en_v2t, 1);
+        `FORCE_JTAG(en_v2t, 1);
         #(1ns);
 
         // Enable input buffer for the MDLL reference clock
         $display("Enable input buffer for the MDLL reference clock...");
-        `FORCE_ADBG(disable_ibuf_mdll_ref, 0);
+        `FORCE_JTAG(disable_ibuf_mdll_ref, 0);
         #(1ns);
 
         // Take the MDLL out of reset and enable the oscillator
         $display("Take the MDLL out of reset and enable the oscillator...");
-        `FORCE_MDBG(rstn_jtag, 1);
+        `FORCE_JTAG(rstn_jtag, 1);
         #(25ns);
-        `FORCE_MDBG(en_osc_jtag, 1);
+        `FORCE_JTAG(en_osc_jtag, 1);
         #(25ns);
 
         // Use the MDLL clock in the analog core
         $display("Use the MDLL clock in the analog core...");
-        `FORCE_ADBG(sel_clk_source, 1);
+        `FORCE_JTAG(sel_clk_source, 1);
         #(25ns);
 
         // Bypass the initial divide-by-two in the analog core
         $display("Bypass the initial divide-by-two in the analog core...");
-        `FORCE_ADBG(bypass_inbuf_div2, 1);
+        `FORCE_JTAG(bypass_inbuf_div2, 1);
         #(25ns);
 
 		// Set up the output buffer
 		$display("Set up the output buffer...");
-		`FORCE_DDBG(en_outbuff, 1);
+		`FORCE_JTAG(en_outbuff, 1);
         #(1ns);
-        `FORCE_DDBG(sel_outbuff, 13);  // MDLL output clock
+        `FORCE_JTAG(sel_outbuff, 13);  // MDLL output clock
         #(1ns);
 
 		// Wait a little bit to measure frequencies
