@@ -36,7 +36,7 @@ module dsp_backend (
 	wire logic [constant_gpack::code_precision-1:0] ucodes_buffer  [constant_gpack::channel_width-1:0][code_pipeline_depth-1:0];
 
 	wire logic 					  cmp_out_buffer [constant_gpack::channel_width-1:0][cmp_pipeline_depth-1:0];
-	wire logic [mlsd_gpack::bit_length-1:0] pb_buffer      [constant_gpack::channel_width-1:0][pb_buffer_depth:0];
+	wire logic [mlsd_gpack::bit_length-1:0] pb_buffer      [constant_gpack::channel_width-1:0][pb_buffer_depth-1:0];
 	
     logic signed [ffe_gpack::weight_precision-1:0] weights [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0];
     logic signed [mlsd_gpack::estimate_precision-1:0]    channel_est [constant_gpack::channel_width-1:0][mlsd_gpack::estimate_depth-1:0];
