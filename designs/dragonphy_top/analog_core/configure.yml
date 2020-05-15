@@ -5,11 +5,10 @@ name: analog_core
 commands:
   - |
     mkdir -p outputs
-# Uncomment this line and the outputs when this block is ready
-#    tar -xzvf /home/sjkim85/dragonphy_tarballs/analog_core-latest.tar.gz -C outputs
+    tar -xzvf /home/sjkim85/dragonphy_tarballs/analog_core-latest.tar.gz -C outputs
 
 outputs:
-#  - analog_core.lef
-#  - analog_core.gds
-#  - analog_core.lvs.v
-#  - analog_core.version
+  - analog_core.lef
+  - analog_core.gds
+  - analog_core.lvs.v
+  - analog_core.version

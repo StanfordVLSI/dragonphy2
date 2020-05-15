@@ -2,6 +2,7 @@
 
 `define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
 `define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
+`define FORCE_IDCORE(name, value) force top_i.idcore.``name`` = ``value``
 
 module test;
 
@@ -159,7 +160,7 @@ module test;
 
         // Enable input buffer for the async clock
         $display("Enable input buffer for the async clock...");
-        `FORCE_ADBG(disable_ibuf_async, 0);
+        `FORCE_IDCORE(disable_ibuf_async, 0);
         #(1ns);
 
 		// Set up the output buffers

@@ -2,6 +2,7 @@
 
 `define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
 `define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
+`define FORCE_IDCORE(name, value) force top_i.idcore.``name`` = ``value``
 
 `define GET_ADBG(name) top_i.iacore.adbg_intf_i.``name``
 
@@ -144,7 +145,7 @@ module test;
         #(1ns);
 
         // wait for startup so that we can read max_sel_mux
-        #(10ns);
+        #(64ns);
 
         // determine the max code range for each PI
         // the expression for the max value is from Sung-Jin on May 1, 2020

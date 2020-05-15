@@ -47,10 +47,6 @@ interface acore_debug_intf import const_pack::*; (
     	logic [1:0] ctl_dcdl_early_rep[1:0];				// from JTAG (all 0) x	
     	logic [4:0] ctl_dcdl_TDC_rep[1:0];					// from JTAG (all 0) x
 		// Input Buffers
-        logic disable_ibuf_async;
-        logic disable_ibuf_main;
-        logic disable_ibuf_mdll_ref;
-        logic disable_ibuf_mdll_mon;
 
 		//ADCtest(only for ADCrep1)
  		logic sel_pfd_in;									// from JTAG (0) x
@@ -144,10 +140,6 @@ interface acore_debug_intf import const_pack::*; (
     	input ctl_dcdl_early_rep,
     	input ctl_dcdl_TDC_rep,
 
-        input disable_ibuf_async,
-        input disable_ibuf_main,
-        input disable_ibuf_mdll_ref,
-        input disable_ibuf_mdll_mon,
 
 		input en_inbuf,
 		input sel_clk_source,
@@ -233,10 +225,6 @@ interface acore_debug_intf import const_pack::*; (
         output ctl_dcdl_early_rep,
         output ctl_dcdl_TDC_rep,
         
-        output disable_ibuf_async,
-        output disable_ibuf_main,
-        output disable_ibuf_mdll_ref,
-        output disable_ibuf_mdll_mon,
 
         output en_inbuf,
         output sel_clk_source,

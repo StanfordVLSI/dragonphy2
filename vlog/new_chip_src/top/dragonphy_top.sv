@@ -46,12 +46,18 @@ module dragonphy_top import const_pack::*; (
 	acore_debug_intf adbg_intf_i ();
 	mdll_r1_debug_intf mdbg_intf_i ();
 
+
+    wire logic disable_ibuf_async;
+	wire logic disable_ibuf_main;
+    wire logic disable_ibuf_mdll_ref;
+    wire logic disable_ibuf_mdll_mon;
+
 	// async clock buffer
 	logic clk_async;
 	input_buffer ibuf_async (
 		.inp(ext_clk_async_p),
 		.inm(ext_clk_async_n),
-		.pd(adbg_intf_i.disable_ibuf_async),
+		.pd(disable_ibuf_async),
 		.clk(clk_async),
 		.clk_b() // unused output
 	);
@@ -61,7 +67,7 @@ module dragonphy_top import const_pack::*; (
 	input_buffer ibuf_main (
 		.inp(ext_clkp),
 		.inm(ext_clkn),
-		.pd(adbg_intf_i.disable_ibuf_main),
+		.pd(disable_ibuf_main),
 		.clk(clk_main),
 		.clk_b() // unused output
 	);
@@ -71,7 +77,7 @@ module dragonphy_top import const_pack::*; (
 	input_buffer ibuf_mdll_ref (
 		.inp(ext_mdll_clk_refp),
 		.inm(ext_mdll_clk_refn),
-		.pd(adbg_intf_i.disable_ibuf_mdll_ref),
+		.pd(disable_ibuf_mdll_ref),
 		.clk(mdll_clk_refp),
 		.clk_b(mdll_clk_refn)
 	);
@@ -81,7 +87,7 @@ module dragonphy_top import const_pack::*; (
 	input_buffer ibuf_mdll_mon (
 		.inp(ext_mdll_clk_monp),
 		.inm(ext_mdll_clk_monn),
-		.pd(adbg_intf_i.disable_ibuf_mdll_mon),
+		.pd(disable_ibuf_mdll_mon),
 		.clk(mdll_clk_monp),
 		.clk_b(mdll_clk_monn)
 	);
@@ -102,7 +108,6 @@ module dragonphy_top import const_pack::*; (
     logic [Nti_rep-1:0] adcout_sign_rep;
 
 // temp setting for sim ultil DCORE is fixed -------------
-    assign ctl_valid = 1;
 //--------------------------------------------------------
 	
 	// Analog core instantiation
@@ -147,14 +152,17 @@ module dragonphy_top import const_pack::*; (
     	.trigg_out_p(clk_trig_p),
     	.trigg_out_n(clk_trig_n),
     	.clk_async(clk_async),
-		.clk_cdr(), // port should be removed and replaced with ctl_valid!
+		.ctl_valid(ctl_valid), // port should be removed and replaced with ctl_valid!
 		.mdll_clk(mdll_clk_out),             // goes to output buffer
 		.mdll_jm_clk(mdll_jm_clk_fb_out),    // goes to output buffer
 		.int_pi_ctl_cdr(pi_ctl_cdr),         // PI control code from CDR
 		.ramp_clock(ramp_clock),
 		.freq_lvl_cross(freq_lvl_cross),
 		.ext_dump_start(ext_dump_start),
-
+        .disable_ibuf_async(disable_ibuf_async),
+	    .disable_ibuf_main(disable_ibuf_main),
+        .disable_ibuf_mdll_ref(disable_ibuf_mdll_ref),
+	    .disable_ibuf_mdll_mon(disable_ibuf_mdll_mon),
 		.adbg_intf_i(adbg_intf_i),		
 		.jtag_intf_i(jtag_intf_i),
     	.mdbg_intf_i(mdbg_intf_i)
