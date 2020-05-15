@@ -12,6 +12,10 @@ module digital_core import const_pack::*; (
     input wire logic mdll_clk,
     input wire logic mdll_jm_clk,
 	
+    output wire logic disable_ibuf_async,
+	output wire logic disable_ibuf_main,   
+    output wire logic disable_ibuf_mdll_ref, 
+	output wire logic disable_ibuf_mdll_mon, 
     output wire logic  [Npi-1:0] int_pi_ctl_cdr [Nout-1:0],
     output wire logic clock_out_p,
     output wire logic clock_out_n,
@@ -402,6 +406,10 @@ module digital_core import const_pack::*; (
     jtag jtag_i (
         .clk(clk_adc),
         .rstb(ext_rstb),
+        .disable_ibuf_async(disable_ibuf_async),
+	    .disable_ibuf_main(disable_ibuf_main),
+        .disable_ibuf_mdll_ref(disable_ibuf_mdll_ref),
+	    .disable_ibuf_mdll_mon(disable_ibuf_mdll_mon),
         .ddbg_intf_i(ddbg_intf_i),
         .adbg_intf_i(adbg_intf_i),
         .cdbg_intf_i(cdbg_intf_i),

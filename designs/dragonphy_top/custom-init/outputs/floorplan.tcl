@@ -23,6 +23,9 @@
     set vert_pitch  [dbGet top.fPlan.coreSite.size_y]
     set horiz_pitch [dbGet top.fPlan.coreSite.size_x]
 
+    set output_buffer_width [dbGet [dbGet -p top.insts.name *out_buff_i*].cell.size_x]
+    set output_buffer_height [dbGet [dbGet -p top.insts.name *out_buff_i*].cell.size_y]
+
     # Make room in the floorplan for the core power ring
 
     set pwr_net_list {VDD VSS}; # List of power nets in the core power ring
@@ -53,11 +56,14 @@
     #floorPlan -r $core_aspect_ratio $core_density_target \
     #             $core_margin_l $core_margin_b $core_margin_r $core_margin_t
 
+    set FP_width [snap_to_grid 950 $horiz_pitch ]
+    set FP_height [snap_to_grid 700 $vert_pitch ]
+    
     set acore_width [snap_to_grid 400 $horiz_pitch]
     set acore_height [snap_to_grid 400 $vert_pitch]
 
-    set FP_width [snap_to_grid 800 $horiz_pitch ]
-    set FP_height [snap_to_grid 700 $vert_pitch ]
+    set mdll_width [snap_to_grid 60 $horiz_pitch]
+    set mdll_height [snap_to_grid 60 $vert_pitch]
 
     floorPlan -site core -s $FP_width $FP_height \
                             $core_margin_l $core_margin_b $core_margin_r $core_margin_t
@@ -66,13 +72,15 @@
 
     set sram_to_acore_spacing_x [snap_to_grid 40 $horiz_pitch]
     set sram_to_acore_spacing_y [snap_to_grid 40 $vert_pitch]
+    
+    set sram_to_buff_spacing_y [snap_to_grid 30 $vert_pitch]
 
     set sram_to_sram_spacing  [snap_to_grid 15 $horiz_pitch]
     set sram_neighbor_spacing [expr $sram_width + $sram_to_sram_spacing]
     set sram_pair_spacing [expr 2*$sram_width + $sram_to_sram_spacing]
     set sram_vert_spacing [snap_to_grid 200 $vert_pitch]
 
-    set origin_acore_x    [expr $sram_pair_spacing + $sram_to_acore_spacing_x ]
+    set origin_acore_x    [snap_to_grid [expr $FP_width/2 - $acore_width/2] $horiz_pitch ]
     set origin_acore_y    [expr $sram_height + $sram_to_acore_spacing_y ]
 
     set origin_sram_ffe_x [expr 3*$blockage_width  + $core_margin_l]
@@ -81,46 +89,64 @@
     set origin_sram_adc_x [expr $FP_width - 3*$blockage_width  - 2*$sram_pair_spacing - $core_margin_l]
     set origin_sram_adc_y [expr 3*$blockage_height + $core_margin_b]
 
-    # Use automatic floorplan synthesis to pack macros (e.g., SRAMs) together
+    set origin_async_x [expr 3*$blockage_width  + $core_margin_l]
+    set origin_async_y [expr $origin_sram_ffe_y + $sram_height +  $sram_to_buff_spacing_y]
+    
+    set origin_out_x [expr $FP_width - 6*$blockage_width - $output_buffer_width - $core_margin_l]
+    set origin_out_y [expr $origin_sram_adc_y + $sram_height + $sram_to_acore_spacing_y - 4 * $vert_pitch]
+    
+    set origin_main_x [expr $origin_acore_x + [snap_to_grid [expr $acore_width/2] $horiz_pitch]]
+    set origin_main_y [expr [snap_to_grid [expr $sram_height / 2.0] $vert_pitch] + $origin_sram_adc_y]
+
+    set origin_mdll_x [expr $origin_out_x - $mdll_width - [snap_to_grid 60 $horiz_pitch]]
+    set origin_mdll_y [expr $origin_acore_y + [snap_to_grid [expr $acore_height/4] $vert_pitch ]  ]   
+ 
+    set origin_ref_x [expr $FP_width - 6*$blockage_width - $input_buffer_width - $core_margin_l]
+    set origin_ref_y [expr $origin_out_y + $output_buffer_height + $blockage_height + 10*$vert_pitch]
+        
+
+# Use automatic floorplan synthesis to pack macros (e.g., SRAMs) together
 
     ###################
     # Place Instances #
     ###################\
 
-    #placeInstance \
-    #    ibuf_async \
-    #    $origin0_x \
-    #    $origin0_y
+    placeInstance \
+        ibuf_async \
+        $origin_async_x \
+        $origin_async_y
 
-
-    #placeInstance \
-    #    imdll \
-    #    [expr $origin_acore_x + [snap_to_grid 50 $horiz_pitch]] \
-    #    [expr $origin_sram_adc_y + [snap_to_grid 50 $horiz_pitch]]
-
+    placeInstance \
+        imdll \
+        $origin_mdll_x \
+        $origin_mdll_y 
     #placeInstance \
     #    iacore \
     #    $origin_acore_x \
     #    $origin_acore_y
     
-    #placeInstance \
-    #    ibuf_main \
-    #    [expr $origin3_x] \
-    #    [expr $origin3_y] \
-    #   R180
+    placeInstance \
+        ibuf_main \
+        $origin_main_x\
+        $origin_main_y
 
-    #placeInstance \
-    #    ibuf_mdll_ref \
-    #    [expr $origin3_x] \
-    #    [expr $origin3_y+$input_buffer_height+4*$cell_height] \
-    #    MY
+    placeInstance \
+        ibuf_mdll_mon \
+        [expr $origin_ref_x] \
+        [expr $origin_ref_y+$input_buffer_height+4*$cell_height] \
+        R180
 
-    #placeInstance \
-    #    idcore/out_buff_i \
-    #    $origin4_x \
-    #    $origin4_y
+    placeInstance \
+        ibuf_mdll_ref \
+        [expr $origin_ref_x] \
+        [expr $origin_ref_y] \
+        R180
 
-
+    placeInstance \
+        idcore/out_buff_i \
+        $origin_out_x \
+        $origin_out_y
+ 
     #Memory Macros
     for {set k 0} {$k<4} {incr k} {
         if {[expr $k % 2] == 0} {
@@ -203,6 +229,37 @@
         [expr $origin_acore_x + $acore_width  + $blockage_width] \
         [expr $origin_acore_y + $acore_height + $blockage_height]
 
+    createPlaceBlockage -box \
+        [expr $origin_async_x - $blockage_width] \
+        [expr $origin_async_y - $blockage_height] \
+        [expr $origin_async_x + $input_buffer_width  + $blockage_width] \
+        [expr $origin_async_y + $input_buffer_height + $blockage_height]
+    
+    createPlaceBlockage -box \
+        [expr $origin_ref_x - $blockage_width] \
+        [expr $origin_ref_y - $blockage_height] \
+        [expr $origin_ref_x + $input_buffer_width  + $blockage_width] \
+        [expr $origin_ref_y + 2*$input_buffer_height + + 4*$cell_height +  $blockage_height]
+    
+
+    createPlaceBlockage -box \
+        [expr $origin_main_x - $blockage_width] \
+        [expr $origin_main_y - $blockage_height] \
+        [expr $origin_main_x + $input_buffer_width  + $blockage_width] \
+        [expr $origin_main_y + $input_buffer_height + $blockage_height]
+    
+    createPlaceBlockage -box \
+        [expr $origin_out_x - $blockage_width] \
+        [expr $origin_out_y - $blockage_height] \
+        [expr $origin_out_x + $output_buffer_width  + $blockage_width] \
+        [expr $origin_out_y + $output_buffer_height + $blockage_height]
+   
+    createPlaceBlockage -box \
+        [expr $origin_mdll_x - $blockage_width] \
+        [expr $origin_mdll_y - $blockage_height] \
+        [expr $origin_mdll_x + $mdll_width  + $blockage_width] \
+        [expr $origin_mdll_y + $mdll_height + $blockage_height]
+ 
     #oneshot_multimemory_N_mem_tiles4_0 ffe
     #   sram_ADR_BITS10_DAT_BITS144_3 genblk3_0__sram_i 
     #   sram_ADR_BITS10_DAT_BITS144_2 genblk3_1__sram_i 
