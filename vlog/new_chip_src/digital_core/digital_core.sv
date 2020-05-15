@@ -52,6 +52,7 @@ module digital_core import const_pack::*; (
     wire logic sram_rstb;
     wire logic cdr_rstb;
     wire logic prbs_rstb;
+    wire logic prbs_gen_rstb;
     wire logic signed [Nadc-1:0] adcout_unfolded [Nti+Nti_rep-1:0];
 
     wire logic signed [ffe_gpack::output_precision-1:0] estimated_bits [constant_gpack::channel_width-1:0];
@@ -96,6 +97,7 @@ module digital_core import const_pack::*; (
     assign sram_rstb        = ddbg_intf_i.sram_rstb && ext_rstb;
     assign cdr_rstb         = ddbg_intf_i.cdr_rstb  && ext_rstb;
     assign prbs_rstb        = ddbg_intf_i.prbs_rstb && ext_rstb;
+    assign prbs_gen_rstb    = ddbg_intf_i.prbs_gen_rstb && ext_rstb;
 
 
     // ADC Output Retimer
@@ -316,12 +318,12 @@ module digital_core import const_pack::*; (
     logic [Nti-1:0] bits_adc_r;
     logic [Nti-1:0] bits_ffe_r;
     logic [Nti-1:0] bits_mlsd_r;
+    logic bit_bist_r;
 
     assign mux_prbs_rx_bits[0] = bits_adc_r;
     assign mux_prbs_rx_bits[1] = bits_ffe_r;
     assign mux_prbs_rx_bits[2] = bits_mlsd_r;
-    assign mux_prbs_rx_bits[3] = 0;
-
+    assign mux_prbs_rx_bits[3] = {Nti{bit_bist_r}};
 
     generate
         for (k=0; k<Nti; k=k+1) begin
@@ -333,6 +335,28 @@ module digital_core import const_pack::*; (
 
     assign prbs_rx_bits = mux_prbs_rx_bits[ddbg_intf_i.sel_prbs_mux];
 
+    // PRBS generator for BIST
+    prbs_generator_syn #(
+        .n_prbs(Nprbs)
+    ) prbs_generator_syn_i (
+        // clock and reset
+        .clk(clk_adc),
+        .rst(~prbs_gen_rstb),
+        // clock gating
+        .cke(pdbg_intf_i.prbs_gen_cke),
+        // define the PRBS initialization
+        .init_val(pdbg_intf_i.prbs_gen_init),
+        // define the PRBS equation
+        .eqn(pdbg_intf_i.prbs_gen_eqn),
+        // signal for injecting errors
+        .inj_err(pdbg_intf_i.prbs_gen_inj_err),
+        // "chicken" bits for flipping the sign of various bits
+        .inv_chicken(pdbg_intf_i.prbs_gen_chicken),
+        // output bit
+        .out(bit_bist_r)
+    );
+
+    // PRBS checker
     prbs_checker #(
         .n_prbs(Nprbs),
         .n_channels(Nti)
