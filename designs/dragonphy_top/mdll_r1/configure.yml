@@ -6,9 +6,9 @@ commands:
   - |
     mkdir -p outputs
     tar -xzvf /home/sjkim85/dragonphy_tarballs/mdll_r1_top-latest.tar.gz -C outputs
-
+    mv outputs/*/* outputs/
 outputs:
-  - mdll_r1.lef
-  - mdll_r1.gds
-  - mdll_r1.lvs.v
-  - mdll_r1.version
+  - mdll_r1_top.lef
+  - mdll_r1_top.gds
+  - mdll_r1_top.lvs.v
+  - mdll_r1_top.version
