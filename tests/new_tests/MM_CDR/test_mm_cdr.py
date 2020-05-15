@@ -14,7 +14,7 @@ else:
     SIMULATOR = 'ncsim'
 
 
-DUMP_WAVEFORMS = True
+DUMP_WAVEFORMS = False
 
 @pytest.mark.wip
 def test_sim():
