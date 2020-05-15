@@ -34,7 +34,7 @@ set primary_digital_inputs {{ext_rstb ext_dump_start jtag_intf_i_phy_tdi \\
 #########
 
 create_clock -name clk_retimer -period {0.7*time_scale} [get_pins {{iacore/clk_adc}}]
-create_clock -name clk_in -period {0.7*time_scale} [get_ports ext_clkp]
+#create_clock -name clk_in -period {0.7*time_scale} [get_ports ext_clkp]
 create_clock -name clk_jtag -period {100.0*time_scale} [get_ports jtag_intf_i_phy_tck]
 
 set_dont_touch_network [get_pins {{iacore/clk_adc}}]

@@ -70,3 +70,6 @@ def check_data(y, enob_limit=4.5, npts=1000, Fs=16e9, Fstim=1.023e9):
 
     # print results
     assert enob_result >= enob_limit, 'ENOB is too low.'
+
+if __name__ == "__main__":
+    test_sim()

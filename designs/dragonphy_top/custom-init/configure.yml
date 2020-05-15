@@ -12,3 +12,5 @@ outputs:
   - add-endcaps-welltaps.tcl
   - floorplan.tcl
 
+parameters:
+  num_mem_tiles: 4

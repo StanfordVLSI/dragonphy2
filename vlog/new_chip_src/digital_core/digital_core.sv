@@ -12,12 +12,16 @@ module digital_core import const_pack::*; (
     input wire logic mdll_clk,
     input wire logic mdll_jm_clk,
 	
-	output wire logic clk_cdr,  
+    output wire logic disable_ibuf_async,
+	output wire logic disable_ibuf_main,   
+    output wire logic disable_ibuf_mdll_ref, 
+	output wire logic disable_ibuf_mdll_mon, 
     output wire logic  [Npi-1:0] int_pi_ctl_cdr [Nout-1:0],
     output wire logic clock_out_p,
     output wire logic clock_out_n,
     output wire logic trigg_out_p,
     output wire logic trigg_out_n,
+    output wire logic ctl_valid,
     output wire logic freq_lvl_cross,
     input wire logic ext_dump_start,
     acore_debug_intf.dcore adbg_intf_i,
@@ -45,8 +49,6 @@ module digital_core import const_pack::*; (
     wire logic [Nadc-1:0] adcout_retimed_rep [Nti_rep-1:0];
     wire logic [Nti_rep-1:0] adcout_sign_retimed_rep;
     wire logic [Npi-1:0] pi_ctl_cdr[Nout-1:0];
-    wire logic int_clk_cdr;
-    wire logic clk_cdr_in;
     wire logic sram_rstb;
     wire logic cdr_rstb;
     wire logic prbs_rstb;
@@ -97,7 +99,6 @@ module digital_core import const_pack::*; (
     assign prbs_rstb        = ddbg_intf_i.prbs_rstb && ext_rstb;
     assign prbs_gen_rstb    = ddbg_intf_i.prbs_gen_rstb && ext_rstb;
 
-    assign clk_cdr = clk_adc;
 
     // ADC Output Retimer
 
@@ -129,12 +130,6 @@ module digital_core import const_pack::*; (
         .rstb(rstb)
     );
 
-    freq_divider #(.N(3)) cdr_inpt_clk_gen (
-        .cki(clk_adc),
-        .cko (clk_cdr_in),
-        .ndiv(ddbg_intf_i.Ndiv_clk_cdr),
-        .rstb(rstb)
-    );
 
     genvar k;
     generate
@@ -211,6 +206,7 @@ module digital_core import const_pack::*; (
         .ramp_clock    (ramp_clock),
         .freq_lvl_cross(freq_lvl_cross),
         .pi_ctl(pi_ctl_cdr),
+        .wait_on_reset_b(ctl_valid),
         .cdbg_intf_i(cdbg_intf_i)
     );
 
@@ -253,7 +249,7 @@ module digital_core import const_pack::*; (
         .codes(adcout_unfolded[Nti-1:0]),
         .clk(clk_adc),
         .rstb(rstb),
-        .estimated_bits(estimated_bits),
+        .estimated_bits_q(estimated_bits),
         .checked_bits(checked_bits),
         .dsp_dbg_intf_i(dsp_dbg_intf_i)
     );
@@ -412,7 +408,7 @@ module digital_core import const_pack::*; (
     assign buffered_signals[8]  = adbg_intf_i.inbuf_out_meas;
     assign buffered_signals[9]  = adbg_intf_i.pfd_inp_meas;
     assign buffered_signals[10] = adbg_intf_i.pfd_inn_meas;
-    assign buffered_signals[11] = clk_cdr;
+    assign buffered_signals[11] = ctl_valid;
     assign buffered_signals[12] = clk_async;
     assign buffered_signals[13] = mdll_clk;
     assign buffered_signals[14] = mdll_jm_clk;
@@ -440,6 +436,10 @@ module digital_core import const_pack::*; (
     jtag jtag_i (
         .clk(clk_adc),
         .rstb(ext_rstb),
+        .disable_ibuf_async(disable_ibuf_async),
+	    .disable_ibuf_main(disable_ibuf_main),
+        .disable_ibuf_mdll_ref(disable_ibuf_mdll_ref),
+	    .disable_ibuf_mdll_mon(disable_ibuf_mdll_mon),
         .ddbg_intf_i(ddbg_intf_i),
         .adbg_intf_i(adbg_intf_i),
         .cdbg_intf_i(cdbg_intf_i),
