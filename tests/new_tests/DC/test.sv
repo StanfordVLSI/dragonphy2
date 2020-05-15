@@ -167,7 +167,7 @@ module test;
             tmp_ext_pfd_offset[idx] = `EXT_PFD_OFFSET;
         end
         `FORCE_DDBG(ext_pfd_offset, tmp_ext_pfd_offset);
-        #(1ns);
+        #(64ns);
 
         // Walk through differential input voltages
 		for (real v_diff = v_diff_min;

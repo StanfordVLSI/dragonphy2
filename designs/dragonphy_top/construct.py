@@ -121,18 +121,18 @@ def construct():
 
     # These steps need timing and lef info for black boxes
     libs = [
-        'analog_core.lib'
-        'input_buffer.lib'
-        'output_buffer.lib'
+        'analog_core.lib',
+        'input_buffer.lib',
+        'output_buffer.lib',
         'sram_tt.lib'
     ]
 
     lefs = [
         # TODO: uncomment these LEFs as they are ready
-        # analog_core.lef,
-        # input_buffer.lef,
-        # output_buffer.lef,
-        # mdll_r1.lef
+         'analog_core.lef',
+         'input_buffer.lef',
+         'output_buffer.lef',
+         'mdll_r1_top.lef',
         'sram.lef'
     ]
 
@@ -144,20 +144,20 @@ def construct():
     # Add GDS files for black boxes to GDS merge step
     gds_list = [
         # TODO: uncomment these GDS files as they are ready
-        # analog_core.gds,
-        # input_buffer.gds,
-        # output_buffer.gds,
-        # mdll_r1.gds,
+         'analog_core.gds',
+         'input_buffer.gds',
+         'output_buffer.gds',
+         'mdll_r1_top.gds',
         'sram.gds'
     ]
     gdsmerge.extend_inputs(gds_list)
 
     # Need Spice or Verilog netlists files for black boxes for LVS
     spi_list = [
-        # analog_core.lvs.v,
-        # input_buffer.lvs.v,
-        # output_buffer.lvs.v,
-        # mdll_r1.lvs.v,
+         'analog_core.lvs.v',
+         'input_buffer.lvs.v',
+         'output_buffer.lvs.v',
+         'mdll_r1_top.lvs.v',
         'sram.spi'
     ]
     lvs.extend_inputs(spi_list)

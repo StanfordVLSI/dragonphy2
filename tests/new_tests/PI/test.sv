@@ -2,6 +2,7 @@
 
 `define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
 `define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
+`define FORCE_IDCORE(name, value) force top_i.idcore.``name`` = ``value``
 
 `define GET_ADBG(name) top_i.iacore.adbg_intf_i.``name``
 
@@ -134,7 +135,7 @@ module test;
         `FORCE_ADBG(en_gf, 1);
         #(1ns);
         `FORCE_ADBG(en_v2t, 1);
-        #(1ns);
+        #(64ns);
 
         // wait for startup so that we can read max_sel_mux
         #(10ns);
