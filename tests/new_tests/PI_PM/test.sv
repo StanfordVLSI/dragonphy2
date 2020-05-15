@@ -1,6 +1,6 @@
 `define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
 `define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
-
+`define FORCE_IDCORE(name, value) force top_i.idcore.``name`` = ``value``
 `define GET_ADBG(name) top_i.iacore.adbg_intf_i.``name``
 
 `ifndef PI_CTL_TXT
@@ -175,7 +175,7 @@ module test;
 
         // Enable the async input buffer
         $display("Enable the async input buffer...");
-        `FORCE_ADBG(disable_ibuf_async, 0);
+        `FORCE_IDCORE(disable_ibuf_async, 0);
         #(1ns);
 
         // Enable external max_sel_mux

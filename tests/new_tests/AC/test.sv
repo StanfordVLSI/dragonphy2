@@ -168,7 +168,7 @@ module test;
         `FORCE_ADBG(en_gf, 1);
         #(1ns);
         `FORCE_ADBG(en_v2t, 1);
-        #(1ns);
+        #(64ns);
 
         // Set up the PFD offset
         $display("Setting up the PFD offset...");
@@ -194,7 +194,7 @@ module test;
 
 		// Wait some time initially
 		$display("Initial delay of 50 ns...");
-		#(50ns);
+		#(100ns);
 
 		// Then record for awhile
 		should_record = 1'b1;
