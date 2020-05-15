@@ -5,11 +5,10 @@ name: mdll_r1
 commands:
   - |
     mkdir -p outputs
-# Uncomment this line and the outputs when this block is ready
-#    tar -xzvf /home/bclim/dragonphy_tarballs/mdll_r1-latest.tar.gz -C outputs
-
+    tar -xzvf /home/sjkim85/dragonphy_tarballs/mdll_r1_top-latest.tar.gz -C outputs
+    mv outputs/*/* outputs/
 outputs:
-#  - mdll_r1.lef
-#  - mdll_r1.gds
-#  - mdll_r1.lvs.v
-#  - mdll_r1.version
+  - mdll_r1_top.lef
+  - mdll_r1_top.gds
+  - mdll_r1_top.lvs.v
+  - mdll_r1_top.version

@@ -26,6 +26,7 @@ def test_sim():
 
     defines = {
         'DAVE_TIMEUNIT': '1fs',
+        'SIMULATION' : None,
         'NCVLOG': None
     }
 

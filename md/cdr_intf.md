@@ -13,5 +13,5 @@
 | ramp_est       | yes       | Nadc+1+phase_est_shift:0  |               | System       | in       |           |
 | sel_inp_mux    |           |                           |               | Test         | out      | 0         |
 | sample_state   |           |                           |               | Test         | out      | 0         |
-| invert         |           |                           |               | Test         | out      | 1         |
+| invert         |           |                           |               | Test         | out      | 0         |
 
