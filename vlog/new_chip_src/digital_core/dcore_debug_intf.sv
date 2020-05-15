@@ -48,6 +48,7 @@ interface dcore_debug_intf import const_pack::*; (
     	logic sram_rstb;
     	logic cdr_rstb;
     	logic prbs_rstb;
+    	logic prbs_gen_rstb;
    		logic [ffe_gpack::shift_precision-1:0] ffe_shift [constant_gpack::channel_width-1:0];
     	logic signed [cmp_gpack::thresh_precision-1:0] cmp_thresh  [constant_gpack::channel_width-1:0];
     	logic [mlsd_gpack::shift_precision-1:0] mlsd_shift [constant_gpack::channel_width-1:0];
@@ -91,6 +92,7 @@ interface dcore_debug_intf import const_pack::*; (
 		input sram_rstb,
 		input cdr_rstb,
 		input prbs_rstb,
+	    input prbs_gen_rstb,
 		input ffe_shift,
 		input cmp_thresh,
 		input mlsd_shift,
@@ -147,6 +149,7 @@ interface dcore_debug_intf import const_pack::*; (
 		output sram_rstb,
 		output cdr_rstb,
 		output prbs_rstb,
+		output prbs_gen_rstb,
 		output ffe_shift,
 		output cmp_thresh,
 		output mlsd_shift,
