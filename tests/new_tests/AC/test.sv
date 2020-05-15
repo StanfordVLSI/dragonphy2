@@ -106,10 +106,14 @@ module test;
     // Re-ordering
     // TODO: clean this up because it is likely a real bug
 	integer tmp;
-	integer idx_order [Nti] = '{0, 5, 10, 15,
+   	integer idx_order [Nti] = '{0, 5, 10, 15,
 	                            1, 6, 11, 12,
 	                            2, 7,  8, 13,
 	                            3, 4,  9, 14};
+   	//integer idx_order [Nti] = '{0, 4, 8, 12,
+	//                            1, 5, 9, 13,
+	//                            2, 6,  10, 14,
+	//                            3, 7,  11, 15};
     always @(posedge top_i.idcore.clk_adc) begin
         // compute the unfolded ADC outputs
         for (int k=0; k<Nti; k=k+1) begin
@@ -153,7 +157,7 @@ module test;
 		// Release reset
 		$display("Releasing external reset...");
 		rstb = 1'b1;
-        #(1ns);
+        #(32ns);
 
         // Initialize JTAG
         $display("Initializing JTAG...");
