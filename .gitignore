@@ -35,6 +35,8 @@ pnr/data
 pnr/gate_size_test
 flow/*/outputs
 designs/*/*/temp/
+*.mco
+*.tar.gz
 
 #########################
 # other files to ignore #

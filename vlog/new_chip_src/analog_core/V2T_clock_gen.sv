@@ -27,18 +27,27 @@ module V2T_clock_gen #(
     reg clk_div_sampled;
 
     logic en_sync;
+    logic en_sync_in_sampled;
     logic alws_onb;
     logic clk_rstb, clk_pstb;
 
     assign alws_onb = ~alws_on;
-    assign en_sync = en_sync_in & en_slice;
+    assign en_sync = en_sync_in_sampled & en_slice;
     assign clk_div = count[Ndiv-1];
 
     always @(negedge clk_in or negedge rstn) begin
         if (!rstn) begin
+            en_sync_in_sampled <= 0;
+        end else begin
+            en_sync_in_sampled <= en_sync_in;
+        end
+    end
+    
+	always @(posedge clk_in or negedge rstn) begin
+        if (!rstn) begin
             en_sync_out <= 0;
         end else begin
-            en_sync_out <= en_sync_in;
+            en_sync_out <= en_sync_in_sampled;
         end
     end
 
