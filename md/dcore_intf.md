@@ -49,5 +49,5 @@
 | ffe_thresh                 |   yes   | 9:0                    | Nti-1:0          | Test         | out      |   0       |
 | adc_thresh                 |   yes   | 7:0                    | Nti-1:0          | Test         | out      |   0       |
 | sel_prbs_mux               |         | 1:0                    |                  | Test         | out      |   0       |
-| retimer_mux_ctrl_1         |         | Nti-1:0                |                  | Test         | out      |   'b0000111111111111 |
-| retimer_mux_ctrl_2         |         | Nti-1:0                |                  | Test         | out      |   'b1111111111110000 |
+| retimer_mux_ctrl_1         |         | Nti-1:0                |                  | Test         | out      |   'b0000111111110000 |
+| retimer_mux_ctrl_2         |         | Nti-1:0                |                  | Test         | out      |   'b1111000000000000 |
