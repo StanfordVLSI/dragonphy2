@@ -1,4 +1,4 @@
-create_qtm_model analog_core_I_adbg_intf_i_acore_debug_intf__
+create_qtm_model analog_core
 
 ############### Port Definitions ###############
 
@@ -346,88 +346,88 @@ set_qtm_port_load -value 0.010000 { adbg_intf_i_en_TDC_phase_reverse }
 ## TODO: check that the order is as expected
 ## (i.e., array port is flattened in expected order)
 
-for {set adc_idx 0} {$adc_idx < 16} {incr adc_idx} {
-    for {set bit_idx 0} {$bit_idx < 8} {incr bit_idx} {
-        set idx [expr {($adc_idx * 16) + $bit_idx}]
-        set delay_val [expr {($adc_idx * 0.0625) + 0.05}]
-        create_qtm_delay_arc -from clk_adc -to "adder_out[$idx]" -from_edge rise \\
-            -to_edge rise -value $delay_val
-        create_qtm_delay_arc -from clk_adc -to "adder_out[$idx]" -from_edge rise \\
-            -to_edge fall -value $delay_val
-        create_qtm_delay_arc -from clk_adc -to "sign_out[$adc_idx]" -from_edge rise \\
-            -to_edge rise -value $delay_val
-        create_qtm_delay_arc -from clk_adc -to "sign_out[$adc_idx]" -from_edge rise \\
-            -to_edge fall -value $delay_val
-    }
-}
+# for {set adc_idx 0} {$adc_idx < 16} {incr adc_idx} {
+#     for {set bit_idx 0} {$bit_idx < 8} {incr bit_idx} {
+#         set idx [expr {($adc_idx * 16) + $bit_idx}]
+#         set delay_val [expr {($adc_idx * 0.0625) + 0.05}]
+#         create_qtm_delay_arc -from clk_adc -to "adder_out[$idx]" -from_edge rise \\
+#             -to_edge rise -value $delay_val
+#         create_qtm_delay_arc -from clk_adc -to "adder_out[$idx]" -from_edge rise \\
+#             -to_edge fall -value $delay_val
+#         create_qtm_delay_arc -from clk_adc -to "sign_out[$adc_idx]" -from_edge rise \\
+#             -to_edge rise -value $delay_val
+#         create_qtm_delay_arc -from clk_adc -to "sign_out[$adc_idx]" -from_edge rise \\
+#             -to_edge fall -value $delay_val
+#     }
+# }
 
 # adbg_intf_i_pm_out[319:0]
-for {set idx 0} {$idx < 320} {incr idx} {
-    create_qtm_delay_arc -from clk_adc -to "adbg_intf_i_pm_out[$idx]" -from_edge rise \\
-        -to_edge rise -value 0.02
-    create_qtm_delay_arc -from clk_adc -to "adbg_intf_i_pm_out[$idx]" -from_edge rise \\
-        -to_edge fall -value 0.02
-}
+# for {set idx 0} {$idx < 320} {incr idx} {
+#     create_qtm_delay_arc -from clk_adc -to "adbg_intf_i_pm_out[$idx]" -from_edge rise \\
+#         -to_edge rise -value 0.02
+#     create_qtm_delay_arc -from clk_adc -to "adbg_intf_i_pm_out[$idx]" -from_edge rise \\
+#         -to_edge fall -value 0.02
+# }
 
 ## Replica ADCs
 
 # adder_out_rep[15:0]
-for {set idx 0} {$idx < 16} {incr idx} {
-    create_qtm_delay_arc -from clk_adc -to "adder_out_rep[$idx]" -from_edge rise \\
-        -to_edge rise -value 0.05
-    create_qtm_delay_arc -from clk_adc -to "adder_out_rep[$idx]" -from_edge rise \\
-        -to_edge fall -value 0.05
-}
+# for {set idx 0} {$idx < 16} {incr idx} {
+#     create_qtm_delay_arc -from clk_adc -to "adder_out_rep[$idx]" -from_edge rise \\
+#         -to_edge rise -value 0.05
+#     create_qtm_delay_arc -from clk_adc -to "adder_out_rep[$idx]" -from_edge rise \\
+#         -to_edge fall -value 0.05
+# }
 
 # sign_out_rep[1:0]
-for {set idx 0} {$idx < 2} {incr idx} {
-    create_qtm_delay_arc -from clk_adc -to "sign_out_rep[$idx]" -from_edge rise \\
-        -to_edge rise -value 0.05
-    create_qtm_delay_arc -from clk_adc -to "sign_out_rep[$idx]" -from_edge rise \\
-        -to_edge fall -value 0.05
-}
+# for {set idx 0} {$idx < 2} {incr idx} {
+#     create_qtm_delay_arc -from clk_adc -to "sign_out_rep[$idx]" -from_edge rise \\
+#         -to_edge rise -value 0.05
+#     create_qtm_delay_arc -from clk_adc -to "sign_out_rep[$idx]" -from_edge rise \\
+#         -to_edge fall -value 0.05
+# }
 
 # adbg_intf_i_pm_out_rep[39:0]
-for {set idx 0} {$idx < 40} {incr idx} {
-    create_qtm_delay_arc -from clk_adc -to "adbg_intf_i_pm_out_rep[$idx]" \\
-        -from_edge rise -to_edge rise -value 0.05
-    create_qtm_delay_arc -from clk_adc -to "adbg_intf_i_pm_out_rep[$idx]" \\
-        -from_edge rise -to_edge fall -value 0.05
-}
+# for {set idx 0} {$idx < 40} {incr idx} {
+#     create_qtm_delay_arc -from clk_adc -to "adbg_intf_i_pm_out_rep[$idx]" \\
+#         -from_edge rise -to_edge rise -value 0.05
+#     create_qtm_delay_arc -from clk_adc -to "adbg_intf_i_pm_out_rep[$idx]" \\
+#         -from_edge rise -to_edge fall -value 0.05
+# }
 
 ## miscellaneous outputs
 
 # adbg_intf_i_pm_out_pi[79:0]
-for {set idx 0} {$idx < 80} {incr idx} {
-    create_qtm_delay_arc -from clk_adc -to "adbg_intf_i_pm_out_pi[$idx]" \\
-        -from_edge rise -to_edge rise -value 0.02
-    create_qtm_delay_arc -from clk_adc -to "adbg_intf_i_pm_out_pi[$idx]" \\
-        -from_edge rise -to_edge fall -value 0.02
-}
+# for {set idx 0} {$idx < 80} {incr idx} {
+#     create_qtm_delay_arc -from clk_adc -to "adbg_intf_i_pm_out_pi[$idx]" \\
+#         -from_edge rise -to_edge rise -value 0.02
+#     create_qtm_delay_arc -from clk_adc -to "adbg_intf_i_pm_out_pi[$idx]" \\
+#         -from_edge rise -to_edge fall -value 0.02
+# }
 
 # adbg_intf_i_cal_out_pi[3:0]
-for {set idx 0} {$idx < 4} {incr idx} {
-    create_qtm_delay_arc -from clk_adc -to "adbg_intf_i_cal_out_pi[$idx]" \\
-        -from_edge rise -to_edge rise -value 0.02
-    create_qtm_delay_arc -from clk_adc -to "adbg_intf_i_cal_out_pi[$idx]" \\
-        -from_edge rise -to_edge fall -value 0.02
-}
+# for {set idx 0} {$idx < 4} {incr idx} {
+#     create_qtm_delay_arc -from clk_adc -to "adbg_intf_i_cal_out_pi[$idx]" \\
+#         -from_edge rise -to_edge rise -value 0.02
+#     create_qtm_delay_arc -from clk_adc -to "adbg_intf_i_cal_out_pi[$idx]" \\
+#         -from_edge rise -to_edge fall -value 0.02
+# }
 
 # adbg_intf_i_Qperi[19:0]
-for {set idx 0} {$idx < 20} {incr idx} {
-    create_qtm_delay_arc -from clk_adc -to "adbg_intf_i_Qperi[$idx]" -from_edge rise \\
-        -to_edge rise -value 0.02
-    create_qtm_delay_arc -from clk_adc -to "adbg_intf_i_Qperi[$idx]" -from_edge rise \\
-        -to_edge fall -value 0.02
-}
+# for {set idx 0} {$idx < 20} {incr idx} {
+#     create_qtm_delay_arc -from clk_adc -to "adbg_intf_i_Qperi[$idx]" -from_edge rise \\
+#         -to_edge rise -value 0.02
+#     create_qtm_delay_arc -from clk_adc -to "adbg_intf_i_Qperi[$idx]" -from_edge rise \\
+#         -to_edge fall -value 0.02
+# }
 
 # adbg_intf_i_max_sel_mux[19:0]
-for {set idx 0} {$idx < 20} {incr idx} {
-    create_qtm_delay_arc -from clk_adc -to "adbg_intf_i_max_sel_mux[$idx]" \\
-        -from_edge rise -to_edge rise -value 0.02
-    create_qtm_delay_arc -from clk_adc -to "adbg_intf_i_max_sel_mux[$idx]" \\
-        -from_edge rise -to_edge fall -value 0.02
-}
+# for {set idx 0} {$idx < 20} {incr idx} {
+#     create_qtm_delay_arc -from clk_adc -to "adbg_intf_i_max_sel_mux[$idx]" \\
+#         -from_edge rise -to_edge rise -value 0.02
+#     create_qtm_delay_arc -from clk_adc -to "adbg_intf_i_max_sel_mux[$idx]" \\
+#         -from_edge rise -to_edge fall -value 0.02
+# }
 
 report_qtm_model
 save_qtm_model -format {lib db} -library_cell

@@ -86,17 +86,11 @@ set ext_other_io {{ \\
     ext_clk_async_n \\
     ext_clkp \\
     ext_clkn \\
-    clk_out_p \\
-    clk_out_n \\
-    clk_trig_p \\
-    clk_trig_n \\
     ext_mdll_clk_refp \\
     ext_mdll_clk_refn \\
     ext_mdll_clk_monp \\
     ext_mdll_clk_monn \\
-    ext_mdll_clk_monn \\
     ramp_clock \\
-    ext_clock_outputs \\
     clk_out_p \\
     clk_out_n \\
     clk_trig_p \\
@@ -123,8 +117,15 @@ set_false_path -through [get_pins -of_objects ibuf_*]
 set_dont_touch_network [get_pins iacore/adbg_intf_i_*]
 set_false_path -through [get_pins iacore/adbg_intf_i_*]
 
-# TODO: do some nets on the debug interface need to be
-# included in timing analysis?
+# TODO specify timing for PI control
+set_dont_touch_network [get_pins iacore/ctl_*]
+set_false_path -through [get_pins iacore/ctl_*]
+
+# TODO specify timing for ADC outputs
+set_dont_touch_network [get_pins iacore/adder_out*]
+set_dont_touch_network [get_pins iacore/sign_out*]
+set_false_path -through [get_pins iacore/adder_out*]
+set_false_path -through [get_pins iacore/sign_out*]
 
 ######
 # MDLL
@@ -156,7 +157,7 @@ set_load {0.02*cap_scale} [all_outputs]
 
 # Tighten transition constraint for clocks declared so far
 # This should be clk_jtag and clk_retimer
-set_max_transition {0.1*time_scale} [all_clocks]
+set_max_transition {0.1*time_scale} -clock_path [all_clocks]
 
 # Set transition time for high-speed signals monitored from iacore
 # transition time is 10% of a 4 GHz period
