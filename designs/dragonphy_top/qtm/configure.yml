@@ -8,12 +8,6 @@ commands:
     mkdir -p outputs
     cd build
 
-    # build analog_core QTM
-    mkdir -p analog_core
-    cd analog_core
-    pt_shell -f ../../analog_core.qtm.tcl
-    cd ..
-
     # build input_buffer QTM
     mkdir -p input_buffer
     cd input_buffer
@@ -28,16 +22,12 @@ commands:
 
     # link build products into output folder
     cd ../outputs
-    ln -s ../build/analog_core/analog_core*.db analog_core_lib.db
-    ln -s ../build/analog_core/analog_core*.lib analog_core.lib
     ln -s ../build/input_buffer/input_buffer_lib.db input_buffer_lib.db
     ln -s ../build/input_buffer/input_buffer.lib input_buffer.lib
     ln -s ../build/output_buffer/output_buffer_lib.db output_buffer_lib.db
     ln -s ../build/output_buffer/output_buffer.lib output_buffer.lib
 
 outputs:
-  - analog_core_lib.db
-  - analog_core.lib
   - input_buffer_lib.db
   - input_buffer.lib
   - output_buffer_lib.db
