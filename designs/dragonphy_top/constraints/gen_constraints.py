@@ -36,31 +36,31 @@ set_dont_touch_network [get_pins iacore/clk_adc]
 # https://www2.lauterbach.com/pdf/arm_app_jtag.pdf
 
 # TCK clock signal: 20 MHz max
-create_clock -name clk_jtag -period 50.0 [get_ports jtag_intf_i_phy_tck]
+create_clock -name clk_jtag -period 50.0 [get_ports jtag_intf_i.phy_tck]
 set_clock_uncertainty -setup 1.0 clk_jtag
 set_clock_uncertainty -hold 1.0 clk_jtag
 
 # TCK constraints
-set_input_transition 0.5 [get_port jtag_intf_i_phy_tck]
-set_dont_touch_network [get_port jtag_intf_i_phy_tck]
+set_input_transition 0.5 [get_port jtag_intf_i.phy_tck]
+set_dont_touch_network [get_port jtag_intf_i.phy_tck]
 
 # timing constraints for TDI (changes 0 to 5 ns from falling edge of JTAG clock)
-set_input_transition 0.5 [get_port jtag_intf_i_phy_tdi]
-set_input_delay -clock clk_jtag -max 0.5 -clock_fall [get_port jtag_intf_i_phy_tdi]
-set_input_delay -clock clk_jtag -min 0.0 -clock_fall [get_port jtag_intf_i_phy_tdi]
+set_input_transition 0.5 [get_port jtag_intf_i.phy_tdi]
+set_input_delay -clock clk_jtag -max 0.5 -clock_fall [get_port jtag_intf_i.phy_tdi]
+set_input_delay -clock clk_jtag -min 0.0 -clock_fall [get_port jtag_intf_i.phy_tdi]
 
 # timing constraints for TMS (changes 0 to 5 ns from falling edge of JTAG clock)
-set_input_transition 0.5 [get_port jtag_intf_i_phy_tms]
-set_input_delay -clock clk_jtag -max 5.0 -clock_fall [get_port jtag_intf_i_phy_tms]
-set_input_delay -clock clk_jtag -min 0.0 -clock_fall [get_port jtag_intf_i_phy_tms]
+set_input_transition 0.5 [get_port jtag_intf_i.phy_tms]
+set_input_delay -clock clk_jtag -max 5.0 -clock_fall [get_port jtag_intf_i.phy_tms]
+set_input_delay -clock clk_jtag -min 0.0 -clock_fall [get_port jtag_intf_i.phy_tms]
 
 # timing constraints for TDO (setup time 12.5 ns, hold time 0.0)
 # TDO changes on the falling edge of TCK but is sampled on the rising edge
-set_output_delay -clock clk_jtag -max 12.5 [get_port jtag_intf_i_phy_tdo]
-set_output_delay -clock clk_jtag -min 0.0 [get_port jtag_intf_i_phy_tdo]
+set_output_delay -clock clk_jtag -max 12.5 [get_port jtag_intf_i.phy_tdo]
+set_output_delay -clock clk_jtag -min 0.0 [get_port jtag_intf_i.phy_tdo]
 
 # TRST_N is asynchronous
-set_false_path -through [get_port jtag_intf_i_phy_trst_n]
+set_false_path -through [get_port jtag_intf_i.phy_trst_n]
 
 ############################
 # Asynchronous clock domains
@@ -114,8 +114,17 @@ set_false_path -through [get_pins -of_objects ibuf_*]
 # Analog core
 #############
 
-set_dont_touch_network [get_pins iacore/adbg_intf_i_*]
-set_false_path -through [get_pins iacore/adbg_intf_i_*]
+# TODO specify loading for inputs and bidirectional pins
+# set_load {0.01*cap_scale} [get_pins -filter "direction == in" -of_objects [get_cells iacore]]
+# set_load {0.01*cap_scale} [get_pins -filter "direction == inout" -of_objects [get_cells iacore]]
+
+# TODO specify drive for outputs and bidirectional pins
+# set_drive 1.0 [get_pins -filter "direction == out" -of_objects [get_cells iacore]]
+# set_drive 1.0 [get_pins -filter "direction == inout" -of_objects [get_cells iacore]]
+
+# TODO do any signals in the debug interface need special treatment?
+set_dont_touch_network [get_pins iacore/adbg_intf_i.*]
+set_false_path -through [get_pins iacore/adbg_intf_i.*]
 
 # TODO specify timing for PI control
 set_dont_touch_network [get_pins iacore/ctl_*]
@@ -160,20 +169,26 @@ set_load {0.02*cap_scale} [all_outputs]
 set_max_transition {0.1*time_scale} -clock_path [all_clocks]
 
 # Set transition time for high-speed signals monitored from iacore
-# transition time is 10% of a 4 GHz period
-set iacore_mon_nets {{ \\
+# transition time is 10% of a 4 GHz period.  Note that we have to
+# create a clock before the transition constraint is applied
+# (appears to be related to the fact that these are internal nets)
+set mon_nets [get_pins {{ \\
     iacore/*del_out_pi* \\
     iacore/*pi_out_meas* \\
     iacore/*del_out_rep* \\
     iacore/*inbuf_out_meas* \\
     iacore/*pfd_inp_meas* \\
     iacore/*pfd_inn_meas* \\
+}}]
+foreach x [get_object_name $mon_nets] {{
+    create_clock -name clk_mon_net_$x -period {0.25*time_scale} [get_pins $x]
+    set_max_transition {0.025*time_scale} -clock_path [get_clocks clk_mon_net_$x]
 }}
-set_max_transition {0.025*time_scale} [get_pins $iacore_mon_nets]
 
 # Set transition time for 8 GHz clock (output of ibuf_main)
-# i.e. 10% of an 8 GHz period 
-set_max_transition {0.0125*time_scale} [get_pins ibuf_main/clk]
+# i.e. 10% of an 8 GHz period
+create_clock -name clk_main_buf -period {0.125*time_scale} [get_pin ibuf_main/clk]
+set_max_transition {0.0125*time_scale} -clock_path [get_clock clk_main_buf]
 
 # TODO: are special constraints needed for any of the following nets?
 # For the MDLL, since we do not have *.lib or *.db specifying load 
