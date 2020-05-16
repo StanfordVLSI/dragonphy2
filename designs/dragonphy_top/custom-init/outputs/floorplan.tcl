@@ -25,6 +25,10 @@
 
     set output_buffer_width [dbGet [dbGet -p top.insts.name *out_buff_i*].cell.size_x]
     set output_buffer_height [dbGet [dbGet -p top.insts.name *out_buff_i*].cell.size_y]
+    
+    set acore_width [dbGet [dbGet -p top.insts.name *iacore*].cell.size_x]
+    set acore_height [dbGet [dbGet -p top.insts.name *iacore*].cell.size_y]
+
 
     set mdll_width [dbGet [dbGet -p top.insts.name *imdll*].cell.size_x]
     set mdll_height [dbGet [dbGet -p top.insts.name *imdll*].cell.size_y]
@@ -59,12 +63,11 @@
     #floorPlan -r $core_aspect_ratio $core_density_target \
     #             $core_margin_l $core_margin_b $core_margin_r $core_margin_t
 
-    set FP_width [snap_to_grid 800 $horiz_pitch ]
+    set sram_FP_adjust 200
+
+    set FP_width [snap_to_grid [expr 800 + $sram_FP_adjust] $horiz_pitch ]
     set FP_height [snap_to_grid 800 $vert_pitch ]
     
-    set acore_width [snap_to_grid 400 $horiz_pitch]
-    set acore_height [snap_to_grid 400 $vert_pitch]
-
 
     floorPlan -site core -s $FP_width $FP_height \
                             $core_margin_l $core_margin_b $core_margin_r $core_margin_t
@@ -84,7 +87,7 @@
     #set origin_acore_x    [snap_to_grid [expr $FP_width/2 - $acore_width/2] $horiz_pitch ]
     #set origin_acore_y    [expr $sram_height + $sram_to_acore_spacing_y ]
 
-    set origin_acore_x    199.98
+    set origin_acore_x    [expr 199.98 + $sram_FP_adjust]
     set origin_acore_y    399.744
     
     set origin_sram_ffe_x [expr 9*$blockage_width  + $core_margin_l]
@@ -96,28 +99,28 @@
     #set origin_async_x [expr 3*$blockage_width  + $core_margin_l]
     #set origin_async_y [expr $origin_sram_ffe_y + $sram_height +  $sram_to_buff_spacing_y]
     
-    set origin_async_x 109.98
+    set origin_async_x [expr 109.98 + $sram_FP_adjust]
     set origin_async_y 323.712
     #set origin_out_x [expr $FP_width - 6*$blockage_width - $output_buffer_width - $core_margin_l]
     #set origin_out_y [expr $origin_sram_adc_y + $sram_height + $sram_to_acore_spacing_y - 4 * $vert_pitch]
     
-    set origin_out_x 738.00
+    set origin_out_x [expr 738.00 + $sram_FP_adjust]
     set origin_out_y 170.496 
     #set origin_main_x [expr $origin_acore_x + [snap_to_grid [expr $acore_width/2] $horiz_pitch]]
     #set origin_main_y [expr [snap_to_grid [expr $sram_height / 2.0] $vert_pitch] + $origin_sram_adc_y]
 
-    set origin_main_x 373.77
+    set origin_main_x [expr 373.77 + $sram_FP_adjust]
     set origin_main_y 323.712
     #set origin_mdll_x [expr $origin_out_x - $mdll_width - [snap_to_grid 60 $horiz_pitch]]
     #set origin_mdll_y [expr $origin_acore_y + [snap_to_grid [expr $acore_height/4] $vert_pitch ]  ]   
  
-    set origin_mdll_x 540.00
+    set origin_mdll_x [expr 540.00 + $sram_FP_adjust]
     set origin_mdll_y 312.192   
     
-    set origin_mon_x 722.74
-    set origin_mon_y 343.872
+    set origin_mon_x [expr 722.74 + $sram_FP_adjust]
+    set origin_mon_y 293.76
 
-    set origin_ref_x 722.74
+    set origin_ref_x [expr 722.74 + $sram_FP_adjust]
     set origin_ref_y 353.088
 
     #set origin_ref_x [expr $FP_width - 6*$blockage_width - $input_buffer_width - $core_margin_l]
@@ -139,10 +142,10 @@
         imdll \
         $origin_mdll_x \
         $origin_mdll_y 
-    #placeInstance \
-    #    iacore \
-    #    $origin_acore_x \
-    #    $origin_acore_y
+    placeInstance \
+        iacore \
+        $origin_acore_x \
+        $origin_acore_y
     
     placeInstance \
         ibuf_main \
@@ -152,7 +155,7 @@
     placeInstance \
         ibuf_mdll_mon \
         [expr $origin_mon_x] \
-        [expr $origin_mon_y - $input_buffer_height] \
+        [expr $origin_mon_y] \
         MX
 
     placeInstance \
@@ -262,9 +265,9 @@
     
     createPlaceBlockage -box \
         [expr $origin_mon_x - $blockage_width] \
-        [expr $origin_mon_y + $blockage_height] \
+        [expr $origin_mon_y - $blockage_height] \
         [expr $origin_mon_x + $input_buffer_width  +  $blockage_width] \
-        [expr $origin_mon_y - $input_buffer_height -  $blockage_height]
+        [expr $origin_mon_y + $input_buffer_height +  $blockage_height]
 
     createPlaceBlockage -box \
         [expr $origin_main_x - $blockage_width] \

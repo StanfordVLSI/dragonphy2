@@ -307,6 +307,8 @@ set_app_var verilogout_no_tri true
 set_fix_multiple_port_nets -all -buffer_constants
 
 
+set compile_ultra_options ""
+
 # Enable Retiming
 if {[info exists DC_RETIME]} {
     set dc_retime $DC_RETIME
@@ -335,9 +337,6 @@ if {[info exists DC_FLATTEN_EFFORT]} {
 }
 
 puts "Info: Flattening effort (DC_FLATTEN_EFFORT) = $dc_flatten_effort"
-
-set compile_ultra_options ""
-
 
 if {$dc_flatten_effort == 0} {
   puts "Info: All design hierarchies are preserved unless otherwise specified."
