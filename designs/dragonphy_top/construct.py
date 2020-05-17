@@ -113,6 +113,7 @@ def construct():
         'analog_core_lib.db',
         'input_buffer_lib.db',
         'output_buffer_lib.db',
+        'mdll_r1_top_lib.db',
         'sram_tt.db'
     ]
     dc.extend_inputs(dbs)
@@ -122,6 +123,7 @@ def construct():
     # These steps need timing and lef info for black boxes
     libs = [
         'analog_core.lib',
+        'mdll_r1_top.lib',
         'input_buffer.lib',
         'output_buffer.lib',
         'sram_tt.lib'
