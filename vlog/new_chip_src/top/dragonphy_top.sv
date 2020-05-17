@@ -22,16 +22,12 @@ module dragonphy_top import const_pack::*; (
 	input wire logic ext_mdll_clk_refn,
 	input wire logic ext_mdll_clk_monp,
 	input wire logic ext_mdll_clk_monn,
-	
-	input wire logic ramp_clock,
 
 	// clock outputs
 	output wire logic clk_out_p,
 	output wire logic clk_out_n,
 	output wire logic clk_trig_p,
 	output wire logic clk_trig_n,
-
-	output wire logic freq_lvl_cross,
 
 	//Reset Logic
 	input wire logic ext_rstb,
@@ -107,9 +103,6 @@ module dragonphy_top import const_pack::*; (
     logic [Nadc-1:0] adcout_rep [Nti_rep-1:0];
     logic [Nti_rep-1:0] adcout_sign_rep;
 
-// temp setting for sim ultil DCORE is fixed -------------
-//--------------------------------------------------------
-	
 	// Analog core instantiation
 	analog_core iacore (
 		.rx_inp(ext_rx_inp),              // RX input (+)
@@ -152,12 +145,12 @@ module dragonphy_top import const_pack::*; (
     	.trigg_out_p(clk_trig_p),
     	.trigg_out_n(clk_trig_n),
     	.clk_async(clk_async),
-		.ctl_valid(ctl_valid), // port should be removed and replaced with ctl_valid!
+		.ctl_valid(ctl_valid),
 		.mdll_clk(mdll_clk_out),             // goes to output buffer
 		.mdll_jm_clk(mdll_jm_clk_fb_out),    // goes to output buffer
 		.int_pi_ctl_cdr(pi_ctl_cdr),         // PI control code from CDR
-		.ramp_clock(ramp_clock),
-		.freq_lvl_cross(freq_lvl_cross),
+		.ramp_clock(1'b0),                   // we didn't get this pin
+		.freq_lvl_cross(),                   // we didn't get this pin
 		.ext_dump_start(ext_dump_start),
         .disable_ibuf_async(disable_ibuf_async),
 	    .disable_ibuf_main(disable_ibuf_main),

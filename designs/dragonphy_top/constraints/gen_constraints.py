@@ -17,15 +17,15 @@ output += f'''
 ############
 
 # frequency is 1.4 GHz (40% above nominal) 
-create_clock -name clk_retimer -period {0.7*time_scale} [get_pins {{iacore/clk_adc}}]
+create_clock -name clk_retimer -period {0.7*time_scale} [get_pins iacore/clk_adc]
 
 # clock uncertainty
 set_clock_uncertainty -setup 0.03 clk_retimer
 set_clock_uncertainty -hold 0.03 clk_retimer
 
-# prevent synthesis tool from inserting buffers
-# TODO: do we want this?
-set_dont_touch_network [get_pins iacore/clk_adc]
+############
+# Main clock
+############
 
 ################
 # JTAG interface
@@ -37,12 +37,11 @@ set_dont_touch_network [get_pins iacore/clk_adc]
 
 # TCK clock signal: 20 MHz max
 create_clock -name clk_jtag -period 50.0 [get_ports jtag_intf_i.phy_tck]
-set_clock_uncertainty -setup 1.0 clk_jtag
-set_clock_uncertainty -hold 1.0 clk_jtag
+set_clock_uncertainty -setup 0.03 clk_jtag
+set_clock_uncertainty -hold 0.03 clk_jtag
 
 # TCK constraints
 set_input_transition 0.5 [get_port jtag_intf_i.phy_tck]
-set_dont_touch_network [get_port jtag_intf_i.phy_tck]
 
 # timing constraints for TDI (changes 0 to 5 ns from falling edge of JTAG clock)
 set_input_transition 0.5 [get_port jtag_intf_i.phy_tdi]
@@ -60,7 +59,7 @@ set_output_delay -clock clk_jtag -max 12.5 [get_port jtag_intf_i.phy_tdo]
 set_output_delay -clock clk_jtag -min 0.0 [get_port jtag_intf_i.phy_tdo]
 
 # TRST_N is asynchronous
-set_false_path -through [get_port jtag_intf_i.phy_trst_n]
+set_input_transition 0.5 [get_port jtag_intf_i.phy_trst_n]
 
 ############################
 # Asynchronous clock domains
@@ -75,7 +74,7 @@ set_false_path -from clk_jtag -to clk_retimer
 
 # external analog inputs
 
-set ext_other_io {{ \\
+set ext_dont_touch_false_path {{ \\
     ext_rx_inp \\
     ext_rx_inn \\
     ext_Vcm \\
@@ -90,49 +89,40 @@ set ext_other_io {{ \\
     ext_mdll_clk_refn \\
     ext_mdll_clk_monp \\
     ext_mdll_clk_monn \\
-    ramp_clock \\
     clk_out_p \\
     clk_out_n \\
     clk_trig_p \\
     clk_trig_n \\
-    freq_lvl_cross \\
+}}
+
+set_dont_touch_network [get_ports $ext_dont_touch_false_path]
+set_false_path -through [get_ports $ext_dont_touch_false_path]
+
+set ext_false_path_only {{ \\
     ext_rstb \\
     ext_dump_start \\
 }}
 
-set_dont_touch_network [get_ports $ext_other_io]
-set_false_path -through [get_ports $ext_other_io]
+set_false_path -through [get_ports $ext_false_path_only]
 
 ###################
 # Top-level buffers
 ###################
 
-set_dont_touch_network [get_pins -of_objects ibuf_*]
-set_false_path -through [get_pins -of_objects ibuf_*]
+# IOS for buffers are all false paths
+set_false_path -through [get_pins ibuf_*/*]
 
 #############
 # Analog core
 #############
 
-# TODO specify loading for inputs and bidirectional pins
-# set_load {0.01*cap_scale} [get_pins -filter "direction == in" -of_objects [get_cells iacore]]
-# set_load {0.01*cap_scale} [get_pins -filter "direction == inout" -of_objects [get_cells iacore]]
-
-# TODO specify drive for outputs and bidirectional pins
-# set_drive 1.0 [get_pins -filter "direction == out" -of_objects [get_cells iacore]]
-# set_drive 1.0 [get_pins -filter "direction == inout" -of_objects [get_cells iacore]]
-
 # TODO do any signals in the debug interface need special treatment?
-set_dont_touch_network [get_pins iacore/adbg_intf_i.*]
 set_false_path -through [get_pins iacore/adbg_intf_i.*]
 
 # TODO specify timing for PI control
-set_dont_touch_network [get_pins iacore/ctl_*]
 set_false_path -through [get_pins iacore/ctl_*]
 
 # TODO specify timing for ADC outputs
-set_dont_touch_network [get_pins iacore/adder_out*]
-set_dont_touch_network [get_pins iacore/sign_out*]
 set_false_path -through [get_pins iacore/adder_out*]
 set_false_path -through [get_pins iacore/sign_out*]
 
@@ -140,14 +130,15 @@ set_false_path -through [get_pins iacore/sign_out*]
 # MDLL
 ######
 
-set_dont_touch_network [get_pins -of_objects imdll]
+# IOs for MDLL are all false paths
 set_false_path -through [get_pins -of_objects imdll]
 
 ################
 # Output buffer
 ################
 
-set_dont_touch_network [get_pins -of_objects idcore/out_buff_i]
+# IOs for output buffer are all false paths
+# The output signals previously had dont_touch_network applied
 set_false_path -through [get_pins -of_objects idcore/out_buff_i]
 
 #################
@@ -190,14 +181,31 @@ foreach x [get_object_name $mon_nets] {{
 create_clock -name clk_main_buf -period {0.125*time_scale} [get_pin ibuf_main/clk]
 set_max_transition {0.0125*time_scale} -clock_path [get_clock clk_main_buf]
 
-# TODO: are special constraints needed for any of the following nets?
-# For the MDLL, since we do not have *.lib or *.db specifying load 
-# and drive capabilities, these would probably take the form of a 
-# maximum capacitance constraint
-# clk_async
-# mdll_clk_refp / mdll_clk_refn
-# mdll_clk_monp / mdll_clk_monn
-# mdll_clk_out
+# Set transition time for clk_async
+# TODO is 1.0 GHz the correct period?
+create_clock -name clk_async_buf -period {1.0*time_scale} [get_pin ibuf_async/clk]
+set_max_transition {0.1*time_scale} -clock_path [get_clock clk_async_buf]
+
+# Set transition time for MDLL reference
+# TODO is 125 MHz the correct period?
+# TODO is special handling needed for this differential clock signal?
+create_clock -name clk_mdll_refp -period {8.0*time_scale} [get_pin ibuf_mdll_ref/clk]
+set_max_transition {0.03*time_scale} -clock_path [get_clock clk_mdll_refp]
+create_clock -name clk_mdll_refn -period {8.0*time_scale} [get_pin ibuf_mdll_ref/clk_b]
+set_max_transition {0.03*time_scale} -clock_path [get_clock clk_mdll_refn]
+
+# Set transition time for MDLL monitor
+# TODO is 1.0 GHz the correct period?
+# TODO is special handling needed for this differential clock signal?
+create_clock -name clk_mdll_monp -period {1.0*time_scale} [get_pin ibuf_mdll_mon/clk]
+set_max_transition {0.1*time_scale} -clock_path [get_clock clk_mdll_monp]
+create_clock -name clk_mdll_monn -period {1.0*time_scale} [get_pin ibuf_mdll_mon/clk_b]
+set_max_transition {0.1*time_scale} -clock_path [get_clock clk_mdll_monn]
+
+# Set transition time for the MDLL output
+# TODO is 4.0 GHz the correct period?
+create_clock -name clk_mdll_out -period {0.25*time_scale} [get_pin imdll/clk_0]
+set_max_transition {0.03*time_scale} -clock_path [get_clock clk_mdll_out]
 
 echo [all_clocks]
 '''
