@@ -23,9 +23,16 @@ create_clock -name clk_retimer -period {0.7*time_scale} [get_pins iacore/clk_adc
 set_clock_uncertainty -setup 0.03 clk_retimer
 set_clock_uncertainty -hold 0.03 clk_retimer
 
-############
-# Main clock
-############
+#################
+# Averaging clock
+#################
+
+# division ratio could be 2^0 to 2^15, so lowest division ratio is used
+create_generated_clock \\
+    -name clk_avg \\
+    -divide_by 1 \\
+    -source [get_pins idcore/average_clk_gen/cki] \\
+    [get_pins idcore/average_clk_gen/cko]
 
 ################
 # JTAG interface
