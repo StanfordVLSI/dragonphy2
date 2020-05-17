@@ -26,6 +26,12 @@ commands:
     pt_shell -f ../../output_buffer.qtm.tcl
     cd ..
 
+    # build mdll_r1_top QTM
+    mkdir -p mdll_r1_top
+    cd mdll_r1_top
+    pt_shell -f ../../mdll_r1_top.qtm.tcl
+    cd ..
+
     # link build products into output folder
     cd ../outputs
     ln -s ../build/analog_core/analog_core_lib.db analog_core_lib.db
@@ -34,6 +40,8 @@ commands:
     ln -s ../build/input_buffer/input_buffer.lib input_buffer.lib
     ln -s ../build/output_buffer/output_buffer_lib.db output_buffer_lib.db
     ln -s ../build/output_buffer/output_buffer.lib output_buffer.lib
+    ln -s ../build/mdll_r1_top_lib/mdll_r1_top_lib.db mdll_r1_top_lib.db
+    ln -s ../build/mdll_r1_top/mdll_r1_top.lib mdll_r1_top.lib
 
 outputs:
   - analog_core_lib.db
@@ -42,3 +50,5 @@ outputs:
   - input_buffer.lib
   - output_buffer_lib.db
   - output_buffer.lib
+  - mdll_r1_top_lib.db
+  - mdll_r1_top.lib
