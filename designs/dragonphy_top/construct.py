@@ -110,6 +110,7 @@ def construct():
 
     # Add *.db files for macros to downstream nodes
     dbs = [
+        'analog_core_lib.db',
         'input_buffer_lib.db',
         'output_buffer_lib.db',
         'sram_tt.db'
@@ -120,6 +121,7 @@ def construct():
 
     # These steps need timing and lef info for black boxes
     libs = [
+        'analog_core.lib',
         'input_buffer.lib',
         'output_buffer.lib',
         'sram_tt.lib'
