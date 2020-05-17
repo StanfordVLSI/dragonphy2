@@ -91,6 +91,7 @@ set_output_delay {0.7*time_scale} [all_outputs]
 # asynchronous clock domains
 set_false_path -from clk_retimer -to clk_jtag
 set_false_path -from clk_jtag -to clk_retimer
+set_false_path -from clk_retimer -to freq_lvl_cross
 
 # analog core (black box)
 set_false_path -through [get_pins -of_objects iacore]
