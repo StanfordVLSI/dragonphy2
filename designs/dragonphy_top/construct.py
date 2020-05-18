@@ -30,13 +30,13 @@ def construct():
     if DRAGONPHY_PROCESS == 'FREEPDK45':
         parameters['adk_name'] = 'freepdk-45nm'
         parameters['adk_view'] = 'view-standard'
+        parameters['qtm_tech_lib'] = 'NangateOpenCellLibrary'
         # override default scale factors for an older, slower process
         parameters['constr_time_scale'] = 10.0
         parameters['constr_cap_scale'] = 10.0*1e3
     elif DRAGONPHY_PROCESS == 'TSMC16':
         parameters['adk_name'] = 'tsmc16'
         parameters['adk_view'] = 'stdview'
-        # default parameters are for TSMC16, so no need to override them here
     else:
         raise Exception(f'Unknown process: {DRAGONPHY_PROCESS}')
 
@@ -220,6 +220,7 @@ def construct():
     g.connect_by_name( adk,            gdsmerge       )
     g.connect_by_name( adk,            drc            )
     g.connect_by_name( adk,            lvs            )
+    g.connect_by_name( adk,            qtm            )
 
     # Connect up blocks like analog_core, input_buffer, etc.
     # The QTM step is also included here because it provides

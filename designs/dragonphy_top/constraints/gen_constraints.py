@@ -6,6 +6,7 @@ OUTPUT_FILE = 'constraints.tcl'
 design_name = os.environ['design_name']
 time_scale = float(os.environ['constr_time_scale'])
 cap_scale = float(os.environ['constr_cap_scale'])
+main_per = float(os.environ['constr_main_per'])
 
 output = ''
 
@@ -16,8 +17,14 @@ output += f'''
 # Main clock
 ############
 
-# frequency is 1.4 GHz (40% above nominal) 
-create_clock -name clk_retimer -period {0.7*time_scale} [get_pins iacore/clk_adc]
+# Frequency is 1.4 GHz (40% above nominal) 
+# For timining analysis, the IO of analog core is considered to be clocked on 
+# ext_clk (input) rather than clk_adc (output).  Hence the ext_clk signal is 
+# declared to have the same frequency as clk_adc.  This should be OK because there
+# is no synthesized logic that actually runs on ext_clk, and the ext_clk transition
+# time is set to be very fast later in this constraints file.
+create_clock -name clk_main_buf -period {main_per*time_scale} [get_pin ibuf_main/clk]
+create_clock -name clk_retimer  -period {main_per*time_scale} [get_pins iacore/clk_adc]
 
 # clock uncertainty
 set_clock_uncertainty -setup 0.03 clk_retimer
@@ -61,8 +68,7 @@ set_input_transition 0.5 [get_port jtag_intf_i.phy_trst_n]
 # Asynchronous clock domains
 ############################
 
-set_false_path -from clk_retimer -to clk_jtag
-set_false_path -from clk_jtag -to clk_retimer
+set_clock_groups -asynchronous -group [get_clock clk_jtag] -group [get_clock clk_retimer]
 
 ####################
 # Other external I/O
@@ -115,13 +121,6 @@ set_false_path -through [get_pins ibuf_*/*]
 # TODO do any signals in the debug interface need special treatment?
 set_false_path -through [get_pins iacore/adbg_intf_i.*]
 
-# TODO specify timing for PI control
-set_false_path -through [get_pins iacore/ctl_*]
-
-# TODO specify timing for ADC outputs
-set_false_path -through [get_pins iacore/adder_out*]
-set_false_path -through [get_pins iacore/sign_out*]
-
 ######
 # MDLL
 ######
@@ -137,6 +136,25 @@ set_false_path -through [get_pins -of_objects imdll]
 # The output signals previously had dont_touch_network applied
 set_false_path -through [get_pins -of_objects idcore/out_buff_i]
 
+###############
+# Case analysis
+###############
+
+# Need to specify nominal control codes for the retimer; otherwise
+# some bits will have 
+
+set ctrl_1 "0000111111111111"
+set ctrl_2 "1111111111110000"
+
+for {{set idx 0}} {{$idx < 16}} {{incr idx}} {{
+    set_case_analysis \\
+        [string index $ctrl_1 [expr {{15 - $idx}}]] \\
+        "idcore/jtag_i/ddbg_intf_i/retimer_mux_ctrl_1[$idx]"
+    set_case_analysis \\
+        [string index $ctrl_2 [expr {{15 - $idx}}]] \\
+        "idcore/jtag_i/ddbg_intf_i/retimer_mux_ctrl_2[$idx]"
+}}
+
 #################
 # Net constraints
 #################
@@ -148,12 +166,12 @@ set_max_capacitance {0.1*cap_scale} [current_design]
 set_max_fanout 20 {design_name}
 
 # specify loads for outputs
-# TODO: this seems low...
+# value is low, but all outputs are dont_touch_network anyway
 set_load {0.02*cap_scale} [all_outputs]
 
 # Tighten transition constraint for clocks declared so far
-# This should be clk_jtag and clk_retimer
-set_max_transition {0.1*time_scale} -clock_path [all_clocks]
+set_max_transition {0.1*time_scale} -clock_path [get_clock clk_retimer]
+set_max_transition {0.1*time_scale} -clock_path [get_clock clk_jtag]
 
 # Set transition time for high-speed signals monitored from iacore
 # transition time is 10% of a 4 GHz period.  Note that we have to
@@ -172,34 +190,29 @@ foreach x [get_object_name $mon_nets] {{
     set_max_transition {0.025*time_scale} -clock_path [get_clocks clk_mon_net_$x]
 }}
 
-# Set transition time for 8 GHz clock (output of ibuf_main)
-# i.e. 10% of an 8 GHz period
-create_clock -name clk_main_buf -period {0.125*time_scale} [get_pin ibuf_main/clk]
-set_max_transition {0.0125*time_scale} -clock_path [get_clock clk_main_buf]
-
 # Set transition time for clk_async
-# TODO is 1.0 GHz the correct period?
 create_clock -name clk_async_buf -period {1.0*time_scale} [get_pin ibuf_async/clk]
 set_max_transition {0.1*time_scale} -clock_path [get_clock clk_async_buf]
 
+# Set transition time for the 8 GHz output of the main buffer
+# Note that the period of this clock is declared as 1 GHz due to 
+# limitations in QTMs models mentioned earlier, but the transition
+# constraint is 10% of an 8 GHz clock (rather than a 1 GHz clock)
+set_max_transition {0.0125*time_scale} -clock_path [get_clock clk_main_buf]
+
 # Set transition time for MDLL reference
-# TODO is 125 MHz the correct period?
-# TODO is special handling needed for this differential clock signal?
 create_clock -name clk_mdll_refp -period {8.0*time_scale} [get_pin ibuf_mdll_ref/clk]
 set_max_transition {0.03*time_scale} -clock_path [get_clock clk_mdll_refp]
 create_clock -name clk_mdll_refn -period {8.0*time_scale} [get_pin ibuf_mdll_ref/clk_b]
 set_max_transition {0.03*time_scale} -clock_path [get_clock clk_mdll_refn]
 
 # Set transition time for MDLL monitor
-# TODO is 1.0 GHz the correct period?
-# TODO is special handling needed for this differential clock signal?
 create_clock -name clk_mdll_monp -period {1.0*time_scale} [get_pin ibuf_mdll_mon/clk]
 set_max_transition {0.1*time_scale} -clock_path [get_clock clk_mdll_monp]
 create_clock -name clk_mdll_monn -period {1.0*time_scale} [get_pin ibuf_mdll_mon/clk_b]
 set_max_transition {0.1*time_scale} -clock_path [get_clock clk_mdll_monn]
 
 # Set transition time for the MDLL output
-# TODO is 4.0 GHz the correct period?
 create_clock -name clk_mdll_out -period {0.25*time_scale} [get_pin imdll/clk_0]
 set_max_transition {0.03*time_scale} -clock_path [get_clock clk_mdll_out]
 
