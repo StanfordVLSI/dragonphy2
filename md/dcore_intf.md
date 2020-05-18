@@ -51,3 +51,4 @@
 | sel_prbs_mux               |         | 1:0                    |                  | Test         | out      |   0       |
 | retimer_mux_ctrl_1         |         | Nti-1:0                |                  | Test         | out      |   'b0000111111110000 |
 | retimer_mux_ctrl_2         |         | Nti-1:0                |                  | Test         | out      |   'b1111000000000000 |
+| en_cgra_clk                |         |                        |                  | Test         | out      |   0       |

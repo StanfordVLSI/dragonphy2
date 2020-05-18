@@ -111,6 +111,7 @@ set_false_path -through [get_ports $ext_dont_touch_false_path]
 set ext_false_path_only {{ \\
     ext_rstb \\
     ext_dump_start \\
+    clk_cgra \\
 }}
 
 set_false_path -through [get_ports $ext_false_path_only]
@@ -129,10 +130,6 @@ set_false_path -through [get_pins ibuf_*/*]
 # TODO do any signals in the debug interface need special treatment?
 set_false_path -through [get_pins iacore/adbg_intf_i.*]
 
-# TODO specify timing for ADC outputs
-set_false_path -through [get_pins iacore/adder_out*]
-set_false_path -through [get_pins iacore/sign_out*]
-
 ######
 # MDLL
 ######
@@ -145,24 +142,7 @@ set_false_path -through [get_pins -of_objects imdll]
 ################
 
 # IOs for output buffer are all false paths
-# The output signals previously had dont_touch_network applied
 set_false_path -through [get_pins -of_objects idcore/out_buff_i]
-
-###############
-# Case analysis
-###############
-
-# Need to specify nominal control codes for the retimer; otherwise
-# there will be timing violations (the point of the retimer is to 
-# account for differences in timing from nominal)
-
-set ctrl_1 "0000111111110000"
-
-for {{set idx 0}} {{$idx < 16}} {{incr idx}} {{
-    set_case_analysis \\
-        [string index $ctrl_1 [expr {{15 - $idx}}]] \\
-        "idcore/jtag_i/ddbg_intf_i.retimer_mux_ctrl_1[$idx]"
-}}
 
 #################
 # Net constraints
@@ -175,8 +155,7 @@ set_max_capacitance {0.1*cap_scale} [current_design]
 set_max_fanout 20 {design_name}
 
 # specify loads for outputs
-# value is low, but all outputs are dont_touch_network anyway
-set_load {0.02*cap_scale} [all_outputs]
+set_load {0.1*cap_scale} [all_outputs]
 
 # Tighten transition constraint for clocks declared so far
 set_max_transition {0.1*time_scale} -clock_path [get_clock clk_retimer]
@@ -224,6 +203,10 @@ set_max_transition {0.1*time_scale} -clock_path [get_clock clk_mdll_monn]
 # Set transition time for the MDLL output
 create_clock -name clk_mdll_out -period {0.25*time_scale} [get_pin imdll/clk_0]
 set_max_transition {0.03*time_scale} -clock_path [get_clock clk_mdll_out]
+
+# Set transition time for the clock going to the CGRA
+create_clock -name clk_cgra_out -period {1.0*time_scale} [get_pin idcore/clk_cgra]
+set_max_transition {0.1*time_scale} -clock_path [get_clock clk_cgra_out]
 
 echo [all_clocks]
 '''
