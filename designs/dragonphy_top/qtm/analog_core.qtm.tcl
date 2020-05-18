@@ -360,10 +360,25 @@ for {set idx 0} {$idx < 36} {incr idx} {
 ## TODO: check that the order is as expected
 ## (i.e., array port is flattened in expected order)
 
+set clk_adc_per [expr {$::env(constr_main_per) * $::env(constr_time_scale)}]
 for {set adc_idx 0} {$adc_idx < 16} {incr adc_idx} {
+    # determine bank and slice
+    set adc_bank [expr {$adc_idx / 4}]
+    set adc_slice [expr {$adc_idx % 4}]
+
+    # compute overall delay
+    set delay_val [expr {(($adc_bank + (4*$adc_slice) + 0.5)/16.0)*$clk_adc_per}]
+
+    # print out computed delay
+    puts [format "idx: %0d, bank: %0d, slice: %0d, delay: %0f" \
+          $adc_idx $adc_bank $adc_slice $delay_val]
+
+    # loop over the bits in this ADC
     for {set bit_idx 0} {$bit_idx < 8} {incr bit_idx} {
+        # determine the index of this bit in the flattened bus
         set flat_idx [expr {($adc_idx * 8) + $bit_idx}]
-        set delay_val [expr {(($adc_idx * 0.0625) + 0.05)*$::env(constr_time_scale)}]
+
+        # create the delay arcs
         create_qtm_delay_arc -from ext_clk -edge rise -to "adder_out[$flat_idx]" \
             -value $delay_val
         create_qtm_delay_arc -from ext_clk -edge rise -to "sign_out[$adc_idx]" \

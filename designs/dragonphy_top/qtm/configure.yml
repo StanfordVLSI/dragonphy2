@@ -60,5 +60,9 @@ parameters:
   # Name of the technology library containing ADK_DRIVING_CELL
   qtm_tech_lib: tcbn16ffcllbwp16p90tt0p8v25c
 
-  # Scale factor for timing properties
+  # Period of the main clock in nanoseconds
+  # (will be scaled by constr_time_scale)
+  constr_main_per: 0.7
+
+  # Scale factor for timing constraints
   constr_time_scale: 1.0
