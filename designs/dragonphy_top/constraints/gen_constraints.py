@@ -23,8 +23,14 @@ output += f'''
 # declared to have the same frequency as clk_adc.  This should be OK because there
 # is no synthesized logic that actually runs on ext_clk, and the ext_clk transition
 # time is set to be very fast later in this constraints file.
-create_clock -name clk_main_buf -period {main_per*time_scale} [get_pin ibuf_main/clk]
-create_clock -name clk_retimer  -period {main_per*time_scale} [get_pins iacore/clk_adc]
+create_clock -name clk_main_buf \\
+    -period {main_per*time_scale} \\
+    -waveform {{0 {0.5*main_per*time_scale}}} \\
+    [get_pin ibuf_main/clk]
+create_clock -name clk_retimer \\
+    -period {main_per*time_scale} \\
+    -waveform {{0 {0.5*main_per*time_scale}}} \\
+    [get_pins iacore/clk_adc]
 
 # clock uncertainty
 set_clock_uncertainty -setup 0.03 clk_retimer
@@ -68,7 +74,9 @@ set_input_transition 0.5 [get_port jtag_intf_i.phy_trst_n]
 # Asynchronous clock domains
 ############################
 
-set_clock_groups -asynchronous -group [get_clock clk_jtag] -group [get_clock clk_retimer]
+set_clock_groups -asynchronous \\
+    -group {{ clk_jtag }} \\
+    -group {{ clk_retimer clk_main_buf }}
 
 ####################
 # Other external I/O
@@ -120,6 +128,10 @@ set_false_path -through [get_pins ibuf_*/*]
 
 # TODO do any signals in the debug interface need special treatment?
 set_false_path -through [get_pins iacore/adbg_intf_i.*]
+
+# TODO specify timing for ADC outputs
+set_false_path -through [get_pins iacore/adder_out*]
+set_false_path -through [get_pins iacore/sign_out*]
 
 ######
 # MDLL
