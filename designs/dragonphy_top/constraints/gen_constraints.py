@@ -41,7 +41,7 @@ set_dont_touch_network [get_pins {{iacore/clk_adc}}]
 set_dont_touch_network [get_port jtag_intf_i_phy_tck]
 
 set_clock_uncertainty -setup {0.03*time_scale} clk_retimer
-set_clock_uncertainty -hold {0.3*time_scale} clk_retimer
+set_clock_uncertainty -hold {0.03*time_scale} clk_retimer
 set_clock_uncertainty -setup {1.0*time_scale} clk_jtag
 set_clock_uncertainty -hold {0.03*time_scale} clk_jtag
 
