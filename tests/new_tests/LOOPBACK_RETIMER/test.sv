@@ -79,6 +79,37 @@ module test;
 		.ckoutb(ext_clkn)
 	);
 
+    // prbs stimulus
+    logic tx_clk;
+    logic tx_data;
+
+    tx_prbs #(
+        .freq(full_rate)
+    ) tx_prbs_i (
+        .clk(tx_clk),
+        .out(tx_data)
+    );
+
+    // TX driver
+
+    pwl tx_p;
+    pwl tx_n;
+
+    diff_tx_driver diff_tx_driver_i (
+        .in(tx_data),
+        .out_p(tx_p),
+        .out_n(tx_n)
+    );
+
+    // Differential channel
+
+    diff_channel diff_channel_i (
+        .in_p(tx_p),
+        .in_n(tx_n),
+        .out_p(ch_outp),
+        .out_n(ch_outn)
+    );
+
 	// Save signals for post-processing
 
 	logic should_record;
@@ -93,38 +124,23 @@ module test;
 		.en(should_record)
 	);
 
-    // Sine wave stimulus
+    tx_output_recorder tx_output_recorder_i (
+        .in(tx_data),
+        .clk(tx_clk),
+        .en(should_record)
+    );
 
-    sine_stim #(
-        .Vcm(0.4),
-        .sine_ampl(0.2),
-        .sine_freq(1.023e9)
-    ) sine_stim_i (
-		.ch_outp(ch_outp),
-		.ch_outn(ch_outn)
-	);
 
-    // Re-ordering
-    // TODO: clean this up because it is likely a real bug
 	
 	integer tmp;
-	//teger idx_order [Nti] = '{0, 5, 10, 15,
-	//                         1, 6, 11, 12,
-	//                         2, 7,  8, 13,
-	//                         3, 4,  9, 14};
-	
-    integer idx_order [Nti] = '{0, 4, 8, 12,
-	                         	1, 5, 9, 13,
-	                         	2, 6, 10, 14,
-	                         	3, 7, 11, 15};
     
 	always @(posedge top_i.idcore.clk_adc) begin
         // compute the unfolded ADC outputs
         for (int k=0; k<Nti; k=k+1) begin
             // compute output
-             tmp = top_i.idcore.adcout_sign[idx_order[k]] ?
-                  top_i.idcore.adcout[idx_order[k]] - (`EXT_PFD_OFFSET) :
-                  (`EXT_PFD_OFFSET) - top_i.idcore.adcout[idx_order[k]];
+             tmp = top_i.idcore.adcout_sign_retimed[k] ?
+                  top_i.idcore.adcout_retimed[k] - (`EXT_PFD_OFFSET) :
+                  (`EXT_PFD_OFFSET) - top_i.idcore.adcout_retimed[k];
 			
 			// clamp
             if (tmp > 127) begin
