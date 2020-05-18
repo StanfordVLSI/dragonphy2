@@ -36,7 +36,10 @@ module dragonphy_top import const_pack::*; (
 	input wire logic ext_dump_start,
 
 	// JTAG
-	jtag_intf.target jtag_intf_i
+	jtag_intf.target jtag_intf_i,
+
+	// clock to CGRA
+	output wire logic clk_cgra
 );
 	// analog core debug interface
 	acore_debug_intf adbg_intf_i ();
@@ -158,7 +161,8 @@ module dragonphy_top import const_pack::*; (
 	    .disable_ibuf_mdll_mon(disable_ibuf_mdll_mon),
 		.adbg_intf_i(adbg_intf_i),		
 		.jtag_intf_i(jtag_intf_i),
-    	.mdbg_intf_i(mdbg_intf_i)
+    	.mdbg_intf_i(mdbg_intf_i),
+    	.clk_cgra(clk_cgra)
 	);
 
 
