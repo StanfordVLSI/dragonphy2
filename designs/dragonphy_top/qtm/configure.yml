@@ -34,14 +34,17 @@ commands:
 
     # link build products into output folder
     cd ../outputs
-    ln -s ../build/analog_core/analog_core*.db analog_core_lib.db
-    ln -s ../build/analog_core/analog_core*.lib analog_core.lib
+    ln -s ../build/analog_core/analog_core_lib.db analog_core_lib.db
+    ln -s ../build/analog_core/analog_core.lib analog_core.lib
     ln -s ../build/input_buffer/input_buffer_lib.db input_buffer_lib.db
     ln -s ../build/input_buffer/input_buffer.lib input_buffer.lib
     ln -s ../build/output_buffer/output_buffer_lib.db output_buffer_lib.db
     ln -s ../build/output_buffer/output_buffer.lib output_buffer.lib
     ln -s ../build/mdll_r1_top/mdll_r1_top_lib.db mdll_r1_top_lib.db
     ln -s ../build/mdll_r1_top/mdll_r1_top.lib mdll_r1_top.lib
+
+inputs:
+  - adk
 
 outputs:
   - analog_core_lib.db
@@ -52,3 +55,10 @@ outputs:
   - output_buffer.lib
   - mdll_r1_top_lib.db
   - mdll_r1_top.lib
+
+parameters:
+  # Name of the technology library containing ADK_DRIVING_CELL
+  qtm_tech_lib: tcbn16ffcllbwp16p90tt0p8v25c
+
+  # Scale factor for timing properties
+  constr_time_scale: 1.0
