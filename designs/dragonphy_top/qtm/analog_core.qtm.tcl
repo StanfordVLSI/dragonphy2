@@ -75,268 +75,242 @@ set_qtm_port_drive -type qtm_drive { sign_out_rep[1:0] }
 
 # ADC
 
-create_qtm_port -type input { adbg_intf_i.rstb }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.rstb }
+create_qtm_port -type input { adbg_intf_i_rstb }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_rstb }
 
-create_qtm_port -type input { adbg_intf_i.en_v2t }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_v2t }
+create_qtm_port -type input { adbg_intf_i_en_v2t }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_en_v2t }
 
-create_qtm_port -type input { adbg_intf_i.ctl_v2tn[79:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.ctl_v2tn[79:0] }
+create_qtm_port -type input { adbg_intf_i_en_slice[15:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_en_slice[15:0] }
 
-create_qtm_port -type input { adbg_intf_i.ctl_v2tp[79:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.ctl_v2tp[79:0] }
+create_qtm_port -type input { adbg_intf_i_ctl_v2tn[79:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_ctl_v2tn[79:0] }
 
-create_qtm_port -type input { adbg_intf_i.en_slice[15:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_slice[15:0] }
+create_qtm_port -type input { adbg_intf_i_ctl_v2tp[79:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_ctl_v2tp[79:0] }
 
-create_qtm_port -type input { adbg_intf_i.init[31:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.init[31:0] }
+create_qtm_port -type input { adbg_intf_i_init[31:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_init[31:0] }
 
-create_qtm_port -type input { adbg_intf_i.ALWS_ON[15:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.ALWS_ON[15:0] }
+create_qtm_port -type input { adbg_intf_i_ALWS_ON[15:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_ALWS_ON[15:0] }
 
-create_qtm_port -type input { adbg_intf_i.sel_pm_sign[31:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sel_pm_sign[31:0] }
+create_qtm_port -type input { adbg_intf_i_sel_pm_sign[31:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_sel_pm_sign[31:0] }
 
-create_qtm_port -type input { adbg_intf_i.sel_pm_in[31:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sel_pm_in[31:0] }
+create_qtm_port -type input { adbg_intf_i_sel_pm_in[31:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_sel_pm_in[31:0] }
 
-create_qtm_port -type input { adbg_intf_i.sel_clk_TDC[15:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sel_clk_TDC[15:0] }
+create_qtm_port -type input { adbg_intf_i_sel_clk_TDC[15:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_sel_clk_TDC[15:0] }
 
-create_qtm_port -type input { adbg_intf_i.en_pm[15:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_pm[15:0] }
+create_qtm_port -type input { adbg_intf_i_en_pm[15:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_en_pm[15:0] }
 
-create_qtm_port -type input { adbg_intf_i.en_v2t_clk_next[15:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_v2t_clk_next[15:0] }
+create_qtm_port -type input { adbg_intf_i_ctl_dcdl_late[31:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_ctl_dcdl_late[31:0] }
 
-create_qtm_port -type input { adbg_intf_i.en_sw_test[15:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_sw_test[15:0] }
+create_qtm_port -type input { adbg_intf_i_ctl_dcdl_early[31:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_ctl_dcdl_early[31:0] }
 
-create_qtm_port -type input { adbg_intf_i.ctl_dcdl_late[31:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.ctl_dcdl_late[31:0] }
-
-create_qtm_port -type input { adbg_intf_i.ctl_dcdl_early[31:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.ctl_dcdl_early[31:0] }
-
-create_qtm_port -type input { adbg_intf_i.ctl_dcdl_TDC[79:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.ctl_dcdl_TDC[79:0] }
+create_qtm_port -type input { adbg_intf_i_ctl_dcdl_TDC[79:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_ctl_dcdl_TDC[79:0] }
 
 # PI
 
-create_qtm_port -type input { adbg_intf_i.en_gf }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_gf }
+create_qtm_port -type input { adbg_intf_i_en_gf }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_en_gf }
 
-create_qtm_port -type input { adbg_intf_i.en_arb_pi[3:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_arb_pi[3:0] }
+create_qtm_port -type input { adbg_intf_i_en_arb_pi[3:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_en_arb_pi[3:0] }
 
-create_qtm_port -type input { adbg_intf_i.en_delay_pi[3:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_delay_pi[3:0] }
+create_qtm_port -type input { adbg_intf_i_en_delay_pi[3:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_en_delay_pi[3:0] }
 
-create_qtm_port -type input { adbg_intf_i.en_ext_Qperi[3:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_ext_Qperi[3:0] }
+create_qtm_port -type input { adbg_intf_i_en_ext_Qperi[3:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_en_ext_Qperi[3:0] }
 
-create_qtm_port -type input { adbg_intf_i.en_pm_pi[3:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_pm_pi[3:0] }
+create_qtm_port -type input { adbg_intf_i_en_pm_pi[3:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_en_pm_pi[3:0] }
 
-create_qtm_port -type input { adbg_intf_i.en_cal_pi[3:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_cal_pi[3:0] }
+create_qtm_port -type input { adbg_intf_i_en_cal_pi[3:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_en_cal_pi[3:0] }
 
-create_qtm_port -type input { adbg_intf_i.ext_Qperi[19:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.ext_Qperi[19:0] }
+create_qtm_port -type input { adbg_intf_i_ext_Qperi[19:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_ext_Qperi[19:0] }
 
-create_qtm_port -type input { adbg_intf_i.sel_pm_sign_pi[7:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sel_pm_sign_pi[7:0] }
+create_qtm_port -type input { adbg_intf_i_sel_pm_sign_pi[7:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_sel_pm_sign_pi[7:0] }
 
-create_qtm_port -type input { adbg_intf_i.del_inc[127:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.del_inc[127:0] }
+create_qtm_port -type input { adbg_intf_i_del_inc[127:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_del_inc[127:0] }
 
-create_qtm_port -type input { adbg_intf_i.ctl_dcdl_slice[7:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.ctl_dcdl_slice[7:0] }
+create_qtm_port -type input { adbg_intf_i_ctl_dcdl_slice[7:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_ctl_dcdl_slice[7:0] }
 
-create_qtm_port -type input { adbg_intf_i.ctl_dcdl_sw[7:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.ctl_dcdl_sw[7:0] }
+create_qtm_port -type input { adbg_intf_i_ctl_dcdl_sw[7:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_ctl_dcdl_sw[7:0] }
 
-create_qtm_port -type input { adbg_intf_i.ctl_dcdl_clk_encoder[7:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.ctl_dcdl_clk_encoder[7:0] }
+create_qtm_port -type input { adbg_intf_i_ctl_dcdl_clk_encoder[7:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_ctl_dcdl_clk_encoder[7:0] }
 
-create_qtm_port -type input { adbg_intf_i.disable_state[3:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.disable_state[3:0] }
+create_qtm_port -type input { adbg_intf_i_disable_state[3:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_disable_state[3:0] }
 
-create_qtm_port -type input { adbg_intf_i.en_clk_sw[3:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_clk_sw[3:0] }
+create_qtm_port -type input { adbg_intf_i_en_clk_sw[3:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_en_clk_sw[3:0] }
 
-create_qtm_port -type input { adbg_intf_i.en_meas_pi[3:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_meas_pi[3:0] }
+create_qtm_port -type input { adbg_intf_i_en_meas_pi[3:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_en_meas_pi[3:0] }
 
-create_qtm_port -type input { adbg_intf_i.sel_meas_pi[3:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sel_meas_pi[3:0] }
+create_qtm_port -type input { adbg_intf_i_sel_meas_pi[3:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_sel_meas_pi[3:0] }
 
 # ADCrep
 
-create_qtm_port -type input { adbg_intf_i.en_slice_rep[1:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_slice_rep[1:0] }
+create_qtm_port -type input { adbg_intf_i_en_slice_rep[1:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_en_slice_rep[1:0] }
 
-create_qtm_port -type input { adbg_intf_i.ctl_v2tn_rep[9:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.ctl_v2tn_rep[9:0] }
+create_qtm_port -type input { adbg_intf_i_ctl_v2tn_rep[9:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_ctl_v2tn_rep[9:0] }
 
-create_qtm_port -type input { adbg_intf_i.ctl_v2tp_rep[9:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.ctl_v2tp_rep[9:0] }
+create_qtm_port -type input { adbg_intf_i_ctl_v2tp_rep[9:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_ctl_v2tp_rep[9:0] }
 
-create_qtm_port -type input { adbg_intf_i.init_rep[3:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.init_rep[3:0] }
+create_qtm_port -type input { adbg_intf_i_init_rep[3:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_init_rep[3:0] }
 
-create_qtm_port -type input { adbg_intf_i.ALWS_ON_rep[1:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.ALWS_ON_rep[1:0] }
+create_qtm_port -type input { adbg_intf_i_ALWS_ON_rep[1:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_ALWS_ON_rep[1:0] }
 
-create_qtm_port -type input { adbg_intf_i.sel_pm_sign_rep[3:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sel_pm_sign_rep[3:0] }
+create_qtm_port -type input { adbg_intf_i_sel_pm_sign_rep[3:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_sel_pm_sign_rep[3:0] }
 
-create_qtm_port -type input { adbg_intf_i.sel_pm_in_rep[3:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sel_pm_in_rep[3:0] }
+create_qtm_port -type input { adbg_intf_i_sel_pm_in_rep[3:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_sel_pm_in_rep[3:0] }
 
-create_qtm_port -type input { adbg_intf_i.sel_clk_TDC_rep[1:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sel_clk_TDC_rep[1:0] }
+create_qtm_port -type input { adbg_intf_i_sel_clk_TDC_rep[1:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_sel_clk_TDC_rep[1:0] }
 
-create_qtm_port -type input { adbg_intf_i.en_pm_rep[1:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_pm_rep[1:0] }
+create_qtm_port -type input { adbg_intf_i_en_pm_rep[1:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_en_pm_rep[1:0] }
 
-create_qtm_port -type input { adbg_intf_i.en_v2t_clk_next_rep[1:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_v2t_clk_next_rep[1:0] }
+create_qtm_port -type input { adbg_intf_i_ctl_dcdl_late_rep[3:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_ctl_dcdl_late_rep[3:0] }
 
-create_qtm_port -type input { adbg_intf_i.en_sw_test_rep[1:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_sw_test_rep[1:0] }
+create_qtm_port -type input { adbg_intf_i_ctl_dcdl_early_rep[3:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_ctl_dcdl_early_rep[3:0] }
 
-create_qtm_port -type input { adbg_intf_i.ctl_dcdl_late_rep[3:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.ctl_dcdl_late_rep[3:0] }
-
-create_qtm_port -type input { adbg_intf_i.ctl_dcdl_early_rep[3:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.ctl_dcdl_early_rep[3:0] }
-
-create_qtm_port -type input { adbg_intf_i.ctl_dcdl_TDC_rep[9:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.ctl_dcdl_TDC_rep[9:0] }
-
-# Input Buffers
-
-create_qtm_port -type input { adbg_intf_i.disable_ibuf_async }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.disable_ibuf_async }
-
-create_qtm_port -type input { adbg_intf_i.disable_ibuf_main }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.disable_ibuf_main }
-
-create_qtm_port -type input { adbg_intf_i.disable_ibuf_test0 }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.disable_ibuf_test0 }
-
-create_qtm_port -type input { adbg_intf_i.disable_ibuf_test1 }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.disable_ibuf_test1 }
+create_qtm_port -type input { adbg_intf_i_ctl_dcdl_TDC_rep[9:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_ctl_dcdl_TDC_rep[9:0] }
 
 # ADCtest (only for ADCrep1)
 
-create_qtm_port -type input { adbg_intf_i.sel_pfd_in }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sel_pfd_in }
+create_qtm_port -type input { adbg_intf_i_sel_pfd_in }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_sel_pfd_in }
 
-create_qtm_port -type input { adbg_intf_i.sel_pfd_in_meas }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sel_pfd_in_meas }
+create_qtm_port -type input { adbg_intf_i_sel_pfd_in_meas }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_sel_pfd_in_meas }
 
-create_qtm_port -type input { adbg_intf_i.en_pfd_inp_meas }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_pfd_inp_meas }
+create_qtm_port -type input { adbg_intf_i_en_pfd_inp_meas }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_en_pfd_inp_meas }
 
-create_qtm_port -type input { adbg_intf_i.en_pfd_inn_meas }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_pfd_inn_meas }
+create_qtm_port -type input { adbg_intf_i_en_pfd_inn_meas }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_en_pfd_inn_meas }
 
-create_qtm_port -type input { adbg_intf_i.sel_del_out }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sel_del_out }
+create_qtm_port -type input { adbg_intf_i_sel_del_out }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_sel_del_out }
 
 # input clock buffer
 
-create_qtm_port -type input { adbg_intf_i.en_inbuf }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_inbuf }
+create_qtm_port -type input { adbg_intf_i_en_inbuf }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_en_inbuf }
 
-create_qtm_port -type input { adbg_intf_i.sel_clk_source }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sel_clk_source }
+create_qtm_port -type input { adbg_intf_i_sel_clk_source }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_sel_clk_source }
 
-create_qtm_port -type input { adbg_intf_i.bypass_inbuf_div }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.bypass_inbuf_div }
+create_qtm_port -type input { adbg_intf_i_bypass_inbuf_div }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_bypass_inbuf_div }
 
-create_qtm_port -type input { adbg_intf_i.bypass_inbuf_div2 }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.bypass_inbuf_div2 }
+create_qtm_port -type input { adbg_intf_i_bypass_inbuf_div2 }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_bypass_inbuf_div2 }
 
-create_qtm_port -type input { adbg_intf_i.inbuf_ndiv[2:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.inbuf_ndiv[2:0] }
+create_qtm_port -type input { adbg_intf_i_inbuf_ndiv[2:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_inbuf_ndiv[2:0] }
 
-create_qtm_port -type input { adbg_intf_i.en_inbuf_meas }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_inbuf_meas }
+create_qtm_port -type input { adbg_intf_i_en_inbuf_meas }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_en_inbuf_meas }
 
 # biasgen
 
-create_qtm_port -type input { adbg_intf_i.en_biasgen[3:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_biasgen[3:0] }
+create_qtm_port -type input { adbg_intf_i_en_biasgen[3:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_en_biasgen[3:0] }
 
-create_qtm_port -type input { adbg_intf_i.ctl_biasgen[15:0] }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.ctl_biasgen[15:0] }
+create_qtm_port -type input { adbg_intf_i_ctl_biasgen[15:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_ctl_biasgen[15:0] }
 
 # ACORE
 
-create_qtm_port -type input { adbg_intf_i.sel_del_out_pi }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sel_del_out_pi }
+create_qtm_port -type input { adbg_intf_i_sel_del_out_pi }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_sel_del_out_pi }
 
-create_qtm_port -type input { adbg_intf_i.en_del_out_pi }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_del_out_pi }
+create_qtm_port -type input { adbg_intf_i_en_del_out_pi }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_en_del_out_pi }
 
 ## outputs from analog core
 
 # ADC
 
-create_qtm_port -type output { adbg_intf_i.pm_out[319:0] }
-set_qtm_port_drive -type qtm_drive { adbg_intf_i.pm_out[319:0] }
+create_qtm_port -type output { adbg_intf_i_pm_out[319:0] }
+set_qtm_port_drive -type qtm_drive { adbg_intf_i_pm_out[319:0] }
 
-create_qtm_port -type output { adbg_intf_i.del_out[15:0] }
-set_qtm_port_drive -type qtm_drive { adbg_intf_i.del_out[15:0] }
+create_qtm_port -type output { adbg_intf_i_del_out[15:0] }
+set_qtm_port_drive -type qtm_drive { adbg_intf_i_del_out[15:0] }
 
 # PI
 
-create_qtm_port -type output { adbg_intf_i.pm_out_pi[79:0] }
-set_qtm_port_drive -type qtm_drive { adbg_intf_i.pm_out_pi[79:0] }
+create_qtm_port -type output { adbg_intf_i_pm_out_pi[79:0] }
+set_qtm_port_drive -type qtm_drive { adbg_intf_i_pm_out_pi[79:0] }
 
-create_qtm_port -type output { adbg_intf_i.del_out_pi }
-set_qtm_port_drive -type qtm_drive { adbg_intf_i.del_out_pi }
+create_qtm_port -type output { adbg_intf_i_del_out_pi }
+set_qtm_port_drive -type qtm_drive { adbg_intf_i_del_out_pi }
 
-create_qtm_port -type output { adbg_intf_i.cal_out_pi[3:0] }
-set_qtm_port_drive -type qtm_drive { adbg_intf_i.cal_out_pi[3:0] }
+create_qtm_port -type output { adbg_intf_i_cal_out_pi[3:0] }
+set_qtm_port_drive -type qtm_drive { adbg_intf_i_cal_out_pi[3:0] }
 
-create_qtm_port -type output { adbg_intf_i.Qperi[19:0] }
-set_qtm_port_drive -type qtm_drive { adbg_intf_i.Qperi[19:0] }
+create_qtm_port -type output { adbg_intf_i_Qperi[19:0] }
+set_qtm_port_drive -type qtm_drive { adbg_intf_i_Qperi[19:0] }
 
-create_qtm_port -type output { adbg_intf_i.max_sel_mux[19:0] }
-set_qtm_port_drive -type qtm_drive { adbg_intf_i.max_sel_mux[19:0] }
+create_qtm_port -type output { adbg_intf_i_max_sel_mux[19:0] }
+set_qtm_port_drive -type qtm_drive { adbg_intf_i_max_sel_mux[19:0] }
 
-create_qtm_port -type output { adbg_intf_i.pi_out_meas[3:0] }
-set_qtm_port_drive -type qtm_drive { adbg_intf_i.pi_out_meas[3:0] }
+create_qtm_port -type output { adbg_intf_i_pi_out_meas[3:0] }
+set_qtm_port_drive -type qtm_drive { adbg_intf_i_pi_out_meas[3:0] }
 
 # ADCrep
 
-create_qtm_port -type output { adbg_intf_i.pm_out_rep[39:0] }
-set_qtm_port_drive -type qtm_drive { adbg_intf_i.pm_out_rep[39:0] }
+create_qtm_port -type output { adbg_intf_i_pm_out_rep[39:0] }
+set_qtm_port_drive -type qtm_drive { adbg_intf_i_pm_out_rep[39:0] }
 
-create_qtm_port -type output { adbg_intf_i.del_out_rep[1:0] }
-set_qtm_port_drive -type qtm_drive { adbg_intf_i.del_out_rep[1:0] }
+create_qtm_port -type output { adbg_intf_i_del_out_rep[1:0] }
+set_qtm_port_drive -type qtm_drive { adbg_intf_i_del_out_rep[1:0] }
 
-create_qtm_port -type output { adbg_intf_i.pfd_inp_meas }
-set_qtm_port_drive -type qtm_drive { adbg_intf_i.pfd_inp_meas }
+create_qtm_port -type output { adbg_intf_i_pfd_inp_meas }
+set_qtm_port_drive -type qtm_drive { adbg_intf_i_pfd_inp_meas }
 
-create_qtm_port -type output { adbg_intf_i.pfd_inn_meas }
-set_qtm_port_drive -type qtm_drive { adbg_intf_i.pfd_inn_meas }
+create_qtm_port -type output { adbg_intf_i_pfd_inn_meas }
+set_qtm_port_drive -type qtm_drive { adbg_intf_i_pfd_inn_meas }
 
 # input clock buffer
 
-create_qtm_port -type output { adbg_intf_i.inbuf_out_meas }
-set_qtm_port_drive -type qtm_drive { adbg_intf_i.inbuf_out_meas }
+create_qtm_port -type output { adbg_intf_i_inbuf_out_meas }
+set_qtm_port_drive -type qtm_drive { adbg_intf_i_inbuf_out_meas }
 
 # TDC phase reversal (input to analog core but appears at the bottom of acore_debug_intf)
 
-create_qtm_port -type input { adbg_intf_i.en_TDC_phase_reverse }
-set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_TDC_phase_reverse }
+create_qtm_port -type input { adbg_intf_i_en_TDC_phase_reverse }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_en_TDC_phase_reverse }
 
 ###################### Timing Arcs ######################
 
@@ -391,9 +365,9 @@ for {set adc_idx 0} {$adc_idx < 16} {incr adc_idx} {
     }
 }
 
-# adbg_intf_i.pm_out[319:0]
+# adbg_intf_i_pm_out[319:0]
 for {set idx 0} {$idx < 320} {incr idx} {
-    create_qtm_delay_arc -from ext_clk -edge rise -to "adbg_intf_i.pm_out[$idx]" \
+    create_qtm_delay_arc -from ext_clk -edge rise -to "adbg_intf_i_pm_out[$idx]" \
         -value [expr {0.02 * $::env(constr_time_scale)}]
 }
 
@@ -411,35 +385,35 @@ for {set idx 0} {$idx < 2} {incr idx} {
         -value [expr {0.05 * $::env(constr_time_scale)}]
 }
 
-# adbg_intf_i.pm_out_rep[39:0]
+# adbg_intf_i_pm_out_rep[39:0]
 for {set idx 0} {$idx < 40} {incr idx} {
-    create_qtm_delay_arc -from ext_clk -edge rise -to "adbg_intf_i.pm_out_rep[$idx]" \
+    create_qtm_delay_arc -from ext_clk -edge rise -to "adbg_intf_i_pm_out_rep[$idx]" \
         -value [expr {0.02 * $::env(constr_time_scale)}]
 }
 
 ## miscellaneous outputs
 
-# adbg_intf_i.pm_out_pi[79:0]
+# adbg_intf_i_pm_out_pi[79:0]
 for {set idx 0} {$idx < 80} {incr idx} {
-    create_qtm_delay_arc -from ext_clk -edge rise -to "adbg_intf_i.pm_out_pi[$idx]" \
+    create_qtm_delay_arc -from ext_clk -edge rise -to "adbg_intf_i_pm_out_pi[$idx]" \
         -value [expr {0.02 * $::env(constr_time_scale)}]
 }
 
-# adbg_intf_i.cal_out_pi[3:0]
+# adbg_intf_i_cal_out_pi[3:0]
 for {set idx 0} {$idx < 4} {incr idx} {
-    create_qtm_delay_arc -from ext_clk -edge rise -to "adbg_intf_i.cal_out_pi[$idx]" \
+    create_qtm_delay_arc -from ext_clk -edge rise -to "adbg_intf_i_cal_out_pi[$idx]" \
         -value [expr {0.02 * $::env(constr_time_scale)}]
 }
 
-# adbg_intf_i.Qperi[19:0]
+# adbg_intf_i_Qperi[19:0]
 for {set idx 0} {$idx < 20} {incr idx} {
-    create_qtm_delay_arc -from ext_clk -edge rise -to "adbg_intf_i.Qperi[$idx]" \
+    create_qtm_delay_arc -from ext_clk -edge rise -to "adbg_intf_i_Qperi[$idx]" \
         -value [expr {0.02 * $::env(constr_time_scale)}]
 }
 
-# adbg_intf_i.max_sel_mux[19:0]
+# adbg_intf_i_max_sel_mux[19:0]
 for {set idx 0} {$idx < 20} {incr idx} {
-    create_qtm_delay_arc -from ext_clk -edge rise -to "adbg_intf_i.max_sel_mux[$idx]" \
+    create_qtm_delay_arc -from ext_clk -edge rise -to "adbg_intf_i_max_sel_mux[$idx]" \
         -value [expr {0.02 * $::env(constr_time_scale)}]
 }
 
