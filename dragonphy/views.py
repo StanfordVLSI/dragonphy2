@@ -137,11 +137,12 @@ def get_deps(cell_name=None, view_order=None, override=None,
 
 def get_deps_new_asic(cell_name=None, impl_file=None, process='tsmc16'):
     # Set of views to override with a specific view
-    override = {}
+    override = {
+        'analog_core': 'new_chip_stubs'
+    }
 
     # Set of views to skip (since a *.db will be provided)
     skip = {
-        'analog_core',
         'input_buffer',
         'output_buffer',
         'mdll_r1_top',
