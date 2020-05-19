@@ -58,7 +58,7 @@ interface dcore_debug_intf import const_pack::*; (
 		logic [1:0] sel_prbs_mux;
 		logic [Nti-1:0] retimer_mux_ctrl_1;
 		logic [Nti-1:0] retimer_mux_ctrl_2;
-
+        logic en_cgra_clk;
 
     modport dcore ( 	
 		input en_ext_pi_ctl_cdr,
@@ -104,7 +104,7 @@ interface dcore_debug_intf import const_pack::*; (
 		input sel_prbs_mux,
 		input retimer_mux_ctrl_1,
 		input retimer_mux_ctrl_2,
-
+        input en_cgra_clk,
 
 		output adcout_avg ,
 		output adcout_sum,
@@ -161,6 +161,7 @@ interface dcore_debug_intf import const_pack::*; (
 		output sel_prbs_mux,
 		output retimer_mux_ctrl_1,
 		output retimer_mux_ctrl_2,
+        output en_cgra_clk,
 
 		input adcout_avg ,
 		input adcout_sum,

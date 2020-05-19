@@ -18,7 +18,7 @@ else:
 
 # Set DUMP_WAVEFORMS to True if you want to dump all waveforms for this
 # test.  The waveforms are stored in tests/new_tests/DC/build/waves.shm
-DUMP_WAVEFORMS = True
+DUMP_WAVEFORMS = False
 
 @pytest.mark.parametrize((), [pytest.param(marks=pytest.mark.slow) if SIMULATOR=='vivado' else ()])
 def test_sim():
