@@ -144,6 +144,22 @@ set_false_path -through [get_pins -of_objects imdll]
 # IOs for output buffer are all false paths
 set_false_path -through [get_pins -of_objects idcore/out_buff_i]
 
+###############
+# Case analysis
+###############
+
+# Need to specify nominal control codes for the retimer; otherwise
+# there will be timing violations (the point of the retimer is to 
+# account for differences in timing from nominal)
+
+set ctrl_1 "0000111111110000"
+
+for {{set idx 0}} {{$idx < 16}} {{incr idx}} {{
+    set_case_analysis \\
+        [string index $ctrl_1 [expr {{15 - $idx}}]] \\
+        "idcore/jtag_i/ddbg_intf_i.retimer_mux_ctrl_1[$idx]"
+}}
+
 #################
 # Net constraints
 #################
@@ -156,6 +172,11 @@ set_max_fanout 20 {design_name}
 
 # specify loads for outputs
 set_load {0.1*cap_scale} [all_outputs]
+
+# change the max capacitance for ext_Vcal only
+# it's inout, so the previous "set_load"
+# command appears to apply to it as well
+set_max_capacitance {1.0*cap_scale} [get_port ext_Vcal]
 
 # Tighten transition constraint for clocks declared so far
 set_max_transition {0.1*time_scale} -clock_path [get_clock clk_retimer]
