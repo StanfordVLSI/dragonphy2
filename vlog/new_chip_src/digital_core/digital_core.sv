@@ -193,12 +193,19 @@ module digital_core import const_pack::*; (
 
     logic signed [Nadc-1:0] mm_cdr_input [Nti-1:0];
 
+
+
     generate
         for(k = 0; k < Nti; k = k + 1) begin
-            assign mm_cdr_input[k] = cdbg_intf_i.sel_inp_mux ? estimated_bits[k][ffe_gpack::output_precision-1:(ffe_gpack::output_precision-Nadc)] : adcout_unfolded[k];
+            always_ff @(posedge clk_adc or negedge cdr_rstb) begin
+                if(!cdr_rstb) begin
+                    mm_cdr_input[k] <= 0;
+                end else begin
+                    mm_cdr_input[k] <= cdbg_intf_i.sel_inp_mux ? estimated_bits[k][ffe_gpack::output_precision-1:(ffe_gpack::output_precision-Nadc)] : adcout_unfolded[k];
+                end
+            end
         end
     endgenerate
-
 
     mm_cdr iMM_CDR (
         .din(mm_cdr_input),
