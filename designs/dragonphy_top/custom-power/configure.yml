@@ -9,6 +9,6 @@ name: custom-power
 #-------------------------------------------------------------------------
 
 outputs:
-  - globalnetconnect.tcl
-  - power-strategy-dualmesh.tcl
+  - globalnetconnect.default.tcl
+  - power-strategy-dualmesh.default.tcl
 

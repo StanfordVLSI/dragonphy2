@@ -13,6 +13,12 @@
     set vert_pitch  [dbGet top.fPlan.coreSite.size_y]
     set horiz_pitch [dbGet top.fPlan.coreSite.size_x]
 
+    set core_margin_t $vert_pitch
+    set core_margin_b $vert_pitch 
+    set core_margin_r [expr 5 * $horiz_pitch]
+    set core_margin_l [expr 5 * $horiz_pitch]
+
+
     set output_buffer_width [dbGet [dbGet -p top.insts.name *out_buff_i*].cell.size_x]
     set output_buffer_height [dbGet [dbGet -p top.insts.name *out_buff_i*].cell.size_y]
     
@@ -119,11 +125,11 @@ createRouteBlk -box \
     -name memory_adc_blk -layer 1
 
 createRouteBlk -box \
-    [expr $origin_out_x-$blockage_width] \
-    [expr $origin_out_y-$blockage_width] \
-    [expr $origin_out_x+$output_buffer_width+$blockage_width] \
-    [expr $origin_out_y+$output_buffer_height+$blockage_width] \
-    -name inbuf_out_blk -layer 1
+    [expr $origin_acore_x-$blockage_width] \
+    [expr $origin_acore_y-$blockage_width] \
+    [expr $origin_acore_x+$acore_width+$blockage_width] \
+    [expr $origin_acore_y+$acore_height+$blockage_width] \
+    -name acore_blk -layer 1
 
 
 addStripe \
@@ -147,26 +153,26 @@ addStripe \
 deleteRouteBlk -name *
 
 
-set acore_x origin_acore_x
-set acore_y origin_acore_y    
+set acore_x $origin_acore_x
+set acore_y $origin_acore_y    
 
-set inbuf_async_x origin_async_x 
-set inbuf_async_y origin_async_y 
+set inbuf_async_x $origin_async_x 
+set inbuf_async_y $origin_async_y 
 
-set outbuf_x origin_out_x 
-set outbuf_y origin_out_y 
+set outbuf_x $origin_out_x 
+set outbuf_y $origin_out_y 
 
-set inbuf_main_x origin_main_x 
-set inbuf_main_y origin_main_y 
+set inbuf_main_x $origin_main_x 
+set inbuf_main_y $origin_main_y 
 
-set mdll_x origin_mdll_x 
-set mdll_y origin_mdll_y 
+set mdll_x $origin_mdll_x 
+set mdll_y $origin_mdll_y 
 
-set inbuf_mdll_mon_x origin_mon_x 
-set inbuf_mdll_mon_y origin_mon_y 
+set inbuf_mdll_mon_x $origin_mon_x 
+set inbuf_mdll_mon_y $origin_mon_y 
 
-set inbuf_mdll_ref_x origin_ref_x 
-set inbuf_mdll_ref_y origin_ref_y 
+set inbuf_mdll_ref_x $origin_ref_x 
+set inbuf_mdll_ref_y $origin_ref_y 
 
 # power for inout buffers / MDLL (stretch out M6)-----------------------------------------------------------
 sroute -connect { blockPin } -layerChangeRange { M6 M6 } -blockPinTarget { boundaryWithPin } -allowJogging 1 -crossoverViaLayerRange { M7 M6 } -nets { DVDD DVSS CVDD } -allowLayerChange 0 -blockPin useLef -targetViaLayerRange { M7 M6 }
