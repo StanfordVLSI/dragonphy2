@@ -262,7 +262,7 @@ module dsp_backend (
 	);
 	generate
 		for(gi=0; gi<mlsd_gpack::width; gi=gi+1) begin
-			assign checked_bits[gi] = pb_buffer[gi][pb_buffer_depth];
+			assign checked_bits[gi] = pb_buffer[gi][pb_buffer_depth-1];
 		end
 	endgenerate
 
