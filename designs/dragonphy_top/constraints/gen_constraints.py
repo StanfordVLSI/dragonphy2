@@ -45,30 +45,30 @@ set_clock_uncertainty -hold 0.03 clk_retimer
 # https://www2.lauterbach.com/pdf/arm_app_jtag.pdf
 
 # TCK clock signal: 20 MHz max
-create_clock -name clk_jtag -period 50.0 [get_ports jtag_intf_i_phy_tck]
+create_clock -name clk_jtag -period 50.0 [get_ports jtag_intf_i.phy_tck]
 set_clock_uncertainty -setup 0.03 clk_jtag
 set_clock_uncertainty -hold 0.03 clk_jtag
 
 # TCK constraints
-set_input_transition 0.5 [get_port jtag_intf_i_phy_tck]
+set_input_transition 0.5 [get_port jtag_intf_i.phy_tck]
 
 # timing constraints for TDI (changes 0 to 5 ns from falling edge of JTAG clock)
-set_input_transition 0.5 [get_port jtag_intf_i_phy_tdi]
-set_input_delay -clock clk_jtag -max 0.5 -clock_fall [get_port jtag_intf_i_phy_tdi]
-set_input_delay -clock clk_jtag -min 0.0 -clock_fall [get_port jtag_intf_i_phy_tdi]
+set_input_transition 0.5 [get_port jtag_intf_i.phy_tdi]
+set_input_delay -clock clk_jtag -max 0.5 -clock_fall [get_port jtag_intf_i.phy_tdi]
+set_input_delay -clock clk_jtag -min 0.0 -clock_fall [get_port jtag_intf_i.phy_tdi]
 
 # timing constraints for TMS (changes 0 to 5 ns from falling edge of JTAG clock)
-set_input_transition 0.5 [get_port jtag_intf_i_phy_tms]
-set_input_delay -clock clk_jtag -max 5.0 -clock_fall [get_port jtag_intf_i_phy_tms]
-set_input_delay -clock clk_jtag -min 0.0 -clock_fall [get_port jtag_intf_i_phy_tms]
+set_input_transition 0.5 [get_port jtag_intf_i.phy_tms]
+set_input_delay -clock clk_jtag -max 5.0 -clock_fall [get_port jtag_intf_i.phy_tms]
+set_input_delay -clock clk_jtag -min 0.0 -clock_fall [get_port jtag_intf_i.phy_tms]
 
 # timing constraints for TDO (setup time 12.5 ns, hold time 0.0)
 # TDO changes on the falling edge of TCK but is sampled on the rising edge
-set_output_delay -clock clk_jtag -max 12.5 [get_port jtag_intf_i_phy_tdo]
-set_output_delay -clock clk_jtag -min 0.0 [get_port jtag_intf_i_phy_tdo]
+set_output_delay -clock clk_jtag -max 12.5 [get_port jtag_intf_i.phy_tdo]
+set_output_delay -clock clk_jtag -min 0.0 [get_port jtag_intf_i.phy_tdo]
 
 # TRST_N is asynchronous
-set_input_transition 0.5 [get_port jtag_intf_i_phy_trst_n]
+set_input_transition 0.5 [get_port jtag_intf_i.phy_trst_n]
 
 ############################
 # Asynchronous clock domains
@@ -128,7 +128,7 @@ set_false_path -through [get_pins ibuf_*/*]
 #############
 
 # TODO do any signals in the debug interface need special treatment?
-set_false_path -through [get_pins iacore/adbg_intf_i_*]
+set_false_path -through [get_pins iacore/adbg_intf_i.*]
 
 ######
 # MDLL
