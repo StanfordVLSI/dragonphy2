@@ -176,3 +176,53 @@ addStripe -nets {VSS VDD} -layer $pmesh_top -direction vertical \
     -start [expr $pmesh_top_str_pitch/2]
 
 
+
+# power for inout buffers / MDLL (stretch out M6)-----------------------------------------------------------
+sroute -connect { blockPin } -layerChangeRange { M6 M6 } -blockPinTarget { boundaryWithPin } -allowJogging 1 -crossoverViaLayerRange { M7 M6 } -nets { DVDD DVSS CVDD } -allowLayerChange 0 -blockPin useLef -targetViaLayerRange { M7 M6 }
+sroute -connect { blockPin } -layerChangeRange { M6 M6 } -blockPinTarget { blockPin } -allowJogging 1 -crossoverViaLayerRange { M7 M6 } -nets { DVDD DVSS } -allowLayerChange 0 -blockPin useLef -targetViaLayerRange { M7 M6 }
+#--------------------------------------------------------------------------------------------------------------
+
+#Routing blockages for input buffers
+createRouteBlk -box $inbuf_async_x $inbuf_async_y [expr $inbuf_async_x+$input_buffer_width] [expr $inbuf_async_y+$input_buffer_height] -layer {7 8 9}
+createRouteBlk -box $inbuf_main_x $inbuf_main_y [expr $inbuf_main_x+$input_buffer_width] [expr $inbuf_main_y+$input_buffer_height] -layer {7 8 9}
+createRouteBlk -box $inbuf_mdll_ref_x $inbuf_mdll_ref_y [expr $inbuf_mdll_ref_x+$input_buffer_width] [expr $inbuf_mdll_ref_y+$input_buffer_height] -layer {7 8 9}
+createRouteBlk -box $inbuf_mdll_mon_x $inbuf_mdll_mon_y [expr $inbuf_mdll_mon_x+$input_buffer_width] [expr $inbuf_mdll_mon_y+$input_buffer_height] -layer {7 8 9}
+
+
+# power grid parameters --------------------------------------------------------------------------------
+set dcore_M7_width 1
+set dcore_M7_space 1
+set dcore_M7_set_to_set 100
+
+set dcore_M8_width 2
+set dcore_M8_space 1
+set dcore_M8_set_to_set 100
+
+set dcore_M9_width 4
+set dcore_M9_space 1
+set dcore_M9_set_to_set 100
+#--------------------------------------------------------------------------------------------------------------
+
+
+# dcore main power grid (M7)---------------------------------------------------------------------------
+createRouteBlk -box $acore_x  $acore_y [expr $acore_x+$acore_width] $FP_height -layer 7 -name M7_blk_acore
+
+addStripe -nets {DVDD DVSS} \
+  -layer M7 -direction vertical -width $dcore_M7_width -spacing [expr $dcore_M7_space] -start_offset [expr $boundary_width] -set_to_set_distance $dcore_M7_set_to_set -start_from left -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit AP -padcore_ring_bottom_layer_limit M7 -block_ring_top_layer_limit M7 -block_ring_bottom_layer_limit M7 -use_wire_group 0 -snap_wire_center_to_grid None -skip_via_on_pin {standardcell} -skip_via_on_wire_shape {noshape} -create_pins 1 -extend_to design_boundary
+#--------------------------------------------------------------------------------------------------------------
+
+
+# stretch out acore DVDD/DVSS (M8)-------------------------------------------------------------------------
+sroute -connect { blockPin } -layerChangeRange { M8 M9 } -blockPinTarget { boundaryWithPin } -allowJogging 1 -crossoverViaLayerRange { M8 M7 } -nets { DVDD DVSS } -allowLayerChange 0 -blockPin useLef -targetViaLayerRange { M8 M7 }
+#--------------------------------------------------------------------------------------------------------------
+
+
+# dcore main power grid (M8)---------------------------------------------------------------------------
+createRouteBlk -box 0 [expr $acore_y-$blockage_height] $FP_width $FP_height -layer 8 -name M8_blk_acore
+
+addStripe -nets {DVDD DVSS} \
+  -layer M8 -direction horizontal -width $dcore_M8_width -spacing [expr $dcore_M8_space] -start_offset [expr $boundary_width] -set_to_set_distance $dcore_M8_set_to_set -start_from bottom -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit AP -padcore_ring_bottom_layer_limit M7 -block_ring_top_layer_limit M7 -block_ring_bottom_layer_limit M7 -use_wire_group 0 -snap_wire_center_to_grid None -skip_via_on_pin {standardcell} -skip_via_on_wire_shape {noshape} -create_pins 1 -extend_to design_boundary
+#--------------------------------------------------------------------------------------------------------------
+
+
+#dcore main power grid (M9)---------------------------------------------------------------------------------
