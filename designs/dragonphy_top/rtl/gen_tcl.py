@@ -39,9 +39,6 @@ change_names -rules verilog -hierarchy
 
 # Fix the name of "analog_core"
 rename_design analog_core* analog_core
-
-# Make sure the current design is set to the top level before continuing
-current_design {e['design_name']}
 '''
 
 # write output text
