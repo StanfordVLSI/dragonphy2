@@ -318,14 +318,14 @@ set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_en_TDC_phase_reverse }
 
 # setup/hold for ctl_valid
 create_qtm_constraint_arc -setup -edge rise -from ext_clk -to ctl_valid \
-    -value [expr {5.0}]
+    -value [expr {0.5}]
 create_qtm_constraint_arc -hold -edge rise -from ext_clk -to ctl_valid \
     -value [expr {0.0}]
 
 # setup/hold for ctl_pi[35:0]
 for {set idx 0} {$idx < 36} {incr idx} {
     create_qtm_constraint_arc -setup -edge rise -from ext_clk -to "ctl_pi[$idx]" \
-        -value [expr {5.0}]
+        -value [expr {0.5}]
     create_qtm_constraint_arc -hold -edge rise -from ext_clk -to "ctl_pi[$idx]" \
         -value [expr {0.0}]
 }
