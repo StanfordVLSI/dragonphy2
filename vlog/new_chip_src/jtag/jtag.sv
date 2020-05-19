@@ -180,6 +180,7 @@ module jtag (
 	assign ddbg_intf_i.retimer_mux_ctrl_1 = rjtag_intf_i.retimer_mux_ctrl_1;
 	assign ddbg_intf_i.retimer_mux_ctrl_2 = rjtag_intf_i.retimer_mux_ctrl_2;
 
+    assign ddbg_intf_i.en_cgra_clk = rjtag_intf_i.en_cgra_clk;
 
 	//Digital Output
 	assign rjtag_intf_i.adcout_avg=ddbg_intf_i.adcout_avg;
