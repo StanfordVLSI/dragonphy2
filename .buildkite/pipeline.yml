@@ -45,6 +45,9 @@ steps:
     artifact_paths:
       - "tests/new_tests/*/build/*.eps"
       - "build/*/*-synopsys-dc-synthesis/logs/dc.log"
+      - "build/*/*-synopsys-dc-synthesis/outputs/design.v"
+      - "build/*/*-synopsys-dc-synthesis/outputs/design.sdc"
+      - "build/*/*-synopsys-dc-synthesis/outputs/design.namemap"
     timeout_in_minutes: 60
     agents:
       fault2: "true"
