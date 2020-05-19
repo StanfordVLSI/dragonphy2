@@ -30,13 +30,13 @@ def construct():
     if DRAGONPHY_PROCESS == 'FREEPDK45':
         parameters['adk_name'] = 'freepdk-45nm'
         parameters['adk_view'] = 'view-standard'
+        parameters['qtm_tech_lib'] = 'NangateOpenCellLibrary'
         # override default scale factors for an older, slower process
         parameters['constr_time_scale'] = 10.0
         parameters['constr_cap_scale'] = 10.0*1e3
     elif DRAGONPHY_PROCESS == 'TSMC16':
         parameters['adk_name'] = 'tsmc16'
         parameters['adk_view'] = 'stdview'
-        # default parameters are for TSMC16, so no need to override them here
     else:
         raise Exception(f'Unknown process: {DRAGONPHY_PROCESS}')
 
@@ -113,6 +113,7 @@ def construct():
         'analog_core_lib.db',
         'input_buffer_lib.db',
         'output_buffer_lib.db',
+        'mdll_r1_top_lib.db',
         'sram_tt.db'
     ]
     dc.extend_inputs(dbs)
@@ -122,17 +123,17 @@ def construct():
     # These steps need timing and lef info for black boxes
     libs = [
         'analog_core.lib',
+        'mdll_r1_top.lib',
         'input_buffer.lib',
         'output_buffer.lib',
         'sram_tt.lib'
     ]
 
     lefs = [
-        # TODO: uncomment these LEFs as they are ready
-         'analog_core.lef',
-         'input_buffer.lef',
-         'output_buffer.lef',
-         'mdll_r1_top.lef',
+        'analog_core.lef',
+        'input_buffer.lef',
+        'output_buffer.lef',
+        'mdll_r1_top.lef',
         'sram.lef'
     ]
 
@@ -143,21 +144,20 @@ def construct():
 
     # Add GDS files for black boxes to GDS merge step
     gds_list = [
-        # TODO: uncomment these GDS files as they are ready
-         'analog_core.gds',
-         'input_buffer.gds',
-         'output_buffer.gds',
-         'mdll_r1_top.gds',
+        'analog_core.gds',
+        'input_buffer.gds',
+        'output_buffer.gds',
+        'mdll_r1_top.gds',
         'sram.gds'
     ]
     gdsmerge.extend_inputs(gds_list)
 
     # Need Spice or Verilog netlists files for black boxes for LVS
     spi_list = [
-         'analog_core.lvs.v',
-         'input_buffer.lvs.v',
-         'output_buffer.lvs.v',
-         'mdll_r1_top.lvs.v',
+        'analog_core.lvs.v',
+        'input_buffer.lvs.v',
+        'output_buffer.lvs.v',
+        'mdll_r1_top.lvs.v',
         'sram.spi'
     ]
     lvs.extend_inputs(spi_list)
@@ -220,6 +220,7 @@ def construct():
     g.connect_by_name( adk,            gdsmerge       )
     g.connect_by_name( adk,            drc            )
     g.connect_by_name( adk,            lvs            )
+    g.connect_by_name( adk,            qtm            )
 
     # Connect up blocks like analog_core, input_buffer, etc.
     # The QTM step is also included here because it provides
