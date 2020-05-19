@@ -20,6 +20,7 @@ module test;
 	logic clk_out_n;
 	logic clk_trig_p;
 	logic clk_trig_n;
+    logic clk_cgra;
 
 	// dump control
 	logic dump_start;
@@ -44,6 +45,7 @@ module test;
 		.clk_out_n(clk_out_n),
 		.clk_trig_p(clk_trig_p),
 		.clk_trig_n(clk_trig_n),
+        .clk_cgra(clk_cgra),
 
 		// reset
         .ext_rstb(rstb),
@@ -126,6 +128,12 @@ module test;
 		.period(trig_out_period_n)
 	);
 
+	pwl clk_cgra_period;
+	meas_clock meas_clk_cgra (
+		.clk(clk_cgra),
+		.period(clk_cgra_period)
+	);
+
 	// Main test
 
 	initial begin
@@ -173,6 +181,8 @@ module test;
         #(1ns);
         `FORCE_DDBG(sel_trigbuff, 12); // async clock
         #(1ns);
+        `FORCE_DDBG(en_cgra_clk, 1); // clock to CGRA
+        #(1ns);
 
 		// Wait a little bit to measure frequencies
 		#(100ns);
@@ -197,7 +207,11 @@ module test;
 		$display("TRIG_OUT period: ", trig_out_period_p.a);
 		check_rel_tol(1.0/trig_out_period_p.a, async_clk_freq, 0.01);
 		check_rel_tol(1.0/trig_out_period_n.a, async_clk_freq, 0.01);
-		
+
+		$display("Testing CGRA clock");
+        $display("CGRA clock period: ", clk_cgra_period.a);
+		check_rel_tol(1.0/clk_cgra_period.a, 1.0e9, 0.01);
+
 		$finish;
 	end
 
