@@ -102,29 +102,29 @@
     #set origin_async_x [expr 3*$blockage_width  + $core_margin_l]
     #set origin_async_y [expr $origin_sram_ffe_y + $sram_height +  $sram_to_buff_spacing_y]
     
-    set origin_async_x [expr 109.98 + $sram_FP_adjust]
-    set origin_async_y 323.712
+    set origin_async_x [expr 43.56 + $sram_FP_adjust]
+    set origin_async_y 312.192
     #set origin_out_x [expr $FP_width - 6*$blockage_width - $output_buffer_width - $core_margin_l]
     #set origin_out_y [expr $origin_sram_adc_y + $sram_height + $sram_to_acore_spacing_y - 4 * $vert_pitch]
     
-    set origin_out_x [expr 738.00 + $sram_FP_adjust]
-    set origin_out_y 170.496 
+    set origin_out_x [expr 555.3 + $sram_FP_adjust]
+    set origin_out_y 140.544
     #set origin_main_x [expr $origin_acore_x + [snap_to_grid [expr $acore_width/2] $horiz_pitch]]
     #set origin_main_y [expr [snap_to_grid [expr $sram_height / 2.0] $vert_pitch] + $origin_sram_adc_y]
 
     set origin_main_x [expr 373.77 + $sram_FP_adjust]
-    set origin_main_y 323.712
+    set origin_main_y 313.192
     #set origin_mdll_x [expr $origin_out_x - $mdll_width - [snap_to_grid 60 $horiz_pitch]]
     #set origin_mdll_y [expr $origin_acore_y + [snap_to_grid [expr $acore_height/4] $vert_pitch ]  ]   
  
-    set origin_mdll_x [expr 540.00 + $sram_FP_adjust]
-    set origin_mdll_y 312.192   
+    set origin_mdll_x [expr 462.51 + $sram_FP_adjust]
+    set origin_mdll_y 301.824   
     
-    set origin_mon_x [expr 722.74 + $sram_FP_adjust]
-    set origin_mon_y 293.76
+    set origin_mon_x [expr 566.82 + $sram_FP_adjust]
+    set origin_mon_y 184.32
 
-    set origin_ref_x [expr 722.74 + $sram_FP_adjust]
-    set origin_ref_y 353.088
+    set origin_ref_x [expr 504.09 + $sram_FP_adjust]
+    set origin_ref_y 184.32
 
     #set origin_ref_x [expr $FP_width - 6*$blockage_width - $input_buffer_width - $core_margin_l]
     #set origin_ref_y [expr $origin_out_y + $output_buffer_height + $blockage_height + 10*$vert_pitch]
