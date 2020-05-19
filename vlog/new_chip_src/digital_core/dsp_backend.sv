@@ -22,7 +22,7 @@ module dsp_backend (
 	localparam integer mlsd_code_numFutureBuffers = 0;
 	localparam integer mlsd_code_centerBuffer     = 0;
 
-	localparam integer ffe_pipeline_depth         = 2;
+	localparam integer ffe_pipeline_depth         = 3;
 	localparam integer ffe_code_pipeline_depth    = ffe_code_numPastBuffers + ffe_code_numFutureBuffers + 1;
 	localparam integer cmp_pipeline_depth         = mlsd_bit_numPastBuffers + mlsd_bit_numFutureBuffers + 1;
 	localparam integer code_pipeline_depth        = ffe_code_pipeline_depth + ffe_pipeline_depth + cmp_pipeline_depth;
@@ -31,7 +31,7 @@ module dsp_backend (
 	localparam integer ffe_code_start             = 0;
 	localparam integer mlsd_code_start 			  = ffe_pipeline_depth + ffe_pipeline_depth + (cmp_pipeline_depth-mlsd_code_pipeline_depth);
 
-    localparam integer pb_buffer_depth            = 3;
+    localparam integer pb_buffer_depth            = 5;
 	//Connecting Wires
 	wire logic [constant_gpack::code_precision-1:0] ucodes_buffer  [constant_gpack::channel_width-1:0][code_pipeline_depth-1:0];
 
