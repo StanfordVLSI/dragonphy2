@@ -80,14 +80,12 @@ module test;
 	// Save signals for post-processing
 
 	logic should_record;
-	logic recording_clk;
-    logic signed [Nadc-1:0] adcout_unfolded [Nti-1:0];
    
 	 ti_adc_recorder #(
         .filename(`TI_ADC_TXT)
     ) ti_adc_recorder_i (
-		.in(adcout_unfolded),
-		.clk(recording_clk),
+		.in(top_i.idcore.adcout_unfolded[15:0]),
+		.clk(top_i.idcore.clk_adc),
 		.en(should_record)
 	);
 
@@ -102,48 +100,10 @@ module test;
 		.ch_outn(ch_outn)
 	);
 
-    // Re-ordering
-    // TODO: clean this up because it is likely a real bug
-	
-	integer tmp;
-	//teger idx_order [Nti] = '{0, 5, 10, 15,
-	//                         1, 6, 11, 12,
-	//                         2, 7,  8, 13,
-	//                         3, 4,  9, 14};
-	
-    integer idx_order [Nti] = '{0, 4, 8, 12,
-	                         	1, 5, 9, 13,
-	                         	2, 6, 10, 14,
-	                         	3, 7, 11, 15};
-    
-	always @(posedge top_i.idcore.clk_adc) begin
-        // compute the unfolded ADC outputs
-        for (int k=0; k<Nti; k=k+1) begin
-            // compute output
-             tmp = top_i.idcore.adcout_sign[idx_order[k]] ?
-                  top_i.idcore.adcout[idx_order[k]] - (`EXT_PFD_OFFSET) :
-                  (`EXT_PFD_OFFSET) - top_i.idcore.adcout[idx_order[k]];
-			
-			// clamp
-            if (tmp > 127) begin
-                tmp = 127;
-            end
-            if (tmp < -128) begin
-                tmp = -128;
-            end
-            // assign to output vector
-            adcout_unfolded[k] = tmp;
-        end
-        // pulse the recording clock
-        recording_clk = 1'b1;
-        #(1ps);
-        recording_clk = 1'b0;
-        #(1ps);
-    end
-
 	// Main test
 
 	logic [Nadc-1:0] tmp_ext_pfd_offset [Nti-1:0];
+    logic [Npi-1:0] tmp_bypass_pi_ctl [Nout-1:0];
 
 	initial begin
         `ifdef DUMP_WAVEFORMS
@@ -153,7 +113,6 @@ module test;
 
         // initialize control signals
 		should_record = 1'b0;
-		recording_clk = 1'b0;
         rstb = 1'b0;
         #(1ns);
 
@@ -187,10 +146,12 @@ module test;
 
         // apply the stimulus
         $display("Setting up the PI control codes...");
-        force top_i.idcore.int_pi_ctl_cdr[0] = 0;
-        force top_i.idcore.int_pi_ctl_cdr[1] = 67;
-        force top_i.idcore.int_pi_ctl_cdr[2] = 133;
-        force top_i.idcore.int_pi_ctl_cdr[3] = 200;
+        tmp_bypass_pi_ctl[0] = 0;
+        tmp_bypass_pi_ctl[1] = 67;
+        tmp_bypass_pi_ctl[2] = 133;
+        tmp_bypass_pi_ctl[3] = 200;
+        `FORCE_JTAG(bypass_pi_ctl, tmp_bypass_pi_ctl);
+        `FORCE_JTAG(en_bypass_pi_ctl, 1);
         #(5ns);
 
         // toggle the en_v2t signal to re-initialize the V2T ordering
