@@ -35,7 +35,7 @@
 
     # Make room in the floorplan for the core power ring
 
-    set pwr_net_list {VDD VSS}; # List of power nets in the core power ring
+    set pwr_net_list  {CVDD CVSS AVDD AVSS DVDD DVSS}; # List of power nets in the core power ring
 
     set M1_min_width   [dbGet [dbGetLayerByZ 1].minWidth]
     set M1_min_spacing [dbGet [dbGetLayerByZ 1].minSpacing]
@@ -63,7 +63,7 @@
     #floorPlan -r $core_aspect_ratio $core_density_target \
     #             $core_margin_l $core_margin_b $core_margin_r $core_margin_t
 
-    set sram_FP_adjust 250
+    set sram_FP_adjust 350
 
     set FP_width [snap_to_grid [expr 800 + $sram_FP_adjust] $horiz_pitch ]
     set FP_height [snap_to_grid 800 $vert_pitch ]
@@ -139,12 +139,14 @@
     placeInstance \
         ibuf_async \
         $origin_async_x \
-        $origin_async_y
+        $origin_async_y \
+		MY
 
     placeInstance \
         imdll \
         $origin_mdll_x \
         $origin_mdll_y 
+
     placeInstance \
         iacore \
         $origin_acore_x \
@@ -159,13 +161,12 @@
         ibuf_mdll_mon \
         [expr $origin_mon_x] \
         [expr $origin_mon_y] \
-        MX
-
+		MY
+	
     placeInstance \
         ibuf_mdll_ref \
         [expr $origin_ref_x] \
-        [expr $origin_ref_y] \
-        
+        [expr $origin_ref_y] 
 
     placeInstance \
         idcore/out_buff_i \
