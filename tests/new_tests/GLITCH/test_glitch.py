@@ -15,7 +15,7 @@ else:
 
 # Set DUMP_WAVEFORMS to True if you want to dump all waveforms for this
 # test.  The waveforms are stored in tests/new_tests/GLITCH/build/waves.shm
-DUMP_WAVEFORMS = False
+DUMP_WAVEFORMS = True
 
 @pytest.mark.parametrize((), [pytest.param(marks=pytest.mark.slow) if SIMULATOR=='vivado' else ()])
 def test_sim():
@@ -42,10 +42,8 @@ def test_sim():
         # the worst-case resolution of the PI
         'WIDTH_TOL': 2e-12,
 
-        # what is the initial code and code change direction?
-        # INITIAL_CODE can be 0 through (2**Npi)-1
+        # what is the initial code change direction?
         # INITIAL_DIR can be either +1 (increasing) or -1 (decreasing)
-        'INITIAL_CODE': 0,
         'INITIAL_DIR': +1,
 
         # PI and CDR clock frequencies.  Probably don't have
