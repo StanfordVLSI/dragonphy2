@@ -102,6 +102,7 @@ module test;
             for (jg=0; jg<Npi; jg=jg+1) begin
                 always @(pi_ctl_indiv[ig]) begin
                     // randomize bit during setup
+                    #(1ps);
                     force top_i.iacore.ctl_pi[ig][jg] = $urandom;
 
                     // use a randomized setup time for each bit (all less than 500 ps)
