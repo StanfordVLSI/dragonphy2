@@ -91,11 +91,31 @@ module test;
         min = (a < b) ? a : b;
     endfunction
 
+    // Stimulus logic
+    logic [(Npi-1):0] pi_ctl_indiv;
+    integer delay_val_ps [(Nout-1):0][(Npi-1):0];
+    genvar ig;
+    genvar jg;
+    generate
+        for (ig=0; ig<Nout; ig=ig+1) begin
+            for (jg=0; jg<Npi; jg=jg+1) begin
+                always @(pi_ctl_indiv) begin
+                    // randomize bit during setup
+                    force top_i.iacore.ctl_pi[ig][jg] = $urandom;
+
+                    // use a randomized setup time for each bit (all less than 500 ps)
+                    delay_val_ps[ig][jg] = $urandom%500;
+                    #(delay_val_ps[ig][jg]*1ps);
+                    force top_i.iacore.ctl_pi[ig][jg] = pi_ctl_indiv[jg];
+                end
+            end
+        end
+    endgenerate
+
     // Main test logic
 
     real delay;
     integer code_delta;
-    logic [(Npi-1):0] pi_ctl_indiv;
     logic [(Npi-1):0] pi_ctl_prev;
 
 	integer max_sel_mux [Nout];
@@ -165,10 +185,6 @@ module test;
             // synchronize to the beginning of the CDR clock period
             @(posedge top_i.iacore.clk_adc);
 
-            // wait a random amount of time within the CDR clock period
-            delay = (($urandom%10000)/10000.0)/(`CDR_CLK_FREQ);
-            #(delay*1s);
-
             // increment/decrement the PI control code
             pi_ctl_prev = pi_ctl_indiv;
             pi_ctl_indiv = pi_ctl_indiv + code_delta;
@@ -178,11 +194,8 @@ module test;
                 code_delta = -1;
             end
 
-            // apply the stimulus
-            force top_i.iacore.ctl_pi[0] = min(pi_ctl_indiv, max_ctl_pi[0]);
-            force top_i.iacore.ctl_pi[1] = min(pi_ctl_indiv, max_ctl_pi[1]);
-            force top_i.iacore.ctl_pi[2] = min(pi_ctl_indiv, max_ctl_pi[2]);
-            force top_i.iacore.ctl_pi[3] = min(pi_ctl_indiv, max_ctl_pi[3]);
+            // stimulus is applied through the always block
+            // declared earlier in the code
 
             // wait while monitoring
             #((`MONITOR_TIME)*1s);
