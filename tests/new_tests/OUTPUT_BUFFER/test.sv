@@ -1,8 +1,6 @@
 `include "mLingua_pwl.vh"
 
-`define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
-`define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
-`define FORCE_IDCORE(name, value) force top_i.idcore.``name`` = ``value``
+`define FORCE_JTAG(name, value) force top_i.idcore.jtag_i.rjtag_intf_i.``name`` = ``value``
 
 module test;
 
@@ -157,31 +155,31 @@ module test;
 
         // Soft reset sequence
         $display("Soft reset sequence...");
-        `FORCE_DDBG(int_rstb, 1);
+        `FORCE_JTAG(int_rstb, 1);
         #(1ns);
-        `FORCE_ADBG(en_inbuf, 1);
+        `FORCE_JTAG(en_inbuf, 1);
 		#(1ns);
-        `FORCE_ADBG(en_gf, 1);
+        `FORCE_JTAG(en_gf, 1);
         #(1ns);
-        `FORCE_ADBG(en_v2t, 1);
+        `FORCE_JTAG(en_v2t, 1);
         #(1ns);
 
         // Enable input buffer for the async clock
         $display("Enable input buffer for the async clock...");
-        `FORCE_IDCORE(disable_ibuf_async, 0);
+        `FORCE_JTAG(disable_ibuf_async, 0);
         #(1ns);
 
 		// Set up the output buffers
 		$display("Set up the output buffers...");
-		`FORCE_DDBG(en_outbuff, 1);
+		`FORCE_JTAG(en_outbuff, 1);
         #(1ns);
-        `FORCE_DDBG(en_trigbuff, 1);
+        `FORCE_JTAG(en_trigbuff, 1);
         #(1ns);
-        `FORCE_DDBG(sel_outbuff, 0);   // ADC clock
+        `FORCE_JTAG(sel_outbuff, 0);   // ADC clock
         #(1ns);
-        `FORCE_DDBG(sel_trigbuff, 12); // async clock
+        `FORCE_JTAG(sel_trigbuff, 12); // async clock
         #(1ns);
-        `FORCE_DDBG(en_cgra_clk, 1); // clock to CGRA
+        `FORCE_JTAG(en_cgra_clk, 1); // clock to CGRA
         #(1ns);
 
 		// Wait a little bit to measure frequencies
