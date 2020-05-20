@@ -1,8 +1,5 @@
-`define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
-`define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
-`define FORCE_PDBG(name, value) force top_i.idcore.pdbg_intf_i.``name`` = ``value``
-
-`define GET_PDBG(name) top_i.idcore.pdbg_intf_i.``name``
+`define FORCE_JTAG(name, value) force top_i.idcore.jtag_i.rjtag_intf_i.``name`` = ``value``
+`define GET_JTAG(name) top_i.idcore.jtag_i.rjtag_intf_i.``name``
 
 module test;
 	
@@ -68,77 +65,77 @@ module test;
 
         // Soft reset sequence
         $display("Soft reset sequence...");
-        `FORCE_DDBG(int_rstb, 1);
+        `FORCE_JTAG(int_rstb, 1);
         #(1ns);
-        `FORCE_ADBG(en_inbuf, 1);
+        `FORCE_JTAG(en_inbuf, 1);
 		#(1ns);
-        `FORCE_ADBG(en_gf, 1);
+        `FORCE_JTAG(en_gf, 1);
         #(1ns);
-        `FORCE_ADBG(en_v2t, 1);
+        `FORCE_JTAG(en_v2t, 1);
         #(64ns);
 
         // Turn on the PRBS generator
         $display("Turn on the PRBS generator (case 1)");
-        `FORCE_DDBG(prbs_gen_rstb, 1);
-        `FORCE_PDBG(prbs_gen_cke, 1);
+        `FORCE_JTAG(prbs_gen_rstb, 1);
+        `FORCE_JTAG(prbs_gen_cke, 1);
         #(50ns);
 
         // Select the PRBS checker data source
         $display("Select the PRBS checker data source (case 1)");
-        `FORCE_DDBG(sel_prbs_mux, 2'b11);
+        `FORCE_JTAG(sel_prbs_mux, 2'b11);
         #(10ns);
 
         // Release the PRBS checker from reset
         $display("Release the PRBS tester from reset (case 1)");
-        `FORCE_DDBG(prbs_rstb, 1);
+        `FORCE_JTAG(prbs_rstb, 1);
         #(50ns);
 
         // run the PRBS tester
         $display("Running the PRBS tester (case 1)");
-        `FORCE_PDBG(prbs_checker_mode, 2);
+        `FORCE_JTAG(prbs_checker_mode, 2);
         #(625ns);
 
         // get results
-        `FORCE_PDBG(prbs_checker_mode, 3);
+        `FORCE_JTAG(prbs_checker_mode, 3);
         #(10ns);
 
         err_bits_1 = 0;
-        err_bits_1 |= `GET_PDBG(prbs_err_bits_upper);
+        err_bits_1 |= `GET_JTAG(prbs_err_bits_upper);
         err_bits_1 <<= 32;
-        err_bits_1 |= `GET_PDBG(prbs_err_bits_lower);
+        err_bits_1 |= `GET_JTAG(prbs_err_bits_lower);
 
         total_bits_1 = 0;
-        total_bits_1 |= `GET_PDBG(prbs_total_bits_upper);
+        total_bits_1 |= `GET_JTAG(prbs_total_bits_upper);
         total_bits_1 <<= 32;
-        total_bits_1 |= `GET_PDBG(prbs_total_bits_lower);
+        total_bits_1 |= `GET_JTAG(prbs_total_bits_lower);
 
         // Reset the PRBS checker
         $display("Reset the PRBS tester (case 2)");
-        `FORCE_PDBG(prbs_checker_mode, 0);
+        `FORCE_JTAG(prbs_checker_mode, 0);
         #(50ns);
 
         // run the PRBS tester, but inject an error in the middle
         $display("Running the PRBS tester (case 2)");
-        `FORCE_PDBG(prbs_checker_mode, 2);
+        `FORCE_JTAG(prbs_checker_mode, 2);
         #(300ns);
-        `FORCE_PDBG(prbs_gen_inj_err, 1);
+        `FORCE_JTAG(prbs_gen_inj_err, 1);
         #(25ns);
-        `FORCE_PDBG(prbs_gen_inj_err, 0);
+        `FORCE_JTAG(prbs_gen_inj_err, 0);
         #(300ns);
 
         // get results
-        `FORCE_PDBG(prbs_checker_mode, 3);
+        `FORCE_JTAG(prbs_checker_mode, 3);
         #(10ns);
 
         err_bits_2 = 0;
-        err_bits_2 |= `GET_PDBG(prbs_err_bits_upper);
+        err_bits_2 |= `GET_JTAG(prbs_err_bits_upper);
         err_bits_2 <<= 32;
-        err_bits_2 |= `GET_PDBG(prbs_err_bits_lower);
+        err_bits_2 |= `GET_JTAG(prbs_err_bits_lower);
 
         total_bits_2 = 0;
-        total_bits_2 |= `GET_PDBG(prbs_total_bits_upper);
+        total_bits_2 |= `GET_JTAG(prbs_total_bits_upper);
         total_bits_2 <<= 32;
-        total_bits_2 |= `GET_PDBG(prbs_total_bits_lower);
+        total_bits_2 |= `GET_JTAG(prbs_total_bits_lower);
 
         // print results
         $display("err_bits_1: %0d", err_bits_1);

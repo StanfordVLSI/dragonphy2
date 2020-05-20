@@ -1,7 +1,6 @@
 `include "mLingua_pwl.vh"
 
-`define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
-`define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
+`define FORCE_JTAG(name, value) force top_i.idcore.jtag_i.rjtag_intf_i.``name`` = ``value``
 
 module test;
 
@@ -76,13 +75,13 @@ module test;
 
         // Soft reset sequence
         $display("Soft reset sequence...");
-        `FORCE_DDBG(int_rstb, 1);
+        `FORCE_JTAG(int_rstb, 1);
         #(1ns);
-        `FORCE_ADBG(en_inbuf, 1);
+        `FORCE_JTAG(en_inbuf, 1);
 		#(1ns);
-        `FORCE_ADBG(en_gf, 1);
+        `FORCE_JTAG(en_gf, 1);
         #(1ns);
-        `FORCE_ADBG(en_v2t, 1);
+        `FORCE_JTAG(en_v2t, 1);
         #(1ns);
 
         // Wait a little while

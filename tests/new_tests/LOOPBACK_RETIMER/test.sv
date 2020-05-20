@@ -1,8 +1,6 @@
 `include "mLingua_pwl.vh"
-//`include "mdll_param.vh"
 
-`define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
-`define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
+`define FORCE_JTAG(name, value) force top_i.idcore.jtag_i.rjtag_intf_i.``name`` = ``value``
 
 `ifndef TI_ADC_TXT
     `define TI_ADC_TXT
@@ -186,13 +184,13 @@ module test;
 
         // Soft reset sequence
         $display("Soft reset sequence...");
-        `FORCE_DDBG(int_rstb, 1);
+        `FORCE_JTAG(int_rstb, 1);
         #(1ns);
-        `FORCE_ADBG(en_inbuf, 1);
+        `FORCE_JTAG(en_inbuf, 1);
 		#(1ns);
-        `FORCE_ADBG(en_gf, 1);
+        `FORCE_JTAG(en_gf, 1);
         #(1ns);
-        `FORCE_ADBG(en_v2t, 1);
+        `FORCE_JTAG(en_v2t, 1);
         #(64ns);
 
         // Set up the PFD offset
@@ -200,7 +198,7 @@ module test;
         for (int idx=0; idx<Nti; idx=idx+1) begin
             tmp_ext_pfd_offset[idx] = `EXT_PFD_OFFSET;
         end
-        `FORCE_DDBG(ext_pfd_offset, tmp_ext_pfd_offset);
+        `FORCE_JTAG(ext_pfd_offset, tmp_ext_pfd_offset);
         #(1ns);
 
         // apply the stimulus
@@ -212,9 +210,9 @@ module test;
         #(5ns);
 
         // toggle the en_v2t signal to re-initialize the V2T ordering
-        `FORCE_ADBG(en_v2t, 0);
+        `FORCE_JTAG(en_v2t, 0);
         #(5ns);
-        `FORCE_ADBG(en_v2t, 1);
+        `FORCE_JTAG(en_v2t, 1);
         #(5ns);
 
 		// Wait some time initially
