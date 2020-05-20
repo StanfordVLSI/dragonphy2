@@ -179,6 +179,52 @@ sroute -connect { blockPin } -layerChangeRange { M6 M6 } -blockPinTarget { bound
 sroute -connect { blockPin } -layerChangeRange { M6 M6 } -blockPinTarget { blockPin } -allowJogging 1 -crossoverViaLayerRange { M7 M6 } -nets { DVDD DVSS } -allowLayerChange 0 -blockPin useLef -targetViaLayerRange { M7 M6 }
 #--------------------------------------------------------------------------------------------------------------
 
+
+# M10 physical pin assignment for AVDD/AVSS/CVDD/CVSS-----------------------------------------------------------
+set M10_power_width 20
+set CVDD_pin_offset_y 97.626
+set CVSS_pin_offset_y 127.626
+set AVSS_pin_offset_y 285.526
+set AVDD_pin_offset_y 315.526
+
+#[CVDD/CVSS]
+createPhysicalPin CVDD -net CVDD -layer 10 -rect [expr $acore_x] [expr $acore_y+$CVDD_pin_offset_y] [expr $acore_x+$acore_width]  [expr $acore_y+$CVDD_pin_offset_y+$M10_power_width]
+createPhysicalPin CVSS -net CVSS -layer 10 -rect [expr $acore_x] [expr $acore_y+$CVSS_pin_offset_y] [expr $acore_x+$acore_width]  [expr $acore_y+$CVSS_pin_offset_y+$M10_power_width]
+#[AVDD/AVSS]
+createPhysicalPin AVSS -net AVSS -layer 10 -rect [expr $acore_x] [expr $acore_y+$AVSS_pin_offset_y] [expr $acore_x+$acore_width]  [expr $acore_y+$AVSS_pin_offset_y+$M10_power_width]
+createPhysicalPin AVDD -net AVDD -layer 10 -rect [expr $acore_x] [expr $acore_y+$AVDD_pin_offset_y] [expr $acore_x+$acore_width]  [expr $acore_y+$AVDD_pin_offset_y+$M10_power_width]
+
+# ----------------------------------------------------------------------------------------------------
+# special route
+# ----------------------------------------------------------------------------------------------------
+# [CVDD connection between ACORE and MDLL]
+
+setEdit -layer_minimum M1
+setEdit -layer_maximum AP
+setEdit -force_regular 1
+getEdit -snap_to_track_regular
+getEdit -snap_to_pin
+setEdit -force_special 1
+getEdit -snap_to_track
+getEdit -snap_special_wire
+getEdit -align_wire_at_pin
+getEdit -snap_to_row
+getEdit -snap_to_pin
+setViaGenMode -ignore_DRC false
+setViaGenMode -use_fgc 1
+setViaGenMode -use_cce false
+
+
+setEdit -layer_vertical M10
+setEdit -width_vertical $M10_power_width
+setEdit -nets CVDD
+editAddRoute [expr $mdll_x+$mdll_width+$M10_power_width] [expr $acore_y+$CVDD_pin_offset_y]
+editCommitRoute [expr $mdll_x+$mdll_width+10] [expr $mdll_y] 
+# ----------------------------------------------------------------------------------------------------
+
+
+
+
 #Routing blockages for input buffers
 createRouteBlk -box $inbuf_async_x $inbuf_async_y [expr $inbuf_async_x+$input_buffer_width] [expr $inbuf_async_y+$input_buffer_height] -layer {7 8 9}
 createRouteBlk -box $inbuf_main_x $inbuf_main_y [expr $inbuf_main_x+$input_buffer_width] [expr $inbuf_main_y+$input_buffer_height] -layer {7 8 9}
@@ -189,15 +235,15 @@ createRouteBlk -box $inbuf_mdll_mon_x $inbuf_mdll_mon_y [expr $inbuf_mdll_mon_x+
 # power grid parameters --------------------------------------------------------------------------------
 set dcore_M7_width 1
 set dcore_M7_space 1
-set dcore_M7_set_to_set 100
+set dcore_M7_set_to_set 16
 
 set dcore_M8_width 2
 set dcore_M8_space 1
-set dcore_M8_set_to_set 100
+set dcore_M8_set_to_set 12
 
 set dcore_M9_width 4
 set dcore_M9_space 1
-set dcore_M9_set_to_set 100
+set dcore_M9_set_to_set 20
 #--------------------------------------------------------------------------------------------------------------
 
 
@@ -231,7 +277,7 @@ addStripe -nets {DVDD DVSS} \
   -layer M9 -direction vertical -width $dcore_M9_width -spacing [expr $dcore_M9_space] -start_offset [expr $boundary_width] -set_to_set_distance $dcore_M9_set_to_set -start_from left -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit AP -padcore_ring_bottom_layer_limit M7 -block_ring_top_layer_limit M7 -block_ring_bottom_layer_limit M7 -use_wire_group 0 -snap_wire_center_to_grid None -skip_via_on_pin {standardcell} -skip_via_on_wire_shape {noshape} -create_pins 1 -extend_to design_boundary
 #--------------------------------------------------------------------------------------------------------------
 
-
+deleteRouteBlk -name M9_via_blk
 
 # analog signal pin parameters ------------------------------------------------------------------------------
 set rx_in_pin_width 57
@@ -265,15 +311,10 @@ set outbuf_pin_space 3.6
 set outbuf_pin_offset_x [expr $output_buffer_width+3]
 set outbuf_pin_offset_y [expr $outbuf_pin_space/2]
 
-set M10_power_width 20
-set CVDD_pin_offset_y 97.626
-set CVSS_pin_offset_y 127.626
-set AVSS_pin_offset_y 285.526
-set AVDD_pin_offset_y 315.526
 #----------------------------------------------------------------------------------------------------
 
 
-
+setPtnPinStatus -cell dragonphy_top -pin {*} -status unplaced -silent
 #----------------------------------------------------------------------------------------------------
 # Assigning Analog signal pins ----------------------------------------------------------------------
 #----------------------------------------------------------------------------------------------------
@@ -309,17 +350,11 @@ createPhysicalPin clk_out_p -net clk_out_p -layer 10 -rect [expr $outbuf_x+$outb
 # [clk_trig]
 createPhysicalPin clk_trig_p -net clk_trig_p -layer 10 -rect [expr $outbuf_x+$outbuf_pin_offset_x] [expr $outbuf_y+$output_buffer_height/2-($outbuf_pin_offset_y)] [expr $outbuf_x+$outbuf_pin_offset_x+$outbuf_pin_width] [expr $outbuf_y+$output_buffer_height/2-($outbuf_pin_offset_y+$outbuf_pin_height)]
 createPhysicalPin clk_trig_n -net clk_trig_n -layer 10 -rect [expr $outbuf_x+$outbuf_pin_offset_x] [expr $outbuf_y+$output_buffer_height/2-($outbuf_pin_offset_y+$outbuf_pin_space+$outbuf_pin_height)] [expr $outbuf_x+$outbuf_pin_offset_x+$outbuf_pin_width] [expr $outbuf_y+$output_buffer_height/2-($outbuf_pin_offset_y+$outbuf_pin_space+2*$outbuf_pin_height)] 
-#[CVDD/CVSS]
-createPhysicalPin CVDD -net CVDD -layer 10 -rect [expr $acore_x] [expr $acore_y+$CVDD_pin_offset_y] [expr $acore_x+$acore_width]  [expr $acore_y+$CVDD_pin_offset_y+$M10_power_width]
-createPhysicalPin CVSS -net CVSS -layer 10 -rect [expr $acore_x] [expr $acore_y+$CVSS_pin_offset_y] [expr $acore_x+$acore_width]  [expr $acore_y+$CVSS_pin_offset_y+$M10_power_width]
-#[AVDD/AVSS]
-createPhysicalPin AVSS -net AVSS -layer 10 -rect [expr $acore_x] [expr $acore_y+$AVSS_pin_offset_y] [expr $acore_x+$acore_width]  [expr $acore_y+$AVSS_pin_offset_y+$M10_power_width]
-createPhysicalPin AVDD -net AVDD -layer 10 -rect [expr $acore_x] [expr $acore_y+$AVDD_pin_offset_y] [expr $acore_x+$acore_width]  [expr $acore_y+$AVDD_pin_offset_y+$M10_power_width]
 # ----------------------------------------------------------------------------------------------------
 
 
 # ----------------------------------------------------------------------------------------------------
-# Assign Digital signal pins -------------------------------------------------------------------------
+# Assign slow Digital signal pins -------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------
 set pin_width 0.04
 set pin_depth 0.4
@@ -329,34 +364,15 @@ set digital_pins {ext_rstb ext_dump_start *phy*}
 editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 0 -spreadDirection counterclockwise -edge 2 -layer 2  -spreadType start -unit MICRON -offsetStart $digital_pin_start_offset -spacing $digital_pin_space -pin $digital_pins
 # ----------------------------------------------------------------------------------------------------
 
-
 # ----------------------------------------------------------------------------------------------------
-# special route
+# Assign clk_cgra    --------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------
-# [CVDD connection between ACORE and MDLL]
-
-setEdit -layer_minimum M1
-setEdit -layer_maximum AP
-setEdit -force_regular 1
-getEdit -snap_to_track_regular
-getEdit -snap_to_pin
-setEdit -force_special 1
-getEdit -snap_to_track
-getEdit -snap_special_wire
-getEdit -align_wire_at_pin
-getEdit -snap_to_row
-getEdit -snap_to_pin
-setViaGenMode -ignore_DRC false
-setViaGenMode -use_fgc 1
-setViaGenMode -use_cce false
-
-setEdit -layer_vertical M10
-setEdit -width_vertical $M10_power_width
-setEdit -nets CVDD
-editAddRoute [expr $mdll_x+$mdll_width+$M10_power_width] [expr $acore_y+$CVDD_pin_offset_y]
-editCommitRoute [expr $mdll_x+$mdll_width+10] [expr $mdll_y] 
-
+editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 0 -spreadDirection counterclockwise -edge 3 -layer 3  -spreadType start -unit MICRON -offsetStart [expr $FP_width/2] -spacing $digital_pin_space -pin clk_cgra
 # ----------------------------------------------------------------------------------------------------
+
+
+
+
 
 
 
