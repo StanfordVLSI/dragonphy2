@@ -35,8 +35,8 @@ module test;
 
     // TODO don't hard code these weight manager parameters
     localparam integer width = 16;
-    localparam integer depth = 30;
-    localparam integer bitwidth=8;
+    localparam integer depth = 10;
+    localparam integer bitwidth= 10;
 
     /*
     Inputs to weight manager
@@ -57,6 +57,10 @@ module test;
     //logic signed [bitwidth-1:0] read_reg;
     //logic signed [bitwidth-1:0] weights [width-1:0][depth-1:0];
 
+    initial begin
+	        $shm_open("waves.shm");
+	        $shm_probe("ASMC");
+    end
 
 	// clock inputs
 
@@ -207,7 +211,7 @@ module test;
 	// Main test
 
 	logic [Nadc-1:0] tmp_ext_pfd_offset [Nti-1:0];
-
+    logic [4:0] tmp_ffe_shift [Nti-1:0];
 	initial begin
         integer ii, jj;
 
@@ -238,6 +242,11 @@ module test;
         `FORCE_ADBG(en_inbuf, 1);
 		#(1ns);
         `FORCE_ADBG(en_gf, 1);
+
+        for (int idx=0; idx <Nti; idx=idx+1) begin
+            tmp_ffe_shift[idx] = 0;
+        end
+        `FORCE_DDBG(ffe_shift, tmp_ffe_shift);
         #(1ns);
         `FORCE_ADBG(en_v2t, 1);
         #(64ns);
@@ -268,11 +277,12 @@ module test;
         $display("Loading FFE weights");
         // Load new FFE weights
         for(ii = 0; ii < width; ii = ii + 1) begin
-            for(jj = 0; jj < depth; jj=jj+1) begin
-                value = (jj == 0)? 8 : 0;
-                load(jj, ii, value);
-                //pulse_wr_in();
-            end
+            load(9, ii, 4);
+            //for(jj = 0; jj < depth; jj=jj+1) begin
+            //    value = (jj == 0)? 8 : 0;
+            //    load(jj, ii, value);
+            //    //pulse_wr_in();
+            //end
             $display("\tFinished %d of %d", ii+1, width);
         end
 
@@ -298,7 +308,7 @@ module test;
         force top_i.idcore.wdbg_intf_i.wme_ffe_inst[$clog2(depth)-1:0] = d_idx;
         force top_i.idcore.wdbg_intf_i.wme_ffe_data[bitwidth-1:0] = value;
         toggle_exec();
-        #(1.5e-9 *1s);
+        //#(1.5e-9 *1s);
     endtask
 
     task toggle_exec;
