@@ -26,10 +26,6 @@
     `define WIDTH_TOL 2e-12
 `endif
 
-`ifndef INITIAL_CODE
-    `define INITIAL_CODE 0
-`endif
-
 `ifndef INITIAL_DIR
     `define INITIAL_DIR +1
 `endif
@@ -94,22 +90,12 @@ module test;
     // Stimulus logic
     logic [(Npi-1):0] pi_ctl_indiv [(Nout-1):0];
     logic [(Npi-1):0] pi_ctl_prev [(Nout-1):0];
-    integer delay_val_ps [(Nout-1):0][(Npi-1):0];
     genvar ig;
     genvar jg;
     generate
         for (ig=0; ig<Nout; ig=ig+1) begin
-            for (jg=0; jg<Npi; jg=jg+1) begin
-                always @(pi_ctl_indiv[ig]) begin
-                    // randomize bit during setup
-                    #(1ps);
-                    force top_i.iacore.ctl_pi[ig][jg] = $urandom;
-
-                    // use a randomized setup time for each bit (all less than 500 ps)
-                    delay_val_ps[ig][jg] = $urandom%500;
-                    #(delay_val_ps[ig][jg]*1ps);
-                    force top_i.iacore.ctl_pi[ig][jg] = pi_ctl_indiv[ig][jg];
-                end
+            always @(pi_ctl_indiv[ig]) begin
+                force top_i.iacore.ctl_pi[ig] = pi_ctl_indiv[ig];
             end
         end
     endgenerate
@@ -132,9 +118,9 @@ module test;
     	test_start = 1'b0;
     	test_stop = 1'b0;
     	pi_ctl_indiv[0] = 0;
-        pi_ctl_indiv[1] = 67;
-        pi_ctl_indiv[2] = 133;
-        pi_ctl_indiv[3] = 200;
+        pi_ctl_indiv[1] = 0;
+        pi_ctl_indiv[2] = 0;
+        pi_ctl_indiv[3] = 0;
         for (int i=0; i<Nout; i=i+1) begin
     	    code_delta[i] = (`INITIAL_DIR);
     	end
