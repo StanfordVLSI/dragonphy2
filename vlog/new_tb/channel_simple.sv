@@ -12,7 +12,7 @@ module channel_simple #(
 	output pwl out
 );
     // calculate angular frequency
-    localparam real omega = (tau != -1) ? (1.0/tau) : (1.0/(rel_speed*baud_rate));
+    localparam real omega = (tau != -1) ? (1.0/tau) : (rel_speed*baud_rate);
 
     // convert to Hz
 	localparam real fp = omega/(2.0*3.141592653589793);
