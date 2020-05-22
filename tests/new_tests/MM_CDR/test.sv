@@ -7,11 +7,20 @@
     `define EXT_PFD_OFFSET 16
 `endif
 
+// comment out to directly feed ADC data to CDR
+`define CDR_USE_FFE
+
 module test;
 
 	import const_pack::*;
 	import test_pack::*;
 	import jtag_reg_pack::*;
+
+    localparam real dt=1.0/(16.0e9);
+    localparam real bw=1.0e9;
+    localparam real tau=1.0/(2.0*3.14*bw);
+    localparam integer coeff0 = 128.0/(1.0-$exp(-dt/tau));
+    localparam integer coeff1 = -128.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
 
     // clock inputs
 	logic ext_clkp;
@@ -80,7 +89,7 @@ module test;
     // Differential channel
 
     diff_channel #(
-        .tau(14.2e-12)
+        .tau(tau)
     ) diff_channel_i (
         .in_p(tx_p),
         .in_n(tx_n),
@@ -105,10 +114,13 @@ module test;
     logic [Npi-1:0] tmp_ext_pi_ctl_offset [Nout-1:0];
     logic [Nprbs-1:0] tmp_prbs_eqn;
 
-    integer loop_var;
+    integer loop_var, loop_var2;
     integer offset;
 
     longint err_bits, total_bits;
+
+    logic signed [ffe_gpack::weight_precision-1:0] tmp_weights [constant_gpack::channel_width-1:0][ffe_gpack::length-1:0];
+    logic [ffe_gpack::shift_precision-1:0] tmp_ffe_shift [constant_gpack::channel_width-1:0];
 
 	initial begin
         `ifdef DUMP_WAVEFORMS
@@ -150,8 +162,19 @@ module test;
             $shm_probe(inn);
 
             // data in digital_core
-            // $shm_probe(top_i.idcore.adcout_unfolded);
+            $shm_probe(top_i.idcore.adcout_unfolded);
+            $shm_probe(top_i.idcore.estimated_bits);
+            $shm_probe(top_i.idcore.dsp_i.cffe_i.weights);
+            $shm_probe(top_i.idcore.dsp_i.cffe_i.flat_codes);
+            $shm_probe(top_i.idcore.dsp_i.cffe_i.disable_product);
+            $shm_probe(top_i.idcore.dsp_i.cffe_i.shift_index);
+            $shm_probe(top_i.idcore.dsp_dbg_intf_i.weights);
+            $shm_probe(top_i.idcore.dsp_dbg_intf_i.ffe_shift);
         `endif
+
+        // print test condition
+        $display("bw=%0.3f (GHz)", bw/1.0e9);
+        $display("tau=%0.3f (ps)", tau*1.0e12);
 
         // initialize control signals
 		rstb = 1'b0;
@@ -193,10 +216,32 @@ module test;
         `FORCE_JTAG(prbs_eqn, tmp_prbs_eqn);
         #(10ns);
 
+        // Select the PRBS checker data source
+        $display("Select the PRBS checker data source");
+        `FORCE_JTAG(sel_prbs_mux, 2'b01);
+        #(10ns);
+
         // Release the PRBS checker from reset
         $display("Release the PRBS tester from reset");
         `FORCE_JTAG(prbs_rstb, 1);
         #(50ns);
+
+        // Set up the FFE
+        for (loop_var=0; loop_var<Nti; loop_var=loop_var+1) begin
+            for (loop_var2=0; loop_var2<ffe_gpack::length; loop_var2=loop_var2+1) begin
+                if (loop_var2 == 0) begin
+                    tmp_weights[loop_var][loop_var2] = coeff0;
+                end else if (loop_var2 == 1) begin
+                    tmp_weights[loop_var][loop_var2] = coeff1;
+                end else begin
+                    tmp_weights[loop_var][loop_var2] = 0;
+                end
+            end
+            tmp_ffe_shift[loop_var] = 7;
+        end
+        force top_i.idcore.dsp_dbg_intf_i.weights = tmp_weights;
+        force top_i.idcore.dsp_dbg_intf_i.ffe_shift = tmp_ffe_shift;
+        #(10ns);
 
         // Configure the CDR offsets
         $display("Setting up the CDR offset...");
@@ -214,6 +259,9 @@ module test;
       	`FORCE_JTAG(invert, 1);
 		`FORCE_JTAG(en_freq_est, 0);
 		`FORCE_JTAG(en_ext_pi_ctl, 0);
+		`ifdef CDR_USE_FFE
+		    `FORCE_JTAG(sel_inp_mux, 1);
+		`endif
 		#(10ns);
 
         // Toggle the en_v2t signal to re-initialize the V2T ordering
