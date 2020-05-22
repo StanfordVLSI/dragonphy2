@@ -1,10 +1,7 @@
 `include "mLingua_pwl.vh"
 
-`define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
-`define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
-`define FORCE_IDCORE(name, value) force top_i.idcore.``name`` = ``value``
-
-`define GET_ADBG(name) top_i.iacore.adbg_intf_i.``name``
+`define FORCE_JTAG(name, value) force top_i.idcore.jtag_i.rjtag_intf_i.``name`` = ``value``
+`define GET_JTAG(name) top_i.idcore.jtag_i.rjtag_intf_i.``name``
 
 `ifndef PI_CTL_TXT
     `define PI_CTL_TXT
@@ -128,13 +125,13 @@ module test;
 
         // Soft reset sequence
         $display("Soft reset sequence...");
-        `FORCE_DDBG(int_rstb, 1);
+        `FORCE_JTAG(int_rstb, 1);
         #(1ns);
-        `FORCE_ADBG(en_inbuf, 1);
+        `FORCE_JTAG(en_inbuf, 1);
 		#(1ns);
-        `FORCE_ADBG(en_gf, 1);
+        `FORCE_JTAG(en_gf, 1);
         #(1ns);
-        `FORCE_ADBG(en_v2t, 1);
+        `FORCE_JTAG(en_v2t, 1);
         #(64ns);
 
         // wait for startup so that we can read max_sel_mux
@@ -144,7 +141,7 @@ module test;
         // the expression for the max value is from Sung-Jin on May 1, 2020
         max_max_ctl_pi = 0;
         for (int i=0; i<Nout; i=i+1) begin
-            max_sel_mux[i] = `GET_ADBG(max_sel_mux[i]);
+            max_sel_mux[i] = `GET_JTAG(max_sel_mux[i]);
             max_ctl_pi[i] = ((max_sel_mux[i]+1)*16)-1;
             if (max_ctl_pi[i] > max_max_ctl_pi) begin
                 max_max_ctl_pi = max_ctl_pi[i];
