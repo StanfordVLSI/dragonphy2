@@ -1,10 +1,7 @@
 `timescale 1fs/1fs
 
-`define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
-`define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
-`define FORCE_IDCORE(name, value) force top_i.idcore.``name`` = ``value``
-
-`define GET_ADBG(name) top_i.iacore.adbg_intf_i.``name``
+`define FORCE_JTAG(name, value) force top_i.idcore.jtag_i.rjtag_intf_i.``name`` = ``value``
+`define GET_JTAG(name) top_i.idcore.jtag_i.rjtag_intf_i.``name``
 
 // please set the values for these variables in the Python script!
 // documentation for each can be found there
@@ -27,10 +24,6 @@
 
 `ifndef WIDTH_TOL
     `define WIDTH_TOL 2e-12
-`endif
-
-`ifndef INITIAL_CODE
-    `define INITIAL_CODE 0
 `endif
 
 `ifndef INITIAL_DIR
@@ -94,16 +87,26 @@ module test;
         min = (a < b) ? a : b;
     endfunction
 
+    // Stimulus logic
+    logic [(Npi-1):0] pi_ctl_indiv [(Nout-1):0];
+    logic [(Npi-1):0] pi_ctl_prev [(Nout-1):0];
+    genvar ig;
+    genvar jg;
+    generate
+        for (ig=0; ig<Nout; ig=ig+1) begin
+            always @(pi_ctl_indiv[ig]) begin
+                force top_i.iacore.ctl_pi[ig] = pi_ctl_indiv[ig];
+            end
+        end
+    endgenerate
+
     // Main test logic
 
     real delay;
-    integer code_delta;
-    logic [(Npi-1):0] pi_ctl_indiv;
-    logic [(Npi-1):0] pi_ctl_prev;
+    integer code_delta [(Nout-1):0];
 
 	integer max_sel_mux [Nout];
 	integer max_ctl_pi [Nout];
-	integer max_max_ctl_pi;
 
     initial begin
          `ifdef DUMP_WAVEFORMS
@@ -114,16 +117,17 @@ module test;
         // initialize control signals
     	test_start = 1'b0;
     	test_stop = 1'b0;
-    	pi_ctl_indiv = (`INITIAL_CODE);
-    	code_delta = (`INITIAL_DIR);
+    	pi_ctl_indiv[0] = 0;
+        pi_ctl_indiv[1] = 0;
+        pi_ctl_indiv[2] = 0;
+        pi_ctl_indiv[3] = 0;
+        for (int i=0; i<Nout; i=i+1) begin
+    	    code_delta[i] = (`INITIAL_DIR);
+    	end
 		rstb = 1'b0;
         #(1ns);
 
-        // set all PI codes to pi_ctl_indiv
-        force top_i.iacore.ctl_pi[0] = pi_ctl_indiv;
-        force top_i.iacore.ctl_pi[1] = pi_ctl_indiv;
-        force top_i.iacore.ctl_pi[2] = pi_ctl_indiv;
-        force top_i.iacore.ctl_pi[3] = pi_ctl_indiv;
+        // wait for PI codes to be assigned through always block
         #(1ns);
 
 		// Release reset
@@ -135,13 +139,13 @@ module test;
 
         // Soft reset sequence
         $display("Soft reset sequence...");
-        `FORCE_DDBG(int_rstb, 1);
+        `FORCE_JTAG(int_rstb, 1);
         #(1ns);
-        `FORCE_ADBG(en_inbuf, 1);
+        `FORCE_JTAG(en_inbuf, 1);
 		#(1ns);
-        `FORCE_ADBG(en_gf, 1);
+        `FORCE_JTAG(en_gf, 1);
         #(1ns);
-        `FORCE_ADBG(en_v2t, 1);
+        `FORCE_JTAG(en_v2t, 1);
         #(1ns);
 
         // wait for startup so that we can read max_sel_mux
@@ -149,13 +153,9 @@ module test;
 
         // determine the max code range for each PI
         // the expression for the max value is from Sung-Jin on May 1, 2020
-        max_max_ctl_pi = 0;
         for (int i=0; i<Nout; i=i+1) begin
-            max_sel_mux[i] = `GET_ADBG(max_sel_mux[i]);
+            max_sel_mux[i] = `GET_JTAG(max_sel_mux[i]);
             max_ctl_pi[i] = ((max_sel_mux[i]+1)*16)-1;
-            if (max_ctl_pi[i] > max_max_ctl_pi) begin
-                max_max_ctl_pi = max_ctl_pi[i];
-            end
         end
 
         // start the test
@@ -168,24 +168,19 @@ module test;
             // synchronize to the beginning of the CDR clock period
             @(posedge top_i.iacore.clk_adc);
 
-            // wait a random amount of time within the CDR clock period
-            delay = (($urandom%10000)/10000.0)/(`CDR_CLK_FREQ);
-            #(delay*1s);
-
-            // increment/decrement the PI control code
-            pi_ctl_prev = pi_ctl_indiv;
-            pi_ctl_indiv = pi_ctl_indiv + code_delta;
-            if (pi_ctl_indiv == 0) begin
-                code_delta = +1;
-            end else if (pi_ctl_indiv == max_max_ctl_pi) begin
-                code_delta = -1;
+            // increment/decrement each PI control code
+            for (int j=0; j<Nout; j=j+1) begin
+                pi_ctl_prev[j] = pi_ctl_indiv[j];
+                pi_ctl_indiv[j] = pi_ctl_indiv[j] + code_delta[j];
+                if (pi_ctl_indiv[j] == 0) begin
+                    code_delta[j] = +1;
+                end else if (pi_ctl_indiv[j] == max_ctl_pi[j]) begin
+                    code_delta[j] = -1;
+                end
             end
 
-            // apply the stimulus
-            force top_i.iacore.ctl_pi[0] = min(pi_ctl_indiv, max_ctl_pi[0]);
-            force top_i.iacore.ctl_pi[1] = min(pi_ctl_indiv, max_ctl_pi[1]);
-            force top_i.iacore.ctl_pi[2] = min(pi_ctl_indiv, max_ctl_pi[2]);
-            force top_i.iacore.ctl_pi[3] = min(pi_ctl_indiv, max_ctl_pi[3]);
+            // stimulus is applied through the always block
+            // declared earlier in the code
 
             // wait while monitoring
             #((`MONITOR_TIME)*1s);
@@ -193,7 +188,7 @@ module test;
             // print status
             $display("%0.2f%% complete [code %0d -> %0d]",
                      100.0*(i+1)/(1.0*`N_TRIALS),
-                     pi_ctl_prev, pi_ctl_indiv);
+                     pi_ctl_prev[0], pi_ctl_indiv[0]);
         end
 
         // end test

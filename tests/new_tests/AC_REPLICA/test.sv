@@ -1,7 +1,6 @@
 `include "mLingua_pwl.vh"
 
-`define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
-`define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
+`define FORCE_JTAG(name, value) force top_i.idcore.jtag_i.rjtag_intf_i.``name`` = ``value``
 
 `ifndef TI_ADC_TXT
     `define TI_ADC_TXT
@@ -126,24 +125,24 @@ module test;
 
         // Soft reset sequence
         $display("Soft reset sequence...");
-        `FORCE_DDBG(int_rstb, 1);
+        `FORCE_JTAG(int_rstb, 1);
         #(1ns);
-        `FORCE_ADBG(en_inbuf, 1);
+        `FORCE_JTAG(en_inbuf, 1);
 		#(1ns);
-        `FORCE_ADBG(en_gf, 1);
+        `FORCE_JTAG(en_gf, 1);
         #(1ns);
-        `FORCE_ADBG(en_v2t, 1);
+        `FORCE_JTAG(en_v2t, 1);
         #(1ns);
 
         // Enable the replica slices
-        `FORCE_ADBG(en_slice_rep, (1<<(Nti_rep))-1);
+        `FORCE_JTAG(en_slice_rep, (1<<(Nti_rep))-1);
         #(1ns);
 
         // Set up the PFD offset
         for (int idx=0; idx<Nti_rep; idx=idx+1) begin
             tmp_ext_pfd_offset_rep[idx] = `EXT_PFD_OFFSET;
         end
-        `FORCE_DDBG(ext_pfd_offset_rep, tmp_ext_pfd_offset_rep);
+        `FORCE_JTAG(ext_pfd_offset_rep, tmp_ext_pfd_offset_rep);
         #(1ns);
 
 		// Wait some time initially
