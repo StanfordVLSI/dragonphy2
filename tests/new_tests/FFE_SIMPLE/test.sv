@@ -278,11 +278,6 @@ module test;
         // Load new FFE weights
         for(ii = 0; ii < width; ii = ii + 1) begin
             load(9, ii, 4);
-            //for(jj = 0; jj < depth; jj=jj+1) begin
-            //    value = (jj == 0)? 8 : 0;
-            //    load(jj, ii, value);
-            //    //pulse_wr_in();
-            //end
             $display("\tFinished %d of %d", ii+1, width);
         end
 
@@ -292,15 +287,58 @@ module test;
 		#(100ns);
 
 		// Then record for awhile
+        record_bits();
+
+        $display("Loading FFE weights for diff");
+        // Load new FFE weights
+        for(ii = 0; ii < width; ii = ii + 1) begin
+            load(8, ii, -4);
+            $display("\tFinished %d of %d", ii+1, width);
+        end
+
+		// Then record for awhile
+        record_bits();
+
+        $display("Loading larger set of weights");
+        // Load new FFE weights
+        for(ii = 0; ii < width; ii = ii + 1) begin
+            //integer weights [depth-1:0] = {-3, 6, 7, -4, -2, -1, 3, 1, -8, 1};
+            //logic signed [bitwidth-1:0] weights [3-1:0] = {4, -4, 8};
+            
+            //for(jj = 7; jj < depth; jj = jj + 1) begin
+            //    load(jj, ii, weights[jj-7]);
+            //end
+            load(9, ii, 10);
+            load(8, ii, 10);
+            load(7, ii, 10);
+            load(6, ii, 10);
+            //load(5, ii, 3);
+            //load(4, ii, -1);
+            //load(3, ii, 1);
+            //load(2, ii, -2);
+            //load(1, ii, -2);
+            //load(0, ii, 1);
+            $display("\tFinished %d of %d", ii+1, width);
+        end
+
+        for (int idx=0; idx <Nti; idx=idx+1) begin
+            tmp_ffe_shift[idx] = 5;
+        end
+        `FORCE_DDBG(ffe_shift, tmp_ffe_shift);
+
+		// Then record for awhile
+        record_bits();
+		$finish;
+	end
+
+    task record_bits;
 		should_record = 1'b1;
 		for (int k=0; k<(`N_INTERVAL); k=k+1) begin
-		    $display("Test is %0.1f%% complete.", (100.0*k)/(1.0*(`N_INTERVAL)));
+		    $display("Current test is %0.1f%% complete.", (100.0*k)/(1.0*(`N_INTERVAL)));
 		    #((`INTERVAL_LENGTH)*1s);
 		end
         should_record = 1'b0;
-
-		$finish;
-	end
+    endtask
 
     task load(input logic [$clog2(depth)-1:0] d_idx, logic [$clog2(width)-1:0] w_idx, logic [bitwidth-1:0] value);
         force top_i.idcore.wdbg_intf_i.wme_ffe_inst[$clog2(depth)+$clog2(width)] = 0;
