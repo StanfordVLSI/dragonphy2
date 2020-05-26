@@ -309,19 +309,20 @@ module test;
             //    load(jj, ii, weights[jj-7]);
             //end
             load(9, ii, 10);
-            load(8, ii, 10);
-            load(7, ii, 10);
+            load(8, ii, 8);
+            load(7, ii, -12);
             load(6, ii, 10);
-            //load(5, ii, 3);
-            //load(4, ii, -1);
-            //load(3, ii, 1);
-            //load(2, ii, -2);
-            //load(1, ii, -2);
-            //load(0, ii, 1);
+            load(5, ii, 3);
+            load(4, ii, -7);
+            load(3, ii, 3);
+            load(2, ii, -12);
+            load(1, ii, -2);
+            load(0, ii, 1);
             $display("\tFinished %d of %d", ii+1, width);
         end
 
         for (int idx=0; idx <Nti; idx=idx+1) begin
+            // shift of 2+5 is divide by 128
             tmp_ffe_shift[idx] = 5;
         end
         `FORCE_DDBG(ffe_shift, tmp_ffe_shift);

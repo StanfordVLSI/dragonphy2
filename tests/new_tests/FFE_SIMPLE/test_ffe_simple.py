@@ -17,7 +17,7 @@ else:
 
 # Set DUMP_WAVEFORMS to True if you want to dump all waveforms for this
 # test.  The waveforms are stored in tests/new_tests/AC/build/waves.shm
-DUMP_WAVEFORMS = True
+DUMP_WAVEFORMS = False
 
 @pytest.mark.parametrize((), [pytest.param(marks=pytest.mark.slow) if SIMULATOR=='vivado' else ()])
 def test_sim():
@@ -64,7 +64,7 @@ def test_sim():
     # Number of datapoints recorded in one test (currently 100ns)
     N = 16 * 100
     # latency from adc datapoint to equivalent ffe datapoint
-    FFE_LATENCY = 16 * 3
+    FFE_LATENCY = 16 * 5
     # warmup time before ffe has expected output
     STARTUP = 16 * 3
     def test_response(adc, ffe, resp, div):
@@ -85,18 +85,9 @@ def test_sim():
     test_response(adc[N:2*N], ffe[N:2*N], [4, -4], 4)
     print('Passed diff test')
 
-    #test_response(adc[2*N:3*N], ffe[2*N:3*N], [1, -8, 1, 3, -1, -2, -4, 7, 6, -3], 4)
-    #temp = [8, -4, 4]
-    #temp = [2, 0, 0, 2]
-    #temp = [-3, 6, 7, -4, -2, -1, 3, 1, -8, 1]
-    #temp =  [2, 1, -3, 2, 3, -1, 1, -2, -2, 1]
-    temp = [10, 10, 10, 10]
-    test_response(adc[2*N:3*N], ffe[2*N:3*N], temp, 2**7)
-    print('Passed diff test')
-
-    # channel is lossless, should get 100%
-
-
+    temp = [10, 8, -12, 10, 3, -7, 3, -12, -2, 1]
+    test_response(adc[2*N:3*N], ffe[2*N:3*N], temp, 2**(2+5))
+    print('Passed deep test')
 
 
 if __name__ == "__main__":
