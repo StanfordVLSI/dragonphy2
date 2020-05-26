@@ -1,8 +1,6 @@
 `include "mLingua_pwl.vh"
 
-`define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
-`define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
-`define FORCE_IDCORE(name, value) force top_i.idcore.``name`` = ``value``
+`define FORCE_JTAG(name, value) force top_i.idcore.jtag_i.rjtag_intf_i.``name`` = ``value``
 
 module test;
 
@@ -20,6 +18,7 @@ module test;
 	logic clk_out_n;
 	logic clk_trig_p;
 	logic clk_trig_n;
+    logic clk_cgra;
 
 	// dump control
 	logic dump_start;
@@ -44,6 +43,7 @@ module test;
 		.clk_out_n(clk_out_n),
 		.clk_trig_p(clk_trig_p),
 		.clk_trig_n(clk_trig_n),
+        .clk_cgra(clk_cgra),
 
 		// reset
         .ext_rstb(rstb),
@@ -126,6 +126,12 @@ module test;
 		.period(trig_out_period_n)
 	);
 
+	pwl clk_cgra_period;
+	meas_clock meas_clk_cgra (
+		.clk(clk_cgra),
+		.period(clk_cgra_period)
+	);
+
 	// Main test
 
 	initial begin
@@ -149,29 +155,31 @@ module test;
 
         // Soft reset sequence
         $display("Soft reset sequence...");
-        `FORCE_DDBG(int_rstb, 1);
+        `FORCE_JTAG(int_rstb, 1);
         #(1ns);
-        `FORCE_ADBG(en_inbuf, 1);
+        `FORCE_JTAG(en_inbuf, 1);
 		#(1ns);
-        `FORCE_ADBG(en_gf, 1);
+        `FORCE_JTAG(en_gf, 1);
         #(1ns);
-        `FORCE_ADBG(en_v2t, 1);
+        `FORCE_JTAG(en_v2t, 1);
         #(1ns);
 
         // Enable input buffer for the async clock
         $display("Enable input buffer for the async clock...");
-        `FORCE_IDCORE(disable_ibuf_async, 0);
+        `FORCE_JTAG(disable_ibuf_async, 0);
         #(1ns);
 
 		// Set up the output buffers
 		$display("Set up the output buffers...");
-		`FORCE_DDBG(en_outbuff, 1);
+		`FORCE_JTAG(en_outbuff, 1);
         #(1ns);
-        `FORCE_DDBG(en_trigbuff, 1);
+        `FORCE_JTAG(en_trigbuff, 1);
         #(1ns);
-        `FORCE_DDBG(sel_outbuff, 0);   // ADC clock
+        `FORCE_JTAG(sel_outbuff, 0);   // ADC clock
         #(1ns);
-        `FORCE_DDBG(sel_trigbuff, 12); // async clock
+        `FORCE_JTAG(sel_trigbuff, 12); // async clock
+        #(1ns);
+        `FORCE_JTAG(en_cgra_clk, 1); // clock to CGRA
         #(1ns);
 
 		// Wait a little bit to measure frequencies
@@ -197,7 +205,11 @@ module test;
 		$display("TRIG_OUT period: ", trig_out_period_p.a);
 		check_rel_tol(1.0/trig_out_period_p.a, async_clk_freq, 0.01);
 		check_rel_tol(1.0/trig_out_period_n.a, async_clk_freq, 0.01);
-		
+
+		$display("Testing CGRA clock");
+        $display("CGRA clock period: ", clk_cgra_period.a);
+		check_rel_tol(1.0/clk_cgra_period.a, 1.0e9, 0.01);
+
 		$finish;
 	end
 

@@ -1,7 +1,5 @@
-`define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
-`define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
-`define FORCE_IDCORE(name, value) force top_i.idcore.``name`` = ``value``
-`define GET_ADBG(name) top_i.iacore.adbg_intf_i.``name``
+`define FORCE_JTAG(name, value) force top_i.idcore.jtag_i.rjtag_intf_i.``name`` = ``value``
+`define GET_JTAG(name) top_i.idcore.jtag_i.rjtag_intf_i.``name``
 
 `ifndef PI_CTL_TXT
     `define PI_CTL_TXT
@@ -150,13 +148,13 @@ module test;
 
         // Soft reset sequence
         $display("Soft reset sequence...");
-        `FORCE_DDBG(int_rstb, 1);
+        `FORCE_JTAG(int_rstb, 1);
         #(1ns);
-        `FORCE_ADBG(en_inbuf, 1);
+        `FORCE_JTAG(en_inbuf, 1);
 		#(1ns);
-        `FORCE_ADBG(en_gf, 1);
+        `FORCE_JTAG(en_gf, 1);
         #(1ns);
-        `FORCE_ADBG(en_v2t, 1);
+        `FORCE_JTAG(en_v2t, 1);
         #(1ns);
 
         // wait for startup so that we can read max_sel_mux
@@ -166,7 +164,7 @@ module test;
         // the expression for the max value is from Sung-Jin on May 1, 2020
         max_max_ctl_pi = 0;
         for (int i=0; i<Nout; i=i+1) begin
-            max_sel_mux[i] = `GET_ADBG(max_sel_mux[i]);
+            max_sel_mux[i] = `GET_JTAG(max_sel_mux[i]);
             max_ctl_pi[i] = ((max_sel_mux[i]+1)*16)-1;
             if (max_ctl_pi[i] > max_max_ctl_pi) begin
                 max_max_ctl_pi = max_ctl_pi[i];
@@ -175,12 +173,12 @@ module test;
 
         // Enable the async input buffer
         $display("Enable the async input buffer...");
-        `FORCE_IDCORE(disable_ibuf_async, 0);
+        `FORCE_JTAG(disable_ibuf_async, 0);
         #(1ns);
 
         // Enable external max_sel_mux
         $display("Enable external max_sel_mux...");
-        `FORCE_DDBG(en_ext_max_sel_mux, 1);
+        `FORCE_JTAG(en_ext_max_sel_mux, 1);
         #(1ns);
 
         // run desired number of trials
@@ -201,7 +199,7 @@ module test;
             tmp_sel_pm_sign_pi[1] = top_i.iacore.ctl_pi[1] < (`SIGN_FLIP) ? 1 : 0;
             tmp_sel_pm_sign_pi[2] = top_i.iacore.ctl_pi[2] < (`SIGN_FLIP) ? 1 : 0;
             tmp_sel_pm_sign_pi[3] = top_i.iacore.ctl_pi[3] < (`SIGN_FLIP) ? 1 : 0;
-            `FORCE_ADBG(sel_pm_sign_pi, tmp_sel_pm_sign_pi);
+            `FORCE_JTAG(sel_pm_sign_pi, tmp_sel_pm_sign_pi);
             #(1ns);
 
             // wait a few cycles of the 1 GHz clock
@@ -209,9 +207,9 @@ module test;
 
             // reset the PM
             $display("Resetting the PI PMs...");
-            `FORCE_ADBG(en_pm_pi, '0);
+            `FORCE_JTAG(en_pm_pi, '0);
             #(10ns);
-            `FORCE_ADBG(en_pm_pi, '1);
+            `FORCE_JTAG(en_pm_pi, '1);
 
             // wait a fixed amount of time
             $display("Waiting for the PM measurement...");
@@ -219,7 +217,7 @@ module test;
 
             // Compute delays
 			for (int j=0; j<Nout; j=j+1) begin
-			    pm_out_pi[j] = `GET_ADBG(pm_out_pi[j]);
+			    pm_out_pi[j] = `GET_JTAG(pm_out_pi[j]);
 				Tdelay[j] = 0.5/(1.0*`CLK_ASYNC_FREQ) * pm_out_pi[j] / (1.0*Nmax);
 			end
 

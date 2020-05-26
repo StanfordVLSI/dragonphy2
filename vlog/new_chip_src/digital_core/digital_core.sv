@@ -26,7 +26,8 @@ module digital_core import const_pack::*; (
     input wire logic ext_dump_start,
     acore_debug_intf.dcore adbg_intf_i,
     jtag_intf.target jtag_intf_i,
-    mdll_r1_debug_intf.jtag mdbg_intf_i
+    mdll_r1_debug_intf.jtag mdbg_intf_i,
+    output wire logic clk_cgra
 );
     // interfaces
 
@@ -450,6 +451,19 @@ module digital_core import const_pack::*; (
         .mdbg_intf_i(mdbg_intf_i),
         .jtag_intf_i(jtag_intf_i)
     );
+
+    // clock going out to CGRA
+    // ref: https://stackoverflow.com/questions/24977925/how-to-use-clock-gating-in-rtl
+
+    logic en_cgra_clk_latch;
+
+    always_latch begin
+        if (~clk_adc) begin
+            en_cgra_clk_latch <= ddbg_intf_i.en_cgra_clk;
+        end
+    end
+
+    assign clk_cgra = (clk_adc & en_cgra_clk_latch);
 
 endmodule
 

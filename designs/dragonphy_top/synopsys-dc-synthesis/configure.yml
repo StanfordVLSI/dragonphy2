@@ -34,11 +34,12 @@ commands:
 #-------------------------------------------------------------------------
 
 parameters:
-  clock_period: 1.0
+  clock_period: 0.8
   design_name: undefined
   # Path to the design instance in run.saif (e.g., tb/dut)
   saif_instance: undefined
-  flatten_effort: 0
+  flatten_effort: 3
+  retime: 1
   topographical: True
   nthreads: 16  # multithreading available to the tool
 

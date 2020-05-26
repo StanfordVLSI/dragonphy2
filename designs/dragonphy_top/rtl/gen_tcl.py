@@ -27,15 +27,18 @@ set_app_var search_path "{inc_dir} $search_path"
 set file_list {tcl_list(file_list)}
 analyze -format sverilog $file_list
 
-# Set up name rules
+# Change to lower insentive names to pass LVS
 define_name_rules verilog -type net -allowed "a-z0-9_[]" -add_dummy_nets
-report_name_rules verilog
+report_name_rules verilog 
 
 # Elaborate the design target
 elaborate {e['design_name']}
 
-# Flatten out names of port arrays and interfaces
+# Apply naming rules
 change_names -rules verilog -hierarchy
+
+# Fix the name of "analog_core"
+rename_design analog_core* analog_core
 '''
 
 # write output text
