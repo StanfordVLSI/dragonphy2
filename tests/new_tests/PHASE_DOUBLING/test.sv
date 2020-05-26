@@ -132,8 +132,8 @@ module test;
 	);
 
     // max input voltage stimulus
-    real Vmaxp = 0.4 + 0.1;
-    real Vmaxn = 0.4 - 0.1;
+    real Vmaxp = 0.4 + 0.2;
+    real Vmaxn = 0.4 - 0.2;
     real2pwl pwl_maxp (
         .en(1'b1),
         .in(Vmaxp),
