@@ -93,12 +93,12 @@ module test;
 	logic should_record;
 	logic should_record2;
 	logic recording_clk;
-    logic signed [Nadc-0:0] adcout_unfolded [Nti-1:0];
+    //logic signed [Nadc-0:0] adcout_unfolded [Nti-1:0];
    
 	 ti_adc_recorder #(
         .filename(`TI_ADC_TXT)
     ) ti_adc_recorder_i (
-		.in(adcout_unfolded),
+		.in(top_i.idcore.adcout_unfolded[15:0]),
 		.clk(recording_clk),
 		.en(should_record)
 	);
@@ -106,16 +106,25 @@ module test;
 	 ti_adc_recorder #(
         .filename(`TI_ADC_TXT_2)
     ) ti_adc_recorder_i2 (
-		.in(adcout_unfolded),
+		.in(top_i.idcore.adcout_unfolded[15:0]),
 		.clk(recording_clk),
 		.en(should_record2)
 	);
+
+    always @(posedge top_i.idcore.clk_adc) begin
+       // pulse the recording clock
+        recording_clk = 1'b1;
+        #(1ps);
+        recording_clk = 1'b0;
+        #(1ps);
+    end
+
 
     // Sine wave stimulus
 
     sine_stim #(
         .Vcm(0.4),
-        .sine_ampl(0.2),
+        .sine_ampl(0.1),
         .sine_freq(1.023e9)
     ) sine_stim_i (
 		.ch_outp(sin_outp),
@@ -123,8 +132,8 @@ module test;
 	);
 
     // max input voltage stimulus
-    real Vmaxp = 0.4 + 0.2;
-    real Vmaxn = 0.4 - 0.2;
+    real Vmaxp = 0.4 + 0.1;
+    real Vmaxn = 0.4 - 0.1;
     real2pwl pwl_maxp (
         .en(1'b1),
         .in(Vmaxp),
@@ -144,6 +153,8 @@ module test;
         ch_outn = select_sin ? sin_outn : max_outn;
     end
 
+
+/*
     // Re-ordering
     // TODO: clean this up because it is likely a real bug
 	
@@ -182,6 +193,7 @@ module test;
         recording_clk = 1'b0;
         #(1ps);
     end
+*/
 
 	// Main test
 

@@ -21,6 +21,7 @@ DUMP_WAVEFORMS = True
 
 @pytest.mark.parametrize((), [pytest.param(marks=pytest.mark.slow) if SIMULATOR=='vivado' else ()])
 def test_sim():
+    '''
     deps = get_deps_cpu_sim_new(impl_file=THIS_DIR / 'test.sv')
     print(deps)
 
@@ -51,6 +52,7 @@ def test_sim():
         flags=flags,
         dump_waveforms=True
     ).run()
+    '''
     
     y = np.loadtxt(BUILD_DIR / 'ti_adc.txt', dtype=int, delimiter=',')
     y = y.flatten()
