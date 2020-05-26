@@ -26,6 +26,12 @@ commands:
     pt_shell -f ../../output_buffer.qtm.tcl
     cd ..
 
+    # build mdll_r1_top QTM
+    mkdir -p mdll_r1_top
+    cd mdll_r1_top
+    pt_shell -f ../../mdll_r1_top.qtm.tcl
+    cd ..
+
     # link build products into output folder
     cd ../outputs
     ln -s ../build/analog_core/analog_core_lib.db analog_core_lib.db
@@ -34,6 +40,11 @@ commands:
     ln -s ../build/input_buffer/input_buffer.lib input_buffer.lib
     ln -s ../build/output_buffer/output_buffer_lib.db output_buffer_lib.db
     ln -s ../build/output_buffer/output_buffer.lib output_buffer.lib
+    ln -s ../build/mdll_r1_top/mdll_r1_top_lib.db mdll_r1_top_lib.db
+    ln -s ../build/mdll_r1_top/mdll_r1_top.lib mdll_r1_top.lib
+
+inputs:
+  - adk
 
 outputs:
   - analog_core_lib.db
@@ -42,3 +53,16 @@ outputs:
   - input_buffer.lib
   - output_buffer_lib.db
   - output_buffer.lib
+  - mdll_r1_top_lib.db
+  - mdll_r1_top.lib
+
+parameters:
+  # Name of the technology library containing ADK_DRIVING_CELL
+  qtm_tech_lib: tcbn16ffcllbwp16p90tt0p8v25c
+
+  # Period of the main clock in nanoseconds
+  # (will be scaled by constr_time_scale)
+  constr_main_per: 0.7
+
+  # Scale factor for timing constraints
+  constr_time_scale: 1.0

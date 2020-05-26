@@ -6,8 +6,8 @@ set cell_height 0.576
 set welltap_width 0.72
 set DB_width 0.36
 
-set boundary_width [expr $welltap_width+$DB_width]
-set boundary_height [expr $cell_height]
+set boundary_width [expr 5*$welltap_width+$DB_width]
+set boundary_height [expr 5*$cell_height]
 
 
 set input_buffer_width 53.1

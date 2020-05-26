@@ -3,7 +3,8 @@
 `default_nettype none
 
 module diff_channel #(
-	parameter channel_type = "simple"
+	parameter channel_type = "simple",
+	parameter real tau = -1
 ) (
 	input pwl in_p,
 	input pwl in_n,
@@ -13,11 +14,15 @@ module diff_channel #(
 
 	generate
 	if (channel_type == "simple") begin
-		channel_simple channel_p (
+		channel_simple #(
+		    .tau(tau)
+		) channel_p (
 			.in(in_p),
 			.out(out_p)
 		);
-		channel_simple channel_n (
+		channel_simple #(
+		    .tau(tau)
+		) channel_n (
 			.in(in_n),
 			.out(out_n)
 		);
