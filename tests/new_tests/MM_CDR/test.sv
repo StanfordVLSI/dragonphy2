@@ -2,6 +2,8 @@
 
 `define FORCE_JTAG(name, value) force top_i.idcore.jtag_i.rjtag_intf_i.``name`` = ``value``
 `define GET_JTAG(name) top_i.idcore.jtag_i.rjtag_intf_i.``name``
+`define FORCE_FFE(name, value) force top_i.idcore.jtag_i.wdbg_intf_i.``name`` = ``value``
+`define FORCE_DDBG(name, value) force top_i.idcore.jtag_i.ddbg_intf_i.``name`` = ``value``
 
 `ifndef EXT_PFD_OFFSET
     `define EXT_PFD_OFFSET 16
@@ -119,7 +121,7 @@ module test;
 
     longint err_bits, total_bits;
 
-    logic signed [ffe_gpack::weight_precision-1:0] tmp_weights [constant_gpack::channel_width-1:0][ffe_gpack::length-1:0];
+    //logic signed [ffe_gpack::weight_precision-1:0] tmp_weights [constant_gpack::channel_width-1:0][ffe_gpack::length-1:0];
     logic [ffe_gpack::shift_precision-1:0] tmp_ffe_shift [constant_gpack::channel_width-1:0];
 
 	initial begin
@@ -230,17 +232,18 @@ module test;
         for (loop_var=0; loop_var<Nti; loop_var=loop_var+1) begin
             for (loop_var2=0; loop_var2<ffe_gpack::length; loop_var2=loop_var2+1) begin
                 if (loop_var2 == 0) begin
-                    tmp_weights[loop_var][loop_var2] = coeff0;
+                    // The argument order for load() is depth, width, value
+                    load(loop_var2, loop_var, coeff0);
                 end else if (loop_var2 == 1) begin
-                    tmp_weights[loop_var][loop_var2] = coeff1;
+                    load(loop_var2, loop_var, coeff1);
                 end else begin
-                    tmp_weights[loop_var][loop_var2] = 0;
+                    load(loop_var2, loop_var, 0);
                 end
             end
             tmp_ffe_shift[loop_var] = 7;
         end
-        force top_i.idcore.dsp_dbg_intf_i.weights = tmp_weights;
-        force top_i.idcore.dsp_dbg_intf_i.ffe_shift = tmp_ffe_shift;
+        `FORCE_DDBG(ffe_shift, tmp_ffe_shift);
+
         #(10ns);
 
         // Configure the CDR offsets
@@ -323,5 +326,20 @@ module test;
 		$display("Test complete.");
 		$finish;
 	end
+
+    // for loading one FFE weight with specified depth and width
+    task load(input logic [$clog2(ffe_gpack::length)-1:0] d_idx, logic [$clog2(constant_gpack::channel_width)-1:0] w_idx, logic [ffe_gpack::weight_precision-1:0] value);
+        `FORCE_FFE(wme_ffe_inst[$clog2(ffe_gpack::length)+$clog2(constant_gpack::channel_width)],  0);
+        `FORCE_FFE(wme_ffe_inst[$clog2(ffe_gpack::length)+$clog2(constant_gpack::channel_width)-1:$clog2(ffe_gpack::length)],  w_idx);
+        `FORCE_FFE(wme_ffe_inst[$clog2(ffe_gpack::length)-1:0],  d_idx);
+        `FORCE_FFE(wme_ffe_data[ffe_gpack::weight_precision-1:0],  value);
+        toggle_exec();
+    endtask
+
+    task toggle_exec;
+        // TODO on the actual chip we can't change wme_ffe_exec with precise timing
+        @(posedge top_i.idcore.clk_adc) `FORCE_FFE(wme_ffe_exec, 1);
+        @(posedge top_i.idcore.clk_adc) `FORCE_FFE(wme_ffe_exec, 0);
+    endtask
 
 endmodule
