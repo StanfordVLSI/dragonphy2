@@ -53,18 +53,20 @@ def test_sim():
         dump_waveforms=True
     ).run()
     '''
-    
     y = np.loadtxt(BUILD_DIR / 'ti_adc.txt', dtype=int, delimiter=',')
     y = y.flatten()
 
     plot_data(y)
-    check_data(y)
+    enob1 = check_data(y)
 
     y2 = np.loadtxt(BUILD_DIR / 'ti_adc2.txt', dtype=int, delimiter=',')
     y2 = y2.flatten()
 
     plot_data(y2)
-    check_data(y2)
+    enob2 = check_data(y2)
+
+    delta = enob2 - enob1
+    assert delta > 0.3, f'ENOB improvement only {delta}, expected ~0.5'
 
 def plot_data(y):
     plt.plot(y[:100])
@@ -76,11 +78,15 @@ def plot_data(y):
 
 def check_data(y, enob_limit=4.5, npts=1000, Fs=16e9, Fstim=1.023e9):
     # gather results
-    enob_result = enob(y[:npts], Fs=Fs, Fstim=Fstim)
+    # ADC_BITS is used only for quantizing remapped values
+    ADC_BITS = 8
+    y_remap = remap(y, Fs, Fstim, ADC_BITS)
+    enob_result = enob(y_remap[:npts], Fs=Fs, Fstim=Fstim)
     print(f'ENOB: {enob_result}')
 
     # print results
     assert enob_result >= enob_limit, 'ENOB is too low.'
+    return enob_result
 
 if __name__ == "__main__":
     test_sim()
