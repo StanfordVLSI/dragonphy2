@@ -47,8 +47,7 @@ def test_sim():
         inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/new_cpu'), get_dir('')],
         defines=defines,
         simulator=SIMULATOR,
-        flags=flags,
-        dump_waveforms=True
+        flags=flags
     ).run()
 
     # We won't be looking at the transmitted bits

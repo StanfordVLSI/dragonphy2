@@ -17,11 +17,10 @@ else:
 
 # Set DUMP_WAVEFORMS to True if you want to dump all waveforms for this
 # test.  The waveforms are stored in tests/new_tests/AC/build/waves.shm
-DUMP_WAVEFORMS = True
+DUMP_WAVEFORMS = False
 
 @pytest.mark.parametrize((), [pytest.param(marks=pytest.mark.slow) if SIMULATOR=='vivado' else ()])
 def test_sim():
-    '''
     deps = get_deps_cpu_sim_new(impl_file=THIS_DIR / 'test.sv')
     print(deps)
 
@@ -49,10 +48,9 @@ def test_sim():
         inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/new_cpu'), get_dir('')],
         defines=defines,
         simulator=SIMULATOR,
-        flags=flags,
-        dump_waveforms=True
+        flags=flags
     ).run()
-    '''
+
     y = np.loadtxt(BUILD_DIR / 'ti_adc.txt', dtype=int, delimiter=',')
     y = y.flatten()
 

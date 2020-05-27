@@ -38,7 +38,6 @@ def test_sim():
         defines=defines,
         simulator=SIMULATOR,
         flags=['-unbuffered']
-#        dump_waveforms=True
     ).run()
 
     iw     = read_into_dictionary(BUILD_DIR / 'w_inp.txt')
