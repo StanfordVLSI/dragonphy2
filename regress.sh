@@ -27,7 +27,7 @@ python make.py --view cpu
 pip install pytest pytest-cov
 
 # run tests
-if [[ -z "${FPGA_SERVER}" ]] then
+if [[ -z "${FPGA_SERVER}" ]]; then
     pytest tests/other_tests -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
     pytest tests/cpu_block_tests -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
     pytest tests/cpu_system_tests -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
