@@ -16,7 +16,7 @@ requires_list = [
     'msdsl==0.2.5',
     'anasymod==0.2.2', # TODO update!
     # system-verilog parser
-    'svinst==0.1.3',
+    'svinst==0.1.5',
     # magma ecosystem dependencies
     'fault==3.0.11',
     'magma-lang==2.0.32',
