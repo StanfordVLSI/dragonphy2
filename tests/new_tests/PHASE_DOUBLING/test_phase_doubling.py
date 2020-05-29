@@ -29,6 +29,7 @@ def test_sim():
 
     defines = {
         'TI_ADC_TXT': qwrap(BUILD_DIR / 'ti_adc.txt'),
+        'TI_ADC_TXT_2': qwrap(BUILD_DIR / 'ti_adc2.txt'),
         'DAVE_TIMEUNIT': '1fs',
         'NCVLOG': None,
         'SIMULATION': None
@@ -39,6 +40,7 @@ def test_sim():
         defines['DUMP_WAVEFORMS'] = None
         flags += ['-access', '+r']
 
+    
     DragonTester(
         ext_srcs=deps,
         directory=BUILD_DIR,
@@ -49,33 +51,40 @@ def test_sim():
         flags=flags
     ).run()
 
-    tx = np.loadtxt(BUILD_DIR / 'tx_output.txt', dtype=int, delimiter=',')
-    tx = tx.flatten()
+    y = np.loadtxt(BUILD_DIR / 'ti_adc.txt', dtype=int, delimiter=',')
+    y = y.flatten()
 
-    adc = np.loadtxt(BUILD_DIR / 'ti_adc.txt', dtype=int, delimiter=',')
-    adc = adc.flatten()
+    plot_data(y)
+    enob1 = check_data(y)
 
-    # what fraction of bits are correct when latency is 'shift'?
-    def test_shift(shift):
-        correct = 0
-        N = len(tx) - shift
-        for i in range(N):
-            correct += (tx[i] ^ (adc[i+shift]<0))
-        return correct / N
+    y2 = np.loadtxt(BUILD_DIR / 'ti_adc2.txt', dtype=int, delimiter=',')
+    y2 = y2.flatten()
 
-    # test various latencies and see which is best
-    results = [test_shift(x) for x in range(200)]
-    result = max(results)
-    shift = results.index(result)
+    plot_data(y2)
+    enob2 = check_data(y2)
 
-    print(f'Recovered bit percentage {100*result}%')
-    print(f'Latency {shift} cycles')
+    delta = enob2 - enob1
+    assert delta > 0.3, f'ENOB improvement only {delta}, expected ~0.5'
 
-    # channel is lossless, should get 100%
-    assert result == 1.0
+def plot_data(y):
+    plt.plot(y[:100])
+    plt.xlabel('Sample')
+    plt.ylabel('ADC Code')
+    plt.savefig(BUILD_DIR / 'ac.eps')
+    plt.cla()
+    plt.clf()
 
+def check_data(y, enob_limit=4.5, npts=1000, Fs=16e9, Fstim=1.023e9):
+    # gather results
+    # ADC_BITS is used only for quantizing remapped values
+    ADC_BITS = 8
+    y_remap = remap(y, Fs, Fstim, ADC_BITS)
+    enob_result = enob(y_remap[:npts], Fs=Fs, Fstim=Fstim)
+    print(f'ENOB: {enob_result}')
 
-
+    # print results
+    assert enob_result >= enob_limit, 'ENOB is too low.'
+    return enob_result
 
 if __name__ == "__main__":
     test_sim()
