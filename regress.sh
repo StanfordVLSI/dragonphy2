@@ -19,21 +19,18 @@ pip install -e .
 
 # make dependencies for design
 # TODO: should other views be used as well?
-python make.py --view asic
-python make.py --view fpga
-python make.py --view cpu
 
 # install pytest
 pip install pytest pytest-cov
 
 # run tests
 if [[ -z "${FPGA_SERVER}" ]]; then
+    python make.py --view cpu
     pytest tests/other_tests -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
     pytest tests/cpu_block_tests -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
     pytest tests/cpu_system_tests -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
 else
-    echo "skipping for now"
-# pytest tests/fpga_tests -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
+    python make.py --view fpga
 fi
 
 # upload coverage
