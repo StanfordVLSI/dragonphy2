@@ -26,6 +26,14 @@ python make.py --view cpu
 # install pytest
 pip install pytest pytest-cov
 
-# run tests and upload coverage
-pytest tests -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
+# run tests
+if [[ -z "${FPGA_SERVER}" ]]; then
+    pytest tests/other_tests -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
+    pytest tests/cpu_block_tests -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
+    pytest tests/cpu_system_tests -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
+else
+    # pytest tests/fpga_tests -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
+fi
+
+# upload coverage
 bash <(curl -s https://codecov.io/bash)

@@ -1,8 +1,6 @@
 from argparse import ArgumentParser
 
-from dragonphy import BuildGraph, Directory
-
-#commetn
+from dragonphy import BuildGraph
 
 def create_fpga_graph():
     graph = BuildGraph('fpga')
@@ -68,7 +66,7 @@ def create_asic_graph():
 
 
     # Add msdsl scripts to build list
-    graph.add_python('adapt_fir', 'adapt_fir', 'AdaptFir', view='new_chip_src',
+    graph.add_python('adapt_fir', 'adapt_fir', 'AdaptFir', view='chip_src',
                      folders=['dragonphy'], configs={'system'})
     graph.add_python('jtag', 'jtag', 'JTAG', view='all',
                      folders=['dragonphy'], 
