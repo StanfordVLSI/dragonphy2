@@ -18,7 +18,7 @@ steps:
       # deactivate virtual environment
       deactivate
     artifact_paths:
-      - "tests/new_tests/*/build/*.eps"
+      - "tests/*/*/build/*.eps"
     timeout_in_minutes: 60
     agents:
       fault2: "true"
@@ -43,7 +43,7 @@ steps:
       # deactivate virtual environment
       deactivate
     artifact_paths:
-      - "tests/new_tests/*/build/*.eps"
+      - "tests/*/*/build/*.eps"
       - "build/*/*-synopsys-dc-synthesis/logs/dc.log"
       - "build/*/*-synopsys-dc-synthesis/outputs/design.v"
       - "build/*/*-synopsys-dc-synthesis/reports/*.mapped.qor.rpt"
