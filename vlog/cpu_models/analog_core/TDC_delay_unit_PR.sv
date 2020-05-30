@@ -71,7 +71,7 @@ module TDC_delay_unit_PR (
     end
 
     // Main flip flop
-    always_ff @(posedge inv_out) begin
+    always_ff @(posedge xnor_out) begin
         ff_out <= #(td_ff*1s) ff_in;
     end
 endmodule
