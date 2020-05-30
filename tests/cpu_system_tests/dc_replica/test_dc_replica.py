@@ -9,7 +9,6 @@ from dragonphy import *
 
 THIS_DIR = Path(__file__).parent.resolve()
 BUILD_DIR = THIS_DIR / 'build'
-SIMULATOR = 'ncsim'
 
 def test_sim(dump_waveforms):
     deps = get_deps_cpu_sim(impl_file=THIS_DIR / 'test.sv')
@@ -21,25 +20,14 @@ def test_sim(dump_waveforms):
     defines = {
         'TI_ADC_TXT': qwrap(BUILD_DIR / 'ti_adc.txt'),
         'RX_INPUT_TXT': qwrap(BUILD_DIR / 'rx_input.txt'),
-        'WIDTH_TXT': qwrap(BUILD_DIR / 'width.txt'),
-        'DAVE_TIMEUNIT': '1fs',
-        'NCVLOG': None,
-        'SIMULATION': None
+        'WIDTH_TXT': qwrap(BUILD_DIR / 'width.txt')
     }
-
-    flags = ['-unbuffered']
-    if dump_waveforms:
-        defines['DUMP_WAVEFORMS'] = None
-        flags += ['-access', '+r']
 
     DragonTester(
         ext_srcs=deps,
         directory=BUILD_DIR,
-        top_module='test',
-        inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/cpu')],
         defines=defines,
-        simulator=SIMULATOR,
-        flags=flags
+        dump_waveforms=dump_waveforms
     ).run()
 
     x = np.loadtxt(BUILD_DIR / 'rx_input.txt', dtype=float)

@@ -2,8 +2,6 @@
 
 `define FORCE_JTAG(name, value) force top_i.idcore.jtag_i.rjtag_intf_i.``name`` = ``value``
 `define GET_JTAG(name) top_i.idcore.jtag_i.rjtag_intf_i.``name``
-`define FORCE_FFE(name, value) force top_i.idcore.jtag_i.wdbg_intf_i.``name`` = ``value``
-`define FORCE_DDBG(name, value) force top_i.idcore.jtag_i.ddbg_intf_i.``name`` = ``value``
 
 `ifndef EXT_PFD_OFFSET
     `define EXT_PFD_OFFSET 16
@@ -151,10 +149,6 @@ module test;
             $shm_probe(top_i.idcore.prbs_checker_i.err_bits);
             $shm_probe(top_i.idcore.prbs_checker_i.err_signals);
 
-            // data in test bench
-            // $shm_probe(tx_clk);
-            // $shm_probe(tx_data);
-
             // clocks in analog_core
             $shm_probe(top_i.iacore.clk_interp_slice);
             $shm_probe(top_i.iacore.clk_interp_sw);
@@ -242,7 +236,7 @@ module test;
             end
             tmp_ffe_shift[loop_var] = 7;
         end
-        `FORCE_DDBG(ffe_shift, tmp_ffe_shift);
+        `FORCE_JTAG(ffe_shift, tmp_ffe_shift);
 
         #(10ns);
 
@@ -329,17 +323,17 @@ module test;
 
     // for loading one FFE weight with specified depth and width
     task load(input logic [$clog2(ffe_gpack::length)-1:0] d_idx, logic [$clog2(constant_gpack::channel_width)-1:0] w_idx, logic [ffe_gpack::weight_precision-1:0] value);
-        `FORCE_FFE(wme_ffe_inst[$clog2(ffe_gpack::length)+$clog2(constant_gpack::channel_width)],  0);
-        `FORCE_FFE(wme_ffe_inst[$clog2(ffe_gpack::length)+$clog2(constant_gpack::channel_width)-1:$clog2(ffe_gpack::length)],  w_idx);
-        `FORCE_FFE(wme_ffe_inst[$clog2(ffe_gpack::length)-1:0],  d_idx);
-        `FORCE_FFE(wme_ffe_data[ffe_gpack::weight_precision-1:0],  value);
+        `FORCE_JTAG(wme_ffe_inst[$clog2(ffe_gpack::length)+$clog2(constant_gpack::channel_width)],  0);
+        `FORCE_JTAG(wme_ffe_inst[$clog2(ffe_gpack::length)+$clog2(constant_gpack::channel_width)-1:$clog2(ffe_gpack::length)],  w_idx);
+        `FORCE_JTAG(wme_ffe_inst[$clog2(ffe_gpack::length)-1:0],  d_idx);
+        `FORCE_JTAG(wme_ffe_data[ffe_gpack::weight_precision-1:0],  value);
         toggle_exec();
     endtask
 
     task toggle_exec;
         // TODO on the actual chip we can't change wme_ffe_exec with precise timing
-        @(posedge top_i.idcore.clk_adc) `FORCE_FFE(wme_ffe_exec, 1);
-        @(posedge top_i.idcore.clk_adc) `FORCE_FFE(wme_ffe_exec, 0);
+        @(posedge top_i.idcore.clk_adc) `FORCE_JTAG(wme_ffe_exec, 1);
+        @(posedge top_i.idcore.clk_adc) `FORCE_JTAG(wme_ffe_exec, 0);
     endtask
 
 endmodule

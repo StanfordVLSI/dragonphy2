@@ -1,8 +1,6 @@
 `include "mLingua_pwl.vh"
-//`include "mdll_param.vh"
 
-`define FORCE_ADBG(name, value) force top_i.iacore.adbg_intf_i.``name`` = ``value``
-`define FORCE_DDBG(name, value) force top_i.idcore.ddbg_intf_i.``name`` = ``value``
+`define FORCE_JTAG(name, value) force top_i.idcore.jtag_i.rjtag_intf_i.``name`` = ``value``
 
 `ifndef ADC_TXT
     `define ADC_TXT
@@ -32,30 +30,12 @@ module test;
     import const_pack::Nout;
     import const_pack::Npi;
 
-
     // TODO don't hard code these weight manager parameters
     localparam integer width = 16;
     localparam integer depth = 10;
     localparam integer bitwidth= 10;
 
-    /*
-    Inputs to weight manager
-    logic clk, rstb;
-
-    logic [width*2-1:0] data_reg;
-    logic [width*2-1:0] d_reg_arr;
-    logic signed [1:0] arr [width-1:0];
-    logic  [1+$clog2(width)+$clog2(depth)-1:0] inst_reg;
-    logic exec = 0;
-    */
-
     logic signed [bitwidth-1:0] value;
-    // won't do incremental changes
-    //logic signed [1:0] onebit_val;
-
-    // we will not be reading
-    //logic signed [bitwidth-1:0] read_reg;
-    //logic signed [bitwidth-1:0] weights [width-1:0][depth-1:0];
 
     initial begin
 	        $shm_open("waves.shm");
@@ -178,35 +158,6 @@ module test;
         recording_clk = 1'b0;
         #(1ps);
     end
-	
-    /*
-	integer tmp;
-    
-	always @(posedge top_i.idcore.clk_adc) begin
-        // compute the unfolded ADC outputs
-        for (int k=0; k<Nti; k=k+1) begin
-            // compute output
-             tmp = top_i.idcore.adcout_sign_retimed[k] ?
-                  top_i.idcore.adcout_retimed[k] - (`EXT_PFD_OFFSET) :
-                  (`EXT_PFD_OFFSET) - top_i.idcore.adcout_retimed[k];
-			
-			// clamp
-            if (tmp > 127) begin
-                tmp = 127;
-            end
-            if (tmp < -128) begin
-                tmp = -128;
-            end
-            // assign to output vector
-            adcout_unfolded[k] = tmp;
-        end
-        // pulse the recording clock
-        recording_clk = 1'b1;
-        #(1ps);
-        recording_clk = 1'b0;
-        #(1ps);
-    end
-    */
 
 	// Main test
 
@@ -237,18 +188,18 @@ module test;
 
         // Soft reset sequence
         $display("Soft reset sequence...");
-        `FORCE_DDBG(int_rstb, 1);
+        `FORCE_JTAG(int_rstb, 1);
         #(1ns);
-        `FORCE_ADBG(en_inbuf, 1);
+        `FORCE_JTAG(en_inbuf, 1);
 		#(1ns);
-        `FORCE_ADBG(en_gf, 1);
+        `FORCE_JTAG(en_gf, 1);
 
         for (int idx=0; idx <Nti; idx=idx+1) begin
             tmp_ffe_shift[idx] = 0;
         end
-        `FORCE_DDBG(ffe_shift, tmp_ffe_shift);
+        `FORCE_JTAG(ffe_shift, tmp_ffe_shift);
         #(1ns);
-        `FORCE_ADBG(en_v2t, 1);
+        `FORCE_JTAG(en_v2t, 1);
         #(64ns);
 
         // Set up the PFD offset
@@ -256,7 +207,7 @@ module test;
         for (int idx=0; idx<Nti; idx=idx+1) begin
             tmp_ext_pfd_offset[idx] = `EXT_PFD_OFFSET;
         end
-        `FORCE_DDBG(ext_pfd_offset, tmp_ext_pfd_offset);
+        `FORCE_JTAG(ext_pfd_offset, tmp_ext_pfd_offset);
         #(1ns);
 
         // apply the stimulus
@@ -268,9 +219,9 @@ module test;
         #(5ns);
 
         // toggle the en_v2t signal to re-initialize the V2T ordering
-        `FORCE_ADBG(en_v2t, 0);
+        `FORCE_JTAG(en_v2t, 0);
         #(5ns);
-        `FORCE_ADBG(en_v2t, 1);
+        `FORCE_JTAG(en_v2t, 1);
         #(5ns);
 
 
@@ -302,12 +253,6 @@ module test;
         $display("Loading larger set of weights");
         // Load new FFE weights
         for(ii = 0; ii < width; ii = ii + 1) begin
-            //integer weights [depth-1:0] = {-3, 6, 7, -4, -2, -1, 3, 1, -8, 1};
-            //logic signed [bitwidth-1:0] weights [3-1:0] = {4, -4, 8};
-            
-            //for(jj = 7; jj < depth; jj = jj + 1) begin
-            //    load(jj, ii, weights[jj-7]);
-            //end
             load(9, ii, 10);
             load(8, ii, 8);
             load(7, ii, -12);
@@ -325,7 +270,7 @@ module test;
             // shift of 2+5 is divide by 128
             tmp_ffe_shift[idx] = 5;
         end
-        `FORCE_DDBG(ffe_shift, tmp_ffe_shift);
+        `FORCE_JTAG(ffe_shift, tmp_ffe_shift);
 
 		// Then record for awhile
         record_bits();
@@ -347,7 +292,6 @@ module test;
         force top_i.idcore.wdbg_intf_i.wme_ffe_inst[$clog2(depth)-1:0] = d_idx;
         force top_i.idcore.wdbg_intf_i.wme_ffe_data[bitwidth-1:0] = value;
         toggle_exec();
-        //#(1.5e-9 *1s);
     endtask
 
     task toggle_exec;
@@ -355,11 +299,5 @@ module test;
         @(posedge top_i.idcore.clk_adc) force top_i.idcore.wdbg_intf_i.wme_ffe_exec=1;
         @(posedge top_i.idcore.clk_adc) force top_i.idcore.wdbg_intf_i.wme_ffe_exec=0;
     endtask
-
-    /* not needed if we don't use weight recorder
-    task pulse_wr_in;
-        pul_wr_in = 1;
-        #0 pul_wr_in = 0;
-    endtask */
 
 endmodule

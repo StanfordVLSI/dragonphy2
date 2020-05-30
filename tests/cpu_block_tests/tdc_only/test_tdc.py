@@ -9,16 +9,14 @@ from dragonphy import *
 
 THIS_DIR = Path(__file__).parent.resolve()
 BUILD_DIR = THIS_DIR / 'build'
-SIMULATOR = 'ncsim'
 
 def test_sim():
     def qwrap(s):
         return f'"{s}"'
+
     defines = {
         'DELAY_TXT': qwrap(BUILD_DIR / 'delay.txt'),
-        'ADDER_TXT': qwrap(BUILD_DIR / 'adder.txt'),
-        'DAVE_TIMEUNIT': '1fs',
-        'NCVLOG': None
+        'ADDER_TXT': qwrap(BUILD_DIR / 'adder.txt')
     }
 
     deps = get_deps_cpu_sim(impl_file=THIS_DIR / 'test.sv')
@@ -27,11 +25,7 @@ def test_sim():
     DragonTester(
         ext_srcs=deps,
         directory=BUILD_DIR,
-        top_module='test',
-        inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/cpu')],
-        defines=defines,
-        simulator=SIMULATOR,
-        flags=['-unbuffered']
+        defines=defines
     ).run()
 
     x = np.loadtxt(BUILD_DIR / 'delay.txt', dtype=float)

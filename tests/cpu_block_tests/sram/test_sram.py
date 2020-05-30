@@ -6,16 +6,14 @@ from dragonphy import *
 
 THIS_DIR = Path(__file__).parent.resolve()
 BUILD_DIR = THIS_DIR / 'build'
-SIMULATOR = 'ncsim'
 
 def test_sim():
     def qwrap(s):
         return f'"{s}"'
+
     defines = {
         'SRAM_IN_TXT': qwrap(BUILD_DIR / 'sram_in.txt'),
-        'SRAM_OUT_TXT': qwrap(BUILD_DIR / 'sram_out.txt'),
-        'DAVE_TIMEUNIT': '1fs',
-        'NCVLOG': None
+        'SRAM_OUT_TXT': qwrap(BUILD_DIR / 'sram_out.txt')
     }
 
     # determine the config
@@ -26,10 +24,7 @@ def test_sim():
     DragonTester(
         ext_srcs=deps,
         directory=BUILD_DIR,
-        top_module='test',
-        inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/cpu')],
-        defines=defines,
-        simulator=SIMULATOR
+        defines=defines
     ).run()
 
     # check the results

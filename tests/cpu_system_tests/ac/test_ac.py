@@ -18,10 +18,7 @@ def test_sim(dump_waveforms):
         return f'"{s}"'
 
     defines = {
-        'TI_ADC_TXT': qwrap(BUILD_DIR / 'ti_adc.txt'),
-        'DAVE_TIMEUNIT': '1fs',
-        'NCVLOG': None,
-        'SIMULATION': None
+        'TI_ADC_TXT': qwrap(BUILD_DIR / 'ti_adc.txt')
     }
 
     flags = ['-unbuffered']
@@ -32,11 +29,8 @@ def test_sim(dump_waveforms):
     DragonTester(
         ext_srcs=deps,
         directory=BUILD_DIR,
-        top_module='test',
-        inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/cpu')],
         defines=defines,
-        simulator=SIMULATOR,
-        flags=flags
+        dump_waveforms=dump_waveforms
     ).run()
 
     y = np.loadtxt(BUILD_DIR / 'ti_adc.txt', dtype=int, delimiter=',')

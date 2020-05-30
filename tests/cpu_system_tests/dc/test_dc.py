@@ -21,25 +21,14 @@ def test_sim(dump_waveforms):
     defines = {
         'TI_ADC_TXT': qwrap(BUILD_DIR / 'ti_adc.txt'),
         'RX_INPUT_TXT': qwrap(BUILD_DIR / 'rx_input.txt'),
-        'WIDTH_TXT': qwrap(BUILD_DIR / 'width.txt'),
-        'DAVE_TIMEUNIT': '1fs',
-        'NCVLOG': None,
-        'SIMULATION': None
+        'WIDTH_TXT': qwrap(BUILD_DIR / 'width.txt')
     }
-
-    flags = ['-unbuffered']
-    if dump_waveforms:
-        defines['DUMP_WAVEFORMS'] = None
-        flags += ['-access', '+r']
 
     DragonTester(
         ext_srcs=deps,
         directory=BUILD_DIR,
-        top_module='test',
-        inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/cpu')],
         defines=defines,
-        simulator=SIMULATOR,
-        flags=flags
+        dump_waveforms=dump_waveforms
     ).run()
 
     x = np.loadtxt(BUILD_DIR / 'rx_input.txt', dtype=float)
@@ -99,6 +88,3 @@ def check_data(x, y, inl_limit=5, offset_limit=2.5, gain_bnds=(240, 300)):
     gain = regr.coef_[0]
     assert min(gain_bnds) <= gain <= max(gain_bnds), f'Gain out of spec: {gain} LSB/Volt.'
     print(f'Gain OK: {gain} LSB/Volt.')
-
-if __name__ == "__main__":
-    test_sim()
