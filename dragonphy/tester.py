@@ -20,7 +20,7 @@ class DragonTester:
 		if get_dir('inc/cpu') not in inc_dirs:
 			inc_dirs = [get_dir('inc/cpu')] + inc_dirs
 		if get_mlingua_dir() / 'samples' not in inc_dirs:
-			inc_dirs = (get_mlingua_dir() / 'samples') + inc_dirs
+			inc_dirs = [get_mlingua_dir() / 'samples'] + inc_dirs
 
 		# adjust defines
 		defines['DAVE_TIMEUNIT'] = '1fs'
