@@ -7,7 +7,6 @@ from dragonphy import *
 
 THIS_DIR = Path(__file__).parent.resolve()
 BUILD_DIR = THIS_DIR / 'build'
-SIMULATOR = 'ncsim'
 
 def test_sim(dump_waveforms):
     # determine the git hash
@@ -22,25 +21,14 @@ def test_sim(dump_waveforms):
     # defines
 
     defines = {
-        'DAVE_TIMEUNIT': '1fs',
-        'NCVLOG': None,
-        'SIMULATION': None,
         'GIT_HASH': GIT_HASH
     }
-
-    flags = ['-unbuffered']
-    if dump_waveforms:
-        defines['DUMP_WAVEFORMS'] = None
-        flags += ['-access', '+r']
 
     DragonTester(
         ext_srcs=deps,
         directory=BUILD_DIR,
-        top_module='test',
-        inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/cpu')],
         defines=defines,
-        flags=flags,
-        simulator=SIMULATOR
+        dump_waveforms=dump_waveforms
     ).run()
 
 

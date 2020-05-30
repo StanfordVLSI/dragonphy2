@@ -9,7 +9,6 @@ from dragonphy import *
 
 THIS_DIR = Path(__file__).parent.resolve()
 BUILD_DIR = THIS_DIR / 'build'
-SIMULATOR = 'ncsim'
 
 # testing parameters
 T_PER = 1/4e9
@@ -30,25 +29,14 @@ def test_sim(dump_waveforms):
     defines = {
         'PI_CTL_TXT': qwrap(BUILD_DIR / 'pi_ctl.txt'),
         'DELAY_TXT': qwrap(BUILD_DIR / 'delay.txt'),
-        'SIGN_FLIP': SIGN_FLIP,
-        'DAVE_TIMEUNIT': '1fs',
-        'NCVLOG': None,
-        'SIMULATION': None
+        'SIGN_FLIP': SIGN_FLIP
     }
-
-    flags = ['-unbuffered']
-    if dump_waveforms:
-        defines['DUMP_WAVEFORMS'] = None
-        flags += ['-access', '+r']
 
     DragonTester(
         ext_srcs=deps,
         directory=BUILD_DIR,
-        top_module='test',
-        inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/cpu')],
         defines=defines,
-        simulator=SIMULATOR,
-        flags=flags
+        dump_waveforms=dump_waveforms
     ).run()
 
     # read data from file

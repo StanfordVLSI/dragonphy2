@@ -1,8 +1,5 @@
 # general imports
-import os
-import pytest
 import numpy as np
-import matplotlib.pyplot as plt
 from pathlib import Path
 
 # DragonPHY imports
@@ -10,18 +7,9 @@ from dragonphy import *
 
 THIS_DIR = Path(__file__).parent.resolve()
 BUILD_DIR = THIS_DIR / 'build'
-if 'FPGA_SERVER' in os.environ:
-    SIMULATOR = 'vivado'
-else:
-    SIMULATOR = 'ncsim'
 
-# Set DUMP_WAVEFORMS to True if you want to dump all waveforms for this
-# test.  The waveforms are stored in tests/new_tests/AC/build/waves.shm
-DUMP_WAVEFORMS = False
-
-@pytest.mark.parametrize((), [pytest.param(marks=pytest.mark.slow) if SIMULATOR=='vivado' else ()])
-def test_sim():
-    deps = get_deps_cpu_sim_new(impl_file=THIS_DIR / 'test.sv')
+def test_sim(dump_waveforms):
+    deps = get_deps_cpu_sim(impl_file=THIS_DIR / 'test.sv')
     print(deps)
 
     def qwrap(s):
@@ -29,25 +17,14 @@ def test_sim():
 
     defines = {
         'TI_ADC_TXT': qwrap(BUILD_DIR / 'ti_adc.txt'),
-        'FFE_TXT': qwrap(BUILD_DIR / 'ffe.txt'),
-        'DAVE_TIMEUNIT': '1fs',
-        'NCVLOG': None,
-        'SIMULATION': None
+        'FFE_TXT': qwrap(BUILD_DIR / 'ffe.txt')
     }
-
-    flags = ['-unbuffered']
-    if DUMP_WAVEFORMS:
-        defines['DUMP_WAVEFORMS'] = None
-        flags += ['-access', '+r']
 
     DragonTester(
         ext_srcs=deps,
         directory=BUILD_DIR,
-        top_module='test',
-        inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/new_cpu'), get_dir('')],
         defines=defines,
-        simulator=SIMULATOR,
-        flags=flags
+        dump_waveforms=dump_waveforms
     ).run()
 
     # We won't be looking at the transmitted bits
@@ -62,10 +39,13 @@ def test_sim():
 
     # Number of datapoints recorded in one test (currently 100ns)
     N = 16 * 100
+
     # latency from adc datapoint to equivalent ffe datapoint
     FFE_LATENCY = 16 * 5
+
     # warmup time before ffe has expected output
     STARTUP = 16 * 3
+
     def test_response(adc, ffe, resp, div):
         end = len(adc) - len(resp) - FFE_LATENCY
         for i in range(STARTUP, end):
@@ -77,7 +57,6 @@ def test_sim():
             if ffe_res != res:
                 print('expected', res, 'got', ffe_res)
 
-
     test_response(adc[:N], ffe[:N], [4], 4)
     print('Passed identity test')
 
@@ -87,7 +66,3 @@ def test_sim():
     temp = [10, 8, -12, 10, 3, -7, 3, -12, -2, 1]
     test_response(adc[2*N:3*N], ffe[2*N:3*N], temp, 2**(2+5))
     print('Passed deep test')
-
-
-if __name__ == "__main__":
-    test_sim()

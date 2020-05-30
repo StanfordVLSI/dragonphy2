@@ -6,7 +6,6 @@ from dragonphy import *
 
 THIS_DIR = Path(__file__).parent.resolve()
 BUILD_DIR = THIS_DIR / 'build'
-SIMULATOR = 'ncsim'
 
 def test_sim(dump_waveforms):
     deps = get_deps_cpu_sim(impl_file=THIS_DIR / 'test.sv')
@@ -39,27 +38,12 @@ def test_sim(dump_waveforms):
         # PI and CDR clock frequencies.  Probably don't have
         # to change these...
         'PI_CLK_FREQ': 4.0e9,
-        'CDR_CLK_FREQ': 1.0e9,
-
-        # options for DaVE
-        'DAVE_TIMEUNIT': '1fs',
-        'NCVLOG': None,
-
-        # options for MDLL
-        'SIMULATION': None
+        'CDR_CLK_FREQ': 1.0e9
     }
-    flags = ['-unbuffered']
-    if dump_waveforms:
-        defines['DUMP_WAVEFORMS'] = None
-        flags += ['-access', '+r']
 
     DragonTester(
         ext_srcs=deps,
         directory=BUILD_DIR,
-        top_module='test',
-        inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/cpu')],
         defines=defines,
-        flags=flags,
-        simulator=SIMULATOR,
-		num_cycles=1e12
+        dump_waveforms=dump_waveforms
     ).run()

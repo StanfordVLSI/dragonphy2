@@ -8,7 +8,6 @@ from dragonphy import *
 
 THIS_DIR = Path(__file__).parent.resolve()
 BUILD_DIR = THIS_DIR / 'build'
-SIMULATOR = 'ncsim'
 
 CLK_ASYNC_FREQ = 501e6
 CLK_REF_FREQ = 4e9
@@ -18,14 +17,13 @@ T_TOL = 1e-12
 def test_sim():
     def qwrap(s):
         return f'"{s}"'
+
     defines = {
         'PM_TXT': qwrap(BUILD_DIR / 'pm.txt'),
         'DELAY_TXT': qwrap(BUILD_DIR / 'delay.txt'),
         'CLK_ASYNC_FREQ': CLK_ASYNC_FREQ,
         'CLK_REF_FREQ': CLK_REF_FREQ,
-        'N_TESTS': 100,
-        'DAVE_TIMEUNIT': '1fs',
-        'NCVLOG': None
+        'N_TESTS': 100
     }
 
     deps = get_deps_cpu_sim(impl_file=THIS_DIR / 'test.sv')
@@ -34,10 +32,7 @@ def test_sim():
     DragonTester(
         ext_srcs=deps,
         directory=BUILD_DIR,
-        top_module='test',
-        inc_dirs=[get_mlingua_dir() / 'samples', get_dir('inc/cpu')],
-        defines=defines,
-        simulator=SIMULATOR
+        defines=defines
     ).run()
 
     delay = np.loadtxt(BUILD_DIR / 'delay.txt', dtype=float)
