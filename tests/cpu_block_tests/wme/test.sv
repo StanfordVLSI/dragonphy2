@@ -139,6 +139,9 @@ module test;
                 pulse_wr_plsone();
             end
         end
+
+        #(1ns);
+        $finish;
     end
 
     task increment(input logic [$clog2(depth)-1:0] d_idx, logic [$clog2(width)-1:0] w_idx);
