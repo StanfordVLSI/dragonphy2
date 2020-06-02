@@ -4,9 +4,7 @@ import os
 import msdsl, svreal
 from svinst import get_defs
 
-from .directory import Directory
-
-from .files import get_dir, get_file, get_mlingua_dir
+from .files import get_dir, get_mlingua_dir
 
 def remove_dup(seq):
     # fast method to remove duplicates from a list while preserving order
@@ -22,7 +20,9 @@ def find_preferred_impl(cell_name, view_order, override):
     for view_name in view_order:
         matches = []
         if view_name == 'dw_tap':
-            matches += list(Path(os.environ['DW_TAP']).parent.rglob(f'{cell_name}.*v'))
+            if 'DW_TAP' in os.environ:
+                folder = Path(os.environ['DW_TAP']).parent
+                matches += list(folder.rglob(f'{cell_name}.*v'))
         elif view_name == 'mlingua':
             for dir_name in ['meas', 'misc', 'prim', 'stim']:
                 view_folder = Path(os.environ['mLINGUA_DIR']) / 'samples' / dir_name
@@ -135,10 +135,10 @@ def get_deps(cell_name=None, view_order=None, override=None,
 
     return deps
 
-def get_deps_new_asic(cell_name=None, impl_file=None, process='tsmc16'):
+def get_deps_asic(cell_name=None, impl_file=None, process='tsmc16'):
     # Set of views to override with a specific view
     override = {
-        'analog_core': 'new_chip_stubs'
+        'analog_core': 'chip_stubs'
     }
 
     # Set of views to skip (since a *.db will be provided)
@@ -151,10 +151,10 @@ def get_deps_new_asic(cell_name=None, impl_file=None, process='tsmc16'):
 
     # Process-dependent stubs
     if process == 'freepdk-45nm':
-        override['sram'] = 'new_chip_src_freepdk45'
+        override['sram'] = 'chip_src_freepdk45'
         skip.add('sram_144_1024_freepdk45')
     elif process == 'tsmc16':
-        override['sram'] = 'new_chip_src_tsmc16'
+        override['sram'] = 'chip_src_tsmc16'
         skip.add('TS1N16FFCLLSBLVTC1024X144M4SW')
     else:
         raise Exception(f'Unknown process: {process}')
@@ -164,32 +164,26 @@ def get_deps_new_asic(cell_name=None, impl_file=None, process='tsmc16'):
     deps += get_deps(
         cell_name=cell_name,
         impl_file=impl_file,
-        view_order=['new_pack', 'new_chip_src'],
+        view_order=['pack', 'chip_src'],
         includes=[
-            get_dir('inc/new_asic')
+            get_dir('inc/asic')
         ],
         override=override,
         skip=skip
     )
 
-    # manual modifications
-    deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/ffe_gpack.sv')
-    deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/cmp_gpack.sv')
-    deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/mlsd_gpack.sv')
-    deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/constant_gpack.sv')
-    deps.insert(0, Directory.path() + '/vlog/new_pack/dsp_pack.sv')
-
     # Return the dependencies
     return deps
 
-def get_deps_cpu_sim_new(cell_name=None, impl_file=None):
+def get_deps_cpu_sim(cell_name=None, impl_file=None):
     deps = []
+
     deps += get_deps(
         cell_name=cell_name,
         impl_file=impl_file,
-        view_order=['dw_tap', 'mlingua', 'new_pack', 'new_tb', 'new_cpu_models', 'new_chip_src'],
+        view_order=['dw_tap', 'mlingua', 'pack', 'tb', 'cpu_models', 'chip_src'],
         includes=[
-            get_dir('inc/new_cpu'),
+            get_dir('inc/cpu'),
             get_mlingua_dir() / 'samples'
         ],
         defines={
@@ -199,33 +193,15 @@ def get_deps_cpu_sim_new(cell_name=None, impl_file=None):
         }
     )
 
-    deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/ffe_gpack.sv')
-    deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/cmp_gpack.sv')
-    deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/mlsd_gpack.sv')
-    deps.insert(0, Directory.path() + '/build/new_chip_src/adapt_fir/constant_gpack.sv')
-    deps.insert(0, Directory.path() + '/vlog/new_pack/dsp_pack.sv')
-
-    return deps
-
-def get_deps_cpu_sim(cell_name=None, impl_file=None):
-    deps = []
-    deps += [get_file('build/fpga_models/adapt_fir/ffe_gpack.sv')]
-    deps += get_deps(
-        cell_name=cell_name,
-        impl_file=impl_file,
-        view_order=['all', 'tb', 'cpu_models', 'chip_src'],
-        includes=[get_dir('inc/cpu')],
-        skip={'analog_if'}
-    )
     return deps
 
 def get_deps_fpga_emu(cell_name=None, impl_file=None):
     deps = []
-    deps += [get_file('build/fpga_models/adapt_fir/ffe_gpack.sv')]
+
     deps += get_deps(
         cell_name=cell_name,
         impl_file=impl_file,
-        view_order=['all', 'tb', 'fpga_models', 'chip_src'],
+        view_order=['fpga_models', 'pack', 'chip_src'],
         includes=[
             get_dir('inc/fpga'),
             svreal.get_svreal_header().parent,
@@ -233,8 +209,9 @@ def get_deps_fpga_emu(cell_name=None, impl_file=None):
         ],
         defines={'DT_WIDTH': 27, 'DT_EXPONENT': -46},
         skip={'svreal', 'assign_real', 'comp_real', 'add_sub_real', 'ite_real',
-              'dff_real', 'mul_real', 'mem_digital', 'sync_rom_real'},
+              'dff_real', 'mul_real', 'mem_digital', 'sync_rom_real', 'DW_tap'},
         no_descend={'chan_core', 'tx_core', 'osc_model_core', 'clk_delay_core',
                     'rx_adc_core'}
     )
+
     return deps

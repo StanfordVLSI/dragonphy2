@@ -1,1 +1,0 @@
-xrun test_mlsd.sv -v *.sv ../../src/flat_buffer/syn/*.sv ../../src/delay_buffer/delay_buffer.sv ../../src/*/*/comb_mlsd_decision.sv ../../src/*/*/comb_eucl_dist.sv ../../src/*/*/flat_mlsd.sv ../../src/*/*/comb_*_code*_gen.sv -input hdl.tcl -access r

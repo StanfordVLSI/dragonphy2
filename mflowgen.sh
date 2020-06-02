@@ -19,10 +19,7 @@ cd ..
 pip install -e .
 
 # make dependencies for design
-# TODO: do we need to create fpga and cpu views here?
 python make.py --view asic
-python make.py --view fpga
-python make.py --view cpu
 
 # run mflowgen
 mkdir -p build/mflowgen_dragonphy_top

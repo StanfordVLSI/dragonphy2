@@ -1,27 +1,17 @@
-# content of conftest.py
-
 import pytest
-
 
 def pytest_addoption(parser):
     parser.addoption(
-        "--runslow", action="store_true", default=False, help="run slow tests"
+        '--dump_waveforms', action='store_true', help='Dump waveforms from test.'
     )
-    
     parser.addoption(
-        "--runwip", action="store_true", default=False, help="run tests that are currently a work in progress"
+        '--board_name', default='ZC702', type=str, help='Name of the FPGA board.'
     )
 
-def pytest_configure(config):
-    config.addinivalue_line("markers", "slow: mark test as slow to run")
-    config.addinivalue_line("markers", "wip: mark test as work-in-progress")
+@pytest.fixture
+def dump_waveforms(request):
+    return request.config.getoption('--dump_waveforms')
 
-def pytest_collection_modifyitems(config, items):
-    skip_slow = pytest.mark.skip(reason="need --runslow option to run")
-    skip_wip = pytest.mark.skip(reason="need --runwip option to run")
-    
-    for item in items:
-        if not config.getoption("--runslow") and "slow" in item.keywords:
-            item.add_marker(skip_slow)
-        elif not config.getoption("--runwip") and "wip" in item.keywords:
-            item.add_marker(skip_wip)
+@pytest.fixture
+def board_name(request):
+    return request.config.getoption('--board_name')
