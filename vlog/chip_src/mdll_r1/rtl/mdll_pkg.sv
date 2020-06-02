@@ -135,10 +135,12 @@ package mdll_pkg;
    
 // synopsys translate_off
 
+`ifndef VIVADO
     let MAX(a,b) = (a>=b) ? a : b ;
     let MIN(a,b) = (a<=b) ? a : b ;
     let ABS(a)   = (a>=0) ? a : -a ;
     let CLOSER(a,b,t) = (ABS(a-t) <= ABS(b-t))? a : b;
+`endif
 
 // synopsys translate_on
 

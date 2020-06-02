@@ -15,7 +15,7 @@ from msdsl import get_msdsl_header
 from dragonphy import get_file, Filter
 
 BUILD_DIR = Path(__file__).resolve().parent / 'build'
-SIMULATOR = 'ncsim' if 'FPGA_SERVER' not in os.environ else 'vivado'
+SIMULATOR = 'vivado'
 
 # DUT options
 N_BITS = 8

@@ -20,7 +20,9 @@ def find_preferred_impl(cell_name, view_order, override):
     for view_name in view_order:
         matches = []
         if view_name == 'dw_tap':
-            matches += list(Path(os.environ['DW_TAP']).parent.rglob(f'{cell_name}.*v'))
+            if 'DW_TAP' in os.environ:
+                folder = Path(os.environ['DW_TAP']).parent
+                matches += list(folder.rglob(f'{cell_name}.*v'))
         elif view_name == 'mlingua':
             for dir_name in ['meas', 'misc', 'prim', 'stim']:
                 view_folder = Path(os.environ['mLINGUA_DIR']) / 'samples' / dir_name
@@ -199,7 +201,7 @@ def get_deps_fpga_emu(cell_name=None, impl_file=None):
     deps += get_deps(
         cell_name=cell_name,
         impl_file=impl_file,
-        view_order=['all', 'tb', 'fpga_models', 'chip_src'],
+        view_order=['fpga_models', 'pack', 'chip_src'],
         includes=[
             get_dir('inc/fpga'),
             svreal.get_svreal_header().parent,
@@ -207,7 +209,7 @@ def get_deps_fpga_emu(cell_name=None, impl_file=None):
         ],
         defines={'DT_WIDTH': 27, 'DT_EXPONENT': -46},
         skip={'svreal', 'assign_real', 'comp_real', 'add_sub_real', 'ite_real',
-              'dff_real', 'mul_real', 'mem_digital', 'sync_rom_real'},
+              'dff_real', 'mul_real', 'mem_digital', 'sync_rom_real', 'DW_tap'},
         no_descend={'chan_core', 'tx_core', 'osc_model_core', 'clk_delay_core',
                     'rx_adc_core'}
     )
