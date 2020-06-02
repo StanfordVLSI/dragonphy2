@@ -71,6 +71,8 @@ steps:
       - "tests/fpga_system_tests/*/build/*/prj/prj.runs/*/*.log"
       - "tests/fpga_system_tests/*/build/*/prj/prj.runs/*/*.bit"
       - "tests/fpga_system_tests/*/build/*/prj/prj.runs/*/*.ltx"
+      - "tests/fpga_system_tests/*/build/*/prj/prj.sim/*/behav/xsim/*.log"
+      - "tests/fpga_system_tests/*/build/*/prj/prj.sim/*/behav/xsim/*.sh"
       - "tests/fpga_system_tests/*/prj.yaml"
       - "tests/fpga_system_tests/*/source.yaml"
     timeout_in_minutes: 60
