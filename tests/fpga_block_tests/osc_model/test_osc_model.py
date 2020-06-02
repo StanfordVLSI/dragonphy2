@@ -15,7 +15,7 @@ from msdsl import get_msdsl_header
 from dragonphy import get_file, Filter
 
 BUILD_DIR = Path(__file__).resolve().parent / 'build'
-SIMULATOR = 'ncsim' if 'FPGA_SERVER' not in os.environ else 'vivado'
+SIMULATOR = 'vivado'
 
 # DUT options
 T_PER = 1e-9
@@ -79,8 +79,8 @@ def test_osc_model(float_real):
     # run main test
     # note that for this test:
     # t_del = 0.5e-9
-    #  t_lo = 0.4e-9
-    #  t_hi = 0.6e-9
+    # t_lo = 0.4e-9
+    # t_hi = 0.6e-9
 
     t.poke(dut.dt_req, 0.123e-9)
     check_result(0.123e-9, 0)

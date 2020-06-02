@@ -17,20 +17,18 @@ export mLINGUA_DIR=`realpath DaVE/mLingua`
 # install dragonphy
 pip install -e .
 
-# make dependencies for design
-# TODO: should other views be used as well?
-
 # install pytest
 pip install pytest pytest-cov
 
 # run tests
 if [[ -z "${FPGA_SERVER}" ]]; then
     python make.py --view cpu
-    pytest tests/other_tests -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
-    pytest tests/cpu_block_tests -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
-    pytest tests/cpu_system_tests -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
+    pytest tests/other_tests tests/cpu_block_tests tests/cpu_system_tests \
+        -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
 else
     python make.py --view fpga
+    pytest tests/fpga_system_tests \
+        -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
 fi
 
 # upload coverage
