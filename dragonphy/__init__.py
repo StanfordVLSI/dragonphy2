@@ -20,16 +20,12 @@ from .fir           import Fir
 from .ffe           import FFEHelper
 from .mlsd          import MLSD
 from .cdr           import Cdr
-# Some ENOB, DNL extraction libraries - these should be merged into one!
-#from .adc 			import AdcChecker, AdcModel
-#from .ac  			import AdcAcChecker
 
-# For fpga emulation
+# For FPGA emulation
 from .files import (get_file, get_files, get_files_arr, get_dir, get_dirs,
                     TOP_DIR, get_mlingua_dir)
-from .views import (get_deps, get_deps_cpu_sim_new,
-                    get_deps_cpu_sim, get_deps_fpga_emu,
-                    get_deps_new_asic)
+from .views import (get_deps, get_deps_cpu_sim, get_deps_fpga_emu,
+                    get_deps_asic)
 from .anasymod import AnasymodSourceConfig, AnasymodProjectConfig
 
 # Package generation

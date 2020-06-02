@@ -29,8 +29,6 @@ logic [shiftBitwidth-1:0]  shift_index [numChannels-1:0];
 wire logic [codeBitwidth-1:0] ucodes      [numChannels-1:0];
 wire logic [codeBitwidth-1:0] ucodes_buffer [numChannels-1:0][bufferDepth-1:0];
 
-wire logic disable_product [ffeDepth-1:0][numChannels-1:0];
-
 wire logic [codeBitwidth-1:0] uflat_codes [numChannels*bufferDepth-1:0];
 
 logic signed [codeBitwidth-1:0]   flat_codes [numChannels*bufferDepth-1:0];
@@ -38,13 +36,10 @@ logic signed [codeBitwidth-1:0]   flat_codes [numChannels*bufferDepth-1:0];
 wire logic signed [resultBitwidth-1:0] next_results [numChannels-1:0];
 
 //hack to get around lack of parameter type support :(
-genvar gi, gj;
+genvar gi;
 generate
 	for(gi=0; gi<numChannels; gi= gi + 1) begin
 		assign ucodes[gi] = $unsigned(codes[gi]);
-		for(gj=0; gj<ffeDepth; gj=gj+1) begin
-			assign disable_product[gj][gi] = 0;
-		end
 	end
 
 	for(gi=0; gi<numChannels*bufferDepth; gi=gi+1) begin 
@@ -87,7 +82,6 @@ comb_ffe #(
 	.weights       (weights),
 	.flat_codes    (flat_codes),
 	.shift_index   (shift_index),
-	.disable_product(disable_product),
 	.estimated_bits(next_results)
 );
 

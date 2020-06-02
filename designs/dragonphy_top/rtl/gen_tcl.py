@@ -11,12 +11,12 @@ def tcl_list(vals, indent='    ', nl='\n'):
 e = os.environ
 
 # determine the search path for include files
-inc_dir = get_dir('inc/new_asic')
+inc_dir = get_dir('inc/asic')
 
 # build up a list of source files
 file_list = []
-file_list += [get_file('vlog/new_chip_src/jtag/jtag_intf.sv')]
-file_list += get_deps_new_asic(e['design_name'], process=e['adk_name'])
+file_list += [get_file('vlog/chip_src/jtag/jtag_intf.sv')]
+file_list += get_deps_asic(e['design_name'], process=e['adk_name'])
 
 # create the text of the TCL script
 output = f'''\
