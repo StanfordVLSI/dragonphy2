@@ -1,7 +1,7 @@
 `timescale 1s/1fs
 
 `ifndef GIT_HASH
-    `define GIT_HASH 28'h0
+    `define GIT_HASH 0
 `endif
 
 module sim_ctrl(

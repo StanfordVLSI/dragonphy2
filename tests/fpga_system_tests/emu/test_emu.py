@@ -34,10 +34,7 @@ def test_emu_build(board_name):
 
     # Verilog Defines
     src_cfg.add_defines({'VIVADO': None})
-
-    git_hash_short = get_git_hash_short()
-    GIT_HASH = f"28'h{git_hash_short:07x}"
-    src_cfg.add_defines({'GIT_HASH': GIT_HASH}, fileset='sim')
+    src_cfg.add_defines({'GIT_HASH': str(get_git_hash_short())}, fileset='sim')
 
     # Write source config
     # TODO: interact directly with anasymod library rather than through config files
