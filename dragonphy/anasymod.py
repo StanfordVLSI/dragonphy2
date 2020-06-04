@@ -2,13 +2,18 @@ from pathlib import Path
 import yaml
 
 class AnasymodProjectConfig:
-    def __init__(self):
+    def __init__(self, fpga_sim_ctrl='UART_ZYNQ'):
         self.config = {
             'PROJECT': {
                 'dt': 50e-9,
                 'board_name': 'ZC702',
                 'plugins': ['msdsl'],
                 'emu_clk_freq': 20e6
+            },
+            'FPGA_TARGET': {
+                'fpga': {
+                    'fpga_sim_ctrl': fpga_sim_ctrl
+                }
             }
         }
 
@@ -60,6 +65,9 @@ class AnasymodSourceConfig:
 
     def add_verilog_headers(self, header_list, fileset=None):
         self.add_generic_sources('verilog_headers', header_list, fileset)
+
+    def add_firmware_files(self, file_list, fileset=None):
+        self.add_generic_sources('firmware_files', file_list, fileset)
 
     def add_defines(self, defines, fileset=None):
         if 'defines' not in self.sources:
