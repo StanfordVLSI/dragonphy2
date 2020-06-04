@@ -27,7 +27,7 @@ if [[ -z "${FPGA_SERVER}" ]]; then
         -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
 else
     python make.py --view fpga
-    pytest tests/fpga_system_tests \
+    xvfb-run pytest tests/fpga_system_tests \
         -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
 fi
 
