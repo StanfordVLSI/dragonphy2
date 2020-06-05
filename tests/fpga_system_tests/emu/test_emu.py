@@ -21,8 +21,8 @@ def test_1(board_name):
     # JTAG-related
     src_cfg.add_verilog_sources([get_file('vlog/chip_src/jtag/jtag_intf.sv')])
     src_cfg.add_edif_files([os.environ['TAP_CORE_LOC']], fileset='fpga')
-    src_cfg.add_verilog_sources([get_file('vlog/fpga_models/tap_core.sv')], fileset='fpga')
-    src_cfg.add_verilog_sources([get_file('vlog/fpga_models/DW_tap.sv')], fileset='fpga')
+    src_cfg.add_verilog_sources([get_file('vlog/fpga_models/jtag/tap_core.sv')], fileset='fpga')
+    src_cfg.add_verilog_sources([get_file('vlog/fpga_models/jtag/DW_tap.sv')], fileset='fpga')
     src_cfg.add_verilog_sources([os.environ['DW_TAP']], fileset='sim')
 
     # Verilog Sources
