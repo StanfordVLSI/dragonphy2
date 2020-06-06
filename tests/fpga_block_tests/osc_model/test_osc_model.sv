@@ -42,9 +42,6 @@ module test_osc_model #(
         .emu_dt(emu_dt_int),
         // emulator clock and reset
         .emu_clk(emu_clk),
-        .emu_rst(emu_rst),
-        // unused (related to clock buffer)
-        .clk_i(1'b0),
-        .clk_o()
+        .emu_rst(emu_rst)
     );
 endmodule

@@ -131,7 +131,7 @@ def test_chan_model():
     meas8 = t.get_value(dut.out)
 
     # compute expected outputs
-    chan = Filter.from_file(get_file('build/fpga_models/adapt_fir/chan.npy'))
+    chan = Filter.from_file(get_file('build/chip_src/adapt_fir/chan.npy'))
     f = chan.interp
     expt1 = 0
     expt2 = val1*f(dt2)
@@ -149,7 +149,7 @@ def test_chan_model():
         directory=BUILD_DIR,
         simulator=SIMULATOR,
         ext_srcs=[get_file('build/fpga_models/chan_core/chan_core.sv'),
-                  get_file('tests/test_chan_model/test_chan_model.sv')],
+                  get_file('tests/fpga_block_tests/chan_model/test_chan_model.sv')],
         inc_dirs=[get_svreal_header().parent, get_msdsl_header().parent],
         ext_model_file=True,
         disp_type='realtime'

@@ -21,8 +21,6 @@ class OscModelCore:
         m.add_analog_input('emu_dt')
         m.add_analog_output('dt_req', init=system_values['tdel'])
         m.add_digital_output('clk_val')
-        m.add_digital_input('clk_i')
-        m.add_digital_output('clk_o')
 
         # determine if the request was granted
         m.bind_name('req_grant', m.dt_req == m.emu_dt)
@@ -54,9 +52,6 @@ class OscModelCore:
         dt_req_imm_array = array([m.dt_req_incr, m.dt_req_next], m.req_grant, **array_fmt_kwargs)
         m.bind_name('dt_req_imm', dt_req_imm_array, **dt_fmt_kwargs)
         m.set_next_cycle(m.dt_req, m.dt_req_imm, clk=m.emu_clk, rst=m.emu_rst)
-
-        # pass through clock input to clock output
-        m.set_this_cycle(m.clk_o, m.clk_i)
 
         # generate the model
         m.compile_to_file(VerilogGenerator())

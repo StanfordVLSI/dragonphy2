@@ -130,7 +130,7 @@ def test_clk_delay(float_real):
         directory=BUILD_DIR,
         simulator=SIMULATOR,
         ext_srcs=[get_file('build/fpga_models/clk_delay_core/clk_delay_core.sv'),
-                  get_file('tests/test_clk_delay/test_clk_delay.sv')],
+                  get_file('tests/fpga_block_tests/clk_delay/test_clk_delay.sv')],
         inc_dirs=[get_svreal_header().parent, get_msdsl_header().parent],
         ext_model_file=True,
         defines=defines,
