@@ -52,8 +52,14 @@ module analog_core import const_pack::*; #(
 	logic [Nout-1:0] clk_interp_sw_s2d;
 	logic [Nout-1:0] clk_interp_swb_s2d;
 	logic clk_in_pi;
-	
-	assign clk_adc = clk_div[0];
+
+    // for emulation, the clock is written via absolute path
+	`ifndef VIVADO
+	    assign clk_adc = clk_div[0];
+	`else
+	    (* dont_touch = "true" *) logic clk_adc_i;
+	    assign clk_adc = clk_adc_i;
+	`endif
 
     // termination
 	termination iterm(

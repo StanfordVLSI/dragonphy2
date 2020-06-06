@@ -8,11 +8,11 @@ def create_fpga_graph():
     # Configs
     graph.add_config('system', folders=['config'])
     graph.add_config('jtag_config', folders=['config'])
-    # graph.add_config('chan', folders=['config', 'fpga'])
-    # graph.add_config('osc_model', folders=['config', 'fpga'])
-    # graph.add_config('rx_adc', folders=['config', 'fpga'])
-    # graph.add_config('tx', folders=['config', 'fpga'])
-    # graph.add_config('clk_delay', folders=['config', 'fpga'])
+    graph.add_config('chan', folders=['config', 'fpga'])
+    graph.add_config('osc_model', folders=['config', 'fpga'])
+    graph.add_config('rx_adc', folders=['config', 'fpga'])
+    graph.add_config('tx', folders=['config', 'fpga'])
+    graph.add_config('clk_delay', folders=['config', 'fpga'])
 
     # Dependencies
     graph.add_input('acore_intf', ext='md', folders=['md'])
@@ -30,17 +30,17 @@ def create_fpga_graph():
                      configs={'jtag_config'},
                      sources={'acore_intf', 'cdr_intf', 'sram_multi_intf',
                               'sm_ffe_intf','dcore_intf', 'prbs_intf'})
-    # graph.add_python('chan_core', 'chan_core', 'ChannelCore', view='fpga_models',
-    #                  folders=['dragonphy', 'fpga_models'], sources={'adapt_fir'},
-    #                  configs={'chan'})
-    # graph.add_python('osc_model_core', 'osc_model_core', 'OscModelCore', view='fpga_models',
-    #                  folders=['dragonphy', 'fpga_models'], configs={'osc_model'})
-    # graph.add_python('rx_adc_core', 'rx_adc_core', 'RXAdcCore', view='fpga_models',
-    #                  folders=['dragonphy', 'fpga_models'], configs={'rx_adc'})
-    # graph.add_python('tx_core', 'tx_core', 'TXCore', view='fpga_models',
-    #                  folders=['dragonphy', 'fpga_models'], configs={'tx'})
-    # graph.add_python('clk_delay_core', 'clk_delay_core', 'ClkDelayCore', view='fpga_models',
-    #                  folders=['dragonphy', 'fpga_models'], configs={'clk_delay'})
+    graph.add_python('chan_core', 'chan_core', 'ChannelCore', view='fpga_models',
+                     folders=['dragonphy', 'fpga_models'], sources={'adapt_fir'},
+                     configs={'chan'})
+    graph.add_python('osc_model_core', 'osc_model_core', 'OscModelCore', view='fpga_models',
+                     folders=['dragonphy', 'fpga_models'], configs={'osc_model'})
+    graph.add_python('rx_adc_core', 'rx_adc_core', 'RXAdcCore', view='fpga_models',
+                     folders=['dragonphy', 'fpga_models'], configs={'rx_adc'})
+    graph.add_python('tx_core', 'tx_core', 'TXCore', view='fpga_models',
+                     folders=['dragonphy', 'fpga_models'], configs={'tx'})
+    graph.add_python('clk_delay_core', 'clk_delay_core', 'ClkDelayCore', view='fpga_models',
+                     folders=['dragonphy', 'fpga_models'], configs={'clk_delay'})
 
     return graph
 

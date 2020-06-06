@@ -19,14 +19,15 @@ def test_1(board_name):
     src_cfg = AnasymodSourceConfig()
 
     # JTAG-related
-    src_cfg.add_verilog_sources([get_file('vlog/chip_src/jtag/jtag_intf.sv')])
     src_cfg.add_edif_files([os.environ['TAP_CORE_LOC']], fileset='fpga')
     src_cfg.add_verilog_sources([get_file('vlog/fpga_models/jtag/tap_core.sv')], fileset='fpga')
     src_cfg.add_verilog_sources([get_file('vlog/fpga_models/jtag/DW_tap.sv')], fileset='fpga')
     src_cfg.add_verilog_sources([os.environ['DW_TAP']], fileset='sim')
 
     # Verilog Sources
-    src_cfg.add_verilog_sources(get_deps_fpga_emu('dragonphy_top'))
+    deps = get_deps_fpga_emu(impl_file=(THIS_DIR / 'tb.sv'))
+    deps = [dep for dep in deps if Path(dep).stem != 'tb']  # anasymod already includes tb.sv
+    src_cfg.add_verilog_sources(deps)
     src_cfg.add_verilog_sources([THIS_DIR / 'sim_ctrl.sv'], fileset='sim')
 
     # Verilog Headers
@@ -35,6 +36,7 @@ def test_1(board_name):
 
     # Verilog Defines
     src_cfg.add_defines({'VIVADO': None})
+    src_cfg.add_defines({'DT_EXPONENT': -46})  # TODO: move to DT_SCALE
     src_cfg.add_defines({'GIT_HASH': str(get_git_hash_short())}, fileset='sim')
 
     # Firmware
