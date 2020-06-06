@@ -226,34 +226,38 @@ module digital_core import const_pack::*; (
     assign dsp_dbg_intf_i.mlsd_shift      = ddbg_intf_i.mlsd_shift;
     assign dsp_dbg_intf_i.thresh          = ddbg_intf_i.cmp_thresh;
 
-    weight_manager #(.width(Nti), .depth(10), .bitwidth(10)) wme_ffe_i (
-        .data    (wdbg_intf_i.wme_ffe_data),
-        .inst    (wdbg_intf_i.wme_ffe_inst),
-        .exec    (wdbg_intf_i.wme_ffe_exec),
-        .clk     (clk_adc),
-        .rstb    (rstb),
-        .read_reg(wdbg_intf_i.wme_ffe_read),
-        .weights (dsp_dbg_intf_i.weights)
-    );
+    `ifndef VIVADO
 
-    weight_manager #(.width(Nti), .depth(30), .bitwidth(8)) wme_channel_est_i (
-        .data    (wdbg_intf_i.wme_mlsd_data),
-        .inst    (wdbg_intf_i.wme_mlsd_inst),
-        .exec    (wdbg_intf_i.wme_mlsd_exec),
-        .clk     (clk_adc),
-        .rstb    (rstb),
-        .read_reg(wdbg_intf_i.wme_mlsd_read),
-        .weights (dsp_dbg_intf_i.channel_est)
-    );
+        weight_manager #(.width(Nti), .depth(10), .bitwidth(10)) wme_ffe_i (
+            .data    (wdbg_intf_i.wme_ffe_data),
+            .inst    (wdbg_intf_i.wme_ffe_inst),
+            .exec    (wdbg_intf_i.wme_ffe_exec),
+            .clk     (clk_adc),
+            .rstb    (rstb),
+            .read_reg(wdbg_intf_i.wme_ffe_read),
+            .weights (dsp_dbg_intf_i.weights)
+        );
 
-    dsp_backend dsp_i(
-        .codes(adcout_unfolded[Nti-1:0]),
-        .clk(clk_adc),
-        .rstb(rstb),
-        .estimated_bits_q(estimated_bits),
-        .checked_bits(checked_bits),
-        .dsp_dbg_intf_i(dsp_dbg_intf_i)
-    );
+        weight_manager #(.width(Nti), .depth(30), .bitwidth(8)) wme_channel_est_i (
+            .data    (wdbg_intf_i.wme_mlsd_data),
+            .inst    (wdbg_intf_i.wme_mlsd_inst),
+            .exec    (wdbg_intf_i.wme_mlsd_exec),
+            .clk     (clk_adc),
+            .rstb    (rstb),
+            .read_reg(wdbg_intf_i.wme_mlsd_read),
+            .weights (dsp_dbg_intf_i.channel_est)
+        );
+
+        dsp_backend dsp_i(
+            .codes(adcout_unfolded[Nti-1:0]),
+            .clk(clk_adc),
+            .rstb(rstb),
+            .estimated_bits_q(estimated_bits),
+            .checked_bits(checked_bits),
+            .dsp_dbg_intf_i(dsp_dbg_intf_i)
+        );
+
+    `endif
 
     // SRAM
 
