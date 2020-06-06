@@ -6,6 +6,7 @@
 
 module sim_ctrl(
     output reg rstb=1'b0,
+    output reg prbs_rst=1'b1,
     output reg tdi=1'b0,
     output reg tck=1'b0,
     output reg tms=1'b1,
@@ -137,8 +138,9 @@ module sim_ctrl(
         $display("Waiting for emulator reset to complete...");
         #(10us);
 
-        // release external reset
+        // release external reset signals
         rstb = 1'b1;
+        prbs_rst = 1'b0;
         #(10us);
 
         // release JTAG reset

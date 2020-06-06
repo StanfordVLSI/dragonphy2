@@ -3,6 +3,10 @@ digital_ctrl_inputs:
     abspath: 'tb_i.rstb'
     width: 1
     init_value: 0
+  prbs_rst:
+    abspath: 'tb_i.prbs_rst'
+    width: 1
+    init_value: 1
   tdi:
     abspath: 'tb_i.tdi'
     width: 1
