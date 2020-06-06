@@ -65,15 +65,15 @@ def test_chan_model():
     val3 = +3.45
 
     # timesteps
-    dt0 = 1e-9
-    dt1 = 2e-9
-    dt2 = 3e-9
-    dt3 = 4e-9
-    dt4 = 5e-9
-    dt5 = 6e-9
-    dt6 = 7e-9
-    dt7 = 8e-9
-    dt8 = 9e-9
+    dt0 = (1e-9)/16
+    dt1 = (2e-9)/16
+    dt2 = (3e-9)/16
+    dt3 = (4e-9)/16
+    dt4 = (5e-9)/16
+    dt5 = (6e-9)/16
+    dt6 = (7e-9)/16
+    dt7 = (8e-9)/16
+    dt8 = (9e-9)/16
 
     # action sequence
     t.poke(dut.cke, 0)
@@ -151,7 +151,8 @@ def test_chan_model():
                   get_file('tests/fpga_block_tests/chan_model/test_chan_model.sv')],
         inc_dirs=[get_svreal_header().parent, get_msdsl_header().parent],
         ext_model_file=True,
-        disp_type='realtime'
+        disp_type='realtime',
+        dump_waveforms=False
     )
 
     # check outputs
