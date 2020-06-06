@@ -1,5 +1,4 @@
 # general imports
-import os
 from pathlib import Path
 
 # AHA imports
@@ -11,7 +10,7 @@ from svreal import get_svreal_header
 from msdsl import get_msdsl_header
 
 # DragonPHY imports
-from dragonphy import get_file, Filter, Directory
+from dragonphy import get_file, Filter
 
 BUILD_DIR = Path(__file__).resolve().parent / 'build'
 SIMULATOR = 'vivado'
