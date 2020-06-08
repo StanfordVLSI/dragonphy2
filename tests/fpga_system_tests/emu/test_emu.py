@@ -1,6 +1,7 @@
 import os
 import serial
 import time
+import json
 from pathlib import Path
 
 from anasymod.analysis import Analysis
@@ -95,6 +96,11 @@ def test_6(ser_port):
     read = 1
     write = 2
 
+    reg_list = json.load(open(get_file('build/all/jtag/reg_list.json'), 'r'))
+    reg_dict = {elem['name']: elem['addresses'] for elem in reg_list}
+    def get_reg_addr(name):
+        return reg_dict[name]
+
     # connect to the CPU
     print('Connecting to the CPU...')
     ser = serial.Serial(
@@ -113,10 +119,10 @@ def test_6(ser_port):
         ser.write(f'SDR {val} {width}\n'.encode('utf-8'))
         return int(ser.readline().strip())
 
-    def write_tc_reg(addr, val):
+    def write_tc_reg(name, val):
         # specify address
         shift_ir(tc_cfg_addr, jtag_inst_width)
-        shift_dr(addr, tc_addr_width)
+        shift_dr(get_reg_addr(name), tc_addr_width)
 
         # send data
         shift_ir(tc_cfg_data, jtag_inst_width)
@@ -126,10 +132,10 @@ def test_6(ser_port):
         shift_ir(tc_cfg_inst, jtag_inst_width)
         shift_dr(write, tc_op_width)
 
-    def write_sc_reg(addr, val):
+    def write_sc_reg(name, val):
         # specify address
         shift_ir(sc_cfg_addr, jtag_inst_width)
-        shift_dr(addr, sc_addr_width)
+        shift_dr(get_reg_addr(name), sc_addr_width)
 
         # send data
         shift_ir(sc_cfg_data, jtag_inst_width)
@@ -139,10 +145,10 @@ def test_6(ser_port):
         shift_ir(sc_cfg_inst, jtag_inst_width)
         shift_dr(write, sc_op_width)
 
-    def read_tc_reg(addr):
+    def read_tc_reg(name):
         # specify address
         shift_ir(tc_cfg_addr, jtag_inst_width)
-        shift_dr(addr, tc_addr_width)
+        shift_dr(get_reg_addr(name), tc_addr_width)
 
         # specify "READ" operation
         shift_ir(tc_cfg_inst, jtag_inst_width)
@@ -152,10 +158,10 @@ def test_6(ser_port):
         shift_ir(tc_cfg_data, jtag_inst_width)
         return shift_dr(0, tc_bus_width)
 
-    def read_sc_reg(addr):
+    def read_sc_reg(name):
         # specify address
         shift_ir(sc_cfg_addr, jtag_inst_width)
-        shift_dr(addr, sc_addr_width)
+        shift_dr(get_reg_addr(name), sc_addr_width)
 
         # specify "READ" operation
         shift_ir(sc_cfg_inst, jtag_inst_width)
@@ -166,17 +172,12 @@ def test_6(ser_port):
         return shift_dr(0, sc_bus_width)
 
     # reset sequence
-    int_rstb = 4516
-    en_inbuf = 4396
-    en_gf = 4304
-    en_v2t = 4284
-
     set_rstb(0)
     set_rstb(1)
-    write_tc_reg(int_rstb, 1)
-    write_tc_reg(en_inbuf, 1)
-    write_tc_reg(en_gf, 1)
-    write_tc_reg(en_v2t, 1)
+    write_tc_reg('int_rstb', 1)
+    write_tc_reg('en_inbuf', 1)
+    write_tc_reg('en_gf', 1)
+    write_tc_reg('en_v2t', 1)
 
     # read the ID
     print('Reading ID...')
@@ -186,43 +187,30 @@ def test_6(ser_port):
 
     # read the ID
     print('Read/write test of TC register...')
-    pd_offset_ext = 4236
-    write_tc_reg(pd_offset_ext, 0xCAFE)
-    tc_result = read_tc_reg(pd_offset_ext)
+    write_tc_reg('pd_offset_ext', 0xCAFE)
+    tc_result = read_tc_reg('pd_offset_ext')
     print(f'TC reg: {tc_result}')
 
     # run PRBS test
-    prbs_rstb = 4528
-    prbs_gen_rstb = 4532
-    prbs_gen_cke = 4116
-    sel_prbs_mux = 4568
-    prbs_checker_mode = 4112
-
-    write_tc_reg(prbs_rstb, 1)
-    write_tc_reg(prbs_gen_rstb, 1)
-    write_tc_reg(prbs_gen_cke, 1)
-    write_tc_reg(sel_prbs_mux, 0b11)
-    write_tc_reg(prbs_checker_mode, 0)
-    write_tc_reg(prbs_checker_mode, 2)
+    write_tc_reg('prbs_rstb', 1)
+    write_tc_reg('prbs_gen_rstb', 1)
+    write_tc_reg('prbs_gen_cke', 1)
+    write_tc_reg('sel_prbs_mux', 0b11)
+    write_tc_reg('prbs_checker_mode', 0)
+    write_tc_reg('prbs_checker_mode', 2)
     time.sleep(1)
-    write_tc_reg(prbs_checker_mode, 3)
-
-    prbs_err_bits_upper = 4096
-    prbs_err_bits_lower = 4100
+    write_tc_reg('prbs_checker_mode', 3)
 
     err_bits = 0
-    err_bits |= read_sc_reg(prbs_err_bits_upper)
+    err_bits |= read_sc_reg('prbs_err_bits_upper')
     err_bits <<= 32
-    err_bits |= read_sc_reg(prbs_err_bits_lower)
+    err_bits |= read_sc_reg('prbs_err_bits_lower')
     print(f'err_bits: {err_bits}')
 
-    prbs_total_bits_upper = 4104
-    prbs_total_bits_lower = 4108
-
     total_bits = 0
-    total_bits |= read_sc_reg(prbs_total_bits_upper)
+    total_bits |= read_sc_reg('prbs_total_bits_upper')
     total_bits <<= 32
-    total_bits |= read_sc_reg(prbs_total_bits_lower)
+    total_bits |= read_sc_reg('prbs_total_bits_lower')
     print(f'total_bits: {total_bits}')
 
     # check results
