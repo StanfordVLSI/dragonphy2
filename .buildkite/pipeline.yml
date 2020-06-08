@@ -75,6 +75,9 @@ steps:
       - "tests/fpga_system_tests/*/build/*/prj/prj.sim/*/behav/xsim/*.sh"
       - "tests/fpga_system_tests/*/prj.yaml"
       - "tests/fpga_system_tests/*/source.yaml"
+      - "build/all/jtag/reg_list.json"
+      - "build/cpu_models/jtag/jtag_reg_pack.sv"
+      - "build/tb/jtag_drv_pack.sv"
     timeout_in_minutes: 60
     agents:
         fpga_verif: "true"
