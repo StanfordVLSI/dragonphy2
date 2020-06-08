@@ -1,5 +1,6 @@
 import os
 import serial
+import time
 from pathlib import Path
 
 from anasymod.analysis import Analysis
@@ -74,6 +75,26 @@ def test_5():
     ana.program_firmware()
 
 def test_6(ser_port):
+    jtag_inst_width = 5
+    sc_bus_width = 32
+    sc_addr_width = 14
+
+    tc_bus_width = 32
+    tc_addr_width = 14
+
+    sc_op_width = 2
+    tc_op_width = 2
+
+    sc_cfg_data = 8
+    sc_cfg_inst = 9
+    sc_cfg_addr = 10
+    tc_cfg_data = 12
+    tc_cfg_inst = 13
+    tc_cfg_addr = 14
+
+    read = 1
+    write = 2
+
     # connect to the CPU
     print('Connecting to the CPU...')
     ser = serial.Serial(
@@ -81,22 +102,135 @@ def test_6(ser_port):
         baudrate=115200
     )
 
-    # read the ID
-    print('Sending the ID command...')
-    ser.write('ID\n'.encode('utf-8'))
-    print('Reading the response...')
-    out = ser.readline()
+    # functions
+    def set_rstb(val):
+        ser.write(f'SET_RSTB {val}\n'.encode('utf-8'))
 
-    # quit the program
-    print('Quitting the program...')
-    ser.write('EXIT\n'.encode('utf-8'))
+    def shift_ir(val, width):
+        ser.write(f'SIR {val} {width}\n'.encode('utf-8'))
+
+    def shift_dr(val, width):
+        ser.write(f'SDR {val} {width}\n'.encode('utf-8'))
+        return int(ser.readline().strip())
+
+    def write_tc_reg(addr, val):
+        # specify address
+        shift_ir(tc_cfg_addr, jtag_inst_width)
+        shift_dr(addr, tc_addr_width)
+
+        # send data
+        shift_ir(tc_cfg_data, jtag_inst_width)
+        shift_dr(val, tc_bus_width)
+
+        # specify "WRITE" operation
+        shift_ir(tc_cfg_inst, jtag_inst_width)
+        shift_dr(write, tc_op_width)
+
+    def write_sc_reg(addr, val):
+        # specify address
+        shift_ir(sc_cfg_addr, jtag_inst_width)
+        shift_dr(addr, sc_addr_width)
+
+        # send data
+        shift_ir(sc_cfg_data, jtag_inst_width)
+        shift_dr(val, sc_bus_width)
+
+        # specify "WRITE" operation
+        shift_ir(sc_cfg_inst, jtag_inst_width)
+        shift_dr(write, sc_op_width)
+
+    def read_tc_reg(addr):
+        # specify address
+        shift_ir(tc_cfg_addr, jtag_inst_width)
+        shift_dr(addr, tc_addr_width)
+
+        # specify "READ" operation
+        shift_ir(tc_cfg_inst, jtag_inst_width)
+        shift_dr(read, tc_op_width)
+
+        # get data
+        shift_ir(tc_cfg_data, jtag_inst_width)
+        return shift_dr(0, tc_bus_width)
+
+    def read_sc_reg(addr):
+        # specify address
+        shift_ir(sc_cfg_addr, jtag_inst_width)
+        shift_dr(addr, sc_addr_width)
+
+        # specify "READ" operation
+        shift_ir(sc_cfg_inst, jtag_inst_width)
+        shift_dr(read, sc_op_width)
+
+        # get data
+        shift_ir(sc_cfg_data, jtag_inst_width)
+        return shift_dr(0, sc_bus_width)
+
+    # reset sequence
+    int_rstb = 4516
+    en_inbuf = 4396
+    en_gf = 4304
+    en_v2t = 4284
+
+    set_rstb(0)
+    set_rstb(1)
+    write_tc_reg(int_rstb, 1)
+    write_tc_reg(en_inbuf, 1)
+    write_tc_reg(en_gf, 1)
+    write_tc_reg(en_v2t, 1)
+
+    # read the ID
+    print('Reading ID...')
+    shift_ir(1, 5)
+    id_result = shift_dr(0, 32)
+    print(f'ID: {id_result}')
+
+    # read the ID
+    print('Read/write test of TC register...')
+    pd_offset_ext = 4236
+    write_tc_reg(pd_offset_ext, 0xCAFE)
+    tc_result = read_tc_reg(pd_offset_ext)
+    print(f'TC reg: {tc_result}')
+
+    # run PRBS test
+    prbs_rstb = 4528
+    prbs_gen_rstb = 4532
+    prbs_gen_cke = 4116
+    sel_prbs_mux = 4568
+    prbs_checker_mode = 4112
+
+    write_tc_reg(prbs_rstb, 1)
+    write_tc_reg(prbs_gen_rstb, 1)
+    write_tc_reg(prbs_gen_cke, 1)
+    write_tc_reg(sel_prbs_mux, 0b11)
+    write_tc_reg(prbs_checker_mode, 0)
+    write_tc_reg(prbs_checker_mode, 2)
+    time.sleep(1)
+    write_tc_reg(prbs_checker_mode, 3)
+
+    prbs_err_bits_upper = 4096
+    prbs_err_bits_lower = 4100
+
+    err_bits = 0
+    err_bits |= read_sc_reg(prbs_err_bits_upper)
+    err_bits <<= 32
+    err_bits |= read_sc_reg(prbs_err_bits_lower)
+    print(f'err_bits: {err_bits}')
+
+    prbs_total_bits_upper = 4104
+    prbs_total_bits_lower = 4108
+
+    total_bits = 0
+    total_bits |= read_sc_reg(prbs_total_bits_upper)
+    total_bits <<= 32
+    total_bits |= read_sc_reg(prbs_total_bits_lower)
+    print(f'total_bits: {total_bits}')
 
     # check results
     print('Checking the results...')
-    val = int(out.strip())
-    print(f'Got ID: {val}')
+    assert id_result == 497598771, 'ID mismatch'
+    assert tc_result == 0xCAFE, 'TC reg mismatch'
+    assert err_bits == 0, 'Bit error detected'
+    assert total_bits > 3000000, 'Not enough bits detected'
 
-    if val != 497598771:
-        raise Exception('ID mismatch')
-    else:
-        print('OK!')
+    # finish test
+    print('OK!')

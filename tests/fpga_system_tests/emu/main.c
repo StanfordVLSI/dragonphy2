@@ -155,12 +155,20 @@ int main() {
                     } else if (strcmp(buf, "SDR") == 0) {
                         cmd = 2;
                         nargs++;
+                    } else if (strcmp(buf, "SET_RSTB") == 0) {
+                        cmd = 3;
+                        nargs++;
                     } else {
 	                xil_printf("ERROR: Unknown command\r\n");
-		    }
+		            }
                 } else if (nargs == 1) {
                     sscanf(buf, "%lu", &arg1);
-                    nargs++;
+                    if (cmd == 3) {
+                        set_rstb(arg1);
+                        nargs=0;
+                    } else {
+                        nargs++;
+                    }
                 } else if (nargs == 2) {
                     sscanf(buf, "%lu", &arg2);
                     if (cmd == 1) {
