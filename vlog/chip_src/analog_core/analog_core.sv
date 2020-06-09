@@ -43,7 +43,6 @@ module analog_core import const_pack::*; #(
 	logic [Nti-1:0] en_sync_out;
 	logic [Nti-1:0] clk_v2t_prev;
 	logic [Nti-1:0] clk_v2t_next;
-	logic [Nti-1:0] clk_div;
 	logic [1:0] clk_v2t_next_rep;
 	logic [1:0] clk_div_rep;
 	
@@ -55,8 +54,12 @@ module analog_core import const_pack::*; #(
 
     // for emulation, the clock is written via absolute path
 	`ifndef VIVADO
+        logic [Nti-1:0] clk_div;
 	    assign clk_adc = clk_div[0];
 	`else
+	    (* dont_touch = "true" *) logic [Nti-1:0] clk_div;
+	    (* dont_touch = "true" *) logic clk_adc_val;
+	    assign clk_adc_val = clk_div[0];
 	    (* dont_touch = "true" *) logic clk_adc_i;
 	    assign clk_adc = clk_adc_i;
 	`endif

@@ -3,6 +3,10 @@ digital_ctrl_inputs:
     abspath: 'tb_i.rstb'
     width: 1
     init_value: 0
+  dump_start:
+    abspath: 'tb_i.dump_start'
+    width: 1
+    init_value: 0
   prbs_rst:
     abspath: 'tb_i.prbs_rst'
     width: 1
@@ -27,3 +31,52 @@ digital_ctrl_outputs:
   tdo:
     abspath: 'tb_i.tdo'
     width: 1
+digital_probes:
+  prbs_rx_bits:
+    abspath: 'tb_i.top_i.idcore.prbs_rx_bits'
+    width: 16
+  clk_tx_val:
+    abspath: 'tb_i.clk_tx_val'
+    width: 1
+  data_tx_o:
+    abspath: 'tb_i.data_tx_o'
+    width: 18
+  data_rx_i:
+    abspath: 'tb_i.data_rx_i'
+    width: 18
+  data_tx_i:
+    abspath: 'tb_i.data_tx_i'
+    width: 1
+  clk_div:
+    abspath: 'tb_i.top_i.iacore.clk_div'
+    width: 16
+  clk_in_pi:
+    abspath: 'tb_i.top_i.iacore.clk_in_pi'
+    width: 1
+  clk_interp_slice:
+    abspath: 'tb_i.top_i.iacore.clk_interp_slice'
+    width: 4
+  en_sync_in:
+    abspath: 'tb_i.top_i.iacore.en_sync_in'
+    width: 16
+  en_sync_out:
+    abspath: 'tb_i.top_i.iacore.en_sync_out'
+    width: 16
+  rx_inp:
+    abspath: 'tb_i.top_i.iacore.rx_inp'
+    width: 18
+  ctl_pi_0:
+    abspath: 'tb_i.top_i.iacore.ctl_pi[0]'
+    width: 9
+  ctl_pi_1:
+    abspath: 'tb_i.top_i.iacore.ctl_pi[1]'
+    width: 9
+  ctl_pi_2:
+    abspath: 'tb_i.top_i.iacore.ctl_pi[2]'
+    width: 9
+  ctl_pi_3:
+    abspath: 'tb_i.top_i.iacore.ctl_pi[3]'
+    width: 9
+  err_signals:
+    abspath: 'tb_i.top_i.idcore.prbs_checker_i.err_signals'
+    width: 16
