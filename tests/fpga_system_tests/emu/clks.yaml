@@ -3,6 +3,10 @@ derived_clks:
     abspath: 'tb_i'
     gated_clk_req: 'clk_tx_val'
     gated_clk: 'clk_tx_i'
+  clk_adc:
+    abspath: 'tb_i.top_i.iacore'
+    gated_clk_req: 'clk_adc_val'
+    gated_clk: 'clk_adc_i'
   osc_tx:
     abspath: 'tb_i.tx_clk_i'
     emu_dt: 'emu_dt'
@@ -14,10 +18,6 @@ derived_clks:
     emu_rst: 'emu_rst'
     emu_clk: 'emu_clk'
     emu_dt: 'emu_dt'
-  clk_adc:
-    abspath: 'tb_i.top_i.iacore'
-    gated_clk_req: 'clk_div[0]'
-    gated_clk: 'clk_adc_i'
   clk_indiv:
     abspath: 'tb_i.top_i.iacore.iindiv'
     emu_dt: 'emu_dt'

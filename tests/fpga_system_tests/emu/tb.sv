@@ -7,6 +7,7 @@ module tb;
 
     logic rstb;
     logic prbs_rst;
+    logic dump_start;
 
     logic tdi;
 	logic tdo;
@@ -63,6 +64,9 @@ module tb;
 
         // reset
         .ext_rstb(rstb),
+
+        // SRAM dump
+        .ext_dump_start(dump_start),
 
         // JTAG
 		.jtag_intf_i(jtag_intf_i)

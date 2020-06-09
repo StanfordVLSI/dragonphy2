@@ -8,8 +8,26 @@ void cycle() {
     set_tck(0);
 }
 
+void do_init() {
+   // emulator controls
+   set_emu_rst(1);
+   set_emu_ctrl_mode(0);
+   set_emu_ctrl_data(0);
+   set_emu_dec_thr(0);
+
+   // JTAG-specific
+   set_tdi(0);
+   set_tck(0);
+   set_tms(1);
+   set_trst_n(0);
+
+   // Other signals
+   set_rstb(0);
+   set_prbs_rst(1);
+}
+
 void do_reset() {
-    // initialize signals
+    // initialize JTAG signals
     set_tdi(0);
     set_tck(0);
     set_tms(1);
@@ -145,6 +163,9 @@ int main() {
                     if (strcmp(buf, "RESET") == 0) {
                         do_reset();
                         nargs = 0;
+                    } else if (strcmp(buf, "INIT") == 0) {
+                        do_init();
+                        nargs = 0;
                     } else if (strcmp(buf, "EXIT") == 0) {
                         return 0;
                     } else if (strcmp(buf, "ID") == 0) {
@@ -158,6 +179,12 @@ int main() {
                     } else if (strcmp(buf, "SET_RSTB") == 0) {
                         cmd = 3;
                         nargs++;
+                    } else if (strcmp(buf, "SET_EMU_RST") == 0) {
+                        cmd = 4;
+                        nargs++;
+                    } else if (strcmp(buf, "SET_PRBS_RST") == 0) {
+                        cmd = 5;
+                        nargs++;
                     } else {
 	                xil_printf("ERROR: Unknown command\r\n");
 		            }
@@ -165,6 +192,12 @@ int main() {
                     sscanf(buf, "%lu", &arg1);
                     if (cmd == 3) {
                         set_rstb(arg1);
+                        nargs=0;
+                    } else if (cmd == 4) {
+                        set_emu_rst(arg1);
+                        nargs=0;
+                    } else if (cmd == 5) {
+                        set_prbs_rst(arg1);
                         nargs=0;
                     } else {
                         nargs++;

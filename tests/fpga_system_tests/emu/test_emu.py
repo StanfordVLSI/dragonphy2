@@ -2,6 +2,7 @@ import os
 import serial
 import time
 import json
+import re
 from pathlib import Path
 
 from anasymod.analysis import Analysis
@@ -25,6 +26,8 @@ def test_1(board_name):
     src_cfg.add_verilog_sources([get_file('vlog/fpga_models/jtag/tap_core.sv')], fileset='fpga')
     src_cfg.add_verilog_sources([get_file('vlog/fpga_models/jtag/DW_tap.sv')], fileset='fpga')
     src_cfg.add_verilog_sources([os.environ['DW_TAP']], fileset='sim')
+    src_cfg.add_verilog_sources([get_file('vlog/pack/const_pack.sv')], fileset='sim')
+    src_cfg.add_verilog_sources([get_file('build/cpu_models/jtag/jtag_reg_pack.sv')], fileset='sim')
 
     # Verilog Sources
     deps = get_deps_fpga_emu(impl_file=(THIS_DIR / 'tb.sv'))
@@ -98,8 +101,15 @@ def test_6(ser_port):
 
     reg_list = json.load(open(get_file('build/all/jtag/reg_list.json'), 'r'))
     reg_dict = {elem['name']: elem['addresses'] for elem in reg_list}
+    arr_pat = re.compile(r'([a-zA-Z_0-9]+)+\[(\d+)\]')
     def get_reg_addr(name):
-        return reg_dict[name]
+        m = arr_pat.match(name)
+        if m:
+            name = m.groups()[0]
+            index = int(m.groups()[1])
+            return reg_dict[name][index]
+        else:
+            return reg_dict[name]
 
     # connect to the CPU
     print('Connecting to the CPU...')
@@ -109,6 +119,18 @@ def test_6(ser_port):
     )
 
     # functions
+    def do_reset():
+        ser.write('RESET\n'.encode('utf-8'))
+
+    def do_init():
+        ser.write('INIT\n'.encode('utf-8'))
+
+    def set_emu_rst(val):
+        ser.write(f'SET_EMU_RST {val}\n'.encode('utf-8'))
+
+    def set_prbs_rst(val):
+        ser.write(f'SET_PRBS_RST {val}\n'.encode('utf-8'))
+
     def set_rstb(val):
         ser.write(f'SET_RSTB {val}\n'.encode('utf-8'))
 
@@ -171,9 +193,23 @@ def test_6(ser_port):
         shift_ir(sc_cfg_data, jtag_inst_width)
         return shift_dr(0, sc_bus_width)
 
-    # reset sequence
-    set_rstb(0)
+    # Initialize
+    do_init()
+
+    # Clear emulator reset
+    set_emu_rst(0)
+
+    # Reset JTAG
+    print('Reset JTAG')
+    do_reset()
+
+    # Release other reset signals
+    print('Release other reset signals')
+    set_prbs_rst(0)
     set_rstb(1)
+
+    # Soft reset
+    print('Soft reset')
     write_tc_reg('int_rstb', 1)
     write_tc_reg('en_inbuf', 1)
     write_tc_reg('en_gf', 1)
@@ -185,20 +221,51 @@ def test_6(ser_port):
     id_result = shift_dr(0, 32)
     print(f'ID: {id_result}')
 
-    # read the ID
-    print('Read/write test of TC register...')
-    write_tc_reg('pd_offset_ext', 0xCAFE)
-    tc_result = read_tc_reg('pd_offset_ext')
-    print(f'TC reg: {tc_result}')
+    # Set PFD offset
+    print('Set PFD offset')
+    for k in range(16):
+        write_tc_reg(f'ext_pfd_offset[{k}]', 0)
 
-    # run PRBS test
+    # Configure PRBS checker
+    print('Configure the PRBS checker')
+    write_tc_reg('sel_prbs_mux', 0)
+
+    # Release the PRBS checker from reset
+    print('Release the PRBS checker from reset')
     write_tc_reg('prbs_rstb', 1)
-    write_tc_reg('prbs_gen_rstb', 1)
-    write_tc_reg('prbs_gen_cke', 1)
-    write_tc_reg('sel_prbs_mux', 0b11)
-    write_tc_reg('prbs_checker_mode', 0)
+
+    # Configure the CDR offsets
+    print('Configure the CDR offsets')
+    write_tc_reg(f'ext_pi_ctl_offset[0]', 0)
+    write_tc_reg(f'ext_pi_ctl_offset[1]', 128)
+    write_tc_reg(f'ext_pi_ctl_offset[2]', 256)
+    write_tc_reg(f'ext_pi_ctl_offset[3]', 384)
+    write_tc_reg(f'en_ext_max_sel_mux', 1)
+
+    # Configure the CDR
+    print('Configure the CDR')
+    write_tc_reg('Kp', 18)
+    write_tc_reg('Ki', 0)
+    write_tc_reg('invert', 1)
+    write_tc_reg('en_freq_est', 0)
+    write_tc_reg('en_ext_pi_ctl', 0)
+
+    # Re-initialize ordering
+    print('Re-initialize ADC ordering')
+    write_tc_reg('en_v2t', 0)
+    write_tc_reg('en_v2t', 1)
+
+    # Wait for CDR to lock
+    print('Wait for CDR to lock')
+    time.sleep(1.0)
+
+    # Run PRBS test
+    print('Run PRBS test')
     write_tc_reg('prbs_checker_mode', 2)
-    time.sleep(1)
+    time.sleep(1.0)
+
+    # Read out PRBS test results
+    print('Read out PRBS test results')
     write_tc_reg('prbs_checker_mode', 3)
 
     err_bits = 0
@@ -216,7 +283,6 @@ def test_6(ser_port):
     # check results
     print('Checking the results...')
     assert id_result == 497598771, 'ID mismatch'
-    assert tc_result == 0xCAFE, 'TC reg mismatch'
     assert err_bits == 0, 'Bit error detected'
     assert total_bits > 3000000, 'Not enough bits detected'
 

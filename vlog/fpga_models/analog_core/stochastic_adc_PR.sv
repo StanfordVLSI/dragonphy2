@@ -111,8 +111,10 @@ module stochastic_adc_PR #(
     	    count <= init;
     	end else if (!alws_onb) begin
     	    count <= 2'b11;
-    	end else begin
+    	end else if (negedge_clk_in) begin
     	    count <= count+1;
+        end else begin
+            count <= count;
         end
     end
 

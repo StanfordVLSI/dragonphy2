@@ -4,6 +4,9 @@
     `define GIT_HASH 0
 `endif
 
+`define FORCE_JTAG(name, value) force top.tb_i.top_i.idcore.jtag_i.rjtag_intf_i.``name`` = ``value``
+`define GET_JTAG(name) top.tb_i.top_i.idcore.jtag_i.rjtag_intf_i.``name``
+
 module sim_ctrl(
     output reg rstb=1'b0,
     output reg prbs_rst=1'b1,
@@ -11,128 +14,18 @@ module sim_ctrl(
     output reg tck=1'b0,
     output reg tms=1'b1,
     output reg trst_n=1'b0,
+    output reg dump_start=1'b0,
     input wire tdo
 );
-    task cycle();
-        #(1us);
-        tck = 1'b1;
-        #(1us);
-        tck = 1'b0;
-        #(1us);
-    endtask
+	import const_pack::*;
+    import jtag_reg_pack::*;
 
-    task do_reset();
-        // initialize signals
-        tdi = 1'b0;
-        tck = 1'b0;
-        tms = 1'b1;
-        trst_n = 1'b0;
-        cycle();
+    logic [Nadc-1:0] tmp_ext_pfd_offset [Nti-1:0];
+    logic [Npi-1:0] tmp_ext_pi_ctl_offset [Nout-1:0];
 
-        // de-assert reset
-        trst_n = 1'b1;
-        cycle();
+    integer loop_var;
+    longint err_bits, total_bits;
 
-        // go to the IDLE state
-        tms = 1'b1;
-        cycle();
-        for (integer i=0; i<10; i=i+1) begin
-            cycle();
-        end
-        tms = 1'b0;
-        cycle();
-    endtask
-
-    task shift_ir (
-        input [31:0] inst_in,
-        input [31:0] length
-    );
-        // Move to Select-DR-Scan state
-        tms = 1'b1;
-        cycle();
-
-        // Move to Select-IR-Scan state
-        tms = 1'b1;
-        cycle();
-
-        // Move to Capture IR state
-        tms = 1'b0;
-        cycle();
-
-        // Move to Shift-IR state
-        tms = 1'b0;
-        cycle();
-
-        // Remain in Shift-IR state and shift in inst_in.
-        // Observe the TDO signal to read the x_inst_out
-        for (integer i=0; i<(length-1); i=i+1) begin
-            tdi = (inst_in >> i) & 1'b1;
-            cycle();
-        end
-
-        // Shift in the last bit and switch to Exit1-IR state
-        tdi = (inst_in >> (length - 1)) & 1'b1;
-        tms = 1'b1;
-        cycle();
-
-        // Move to Update-IR state
-        tms = 1'b1;
-        cycle();
-
-        // Move to Run-Test/Idle state
-        tms = 1'b0;
-        cycle();
-        cycle();
-    endtask
-
-    task shift_dr (
-        input [31:0] data_in,
-        input [31:0] length,
-        output [31:0] data_out
-    );
-        // Move to Select-DR-Scan state
-        tms = 1'b1;
-        cycle();
-
-        // Move to Capture-DR state
-        tms = 1'b0;
-        cycle();
-
-        // Move to Shift-DR state
-        tms = 1'b0;
-        cycle();
-
-        // Remain in Shift-DR state and shift in data_in.
-        // Observe the TDO signal to read the data_out
-        data_out = 0;
-        for (integer i=0; i<(length-1); i=i+1) begin
-            tdi = (data_in >> i) & 1'b1;
-            data_out = data_out | (tdo << i);
-            cycle();
-        end
-
-        // Shift in the last bit and switch to Exit1-DR state
-        tdi = (data_in >> (length - 1)) & 1'b1;
-        data_out = data_out | (tdo << (length-1));
-        tms = 1'b1;
-        cycle();
-
-        // Move to Update-DR state
-        tms = 1'b1;
-        cycle();
-
-        // Move to Run-Test/Idle state
-        tms = 1'b0;
-        cycle();
-        cycle();
-    endtask
-
-    task read_id (output [31:0] id);
-        shift_ir(1, 5);
-        shift_dr(0, 32, id);
-    endtask
-
-    logic [31:0] jtag_id;
     initial begin
         // wait for emulator reset to complete
         $display("Waiting for emulator reset to complete...");
@@ -140,25 +33,116 @@ module sim_ctrl(
 
         // release external reset signals
         rstb = 1'b1;
+        trst_n = 1'b1;
         prbs_rst = 1'b0;
         #(10us);
 
-        // release JTAG reset
-        do_reset();
+        // Soft reset sequence
+        $display("Soft reset sequence...");
+        `FORCE_JTAG(int_rstb, 1);
+        #(1us);
+        `FORCE_JTAG(en_inbuf, 1);
+		#(1us);
+        `FORCE_JTAG(en_gf, 1);
+        #(1us);
+        `FORCE_JTAG(en_v2t, 1);
+        #(64us);
+
+        // Set up the PFD offset
+        $display("Setting up the PFD offset...");
+        for (int idx=0; idx<Nti; idx=idx+1) begin
+            tmp_ext_pfd_offset[idx] = 0;
+        end
+        `FORCE_JTAG(ext_pfd_offset, tmp_ext_pfd_offset);
+        #(1us);
+
+        // Select the PRBS checker data source
+        $display("Select the PRBS checker data source");
+        `FORCE_JTAG(sel_prbs_mux, 2'b00);
         #(10us);
 
-        // read ID
-        read_id(jtag_id);
+        // Release the PRBS checker from reset
+        $display("Release the PRBS tester from reset");
+        `FORCE_JTAG(prbs_rstb, 1);
+        #(50us);
+
+        // Configure the CDR offsets
+        $display("Setting up the CDR offset...");
+        tmp_ext_pi_ctl_offset[0] =   0;
+        tmp_ext_pi_ctl_offset[1] = 128;
+        tmp_ext_pi_ctl_offset[2] = 256;
+        tmp_ext_pi_ctl_offset[3] = 384;
+        `FORCE_JTAG(ext_pi_ctl_offset, tmp_ext_pi_ctl_offset);
+        #(5us);
+        `FORCE_JTAG(en_ext_max_sel_mux, 1);
+        #(5us);
+
+        // Configure the CDR
+      	$display("Configuring the CDR...");
+      	`FORCE_JTAG(Kp, 18);
+      	`FORCE_JTAG(Ki, 0);
+      	`FORCE_JTAG(invert, 1);
+		`FORCE_JTAG(en_freq_est, 0);
+		`FORCE_JTAG(en_ext_pi_ctl, 0);
+		#(10us);
+
+        // Toggle the en_v2t signal to re-initialize the V2T ordering
+        $display("Toggling en_v2t...");
+        `FORCE_JTAG(en_v2t, 0);
+        #(5us);
+        `FORCE_JTAG(en_v2t, 1);
+        #(5us);
+
+        // Wait for MM_CDR to lock
+		$display("Waiting for MM_CDR to lock...");
+		for (loop_var=0; loop_var<100; loop_var=loop_var+1) begin
+		    $display("Interval %0d/100", loop_var);
+		    #(100us);
+		end
+
+        // Run the PRBS tester
+        $display("Running the PRBS tester");
+        `FORCE_JTAG(prbs_checker_mode, 2);
+        for (loop_var=0; loop_var<6; loop_var=loop_var+1) begin
+		    $display("Interval %0d/6", loop_var);
+		    #(100us);
+		end
+        #(25us);
+
+        // Get results
+        `FORCE_JTAG(prbs_checker_mode, 3);
         #(10us);
 
-        // print ID
-        $display("JTAG ID: %08h", jtag_id);
-        #(10us);
+        err_bits = 0;
+        err_bits |= `GET_JTAG(prbs_err_bits_upper);
+        err_bits <<= 32;
+        err_bits |= `GET_JTAG(prbs_err_bits_lower);
 
-        // check ID
-		assert ((jtag_id[31:4] == `GIT_HASH) && (jtag_id[0] == 1'b1));
-        #(10us);
+        total_bits = 0;
+        total_bits |= `GET_JTAG(prbs_total_bits_upper);
+        total_bits <<= 32;
+        total_bits |= `GET_JTAG(prbs_total_bits_lower);
 
-        $finish;
+        // Print results
+        $display("err_bits: %0d", err_bits);
+        $display("total_bits: %0d", total_bits);
+
+        // Check results
+
+        if (!(total_bits >= 1000)) begin
+            $error("Not enough bits transmitted");
+        end else begin
+            $display("Number of bits transmitted is OK");
+        end
+
+        if (!(err_bits == 0)) begin
+            $error("Bit error detected");
+        end else begin
+            $display("No bit errors detected");
+        end
+
+		// Finish test
+		$display("Test complete.");
+		$finish;
     end
 endmodule

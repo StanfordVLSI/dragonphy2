@@ -124,13 +124,16 @@ module digital_core import const_pack::*; (
 
     // This generates a JTAG-controlled clock divider - divisible by 1 to 2^5
 
-    freq_divider #(.N(4)) average_clk_gen (
-        .cki(clk_adc),
-        .cko(clk_avg),
-        .ndiv(ddbg_intf_i.Ndiv_clk_avg),
-        .rstb(rstb)
-    );
-
+    `ifndef VIVADO
+        freq_divider #(.N(4)) average_clk_gen (
+            .cki(clk_adc),
+            .cko(clk_avg),
+            .ndiv(ddbg_intf_i.Ndiv_clk_avg),
+            .rstb(rstb)
+        );
+    `else
+        assign clk_avg = 1'b0;
+    `endif
 
     genvar k;
     generate
@@ -303,8 +306,18 @@ module digital_core import const_pack::*; (
     logic bits_adc [Nti-1:0];
     logic bits_ffe [Nti-1:0];
 
+    // for some reason passing the slice adcout_unfolded[15:0]
+    // directly into the dig_comp_adc_i instance does not work;
+    // the top eight entries are all high-Z (possible Vivado bug)
+    logic signed [7:0] comp_adc_codes [15:0];
+    generate
+        for (k=0; k<16; k=k+1) begin
+            assign comp_adc_codes[k] = adcout_unfolded[k];
+        end
+    endgenerate
+
     comb_comp #(.numChannels(16), .inputBitwidth(Nadc), .thresholdBitwidth(Nadc)) dig_comp_adc_i (
-        .codes     (adcout_unfolded[15:0]),
+        .codes     (comp_adc_codes),
         .thresh    (ddbg_intf_i.adc_thresh),
         .clk       (clk_adc),
         .rstb      (rstb),
