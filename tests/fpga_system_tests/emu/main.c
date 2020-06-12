@@ -23,7 +23,6 @@ void do_init() {
 
    // Other signals
    set_rstb(0);
-   set_prbs_rst(1);
 }
 
 void do_reset() {
@@ -151,6 +150,7 @@ int main() {
         return XST_FAILURE;
     }
 
+    do_init();
     do_reset();
     
     while (1) {
@@ -182,9 +182,6 @@ int main() {
                     } else if (strcmp(buf, "SET_EMU_RST") == 0) {
                         cmd = 4;
                         nargs++;
-                    } else if (strcmp(buf, "SET_PRBS_RST") == 0) {
-                        cmd = 5;
-                        nargs++;
                     } else {
 	                xil_printf("ERROR: Unknown command\r\n");
 		            }
@@ -195,9 +192,6 @@ int main() {
                         nargs=0;
                     } else if (cmd == 4) {
                         set_emu_rst(arg1);
-                        nargs=0;
-                    } else if (cmd == 5) {
-                        set_prbs_rst(arg1);
                         nargs=0;
                     } else {
                         nargs++;

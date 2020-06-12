@@ -8,9 +8,10 @@ class AnasymodProjectConfig:
                 'dt': 50e-9,
                 'board_name': 'ZC702',
                 'plugins': ['msdsl'],
-                'emu_clk_freq': 10e6,
+                'emu_clk_freq': 5e6,
                 'cpu_debug_mode': 0,
-                'cpu_debug_hierarchies': []
+                'cpu_debug_hierarchies': [],
+                'flatten_hierarchy': 'none'
             },
             'FPGA_TARGET': {
                 'fpga': {
@@ -21,6 +22,10 @@ class AnasymodProjectConfig:
 
     def set_cpu_debug_mode(self, value):
         self.config['PROJECT']['cpu_debug_mode'] = value
+
+    def set_flatten_hierarchy(self, value):
+        assert value in {'none', 'full', 'rebuilt'}, 'Invalid setting.'
+        self.config['PROJECT']['flatten_hierarchy'] = value
 
     def add_debug_probe(self, depth, path):
         self.config['PROJECT']['cpu_debug_hierarchies'].append([depth, path])

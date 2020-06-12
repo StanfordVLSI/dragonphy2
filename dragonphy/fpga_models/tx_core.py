@@ -14,11 +14,21 @@ class TXCore:
         m = MixedSignalModel(module_name, dt=system_values['dt'], build_dir=build_dir)
         m.add_digital_input('in_')
         m.add_analog_output('out')
+        m.add_digital_input('cke')
         m.add_digital_input('clk')
+        m.add_digital_input('rst')
+
+        # save previous value of cke
+        m.add_digital_state('cke_prev', init=0)
+        m.set_next_cycle(m.cke_prev, m.cke, clk=m.clk, rst=m.rst)
+
+        # detect positive edge of cke
+        m.add_digital_signal('cke_posedge')
+        m.set_this_cycle(m.cke_posedge, m.cke & (~m.cke_prev))
 
         # define model behavior
         vp, vn = system_values['vp'], system_values['vn']
-        m.set_next_cycle(m.out, if_(m.in_, vp, vn), clk=m.clk, rst="1'b0")
+        m.set_next_cycle(m.out, if_(m.in_, vp, vn), clk=m.clk, rst=m.rst, ce=m.cke_posedge)
 
         # generate the model
         m.compile_to_file(VerilogGenerator())

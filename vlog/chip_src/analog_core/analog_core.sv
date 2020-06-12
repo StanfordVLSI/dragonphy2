@@ -1,5 +1,4 @@
 `include "iotype.sv"
-//`include "/aha/sjkim85/github_repo/dragonphy2/inc/new_asic/iotype.sv"
 
 module analog_core import const_pack::*; #(
 ) (
@@ -65,11 +64,13 @@ module analog_core import const_pack::*; #(
 	`endif
 
     // termination
-	termination iterm(
-		.VinP(rx_inp),
-		.VinN(rx_inn),
-		.Vcm(Vcm)
-	);
+    `ifndef VIVADO
+        termination iterm(
+            .VinP(rx_inp),
+            .VinN(rx_inn),
+            .Vcm(Vcm)
+        );
+    `endif
 
     // 1st-level SnH
     snh iSnH (
@@ -238,16 +239,18 @@ module analog_core import const_pack::*; #(
     );
 
     // bias generator
-    generate
-        for (genvar k=0; k<4; k=k+1) begin:iBG
-            biasgen iBG (
-                //inputs
-                .en(adbg_intf_i.en_biasgen[k]),
-                .ctl(adbg_intf_i.ctl_biasgen[k]),
-                .Vbias(Vcal)
-            );
-        end
-    endgenerate
+    `ifndef VIVADO
+        generate
+            for (genvar k=0; k<4; k=k+1) begin:iBG
+                biasgen iBG (
+                    //inputs
+                    .en(adbg_intf_i.en_biasgen[k]),
+                    .ctl(adbg_intf_i.ctl_biasgen[k]),
+                    .Vbias(Vcal)
+                );
+            end
+        endgenerate
+    `endif
 
     // input clock buffer
 	input_divider iindiv (
