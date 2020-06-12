@@ -42,25 +42,23 @@ module stochastic_adc_PR #(
 
     (* dont_touch = "true" *) logic emu_rst;
     (* dont_touch = "true" *) logic emu_clk;
-    (* dont_touch = "true" *) logic signed [((`DT_WIDTH)-1):0] emu_dt;
-    (* dont_touch = "true" *) logic signed [((`DT_WIDTH)-1):0] dt_req;
+    (* dont_touch = "true" *) `DECL_DT(emu_dt);
+    (* dont_touch = "true" *) `DECL_DT(dt_req);
 
     ///////////////////////////
     // clk_in edge detection //
     ///////////////////////////
 
-    logic clk_in_prev, negedge_clk_in, posedge_clk_in;
+    (* dont_touch = "true" *) logic posedge_clk_in;
+    (* dont_touch = "true" *) logic negedge_clk_in;
 
-    assign negedge_clk_in = (clk_in == 1'b0) && (clk_in_prev == 1'b1);
-    assign posedge_clk_in = (clk_in == 1'b1) && (clk_in_prev == 1'b0);
-
-    always @(posedge emu_clk) begin
-        if (emu_rst == 1'b1) begin
-            clk_in_prev <= 1'b0;
-        end else begin
-            clk_in_prev <= clk_in;
-        end
-    end
+    my_edgedet det_i (
+        .val(clk_in),
+        .clk(emu_clk),
+        .rst(emu_rst),
+        .edge_p(posedge_clk_in),
+        .edge_n(negedge_clk_in)
+    );
 
     //////////////////////////////
     // synchronization function //
@@ -122,16 +120,20 @@ module stochastic_adc_PR #(
 
     // ADC function
 
-    // declare formats
-    `REAL_FROM_WIDTH_EXP(DT_FMT, `DT_WIDTH, `DT_EXPONENT);
-    `REAL_FROM_WIDTH_EXP(PWL_FMT, `PWL_WIDTH, `PWL_EXPONENT);
+    // attach format parameters to input
+    `ATTACH_PWL_PARAMS(VinP);
+
+    // declare signal for max timestep
+    // TODO: make compatible with FLOAT_REAL
+    (* dont_touch = "true" *) `DECL_DT(dt_req_max);
+    assign dt_req_max = {1'b0, {((`DT_WIDTH)-1){1'b1}}};
 
     logic signed [8:0] adc_out;
     rx_adc_core #(
-        `PASS_REAL(in_, PWL_FMT),
-        `PASS_REAL(emu_dt, DT_FMT),
-        `PASS_REAL(dt_req, DT_FMT),
-        `PASS_REAL(dt_req_max, DT_FMT)
+        `PASS_REAL(in_, VinP),
+        `PASS_REAL(emu_dt, emu_dt),
+        `PASS_REAL(dt_req, dt_req),
+        `PASS_REAL(dt_req_max, dt_req_max)
     ) rx_adc_core_i (
         // main I/O: input, output, and clock
         .in_(VinP),
@@ -145,8 +147,7 @@ module stochastic_adc_PR #(
         .emu_clk(emu_clk),
         .emu_rst(emu_rst),
         // additional input: maximum timestep
-        // TODO: clean this up because it is not compatible with the `FLOAT_REAL option
-        .dt_req_max({1'b0, {((`DT_WIDTH)-1){1'b1}}})
+        .dt_req_max(dt_req_max)
     );
 
     // unused outputs

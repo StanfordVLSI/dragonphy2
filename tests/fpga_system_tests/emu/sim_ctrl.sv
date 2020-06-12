@@ -9,7 +9,6 @@
 
 module sim_ctrl(
     output reg rstb=1'b0,
-    output reg prbs_rst=1'b1,
     output reg tdi=1'b0,
     output reg tck=1'b0,
     output reg tms=1'b1,
@@ -34,7 +33,6 @@ module sim_ctrl(
         // release external reset signals
         rstb = 1'b1;
         trst_n = 1'b1;
-        prbs_rst = 1'b0;
         #(10us);
 
         // Soft reset sequence
@@ -77,15 +75,6 @@ module sim_ctrl(
         `FORCE_JTAG(en_ext_max_sel_mux, 1);
         #(5us);
 
-        // Configure the CDR
-      	$display("Configuring the CDR...");
-      	`FORCE_JTAG(Kp, 18);
-      	`FORCE_JTAG(Ki, 0);
-      	`FORCE_JTAG(invert, 1);
-		`FORCE_JTAG(en_freq_est, 0);
-		`FORCE_JTAG(en_ext_pi_ctl, 0);
-		#(10us);
-
         // Toggle the en_v2t signal to re-initialize the V2T ordering
         $display("Toggling en_v2t...");
         `FORCE_JTAG(en_v2t, 0);
@@ -93,10 +82,10 @@ module sim_ctrl(
         `FORCE_JTAG(en_v2t, 1);
         #(5us);
 
-        // Wait for MM_CDR to lock
-		$display("Waiting for MM_CDR to lock...");
-		for (loop_var=0; loop_var<100; loop_var=loop_var+1) begin
-		    $display("Interval %0d/100", loop_var);
+        // Wait for PRBS checker to lock
+		$display("Waiting for PRBS checker to lock...");
+		for (loop_var=0; loop_var<6; loop_var=loop_var+1) begin
+		    $display("Interval %0d/6", loop_var);
 		    #(100us);
 		end
 
@@ -129,7 +118,7 @@ module sim_ctrl(
 
         // Check results
 
-        if (!(total_bits >= 1000)) begin
+        if (!(total_bits >= 500)) begin
             $error("Not enough bits transmitted");
         end else begin
             $display("Number of bits transmitted is OK");

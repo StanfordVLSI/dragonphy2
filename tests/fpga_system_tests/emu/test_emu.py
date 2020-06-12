@@ -128,9 +128,6 @@ def test_6(ser_port):
     def set_emu_rst(val):
         ser.write(f'SET_EMU_RST {val}\n'.encode('utf-8'))
 
-    def set_prbs_rst(val):
-        ser.write(f'SET_PRBS_RST {val}\n'.encode('utf-8'))
-
     def set_rstb(val):
         ser.write(f'SET_RSTB {val}\n'.encode('utf-8'))
 
@@ -205,7 +202,6 @@ def test_6(ser_port):
 
     # Release other reset signals
     print('Release other reset signals')
-    set_prbs_rst(0)
     set_rstb(1)
 
     # Soft reset
@@ -237,18 +233,10 @@ def test_6(ser_port):
     # Configure the CDR offsets
     print('Configure the CDR offsets')
     write_tc_reg(f'ext_pi_ctl_offset[0]', 0)
-    write_tc_reg(f'ext_pi_ctl_offset[1]', 128)
-    write_tc_reg(f'ext_pi_ctl_offset[2]', 256)
-    write_tc_reg(f'ext_pi_ctl_offset[3]', 384)
+    write_tc_reg(f'ext_pi_ctl_offset[1]', 0)
+    write_tc_reg(f'ext_pi_ctl_offset[2]', 0)
+    write_tc_reg(f'ext_pi_ctl_offset[3]', 0)
     write_tc_reg(f'en_ext_max_sel_mux', 1)
-
-    # Configure the CDR
-    print('Configure the CDR')
-    write_tc_reg('Kp', 18)
-    write_tc_reg('Ki', 0)
-    write_tc_reg('invert', 1)
-    write_tc_reg('en_freq_est', 0)
-    write_tc_reg('en_ext_pi_ctl', 0)
 
     # Re-initialize ordering
     print('Re-initialize ADC ordering')
@@ -256,7 +244,7 @@ def test_6(ser_port):
     write_tc_reg('en_v2t', 1)
 
     # Wait for CDR to lock
-    print('Wait for CDR to lock')
+    print('Wait for PRBS checker to lock')
     time.sleep(1.0)
 
     # Run PRBS test
@@ -284,7 +272,7 @@ def test_6(ser_port):
     print('Checking the results...')
     assert id_result == 497598771, 'ID mismatch'
     assert err_bits == 0, 'Bit error detected'
-    assert total_bits > 3000000, 'Not enough bits detected'
+    assert total_bits > 100000, 'Not enough bits detected'
 
     # finish test
     print('OK!')

@@ -10,7 +10,7 @@ def pytest_addoption(parser):
     )
 
     parser.addoption(
-        '--ser_port', default='/dev/ttyUSB0', type=str, help='USB serial path.'
+        '--ser_port', default='/dev/ttyUSB2', type=str, help='USB serial path.'
     )
 
 @pytest.fixture

@@ -7,10 +7,6 @@ digital_ctrl_inputs:
     abspath: 'tb_i.dump_start'
     width: 1
     init_value: 0
-  prbs_rst:
-    abspath: 'tb_i.prbs_rst'
-    width: 1
-    init_value: 1
   tdi:
     abspath: 'tb_i.tdi'
     width: 1
@@ -38,14 +34,17 @@ digital_probes:
   clk_tx_val:
     abspath: 'tb_i.clk_tx_val'
     width: 1
+  data_tx_i:
+    abspath: 'tb_i.data_tx_i'
+    width: 1
   data_tx_o:
     abspath: 'tb_i.data_tx_o'
     width: 18
   data_rx_i:
     abspath: 'tb_i.data_rx_i'
     width: 18
-  data_tx_i:
-    abspath: 'tb_i.data_tx_i'
+  clk_adc_val:
+    abspath: 'tb_i.top_i.iacore.clk_adc_val'
     width: 1
   clk_div:
     abspath: 'tb_i.top_i.iacore.clk_div'
@@ -62,9 +61,6 @@ digital_probes:
   en_sync_out:
     abspath: 'tb_i.top_i.iacore.en_sync_out'
     width: 16
-  rx_inp:
-    abspath: 'tb_i.top_i.iacore.rx_inp'
-    width: 18
   ctl_pi_0:
     abspath: 'tb_i.top_i.iacore.ctl_pi[0]'
     width: 9

@@ -1,4 +1,4 @@
-`include "svreal.sv"
+`include "iotype.sv"
 
 module input_divider #(
     parameter real t_lo=125e-12,
@@ -18,11 +18,8 @@ module input_divider #(
     // signals use for external I/O
     (* dont_touch = "true" *) logic emu_rst;
     (* dont_touch = "true" *) logic emu_clk;
-    (* dont_touch = "true" *) logic signed [((`DT_WIDTH)-1):0] emu_dt;
-    (* dont_touch = "true" *) logic signed [((`DT_WIDTH)-1):0] dt_req;
-
-    // declare format for timestep
-    `REAL_FROM_WIDTH_EXP(DT_FMT, `DT_WIDTH, `DT_EXPONENT);
+    (* dont_touch = "true" *) `DECL_DT(emu_dt);
+    (* dont_touch = "true" *) `DECL_DT(dt_req);
 
     // instantiate MSDSL model, passing through format information
     osc_model_core #(
@@ -30,8 +27,8 @@ module input_divider #(
         .t_lo(t_lo),
         .t_hi(t_hi),
         // pass formatting information
-        `PASS_REAL(emu_dt, DT_FMT),
-        `PASS_REAL(dt_req, DT_FMT)
+        `PASS_REAL(emu_dt, emu_dt),
+        `PASS_REAL(dt_req, dt_req)
     ) osc_model_core_i (
         .emu_rst(emu_rst),
         .emu_clk(emu_clk),

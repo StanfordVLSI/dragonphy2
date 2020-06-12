@@ -1,4 +1,4 @@
-`include "svreal.sv"
+`include "iotype.sv"
 
 module phase_interpolator #(
     parameter Nbit = 9,
@@ -38,22 +38,20 @@ module phase_interpolator #(
     output [19:0]  pm_out
 );
     // signals use for external I/O
-    (* dont_touch = "true" *) logic signed [((`DT_WIDTH)-1):0] dt_req;
-    (* dont_touch = "true" *) logic signed [((`DT_WIDTH)-1):0] emu_dt;
+    (* dont_touch = "true" *) `DECL_DT(dt_req);
+    (* dont_touch = "true" *) `DECL_DT(emu_dt);
     (* dont_touch = "true" *) logic emu_clk;
     (* dont_touch = "true" *) logic emu_rst;
 
-    // format for emu_dt / dt_req
-    `REAL_FROM_WIDTH_EXP(DT_FMT, `DT_WIDTH, `DT_EXPONENT);
-
-    // set maximum value for timestep
-    `REAL_FROM_WIDTH_EXP(dt_req_max, `DT_WIDTH, `DT_EXPONENT);
-    `ASSIGN_CONST_REAL(((2.0**((`DT_WIDTH)-1))-1.0)*2.0**(`DT_EXPONENT), dt_req_max);
+    // declare signal for max timestep
+    // TODO: make compatible with FLOAT_REAL
+    (* dont_touch = "true" *) `DECL_DT(dt_req_max);
+    assign dt_req_max = {1'b0, {((`DT_WIDTH)-1){1'b1}}};
 
     // instantiate MSDSL model, passing through format information
     clk_delay_core #(
-        `PASS_REAL(emu_dt, DT_FMT),
-        `PASS_REAL(dt_req, DT_FMT),
+        `PASS_REAL(emu_dt, emu_dt),
+        `PASS_REAL(dt_req, dt_req),
         `PASS_REAL(dt_req_max, dt_req_max)
     ) clk_delay_core_i (
         // main I/O: delay code, clock in/out values
