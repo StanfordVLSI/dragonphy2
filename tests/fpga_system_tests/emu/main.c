@@ -4,8 +4,12 @@
 #include "sleep.h"
 
 void cycle() {
+    // min usleep value is "5" when emu_clk_freq is 5 MHz
+    usleep(10);
     set_tck(1);
+    usleep(10);
     set_tck(0);
+    usleep(10);
 }
 
 void do_init() {

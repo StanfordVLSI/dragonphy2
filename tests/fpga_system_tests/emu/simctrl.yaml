@@ -76,3 +76,12 @@ digital_probes:
   err_signals:
     abspath: 'tb_i.top_i.idcore.prbs_checker_i.err_signals'
     width: 16
+  prbs_err_bits:
+    abspath: 'tb_i.top_i.idcore.prbs_err_bits'
+    width: 64
+  prbs_total_bits:
+    abspath: 'tb_i.top_i.idcore.prbs_total_bits'
+    width: 64
+  clk_adc_sig:
+    abspath: 'tb_i.top_i.idcore.clk_adc'
+    width: 1

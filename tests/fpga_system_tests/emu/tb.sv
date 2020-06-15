@@ -47,16 +47,22 @@ module tb;
         .edge_n()
     );
 
+    `DECL_DT(t_lo);
+    `ASSIGN_CONST_REAL(31.25e-12, t_lo);
+
+    `DECL_DT(t_hi);
+    `ASSIGN_CONST_REAL(31.25e-12, t_hi);
+
     (* dont_touch = "true" *) osc_model_core #(
-        // high/low pulse widths
-        .t_lo(31.25e-12),
-        .t_hi(31.25e-12),
-        // pass formatting information
+        `PASS_REAL(t_lo, t_lo),
+        `PASS_REAL(t_hi, t_hi),
         `PASS_REAL(emu_dt, emu_dt),
         `PASS_REAL(dt_req, dt_req)
     ) tx_clk_i (
         .emu_rst(emu_rst),
         .emu_clk(emu_clk),
+        .t_lo(t_lo),
+        .t_hi(t_hi),
         .emu_dt(emu_dt),
         .dt_req(dt_req),
         .clk_val(clk_tx_val)
