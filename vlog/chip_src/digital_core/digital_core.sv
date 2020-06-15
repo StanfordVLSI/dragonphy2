@@ -354,6 +354,7 @@ module digital_core import const_pack::*; (
     assign prbs_rx_bits = mux_prbs_rx_bits[ddbg_intf_i.sel_prbs_mux];
 
     // PRBS generator for BIST
+
     prbs_generator_syn #(
         .n_prbs(Nprbs)
     ) prbs_generator_syn_i (
@@ -375,6 +376,15 @@ module digital_core import const_pack::*; (
     );
 
     // PRBS checker
+
+    logic [63:0] prbs_err_bits;
+    assign pdbg_intf_i.prbs_err_bits_upper = prbs_err_bits[63:32];
+    assign pdbg_intf_i.prbs_err_bits_lower = prbs_err_bits[31:0];
+
+    logic [63:0] prbs_total_bits;
+    assign pdbg_intf_i.prbs_total_bits_upper = prbs_total_bits[63:32];
+    assign pdbg_intf_i.prbs_total_bits_lower = prbs_total_bits[31:0];
+
     prbs_checker #(
         .n_prbs(Nprbs),
         .n_channels(Nti)
@@ -395,8 +405,8 @@ module digital_core import const_pack::*; (
         // checker mode
         .checker_mode(pdbg_intf_i.prbs_checker_mode),
         // outputs
-        .err_bits({pdbg_intf_i.prbs_err_bits_upper, pdbg_intf_i.prbs_err_bits_lower}),
-        .total_bits({pdbg_intf_i.prbs_total_bits_upper, pdbg_intf_i.prbs_total_bits_lower})
+        .err_bits(prbs_err_bits),
+        .total_bits(prbs_total_bits)
     );
 
     // Output buffer

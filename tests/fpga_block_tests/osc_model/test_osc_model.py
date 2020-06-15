@@ -119,6 +119,6 @@ def test_osc_model(float_real):
         inc_dirs=[get_svreal_header().parent, get_msdsl_header().parent],
         ext_model_file=True,
         defines=defines,
-        parameters={'t_lo': 0.4e-9, 't_hi': 0.6e-9},
+        parameters={'t_lo': 0.4e-9, 't_hi': 0.6e-9, 't_del': 0.5e-9},
         disp_type='realtime'
     )

@@ -3,6 +3,7 @@ import serial
 import time
 import json
 import re
+import pytest
 from pathlib import Path
 
 from anasymod.analysis import Analysis
@@ -54,6 +55,7 @@ def test_1(board_name):
     # "models" directory has to exist
     (THIS_DIR / 'build' / 'models').mkdir(exist_ok=True, parents=True)
 
+@pytest.mark.skip(reason='This test is broken due to an issue in the anasymod framework.')
 def test_2():
     # run simulation
     ana = Analysis(input=str(THIS_DIR), simulator_name='vivado')
@@ -224,7 +226,7 @@ def test_6(ser_port):
 
     # Configure PRBS checker
     print('Configure the PRBS checker')
-    write_tc_reg('sel_prbs_mux', 0)
+    write_tc_reg('sel_prbs_mux', 0) # "0" is ADC, "3" is BIST
 
     # Release the PRBS checker from reset
     print('Release the PRBS checker from reset')
@@ -233,9 +235,9 @@ def test_6(ser_port):
     # Configure the CDR offsets
     print('Configure the CDR offsets')
     write_tc_reg(f'ext_pi_ctl_offset[0]', 0)
-    write_tc_reg(f'ext_pi_ctl_offset[1]', 0)
-    write_tc_reg(f'ext_pi_ctl_offset[2]', 0)
-    write_tc_reg(f'ext_pi_ctl_offset[3]', 0)
+    write_tc_reg(f'ext_pi_ctl_offset[1]', 128)
+    write_tc_reg(f'ext_pi_ctl_offset[2]', 256)
+    write_tc_reg(f'ext_pi_ctl_offset[3]', 384)
     write_tc_reg(f'en_ext_max_sel_mux', 1)
 
     # Re-initialize ordering

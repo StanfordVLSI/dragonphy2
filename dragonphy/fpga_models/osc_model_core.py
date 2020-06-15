@@ -14,12 +14,13 @@ class OscModelCore:
             f'Cannot build {module_name}, Missing parameter in config file'
 
         m = MixedSignalModel(module_name, dt=system_values['dt'], build_dir=build_dir)
-        m.add_real_param('t_lo', default=system_values['tlo'])
-        m.add_real_param('t_hi', default=system_values['thi'])
+        m.add_real_param('t_del', 0)
         m.add_digital_input('emu_rst')
         m.add_digital_input('emu_clk')
+        m.add_analog_input('t_lo')
+        m.add_analog_input('t_hi')
         m.add_analog_input('emu_dt')
-        m.add_analog_output('dt_req', init=system_values['tdel'])
+        m.add_analog_output('dt_req', init='t_del')
         m.add_digital_output('clk_val')
 
         # determine if the request was granted
@@ -60,5 +61,5 @@ class OscModelCore:
 
     @staticmethod
     def required_values():
-        return ['dt', 'tlo', 'thi', 'tdel']
+        return ['dt']
 
