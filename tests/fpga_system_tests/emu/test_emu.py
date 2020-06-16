@@ -3,7 +3,6 @@ import serial
 import time
 import json
 import re
-import pytest
 from pathlib import Path
 
 from anasymod.analysis import Analysis
@@ -55,7 +54,6 @@ def test_1(board_name):
     # "models" directory has to exist
     (THIS_DIR / 'build' / 'models').mkdir(exist_ok=True, parents=True)
 
-@pytest.mark.skip(reason='This test is broken due to an issue in the anasymod framework.')
 def test_2():
     # run simulation
     ana = Analysis(input=str(THIS_DIR), simulator_name='vivado')
