@@ -18,13 +18,13 @@ requires_list = [
     # system-verilog parser
     'svinst==0.1.5',
     # magma ecosystem dependencies
-    'fault==3.0.11',
-    'magma-lang==2.0.32',
-    'coreir==2.0.63',
-    'mantle==2.0.7',
-    'hwtypes==1.3.6',
-    'ast_tools==0.0.14',
-    'kratos==0.0.27',
+    'fault==3.0.19',
+    'magma-lang==2.0.59',
+    'coreir==2.0.76',
+    'mantle==2.0.8',
+    'hwtypes==1.4.0',
+    'ast_tools==0.0.16',
+    'kratos==0.0.29',
     # general requirements
     'pexpect',
     'pyyaml',
