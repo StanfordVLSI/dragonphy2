@@ -3,13 +3,15 @@
 #include <string.h>
 #include "sleep.h"
 
+u32 sleep_time = 20;
+
 void cycle() {
     // min usleep value is "5" when emu_clk_freq is 5 MHz
-    usleep(10);
+    usleep(sleep_time);
     set_tck(1);
-    usleep(10);
+    usleep(sleep_time);
     set_tck(0);
-    usleep(10);
+    usleep(sleep_time);
 }
 
 void do_init() {
@@ -186,6 +188,9 @@ int main() {
                     } else if (strcmp(buf, "SET_EMU_RST") == 0) {
                         cmd = 4;
                         nargs++;
+                    } else if (strcmp(buf, "SET_SLEEP") == 0) {
+                        cmd = 5;
+                        nargs++;
                     } else {
 	                xil_printf("ERROR: Unknown command\r\n");
 		            }
@@ -196,6 +201,9 @@ int main() {
                         nargs=0;
                     } else if (cmd == 4) {
                         set_emu_rst(arg1);
+                        nargs=0;
+                    } else if (cmd == 5) {
+                        sleep_time = arg1;
                         nargs=0;
                     } else {
                         nargs++;
