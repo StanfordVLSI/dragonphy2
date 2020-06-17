@@ -1,9 +1,13 @@
 from pathlib import Path
+import numpy as np
 from msdsl import MixedSignalModel, VerilogGenerator
 from msdsl.expr.extras import if_
 
 class TXCore:
     def __init__(self, filename=None, **system_values):
+        # set a fixed random seed for repeatability
+        np.random.seed(4)
+
         module_name = Path(filename).stem
         build_dir = Path(filename).parent
 

@@ -1,4 +1,5 @@
 from pathlib import Path
+import numpy as np
 from msdsl import MixedSignalModel, VerilogGenerator, to_sint, clamp_op, to_uint
 from msdsl.expr.expr import array
 from msdsl.expr.extras import if_
@@ -6,6 +7,9 @@ from msdsl.expr.format import SIntFormat
 
 class RXAdcCore:
     def __init__(self, filename=None, **system_values):
+        # set a fixed random seed for repeatability
+        np.random.seed(3)
+
         module_name = Path(filename).stem
         build_dir   = Path(filename).parent
 
