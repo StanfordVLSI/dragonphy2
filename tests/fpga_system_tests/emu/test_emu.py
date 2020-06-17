@@ -195,6 +195,7 @@ def test_6(ser_port):
         return shift_dr(0, sc_bus_width)
 
     # Initialize
+    set_sleep(22)
     do_init()
 
     # Clear emulator reset
