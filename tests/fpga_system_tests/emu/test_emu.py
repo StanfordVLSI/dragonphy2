@@ -132,6 +132,9 @@ def test_6(ser_port):
     def set_rstb(val):
         ser.write(f'SET_RSTB {val}\n'.encode('utf-8'))
 
+    def set_sleep(val):
+        ser.write(f'SET_SLEEP {val}\n'.encode('utf-8'))
+
     def shift_ir(val, width):
         ser.write(f'SIR {val} {width}\n'.encode('utf-8'))
 
