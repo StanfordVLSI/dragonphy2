@@ -12,6 +12,9 @@ from dragonphy import Filter, get_file
 
 class ChannelCore:
     def __init__(self, filename=None, **system_values):
+        # set a fixed random seed for repeatability
+        np.random.seed(0)
+
         module_name = Path(filename).stem
         build_dir   = Path(filename).parent
 
