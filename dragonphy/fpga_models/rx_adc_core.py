@@ -48,14 +48,14 @@ class RXAdcCore:
         # determine out_mag
         vref, n = system_values['vref'], system_values['n']
         abs_val = if_(m.in_ < 0, -1.0*m.in_, m.in_)
-        code_real_unclamped = (abs_val / vref) * ((2 ** n) - 1)
-        code_real = clamp_op(code_real_unclamped, 0, (2 ** n) - 1)
+        code_real_unclamped = (abs_val / vref) * ((2**(n-1))-1)
+        code_real = clamp_op(code_real_unclamped, 0, (2**(n-1))-1)
         code_sint = to_sint(code_real, width=n+1)
 
         # TODO: clean this up -- since real ranges are not intervals,
         # we need to tell MSDSL that the range of the signed integer is
         # smaller
-        code_sint.format_ = SIntFormat(width=n+1, min_val=0, max_val=(2**n)-1)
+        code_sint.format_ = SIntFormat(width=n+1, min_val=0, max_val=(2**(n-1))-1)
 
         code_uint = to_uint(code_sint, width=n)
         m.set_next_cycle(m.out_mag, code_uint, clk=m.emu_clk, rst=m.emu_rst, ce=m.pos_edge_prev)

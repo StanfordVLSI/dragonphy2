@@ -9,38 +9,33 @@ module input_divider (
     input wire logic [2:0] ndiv,
     input wire logic bypass_div,
     input wire logic bypass_div2,
-    output wire logic out,
+    output reg out,
     output wire logic out_meas
 );
+
     // signals use for external I/O
     (* dont_touch = "true" *) logic emu_rst;
     (* dont_touch = "true" *) logic emu_clk;
-    (* dont_touch = "true" *) `DECL_DT(emu_dt);
-    (* dont_touch = "true" *) `DECL_DT(dt_req);
 
-    // t_lo
-    `DECL_DT(t_lo);
-    `ASSIGN_CONST_REAL(125e-12, t_lo);
-
-    // t_hi
-    `DECL_DT(t_hi);
-    `ASSIGN_CONST_REAL(125e-12, t_hi);
-
-    // instantiate MSDSL model, passing through format information
-    osc_model_core #(
-        `PASS_REAL(t_lo, t_lo),
-        `PASS_REAL(t_hi, t_hi),
-        `PASS_REAL(emu_dt, emu_dt),
-        `PASS_REAL(dt_req, dt_req)
-    ) osc_model_core_i (
-        .emu_rst(emu_rst),
-        .emu_clk(emu_clk),
-        .t_lo(t_lo),
-        .t_hi(t_hi),
-        .emu_dt(emu_dt),
-        .dt_req(dt_req),
-        .clk_val(out)
+    // detect edge on input clock
+    my_edgedet det_i (
+        .val(in),
+        .clk(emu_clk),
+        .rst(emu_rst),
+        .edge_p(posedge_in),
+        .edge_n()
     );
+
+    // simplified model of original circuit: divide clock by two
+    always @(posedge emu_clk) begin
+        if (emu_rst == 1'b1) begin
+            out <= 1'b0;
+        end else if (posedge_in) begin
+            out <= ~out;
+        end else begin
+            out <= out;
+        end
+    end
 
     // out_meas is unused
     assign out_meas = 1'b0;

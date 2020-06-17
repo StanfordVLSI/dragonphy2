@@ -104,6 +104,23 @@ module tb;
         .cke(clk_tx_val_posedge)
     );
 
+    ///////////////////
+	// Clock divider //
+	///////////////////
+
+    (* dont_touch = "true" *) logic ext_clkp;
+
+    // divide 16 GHz clock by two to get 8 GHz clock
+    always @(posedge emu_clk) begin
+        if (emu_rst == 1'b1) begin
+            ext_clkp <= 1'b0;
+        end else if (clk_tx_val_posedge) begin
+            ext_clkp <= ~ext_clkp;
+        end else begin
+            ext_clkp <= ext_clkp;
+        end
+    end
+
     ////////////////
 	// Top module //
 	////////////////
@@ -112,6 +129,10 @@ module tb;
 	    // analog inputs
 		.ext_rx_inp(data_rx_i),
 		.ext_rx_inn(0),
+
+        // clock inputs
+        .ext_clkp(ext_clkp),
+        .ext_clkn(1'b0),
 
         // reset
         .ext_rstb(rstb),

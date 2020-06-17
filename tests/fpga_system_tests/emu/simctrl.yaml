@@ -82,6 +82,70 @@ digital_probes:
   prbs_total_bits:
     abspath: 'tb_i.top_i.idcore.prbs_total_bits'
     width: 64
-  clk_adc_sig:
-    abspath: 'tb_i.top_i.idcore.clk_adc'
-    width: 1
+##  clk_adc_sig:
+##    abspath: 'tb_i.top_i.idcore.clk_adc'
+##    width: 1
+## adcout_unfolded_0:
+##   abspath: 'tb_i.top_i.idcore.adcout_unfolded[0]'
+##   width: 8
+##   signed: 1
+## adcout_unfolded_1:
+##   abspath: 'tb_i.top_i.idcore.adcout_unfolded[1]'
+##   width: 8
+##   signed: 1
+## adcout_unfolded_2:
+##   abspath: 'tb_i.top_i.idcore.adcout_unfolded[2]'
+##   width: 8
+##   signed: 1
+## adcout_unfolded_3:
+##   abspath: 'tb_i.top_i.idcore.adcout_unfolded[3]'
+##   width: 8
+##   signed: 1
+## adcout_unfolded_4:
+##   abspath: 'tb_i.top_i.idcore.adcout_unfolded[4]'
+##   width: 8
+##   signed: 1
+## adcout_unfolded_5:
+##   abspath: 'tb_i.top_i.idcore.adcout_unfolded[5]'
+##   width: 8
+##   signed: 1
+## adcout_unfolded_6:
+##   abspath: 'tb_i.top_i.idcore.adcout_unfolded[6]'
+##   width: 8
+##   signed: 1
+## adcout_unfolded_7:
+##   abspath: 'tb_i.top_i.idcore.adcout_unfolded[7]'
+##   width: 8
+##   signed: 1
+## adcout_unfolded_8:
+##   abspath: 'tb_i.top_i.idcore.adcout_unfolded[8]'
+##   width: 8
+##   signed: 1
+## adcout_unfolded_9:
+##   abspath: 'tb_i.top_i.idcore.adcout_unfolded[9]'
+##   width: 8
+##   signed: 1
+## adcout_unfolded_10:
+##   abspath: 'tb_i.top_i.idcore.adcout_unfolded[10]'
+##   width: 8
+##   signed: 1
+## adcout_unfolded_11:
+##   abspath: 'tb_i.top_i.idcore.adcout_unfolded[11]'
+##   width: 8
+##   signed: 1
+## adcout_unfolded_12:
+##   abspath: 'tb_i.top_i.idcore.adcout_unfolded[12]'
+##   width: 8
+##   signed: 1
+## adcout_unfolded_13:
+##   abspath: 'tb_i.top_i.idcore.adcout_unfolded[13]'
+##   width: 8
+##   signed: 1
+## adcout_unfolded_14:
+##   abspath: 'tb_i.top_i.idcore.adcout_unfolded[14]'
+##   width: 8
+##   signed: 1
+## adcout_unfolded_15:
+##   abspath: 'tb_i.top_i.idcore.adcout_unfolded[15]'
+##   width: 8
+##   signed: 1
