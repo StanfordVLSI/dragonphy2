@@ -43,6 +43,7 @@ def test_1(board_name):
     src_cfg.add_defines({'VIVADO': None})
     src_cfg.add_defines({'DT_EXPONENT': -46})  # TODO: move to DT_SCALE
     src_cfg.add_defines({'GIT_HASH': str(get_git_hash_short())}, fileset='sim')
+    src_cfg.add_defines({'LONG_WIDTH_REAL': 32})
 
     # Firmware
     src_cfg.add_firmware_files([THIS_DIR / 'main.c'])
@@ -58,7 +59,7 @@ def test_2():
     # run simulation
     ana = Analysis(input=str(THIS_DIR), simulator_name='vivado')
     ana.set_target(target_name='sim')
-    ana.simulate()
+    ana.simulate(convert_waveform=False)
 
 def test_3():
     # build bitstream
@@ -232,11 +233,24 @@ def test_6(ser_port):
 
     # Configure the CDR offsets
     print('Configure the CDR offsets')
-    write_tc_reg(f'ext_pi_ctl_offset[0]', 0)
-    write_tc_reg(f'ext_pi_ctl_offset[1]', 128)
-    write_tc_reg(f'ext_pi_ctl_offset[2]', 256)
-    write_tc_reg(f'ext_pi_ctl_offset[3]', 384)
-    write_tc_reg(f'en_ext_max_sel_mux', 1)
+    write_tc_reg('ext_pi_ctl_offset[0]', 0)
+    write_tc_reg('ext_pi_ctl_offset[1]', 128)
+    write_tc_reg('ext_pi_ctl_offset[2]', 256)
+    write_tc_reg('ext_pi_ctl_offset[3]', 384)
+    write_tc_reg('en_ext_max_sel_mux', 1)
+
+    # Configure the retimer
+    print('Configuring the retimer...')
+    write_tc_reg('retimer_mux_ctrl_1', 0xffff)
+    write_tc_reg('retimer_mux_ctrl_2', 0xffff)
+
+    # Configure the CDR
+    print('Configuring the CDR...')
+    write_tc_reg('Kp', 15)
+    write_tc_reg('Ki', 0)
+    write_tc_reg('invert', 1)
+    write_tc_reg('en_freq_est', 0)
+    write_tc_reg('en_ext_pi_ctl', 0)
 
     # Re-initialize ordering
     print('Re-initialize ADC ordering')

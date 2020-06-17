@@ -26,9 +26,9 @@ def model(in_, n, vref):
 
     # determine magnitude
     in_abs = abs(in_)
-    mag_real = (abs(in_abs) / vref) * ((2 ** n) - 1)
+    mag_real = (abs(in_abs) / vref) * ((2**(n-1)) - 1)
     mag_unclamped = int(floor(mag_real))
-    mag = min(max(mag_unclamped, 0), (2**n)-1)
+    mag = min(max(mag_unclamped, 0), (2**(n-1))-1)
 
     # return result
     return sgn, mag

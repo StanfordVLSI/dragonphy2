@@ -11,8 +11,6 @@ derived_clks:
     gated_clk: 'clk_adc_i'
   iacore_clk_indiv:
     abspath: 'tb_i.top_i.iacore.iindiv'
-    emu_dt: 'emu_dt'
-    dt_req: 'dt_req'
     emu_clk: 'emu_clk'
     emu_rst: 'emu_rst'
   iacore_pi0:

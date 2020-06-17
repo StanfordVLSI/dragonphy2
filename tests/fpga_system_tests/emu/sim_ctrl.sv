@@ -75,6 +75,20 @@ module sim_ctrl(
         `FORCE_JTAG(en_ext_max_sel_mux, 1);
         #(5us);
 
+        // Configure the retimer
+        `FORCE_JTAG(retimer_mux_ctrl_1, 16'hFFFF);
+        `FORCE_JTAG(retimer_mux_ctrl_2, 16'hFFFF);
+        #(5us);
+
+        // Configure the CDR
+        $display("Configuring the CDR...");
+        `FORCE_JTAG(Kp, 15);
+        `FORCE_JTAG(Ki, 0);
+        `FORCE_JTAG(invert, 1);
+        `FORCE_JTAG(en_freq_est, 0);
+        `FORCE_JTAG(en_ext_pi_ctl, 0);
+        #(5us);
+
         // Toggle the en_v2t signal to re-initialize the V2T ordering
         $display("Toggling en_v2t...");
         `FORCE_JTAG(en_v2t, 0);
@@ -84,16 +98,16 @@ module sim_ctrl(
 
         // Wait for PRBS checker to lock
 		$display("Waiting for PRBS checker to lock...");
-		for (loop_var=0; loop_var<6; loop_var=loop_var+1) begin
-		    $display("Interval %0d/6", loop_var);
+		for (loop_var=0; loop_var<100; loop_var=loop_var+1) begin
+		    $display("Interval %0d/100", loop_var);
 		    #(100us);
 		end
 
         // Run the PRBS tester
         $display("Running the PRBS tester");
         `FORCE_JTAG(prbs_checker_mode, 2);
-        for (loop_var=0; loop_var<6; loop_var=loop_var+1) begin
-		    $display("Interval %0d/6", loop_var);
+        for (loop_var=0; loop_var<100; loop_var=loop_var+1) begin
+		    $display("Interval %0d/100", loop_var);
 		    #(100us);
 		end
         #(25us);

@@ -6,7 +6,7 @@ module input_buffer (
 	output clk_b
 );
 
-    assign clk = 1'b0;
-    assign clk_b = 1'b0;
+    assign clk = inp & (~pd);
+    assign clk_b = inm & (~pd);
 
 endmodule
