@@ -27,3 +27,15 @@ digital_ctrl_outputs:
   tdo:
     abspath: 'tb_i.tdo'
     width: 1
+digital_probes:
+  ctl_pi_0:
+    abspath: 'tb_i.top_i.iacore.ctl_pi[0]'
+    width: 9
+  adcout_unfolded_0:
+    abspath: 'tb_i.top_i.idcore.adcout_unfolded[0]'
+    width: 8
+    signed: 1
+  estimated_bits_0:
+    abspath: 'tb_i.top_i.idcore.estimated_bits[0]'
+    width: 10
+    signed: 1

@@ -4,6 +4,7 @@ import time
 import json
 import re
 from pathlib import Path
+from math import exp
 
 from anasymod.analysis import Analysis
 from dragonphy import *
@@ -193,6 +194,27 @@ def test_6(ser_port):
         shift_ir(sc_cfg_data, jtag_inst_width)
         return shift_dr(0, sc_bus_width)
 
+    def load_weight(
+            d_idx, # 2 bits
+            w_idx, # 4 bits
+            value, # 10 bits
+    ):
+        print(f'Loading weight d_idx={d_idx}, w_idx={w_idx} with value {value}')
+
+        # write wme_ffe_inst
+        wme_ffe_inst = 0
+        wme_ffe_inst |= d_idx & 0b11
+        wme_ffe_inst |= (w_idx & 0b1111) << 2
+        write_tc_reg('wme_ffe_inst', wme_ffe_inst)
+
+        # write wme_ffe_data
+        wme_ffe_data = value & 0b1111111111
+        write_tc_reg('wme_ffe_data', wme_ffe_data)
+
+        # pulse wme_ffe_exec
+        write_tc_reg('wme_ffe_exec', 1)
+        write_tc_reg('wme_ffe_exec', 0)
+
     # Initialize
     set_sleep(22)
     do_init()
@@ -228,11 +250,27 @@ def test_6(ser_port):
 
     # Configure PRBS checker
     print('Configure the PRBS checker')
-    write_tc_reg('sel_prbs_mux', 0) # "0" is ADC, "3" is BIST
+    write_tc_reg('sel_prbs_mux', 1) # "0" is ADC, "1" is FFE, "3" is BIST
 
     # Release the PRBS checker from reset
     print('Release the PRBS checker from reset')
     write_tc_reg('prbs_rstb', 1)
+
+    # Set up the FFE
+    dt=1.0/(16.0e9)
+    tau=25.0e-12
+    coeff0 = 128.0/(1.0-exp(-dt/tau))
+    coeff1 = -128.0*exp(-dt/tau)/(1.0-exp(-dt/tau))
+    for loop_var in range(16):
+        for loop_var2 in range(4):
+            if (loop_var2 == 0):
+                # The argument order for load() is depth, width, value
+                load_weight(loop_var2, loop_var, int(round(coeff0)))
+            elif (loop_var2 == 1):
+                load_weight(loop_var2, loop_var, int(round(coeff1)))
+            else:
+                load_weight(loop_var2, loop_var, 0)
+        write_tc_reg(f'ffe_shift[{loop_var}]', 7)
 
     # Configure the CDR offsets
     print('Configure the CDR offsets')
@@ -254,6 +292,7 @@ def test_6(ser_port):
     write_tc_reg('invert', 1)
     write_tc_reg('en_freq_est', 0)
     write_tc_reg('en_ext_pi_ctl', 0)
+    write_tc_reg('sel_inp_mux', 1) # "0": use ADC output, "1": use FFE output
 
     # Re-initialize ordering
     print('Re-initialize ADC ordering')
@@ -267,7 +306,7 @@ def test_6(ser_port):
     # Run PRBS test
     print('Run PRBS test')
     write_tc_reg('prbs_checker_mode', 2)
-    time.sleep(1.0)
+    time.sleep(10.0)
 
     # Read out PRBS test results
     print('Read out PRBS test results')

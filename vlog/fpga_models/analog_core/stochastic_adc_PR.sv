@@ -42,8 +42,6 @@ module stochastic_adc_PR #(
 
     (* dont_touch = "true" *) logic emu_rst;
     (* dont_touch = "true" *) logic emu_clk;
-    (* dont_touch = "true" *) `DECL_DT(emu_dt);
-    (* dont_touch = "true" *) `DECL_DT(dt_req);
 
     ///////////////////////////
     // clk_in edge detection //
@@ -96,7 +94,7 @@ module stochastic_adc_PR #(
 	// always @(negedge clk_in or negedge en_sync or negedge alws_onb) begin
 
     logic [Ndiv-1:0] count_state;
-    assign count = (!en_sync) ? init : ((!alws_onb) ? 2'b11 : (negedge_clk_in ? (count+1) : count_state));
+    assign count = (!en_sync) ? init : ((!alws_onb) ? 2'b11 : (negedge_clk_in ? (count_state+1) : count_state));
     always @(posedge emu_clk) begin
         count_state <= count;
     end
@@ -108,31 +106,18 @@ module stochastic_adc_PR #(
     // attach format parameters to input
     `ATTACH_PWL_PARAMS(VinP);
 
-    // declare signal for max timestep
-    // TODO: make compatible with FLOAT_REAL
-    (* dont_touch = "true" *) `DECL_DT(dt_req_max);
-    assign dt_req_max = {1'b0, {((`DT_WIDTH)-1){1'b1}}};
-
     logic signed [8:0] adc_out;
     rx_adc_core #(
-        `PASS_REAL(in_, VinP),
-        `PASS_REAL(emu_dt, emu_dt),
-        `PASS_REAL(dt_req, dt_req),
-        `PASS_REAL(dt_req_max, dt_req_max)
+        `PASS_REAL(in_, VinP)
     ) rx_adc_core_i (
         // main I/O: input, output, and clock
         .in_(VinP),
         .out_mag(adder_out),
         .out_sgn(sign_out),
         .clk_val(clk_adder),
-        // timestep control: DT request and response
-        .dt_req(dt_req),
-        .emu_dt(emu_dt),
         // emulator clock and reset
         .emu_clk(emu_clk),
-        .emu_rst(emu_rst),
-        // additional input: maximum timestep
-        .dt_req_max(dt_req_max)
+        .emu_rst(emu_rst)
     );
 
     // unused outputs
