@@ -14,8 +14,8 @@ class AdaptFir:
         # create channel model
         kwargs = dict(
             channel_type='exponent',
-            tau=14.20e-12,
-            t_delay=46.875e-12,
+            tau=25e-12,
+            t_delay=31.25e-12,
             sampl_rate=160e9,
             resp_depth=500
         )

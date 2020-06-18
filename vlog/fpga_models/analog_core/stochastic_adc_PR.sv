@@ -77,43 +77,28 @@ module stochastic_adc_PR #(
 
     // transformed always statement
     // always @(negedge clk_in or negedge rstn) begin
-
-    always @(posedge emu_clk or negedge rstb) begin
-        if (!rstb) begin
-            en_sync_in_sampled <= 0;
-        end else if (negedge_clk_in) begin
-            en_sync_in_sampled <= en_sync_in;
-        end else begin
-            en_sync_in_sampled <= en_sync_in_sampled;
-        end
+    logic en_sync_in_sampled_state;
+    assign en_sync_in_sampled = (!rstb) ? 0 : (negedge_clk_in ? en_sync_in : en_sync_in_sampled_state); 
+    always @(posedge emu_clk) begin
+        en_sync_in_sampled_state <= en_sync_in_sampled;
     end
 
     // transformed always statement
 	// always @(posedge clk_in or negedge rstn) begin
 
-	always @(posedge emu_clk or negedge rstb) begin
-        if (!rstb) begin
-            en_sync_out <= 0;
-        end else if (posedge_clk_in) begin
-            en_sync_out <= en_sync_in_sampled;
-        end else begin
-            en_sync_out <= en_sync_out;
-        end
+    logic en_sync_out_state;
+    assign en_sync_out = (!rstb) ? 0 : (posedge_clk_in ? en_sync_in_sampled : en_sync_out_state);
+	always @(posedge emu_clk) begin
+        en_sync_out_state <= en_sync_out;
     end
 
     // transformed always statement
 	// always @(negedge clk_in or negedge en_sync or negedge alws_onb) begin
 
-    always @(posedge emu_clk or negedge en_sync or negedge alws_onb) begin
-    	if (!en_sync) begin
-    	    count <= init;
-    	end else if (!alws_onb) begin
-    	    count <= 2'b11;
-    	end else if (negedge_clk_in) begin
-    	    count <= count+1;
-        end else begin
-            count <= count;
-        end
+    logic [Ndiv-1:0] count_state;
+    assign count = (!en_sync) ? init : ((!alws_onb) ? 2'b11 : (negedge_clk_in ? (count+1) : count_state));
+    always @(posedge emu_clk) begin
+        count_state <= count;
     end
 
     assign clk_adder = ~clk_div;

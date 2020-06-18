@@ -25,11 +25,9 @@ module sim_ctrl(
 
     // calculate FFE coefficients
     localparam real dt=1.0/(16.0e9);
-    localparam real tau=14.20e-12;
-    localparam integer coeff0 = 128.0;
-    localparam integer coeff1 = 0;
-    //localparam integer coeff0 = 128.0/(1.0-$exp(-dt/tau));
-    //localparam integer coeff1 = -128.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
+    localparam real tau=25.0e-12;
+    localparam integer coeff0 = 128.0/(1.0-$exp(-dt/tau));
+    localparam integer coeff1 = -128.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
 
     logic [Nadc-1:0] tmp_ext_pfd_offset [Nti-1:0];
     logic [Npi-1:0] tmp_ext_pi_ctl_offset [Nout-1:0];
@@ -46,7 +44,7 @@ module sim_ctrl(
         logic [weight_precision-1:0] value
     );
         $display("Loading weight d_idx=%0d, w_idx=%0d with value %0d", d_idx, w_idx, value);
-        `FORCE_JTAG(wme_ffe_inst, {0, w_idx, d_idx});
+        `FORCE_JTAG(wme_ffe_inst, {1'b0, w_idx, d_idx});
         `FORCE_JTAG(wme_ffe_data, value);
         #(40us);
         `FORCE_JTAG(wme_ffe_exec, 1);
@@ -128,12 +126,12 @@ module sim_ctrl(
 
         // Configure the CDR
         $display("Configuring the CDR...");
-        `FORCE_JTAG(Kp, 15);
+        `FORCE_JTAG(Kp, 18);
         `FORCE_JTAG(Ki, 0);
         `FORCE_JTAG(invert, 1);
         `FORCE_JTAG(en_freq_est, 0);
         `FORCE_JTAG(en_ext_pi_ctl, 0);
-        `FORCE_JTAG(sel_inp_mux, 0); // "0": use ADC output, "1": use FFE output
+        `FORCE_JTAG(sel_inp_mux, 1); // "0": use ADC output, "1": use FFE output
         #(5us);
 
         // Toggle the en_v2t signal to re-initialize the V2T ordering

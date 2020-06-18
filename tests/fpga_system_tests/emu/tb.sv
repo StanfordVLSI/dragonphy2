@@ -111,13 +111,15 @@ module tb;
     (* dont_touch = "true" *) logic ext_clkp;
 
     // divide 16 GHz clock by two to get 8 GHz clock
+    logic div_state;
+    assign ext_clkp = clk_tx_val_posedge ? ~div_state : div_state;
     always @(posedge emu_clk) begin
         if (emu_rst == 1'b1) begin
-            ext_clkp <= 1'b0;
+            div_state <= 1'b0;
         end else if (clk_tx_val_posedge) begin
-            ext_clkp <= ~ext_clkp;
+            div_state <= ~div_state;
         end else begin
-            ext_clkp <= ext_clkp;
+            div_state <= div_state;
         end
     end
 
