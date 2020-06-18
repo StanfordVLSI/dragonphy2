@@ -9,7 +9,7 @@ module input_divider (
     input wire logic [2:0] ndiv,
     input wire logic bypass_div,
     input wire logic bypass_div2,
-    output reg out,
+    output wire logic out,
     output wire logic out_meas
 );
 
@@ -27,13 +27,17 @@ module input_divider (
     );
 
     // simplified model of original circuit: divide clock by two
+    logic div_state;
+   
+    assign out = posedge_in ? ~div_state : div_state;
+
     always @(posedge emu_clk) begin
         if (emu_rst == 1'b1) begin
-            out <= 1'b0;
+            div_state <= 1'b0;
         end else if (posedge_in) begin
-            out <= ~out;
+            div_state <= ~div_state;
         end else begin
-            out <= out;
+            div_state <= div_state;
         end
     end
 
