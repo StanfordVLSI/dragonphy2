@@ -170,7 +170,24 @@ module jtag (
     assign ddbg_intf_i.prbs_rstb 	 = rjtag_intf_i.prbs_rstb;
     assign ddbg_intf_i.prbs_gen_rstb = rjtag_intf_i.prbs_gen_rstb;
 
-	assign ddbg_intf_i.disable_product	= rjtag_intf_i.disable_product;
+    // work-around for Vivado: disable product is set to an unpacked dimension of "10"
+    // in the JTAG markdown file for dcore_debug_intf, but dcore_debug_intf.sv itself
+    // uses a dimension of ffe_gpack::length.  for emulation, we sometimes want to use
+    // a shorter length due to limited resources on the target FPGA, so this code
+    // ensures that we only assign to addresses in ddbg_intf_i.disable_product that
+    // actually exist, accepting the fact that some values in rjtag_intf_i.disable_product
+    // don't end up being used for anything.  for CPU simulation / synthesis, this is
+    // point doesn't come up because ffe_gpack::length == 10 in those cases.  still,
+    // we should aim to parameterize this value in the dcore_intf.md file in case we
+    // want to change ffe_gpack::length for the real design
+
+    genvar ig;
+    generate
+        for (ig=0; ig<ffe_gpack::length; ig=ig+1) begin
+            assign ddbg_intf_i.disable_product[ig] = rjtag_intf_i.disable_product[ig];
+        end
+    endgenerate
+
 	assign ddbg_intf_i.ffe_shift		= rjtag_intf_i.ffe_shift;
 	assign ddbg_intf_i.mlsd_shift		= rjtag_intf_i.mlsd_shift;
 	assign ddbg_intf_i.cmp_thresh		= rjtag_intf_i.cmp_thresh;
