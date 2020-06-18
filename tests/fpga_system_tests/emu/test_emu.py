@@ -26,7 +26,6 @@ def test_1(board_name):
     src_cfg.add_verilog_sources([get_file('vlog/fpga_models/jtag/tap_core.sv')], fileset='fpga')
     src_cfg.add_verilog_sources([get_file('vlog/fpga_models/jtag/DW_tap.sv')], fileset='fpga')
     src_cfg.add_verilog_sources([os.environ['DW_TAP']], fileset='sim')
-    src_cfg.add_verilog_sources([get_file('vlog/pack/const_pack.sv')], fileset='sim')
     src_cfg.add_verilog_sources([get_file('build/cpu_models/jtag/jtag_reg_pack.sv')], fileset='sim')
 
     # Verilog Sources
@@ -57,7 +56,7 @@ def test_1(board_name):
 
 def test_2():
     # run simulation
-    ana = Analysis(input=str(THIS_DIR), simulator_name='vivado')
+    ana = Analysis(input=str(THIS_DIR), simulator_name=SIMULATOR)
     ana.set_target(target_name='sim')
     ana.simulate(convert_waveform=False)
 
