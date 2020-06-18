@@ -198,6 +198,18 @@ module digital_core import const_pack::*; (
         end
     endgenerate
 
+    // Select ADC signals (Nti-1) down through 0.  For some reason, passing the slice
+    // adcout_unfolded[15:0] directly into the comparator or DSP block does not work;
+    // some entries are X or high-Z (possible Vivado bug)
+
+    logic signed [(Nadc-1):0] adcout_unfolded_non_rep [(Nti-1):0];
+
+    generate
+        for (k=0; k<Nti; k=k+1) begin
+            assign adcout_unfolded_non_rep[k] = adcout_unfolded[k];
+        end
+    endgenerate
+
     // CDR
 
     logic signed [Nadc-1:0] mm_cdr_input [Nti-1:0];
@@ -264,7 +276,7 @@ module digital_core import const_pack::*; (
     );
 
     dsp_backend dsp_i(
-        .codes(adcout_unfolded[Nti-1:0]),
+        .codes(adcout_unfolded_non_rep),
         .clk(clk_adc),
         .rstb(rstb),
         .estimated_bits_q(estimated_bits),
@@ -316,18 +328,8 @@ module digital_core import const_pack::*; (
     logic bits_adc [Nti-1:0];
     logic bits_ffe [Nti-1:0];
 
-    // for some reason passing the slice adcout_unfolded[15:0]
-    // directly into the dig_comp_adc_i instance does not work;
-    // the top eight entries are all high-Z (possible Vivado bug)
-    logic signed [7:0] comp_adc_codes [15:0];
-    generate
-        for (k=0; k<16; k=k+1) begin
-            assign comp_adc_codes[k] = adcout_unfolded[k];
-        end
-    endgenerate
-
     comb_comp #(.numChannels(16), .inputBitwidth(Nadc), .thresholdBitwidth(Nadc)) dig_comp_adc_i (
-        .codes     (comp_adc_codes),
+        .codes     (adcout_unfolded_non_rep),
         .thresh    (ddbg_intf_i.adc_thresh),
         .clk       (clk_adc),
         .rstb      (rstb),

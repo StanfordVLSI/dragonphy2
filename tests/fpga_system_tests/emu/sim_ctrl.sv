@@ -19,11 +19,41 @@ module sim_ctrl(
 	import const_pack::*;
     import jtag_reg_pack::*;
 
+    import ffe_gpack::length;
+    import ffe_gpack::weight_precision;
+    import constant_gpack::channel_width;
+
+    // calculate FFE coefficients
+    localparam real dt=1.0/(16.0e9);
+    localparam real tau=14.20e-12;
+    localparam integer coeff0 = 128.0;
+    localparam integer coeff1 = 0;
+    //localparam integer coeff0 = 128.0/(1.0-$exp(-dt/tau));
+    //localparam integer coeff1 = -128.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
+
     logic [Nadc-1:0] tmp_ext_pfd_offset [Nti-1:0];
     logic [Npi-1:0] tmp_ext_pi_ctl_offset [Nout-1:0];
 
-    integer loop_var;
+    integer loop_var, loop_var2;
     longint err_bits, total_bits;
+
+    logic [ffe_gpack::shift_precision-1:0] tmp_ffe_shift [constant_gpack::channel_width-1:0];
+
+    // for loading one FFE weight with specified depth and width
+    task load_weight(
+        input logic [$clog2(length)-1:0] d_idx,
+        logic [$clog2(channel_width)-1:0] w_idx,
+        logic [weight_precision-1:0] value
+    );
+        $display("Loading weight d_idx=%0d, w_idx=%0d with value %0d", d_idx, w_idx, value);
+        `FORCE_JTAG(wme_ffe_inst, {0, w_idx, d_idx});
+        `FORCE_JTAG(wme_ffe_data, value);
+        #(40us);
+        `FORCE_JTAG(wme_ffe_exec, 1);
+        #(40us);
+        `FORCE_JTAG(wme_ffe_exec, 0);
+        #(40us);
+    endtask
 
     initial begin
         // wait for emulator reset to complete
@@ -56,13 +86,29 @@ module sim_ctrl(
 
         // Select the PRBS checker data source
         $display("Select the PRBS checker data source");
-        `FORCE_JTAG(sel_prbs_mux, 2'b00);
+        `FORCE_JTAG(sel_prbs_mux, 2'b01); // 2'b00: ADC, 2'b01: FFE
         #(10us);
 
         // Release the PRBS checker from reset
         $display("Release the PRBS tester from reset");
         `FORCE_JTAG(prbs_rstb, 1);
         #(50us);
+
+        // Set up the FFE
+        for (loop_var=0; loop_var<Nti; loop_var=loop_var+1) begin
+            for (loop_var2=0; loop_var2<ffe_gpack::length; loop_var2=loop_var2+1) begin
+                if (loop_var2 == 0) begin
+                    // The argument order for load() is depth, width, value
+                    load_weight(loop_var2, loop_var, coeff0);
+                end else if (loop_var2 == 1) begin
+                    load_weight(loop_var2, loop_var, coeff1);
+                end else begin
+                    load_weight(loop_var2, loop_var, 0);
+                end
+            end
+            tmp_ffe_shift[loop_var] = 7;
+        end
+        `FORCE_JTAG(ffe_shift, tmp_ffe_shift);
 
         // Configure the CDR offsets
         $display("Setting up the CDR offset...");
@@ -87,6 +133,7 @@ module sim_ctrl(
         `FORCE_JTAG(invert, 1);
         `FORCE_JTAG(en_freq_est, 0);
         `FORCE_JTAG(en_ext_pi_ctl, 0);
+        `FORCE_JTAG(sel_inp_mux, 0); // "0": use ADC output, "1": use FFE output
         #(5us);
 
         // Toggle the en_v2t signal to re-initialize the V2T ordering
