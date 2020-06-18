@@ -51,7 +51,14 @@ module analog_core import const_pack::*; #(
 	logic [Nout-1:0] clk_interp_swb_s2d;
 	logic clk_in_pi;
 
-    // for emulation, the clock is written via absolute path
+    // for simulation and synthesis, clk_div[0] can just be assigned directly to clk_adc
+    // however, for emulation, clk_div[0] is a clock value that needs to be converted
+    // into a true clock signal for use by the digital.  this works by assigning the clock
+    // value (clk_div[0]) to a signal (clk_adc_val), which is connected hierarchically to
+    // the emulation clock generator at the top level (specified in clks.yaml).  that clock
+    // generator converts the clock value into a true clock signal and writes it back to
+    // a signal in analog_core (clk_adc_i).
+
 	`ifndef VIVADO
         logic [Nti-1:0] clk_div;
 	    assign clk_adc = clk_div[0];
@@ -64,6 +71,11 @@ module analog_core import const_pack::*; #(
 	`endif
 
     // termination
+
+    // for emulation, ideally we would have an empty declaration for this module.  however,
+    // Vivado doesn't work well with empty modules that are not black boxes, so the module
+    // instantiation is just just ifdef'd out for emulation here
+
     `ifndef VIVADO
         termination iterm(
             .VinP(rx_inp),
@@ -239,6 +251,11 @@ module analog_core import const_pack::*; #(
     );
 
     // bias generator
+
+    // for emulation, ideally we would have an empty declaration for this module.  however,
+    // Vivado doesn't work well with empty modules that are not black boxes, so the module
+    // instantiation is just just ifdef'd out for emulation here
+
     `ifndef VIVADO
         generate
             for (genvar k=0; k<4; k=k+1) begin:iBG
