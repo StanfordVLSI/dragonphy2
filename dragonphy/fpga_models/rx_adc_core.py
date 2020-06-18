@@ -23,15 +23,9 @@ class RXAdcCore:
         m.add_digital_output('out_sgn')
         m.add_digital_output('out_mag', width=system_values['n'])
         m.add_digital_input('clk_val')
-        # timestep control: DT request and response
-        m.add_analog_output('dt_req')
-        m.add_analog_input('emu_dt')
         # emulator clock and reset
         m.add_digital_input('emu_clk')
         m.add_digital_input('emu_rst')
-        # additional input: maximum timestep
-        # TODO: clean this up
-        m.add_analog_input('dt_req_max')
 
         # determine when sampling should happen
         m.add_digital_state('clk_val_prev')
@@ -56,23 +50,12 @@ class RXAdcCore:
         code_real = clamp_op(code_real_unclamped, 0, (2**(n-1))-1)
         code_sint = to_sint(code_real, width=n+1)
 
-        # TODO: clean this up -- since real ranges are not intervals,
-        # we need to tell MSDSL that the range of the signed integer is
-        # smaller
+        # TODO: clean this up -- since real ranges are not intervals, we need to tell MSDSL
+        # that the range of the signed integer is smaller
         code_sint.format_ = SIntFormat(width=n+1, min_val=0, max_val=(2**(n-1))-1)
 
         code_uint = to_uint(code_sint, width=n)
         m.set_next_cycle(m.out_mag, code_uint, clk=m.emu_clk, rst=m.emu_rst, ce=m.pos_edge_prev)
-
-        # stall if needed
-        dt_req_array = array(
-            [m.dt_req_max, 0.0],
-            m.pos_edge_prev,
-            real_range_hint=m.emu_dt.format_.range_,
-            width=m.emu_dt.format_.width,
-            exponent=m.emu_dt.format_.exponent
-        )
-        m.set_this_cycle(m.dt_req, dt_req_array)
 
         # generate the model
         m.compile_to_file(VerilogGenerator())
