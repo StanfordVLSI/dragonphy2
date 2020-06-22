@@ -23,9 +23,8 @@ Todo:
 module phase_blender #(
   parameter real placeholder = 42 // placeholder
 ) (
-  //input logic  ph_in[0], // ph_in[0]
-  //input logic  ph_in[1], // ph_in[1]
-  input logic [1:0] ph_in,
+  input logic  ph_in[0], // ph_in[0]
+  input logic  ph_in[1], // ph_in[1]
   output logic  ph_out, // ph_out
   input logic [15:0] thm_sel_bld // thm_sel_bld
 );
@@ -37,17 +36,16 @@ module phase_blender #(
  
 
 // Declare parameters
-real wgt;
-real td;
+real gain;
+real offset;
 
+always @(wakeup) begin
+  t0 = `get_time;
 
-always @(*) begin
+  gain = 0.0625*thm_sel_bld[8]+0.0625*thm_sel_bld[6]+0.0625*thm_sel_bld[10]+0.0625*thm_sel_bld[11]+0.0625*thm_sel_bld[7]+0.0625*thm_sel_bld[9]+0.0625*thm_sel_bld[4]+0.0625*thm_sel_bld[12]+0.0625*thm_sel_bld[13]+0.0625*thm_sel_bld[5]+0.0625*thm_sel_bld[3]+0.0625*thm_sel_bld[2]+0.0625*thm_sel_bld[0]+0.0625*thm_sel_bld[15]+0.0625*thm_sel_bld[14]+0.0625*thm_sel_bld[1];
+  offset = 0.2*(1.0);
 
-  wgt = 0.0625*thm_sel_bld[8]+0.0625*thm_sel_bld[6]+0.0625*thm_sel_bld[10]+0.0625*thm_sel_bld[11]+0.0625*thm_sel_bld[7]+0.0625*thm_sel_bld[9]+0.0625*thm_sel_bld[4]+0.0625*thm_sel_bld[12]+0.0625*thm_sel_bld[13]+0.0625*thm_sel_bld[5]+0.0625*thm_sel_bld[3]+0.0625*thm_sel_bld[2]+0.0625*thm_sel_bld[0]+0.0625*thm_sel_bld[15]+0.0625*thm_sel_bld[14]+0.0625*thm_sel_bld[1];
-  td = 0.2*(1.0);
-end
-    //real wgt = gain + offset;
-
+    real wgt = gain + offset;
 
     // state variables
     logic nxt_state=1'b0;
