@@ -2,8 +2,11 @@
 
 `include "mLingua_pwl.vh"
 
-`define FORCE_JTAG(name, value) force top_i.idcore.jtag_i.rjtag_intf_i.``name`` = ``value``
-`define GET_JTAG(name) top_i.idcore.jtag_i.rjtag_intf_i.``name``
+//`define SET_JTAG(name, value) force top_i.idcore.jtag_i.rjtag_intf_i.``name`` = ``value``
+`define SET_JTAG(name, value) jtag_drv_i.write_tc_reg(``name``, ``value``)
+
+//`define GET_JTAG(name) jtag_result = top_i.idcore.jtag_i.rjtag_intf_i.``name``
+`define GET_JTAG(name) jtag_drv_i.read_sc_reg(``name``, jtag_result)
 
 module test;
 
@@ -107,16 +110,14 @@ module test;
 
     //  Main test
 
-	logic [Nadc-1:0] tmp_ext_pfd_offset [Nti-1:0];
-    logic [Npi-1:0] tmp_ext_pi_ctl_offset [Nout-1:0];
     logic [Nprbs-1:0] tmp_prbs_eqn;
 
     integer loop_var, loop_var2;
     integer offset;
 
-    longint err_bits, total_bits;
+	logic [31:0] jtag_result;
 
-    logic [ffe_gpack::shift_precision-1:0] tmp_ffe_shift [constant_gpack::channel_width-1:0];
+    longint err_bits, total_bits;
 
     // for loading one FFE weight with specified depth and width
     task load_weight(
@@ -125,12 +126,12 @@ module test;
         logic [weight_precision-1:0] value
     );
         $display("Loading weight d_idx=%0d, w_idx=%0d with value %0d", d_idx, w_idx, value);
-        `FORCE_JTAG(wme_ffe_inst, {1'b0, w_idx, d_idx});
-        `FORCE_JTAG(wme_ffe_data, value);
+        `SET_JTAG(wme_ffe_inst, {1'b0, w_idx, d_idx});
+        `SET_JTAG(wme_ffe_data, value);
         #(3ns);
-        `FORCE_JTAG(wme_ffe_exec, 1);
+        `SET_JTAG(wme_ffe_exec, 1);
         #(3ns);
-        `FORCE_JTAG(wme_ffe_exec, 0);
+        `SET_JTAG(wme_ffe_exec, 0);
         #(3ns);
     endtask
 
@@ -184,21 +185,20 @@ module test;
 
         // Soft reset sequence
         $display("Soft reset sequence...");
-        `FORCE_JTAG(int_rstb, 1);
+        `SET_JTAG(int_rstb, 1);
         #(1ns);
-        `FORCE_JTAG(en_inbuf, 1);
+        `SET_JTAG(en_inbuf, 1);
 		#(1ns);
-        `FORCE_JTAG(en_gf, 1);
+        `SET_JTAG(en_gf, 1);
         #(1ns);
-        `FORCE_JTAG(en_v2t, 1);
+        `SET_JTAG(en_v2t, 1);
         #(64ns);
 
         // Set up the PFD offset
         $display("Setting up the PFD offset...");
         for (int idx=0; idx<Nti; idx=idx+1) begin
-            tmp_ext_pfd_offset[idx] = 0;
+            `SET_JTAG(ext_pfd_offset[idx], 0);
         end
-        `FORCE_JTAG(ext_pfd_offset, tmp_ext_pfd_offset);
         #(1ns);
 
         // Set the equation for the PRBS checker
@@ -206,17 +206,17 @@ module test;
         tmp_prbs_eqn = 0;
         tmp_prbs_eqn[ 1] = 1'b1;
         tmp_prbs_eqn[20] = 1'b1;
-        `FORCE_JTAG(prbs_eqn, tmp_prbs_eqn);
+        `SET_JTAG(prbs_eqn, tmp_prbs_eqn);
         #(10ns);
 
         // Select the PRBS checker data source
         $display("Select the PRBS checker data source");
-        `FORCE_JTAG(sel_prbs_mux, 2'b01); // 2'b00: ADC, 2'b01: FFE
+        `SET_JTAG(sel_prbs_mux, 2'b01); // 2'b00: ADC, 2'b01: FFE
         #(10ns);
 
         // Release the PRBS checker from reset
         $display("Release the PRBS tester from reset");
-        `FORCE_JTAG(prbs_rstb, 1);
+        `SET_JTAG(prbs_rstb, 1);
         #(50ns);
 
         // Set up the FFE
@@ -231,43 +231,41 @@ module test;
                     load_weight(loop_var2, loop_var, 0);
                 end
             end
-            tmp_ffe_shift[loop_var] = 7;
+            `SET_JTAG(ffe_shift[loop_var], 7);
         end
-        `FORCE_JTAG(ffe_shift, tmp_ffe_shift);
 
         #(10ns);
 
         // Configure the CDR offsets
         $display("Setting up the CDR offset...");
-        tmp_ext_pi_ctl_offset[0] =   0;
-        tmp_ext_pi_ctl_offset[1] = 128;
-        tmp_ext_pi_ctl_offset[2] = 256;
-        tmp_ext_pi_ctl_offset[3] = 384;
-        `FORCE_JTAG(ext_pi_ctl_offset, tmp_ext_pi_ctl_offset);
+        `SET_JTAG(ext_pi_ctl_offset[0],   0);
+        `SET_JTAG(ext_pi_ctl_offset[1], 128);
+        `SET_JTAG(ext_pi_ctl_offset[2], 256);
+        `SET_JTAG(ext_pi_ctl_offset[3], 384);
         #(5ns);
-        `FORCE_JTAG(en_ext_max_sel_mux, 1);
+        `SET_JTAG(en_ext_max_sel_mux, 1);
         #(5ns);
 
         // Configure the retimer
-        `FORCE_JTAG(retimer_mux_ctrl_1, 16'hFFFF);
-        `FORCE_JTAG(retimer_mux_ctrl_2, 16'hFFFF);
+        `SET_JTAG(retimer_mux_ctrl_1, 16'hFFFF);
+        `SET_JTAG(retimer_mux_ctrl_2, 16'hFFFF);
         #(5ns);
 
         // Configure the CDR
       	$display("Configuring the CDR...");
-      	`FORCE_JTAG(Kp, 18);
-      	`FORCE_JTAG(Ki, 0);
-      	`FORCE_JTAG(invert, 1);
-		`FORCE_JTAG(en_freq_est, 0);
-		`FORCE_JTAG(en_ext_pi_ctl, 0);
-		`FORCE_JTAG(sel_inp_mux, 1); // "0": use ADC output, "1": use FFE output
+      	`SET_JTAG(Kp, 18);
+      	`SET_JTAG(Ki, 0);
+      	`SET_JTAG(invert, 1);
+		`SET_JTAG(en_freq_est, 0);
+		`SET_JTAG(en_ext_pi_ctl, 0);
+		`SET_JTAG(sel_inp_mux, 1); // "0": use ADC output, "1": use FFE output
 		#(10ns);
 
         // Toggle the en_v2t signal to re-initialize the V2T ordering
         $display("Toggling en_v2t...");
-        `FORCE_JTAG(en_v2t, 0);
+        `SET_JTAG(en_v2t, 0);
         #(5ns);
-        `FORCE_JTAG(en_v2t, 1);
+        `SET_JTAG(en_v2t, 1);
         #(5ns);
 
 		// Wait for MM_CDR to lock
@@ -283,7 +281,7 @@ module test;
         // throughput comparison when examining FPGA vs. CPU performance.
 
         $display("Running the PRBS tester");
-        `FORCE_JTAG(prbs_checker_mode, 2);
+        `SET_JTAG(prbs_checker_mode, 2);
 
         start_time = get_time();
         #(37.5us);
@@ -293,18 +291,22 @@ module test;
         $display("PRBS test took %0f seconds.", stop_time - start_time);
 
         // Get results
-        `FORCE_JTAG(prbs_checker_mode, 3);
+        `SET_JTAG(prbs_checker_mode, 3);
         #(10ns);
 
         err_bits = 0;
-        err_bits |= `GET_JTAG(prbs_err_bits_upper);
+        `GET_JTAG(prbs_err_bits_upper);
+        err_bits |= jtag_result;
         err_bits <<= 32;
-        err_bits |= `GET_JTAG(prbs_err_bits_lower);
+        `GET_JTAG(prbs_err_bits_lower);
+        err_bits |= jtag_result;
 
         total_bits = 0;
-        total_bits |= `GET_JTAG(prbs_total_bits_upper);
+        `GET_JTAG(prbs_total_bits_upper);
+        total_bits |= jtag_result;
         total_bits <<= 32;
-        total_bits |= `GET_JTAG(prbs_total_bits_lower);
+        `GET_JTAG(prbs_total_bits_lower);
+        total_bits |= jtag_result;
 
         // Print results
         $display("err_bits: %0d", err_bits);
