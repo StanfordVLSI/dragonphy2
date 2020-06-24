@@ -1,5 +1,4 @@
 `include "iotype.sv"
-//`include "/aha/sjkim85/github_repo/dragonphy2/inc/new_asic/iotype.sv"
 
 module analog_core import const_pack::*; #(
 ) (
@@ -43,7 +42,6 @@ module analog_core import const_pack::*; #(
 	logic [Nti-1:0] en_sync_out;
 	logic [Nti-1:0] clk_v2t_prev;
 	logic [Nti-1:0] clk_v2t_next;
-	logic [Nti-1:0] clk_div;
 	logic [1:0] clk_v2t_next_rep;
 	logic [1:0] clk_div_rep;
 	
@@ -52,15 +50,39 @@ module analog_core import const_pack::*; #(
 	logic [Nout-1:0] clk_interp_sw_s2d;
 	logic [Nout-1:0] clk_interp_swb_s2d;
 	logic clk_in_pi;
-	
-	assign clk_adc = clk_div[0];
+
+    // for simulation and synthesis, clk_div[0] can just be assigned directly to clk_adc
+    // however, for emulation, clk_div[0] is a clock value that needs to be converted
+    // into a true clock signal for use by the digital.  this works by assigning the clock
+    // value (clk_div[0]) to a signal (clk_adc_val), which is connected hierarchically to
+    // the emulation clock generator at the top level (specified in clks.yaml).  that clock
+    // generator converts the clock value into a true clock signal and writes it back to
+    // a signal in analog_core (clk_adc_i).
+
+	`ifndef VIVADO
+        logic [Nti-1:0] clk_div;
+	    assign clk_adc = clk_div[0];
+	`else
+	    (* dont_touch = "true" *) logic [Nti-1:0] clk_div;
+	    (* dont_touch = "true" *) logic clk_adc_val;
+	    assign clk_adc_val = clk_div[0];
+	    (* dont_touch = "true" *) logic clk_adc_i;
+	    assign clk_adc = clk_adc_i;
+	`endif
 
     // termination
-	termination iterm(
-		.VinP(rx_inp),
-		.VinN(rx_inn),
-		.Vcm(Vcm)
-	);
+
+    // for emulation, ideally we would have an empty declaration for this module.  however,
+    // Vivado doesn't work well with empty modules that are not black boxes, so the module
+    // instantiation is just just ifdef'd out for emulation here
+
+    `ifndef VIVADO
+        termination iterm(
+            .VinP(rx_inp),
+            .VinN(rx_inn),
+            .Vcm(Vcm)
+        );
+    `endif
 
     // 1st-level SnH
     snh iSnH (
@@ -229,16 +251,23 @@ module analog_core import const_pack::*; #(
     );
 
     // bias generator
-    generate
-        for (genvar k=0; k<4; k=k+1) begin:iBG
-            biasgen iBG (
-                //inputs
-                .en(adbg_intf_i.en_biasgen[k]),
-                .ctl(adbg_intf_i.ctl_biasgen[k]),
-                .Vbias(Vcal)
-            );
-        end
-    endgenerate
+
+    // for emulation, ideally we would have an empty declaration for this module.  however,
+    // Vivado doesn't work well with empty modules that are not black boxes, so the module
+    // instantiation is just just ifdef'd out for emulation here
+
+    `ifndef VIVADO
+        generate
+            for (genvar k=0; k<4; k=k+1) begin:iBG
+                biasgen iBG (
+                    //inputs
+                    .en(adbg_intf_i.en_biasgen[k]),
+                    .ctl(adbg_intf_i.ctl_biasgen[k]),
+                    .Vbias(Vcal)
+                );
+            end
+        endgenerate
+    `endif
 
     // input clock buffer
 	input_divider iindiv (

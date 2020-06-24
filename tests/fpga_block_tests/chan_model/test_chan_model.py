@@ -1,5 +1,4 @@
 # general imports
-import os
 from pathlib import Path
 
 # AHA imports
@@ -11,7 +10,7 @@ from svreal import get_svreal_header
 from msdsl import get_msdsl_header
 
 # DragonPHY imports
-from dragonphy import get_file, Filter, Directory
+from dragonphy import get_file, Filter
 
 BUILD_DIR = Path(__file__).resolve().parent / 'build'
 SIMULATOR = 'vivado'
@@ -66,15 +65,15 @@ def test_chan_model():
     val3 = +3.45
 
     # timesteps
-    dt0 = 1e-9
-    dt1 = 2e-9
-    dt2 = 3e-9
-    dt3 = 4e-9
-    dt4 = 5e-9
-    dt5 = 6e-9
-    dt6 = 7e-9
-    dt7 = 8e-9
-    dt8 = 9e-9
+    dt0 = (1e-9)/16
+    dt1 = (2e-9)/16
+    dt2 = (3e-9)/16
+    dt3 = (4e-9)/16
+    dt4 = (5e-9)/16
+    dt5 = (6e-9)/16
+    dt6 = (7e-9)/16
+    dt7 = (8e-9)/16
+    dt8 = (9e-9)/16
 
     # action sequence
     t.poke(dut.cke, 0)
@@ -149,10 +148,11 @@ def test_chan_model():
         directory=BUILD_DIR,
         simulator=SIMULATOR,
         ext_srcs=[get_file('build/fpga_models/chan_core/chan_core.sv'),
-                  get_file('tests/test_chan_model/test_chan_model.sv')],
+                  get_file('tests/fpga_block_tests/chan_model/test_chan_model.sv')],
         inc_dirs=[get_svreal_header().parent, get_msdsl_header().parent],
         ext_model_file=True,
-        disp_type='realtime'
+        disp_type='realtime',
+        dump_waveforms=False
     )
 
     # check outputs

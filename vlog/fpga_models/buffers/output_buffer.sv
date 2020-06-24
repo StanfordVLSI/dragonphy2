@@ -13,8 +13,10 @@ module output_buffer (
     output trigg_out_p,
     output trigg_out_n
 );
+
     assign clock_out_p = 1'b0;
     assign clock_out_n = 1'b0;
     assign trigg_out_p = 1'b0;
     assign trigg_out_n = 1'b0;
+
 endmodule

@@ -46,6 +46,7 @@ module mdll_r1_top import mdll_pkg::*; #(
     output jm_clk_fb_out,   // 1/32 feedback clock output for direct jitter measurement by sampling scope, to phy core
 	output [N_JIT_CNT-1:0] jm_cdf_out_2jtag // to jatag
 );
+
     assign clk_0 = 1'b0;
     assign clk_90 = 1'b0;
     assign clk_180 = 1'b0;
@@ -56,4 +57,5 @@ module mdll_r1_top import mdll_pkg::*; #(
     assign dac_ctl_mon_2jtag = 0;
     assign jm_clk_fb_out = 1'b0;
     assign jm_cdf_out_2jtag = 0;
+
 endmodule

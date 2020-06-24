@@ -14,7 +14,7 @@ requires_list = [
     # anasymod ecosystem
     'svreal==0.2.2',
     'msdsl==0.2.5',
-    'anasymod==0.2.4.dev1',
+    'anasymod==0.2.9',
     # system-verilog parser
     'svinst==0.1.5',
     # magma ecosystem dependencies
@@ -26,6 +26,7 @@ requires_list = [
     'ast_tools==0.0.14',
     'kratos==0.0.27',
     # general requirements
+    'pyserial',
     'pexpect',
     'pyyaml',
     'numpy',

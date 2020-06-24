@@ -1,7 +1,7 @@
 `include "svreal.sv"
 
 module test_clk_delay (
-    input wire logic [7:0] code,
+    input wire logic [8:0] code,
     input wire logic clk_i_val,
     output wire logic clk_o_val,
     input real dt_req,

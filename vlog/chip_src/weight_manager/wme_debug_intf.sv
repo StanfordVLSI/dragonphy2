@@ -1,14 +1,14 @@
 interface wme_debug_intf import const_pack::*; ();
 
     logic [31:0] wme_ffe_data;
-    logic [$clog2(Nti)+$clog2(10):0] wme_ffe_inst;
+    logic [$clog2(Nti)+$clog2(ffe_gpack::length):0] wme_ffe_inst;
     logic wme_ffe_exec;
-    logic signed [9:0] wme_ffe_read;
+    logic signed [((ffe_gpack::weight_precision)-1):0] wme_ffe_read;
 
     logic [31:0] wme_mlsd_data;
-    logic [$clog2(Nti)+$clog2(30):0] wme_mlsd_inst;
+    logic [$clog2(Nti)+$clog2(mlsd_gpack::estimate_depth):0] wme_mlsd_inst;
     logic wme_mlsd_exec;
-    logic signed [7:0] wme_mlsd_read;
+    logic signed [((mlsd_gpack::estimate_precision)-1):0] wme_mlsd_read;
 
 
     modport wme (
