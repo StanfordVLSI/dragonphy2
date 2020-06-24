@@ -1,5 +1,10 @@
 import os
+import serial
+import time
+import json
+import re
 from pathlib import Path
+from math import exp
 
 from anasymod.analysis import Analysis
 from dragonphy import *
@@ -8,7 +13,7 @@ from dragonphy.git_util import get_git_hash_short
 THIS_DIR = Path(__file__).resolve().parent
 SIMULATOR = 'vivado'
 
-def test_emu_build(board_name):
+def test_1(board_name):
     # Write project config
     prj = AnasymodProjectConfig()
     prj.set_board_name(board_name)
@@ -18,14 +23,16 @@ def test_emu_build(board_name):
     src_cfg = AnasymodSourceConfig()
 
     # JTAG-related
-    src_cfg.add_verilog_sources([get_file('vlog/chip_src/jtag/jtag_intf.sv')])
     src_cfg.add_edif_files([os.environ['TAP_CORE_LOC']], fileset='fpga')
-    src_cfg.add_verilog_sources([get_file('vlog/fpga_models/tap_core.sv')], fileset='fpga')
-    src_cfg.add_verilog_sources([get_file('vlog/fpga_models/DW_tap.sv')], fileset='fpga')
+    src_cfg.add_verilog_sources([get_file('vlog/fpga_models/jtag/tap_core.sv')], fileset='fpga')
+    src_cfg.add_verilog_sources([get_file('vlog/fpga_models/jtag/DW_tap.sv')], fileset='fpga')
     src_cfg.add_verilog_sources([os.environ['DW_TAP']], fileset='sim')
+    src_cfg.add_verilog_sources([get_file('build/cpu_models/jtag/jtag_reg_pack.sv')], fileset='sim')
 
     # Verilog Sources
-    src_cfg.add_verilog_sources(get_deps_fpga_emu('dragonphy_top'))
+    deps = get_deps_fpga_emu(impl_file=(THIS_DIR / 'tb.sv'))
+    deps = [dep for dep in deps if Path(dep).stem != 'tb']  # anasymod already includes tb.sv
+    src_cfg.add_verilog_sources(deps)
     src_cfg.add_verilog_sources([THIS_DIR / 'sim_ctrl.sv'], fileset='sim')
 
     # Verilog Headers
@@ -34,7 +41,12 @@ def test_emu_build(board_name):
 
     # Verilog Defines
     src_cfg.add_defines({'VIVADO': None})
+    src_cfg.add_defines({'DT_EXPONENT': -46})  # TODO: move to DT_SCALE
     src_cfg.add_defines({'GIT_HASH': str(get_git_hash_short())}, fileset='sim')
+    src_cfg.add_defines({'LONG_WIDTH_REAL': 32})
+
+    # Firmware
+    src_cfg.add_firmware_files([THIS_DIR / 'main.c'])
 
     # Write source config
     # TODO: interact directly with anasymod library rather than through config files
@@ -43,148 +55,280 @@ def test_emu_build(board_name):
     # "models" directory has to exist
     (THIS_DIR / 'build' / 'models').mkdir(exist_ok=True, parents=True)
 
-def test_emu_sim():
-    # create analysis object
-    ana = Analysis(input=os.path.dirname(__file__), simulator_name='vivado')
-    ana.set_target(target_name='sim')
-
+def test_2():
     # run simulation
-    ana.simulate()
+    ana = Analysis(input=str(THIS_DIR), simulator_name=SIMULATOR)
+    ana.set_target(target_name='sim')
+    ana.simulate(convert_waveform=False)
 
-def test_emu_prog():
-    # create analysis object
-    ana = Analysis(input=os.path.dirname(__file__))
+def test_3():
+    # build bitstream
+    ana = Analysis(input=str(THIS_DIR))
     ana.set_target(target_name='fpga')
-
-    # build bitstream if needed
     ana.build()
 
-    # # start interactive control
-    ctrl = ana.launch(debug=True)
+def test_4():
+    # build ELF
+    ana = Analysis(input=str(THIS_DIR))
+    ana.set_target(target_name='fpga')
+    ana.build_firmware()
 
-    def cycle():
-        ctrl.set_param(name='tck', value=1)
-        ctrl.set_param(name='tck', value=0)
+def test_5():
+    # download program
+    ana = Analysis(input=str(THIS_DIR))
+    ana.set_target(target_name='fpga')
+    ana.program_firmware()
 
+def test_6(ser_port):
+    jtag_inst_width = 5
+    sc_bus_width = 32
+    sc_addr_width = 14
+
+    tc_bus_width = 32
+    tc_addr_width = 14
+
+    sc_op_width = 2
+    tc_op_width = 2
+
+    sc_cfg_data = 8
+    sc_cfg_inst = 9
+    sc_cfg_addr = 10
+    tc_cfg_data = 12
+    tc_cfg_inst = 13
+    tc_cfg_addr = 14
+
+    read = 1
+    write = 2
+
+    reg_list = json.load(open(get_file('build/all/jtag/reg_list.json'), 'r'))
+    reg_dict = {elem['name']: elem['addresses'] for elem in reg_list}
+    arr_pat = re.compile(r'([a-zA-Z_0-9]+)+\[(\d+)\]')
+    def get_reg_addr(name):
+        m = arr_pat.match(name)
+        if m:
+            name = m.groups()[0]
+            index = int(m.groups()[1])
+            return reg_dict[name][index]
+        else:
+            return reg_dict[name]
+
+    # connect to the CPU
+    print('Connecting to the CPU...')
+    ser = serial.Serial(
+        port=ser_port,
+        baudrate=115200
+    )
+
+    # functions
     def do_reset():
-        # initialize signals
-        ctrl.set_param(name='tdi', value=0)
-        ctrl.set_param(name='tck', value=0)
-        ctrl.set_param(name='tms', value=1)
-        ctrl.set_param(name='trst_n', value=0)
-        cycle()
+        ser.write('RESET\n'.encode('utf-8'))
 
-        # de-assert reset
-        ctrl.set_param(name='trst_n', value=1)
-        cycle()
+    def do_init():
+        ser.write('INIT\n'.encode('utf-8'))
 
-        # go to the IDLE state
-        ctrl.set_param(name='tms', value=1)
-        cycle()
-        for _ in range(10):
-            cycle()
-        ctrl.set_param(name='tms', value=0)
-        cycle()
+    def set_emu_rst(val):
+        ser.write(f'SET_EMU_RST {val}\n'.encode('utf-8'))
 
-    def shift_ir(inst_in, length):
-        # Move to Select-DR-Scan state
-        ctrl.set_param(name='tms', value=1)
-        cycle()
+    def set_rstb(val):
+        ser.write(f'SET_RSTB {val}\n'.encode('utf-8'))
 
-        # Move to Select-IR-Scan state
-        ctrl.set_param(name='tms', value=1)
-        cycle()
+    def set_sleep(val):
+        ser.write(f'SET_SLEEP {val}\n'.encode('utf-8'))
 
-        # Move to Capture IR state
-        ctrl.set_param(name='tms', value=0)
-        cycle()
+    def shift_ir(val, width):
+        ser.write(f'SIR {val} {width}\n'.encode('utf-8'))
 
-        # Move to Shift-IR state
-        ctrl.set_param(name='tms', value=0)
-        cycle()
+    def shift_dr(val, width):
+        ser.write(f'SDR {val} {width}\n'.encode('utf-8'))
+        return int(ser.readline().strip())
 
-        # Remain in Shift-IR state and shift in inst_in.
-        # Observe the TDO signal to read the x_inst_out
-        for i in range(length-1):
-            ctrl.set_param(name='tdi', value=(inst_in >> i) & 1)
-            cycle()
+    def write_tc_reg(name, val):
+        # specify address
+        shift_ir(tc_cfg_addr, jtag_inst_width)
+        shift_dr(get_reg_addr(name), tc_addr_width)
 
-        # Shift in the last bit and switch to Exit1-IR state
-        ctrl.set_param(name='tdi', value=(inst_in >> (length-1)) & 1)
-        ctrl.set_param(name='tms', value=1)
-        cycle()
+        # send data
+        shift_ir(tc_cfg_data, jtag_inst_width)
+        shift_dr(val, tc_bus_width)
 
-        # Move to Update-IR state
-        ctrl.set_param(name='tms', value=1)
-        cycle()
+        # specify "WRITE" operation
+        shift_ir(tc_cfg_inst, jtag_inst_width)
+        shift_dr(write, tc_op_width)
 
-        # Move to Run-Test/Idle state
-        ctrl.set_param(name='tms', value=0)
-        cycle()
-        cycle()
+    def write_sc_reg(name, val):
+        # specify address
+        shift_ir(sc_cfg_addr, jtag_inst_width)
+        shift_dr(get_reg_addr(name), sc_addr_width)
 
-    def shift_dr(data_in, length):
-        # Move to Select-DR-Scan state
-        ctrl.set_param(name='tms', value=1)
-        cycle()
+        # send data
+        shift_ir(sc_cfg_data, jtag_inst_width)
+        shift_dr(val, sc_bus_width)
 
-        # Move to Capture-DR state
-        ctrl.set_param(name='tms', value=0)
-        cycle()
+        # specify "WRITE" operation
+        shift_ir(sc_cfg_inst, jtag_inst_width)
+        shift_dr(write, sc_op_width)
 
-        # Move to Shift-DR state
-        ctrl.set_param(name='tms', value=0)
-        cycle()
+    def read_tc_reg(name):
+        # specify address
+        shift_ir(tc_cfg_addr, jtag_inst_width)
+        shift_dr(get_reg_addr(name), tc_addr_width)
 
-        # Remain in Shift-DR state and shift in data_in.
-        # Observe the TDO signal to read the data_out
-        data_out = 0
-        for i in range(length-1):
-            ctrl.set_param(name='tdi', value=(data_in >> i) & 1)
-            ctrl.refresh_param('vio_0_i')
-            data_out |= (int(ctrl.get_param('tdo')) << i)
-            cycle()
+        # specify "READ" operation
+        shift_ir(tc_cfg_inst, jtag_inst_width)
+        shift_dr(read, tc_op_width)
 
-        # Shift in the last bit and switch to Exit1-DR state
-        ctrl.set_param(name='tdi', value=(data_in >> (length-1)) & 1)
-        data_out |= (int(ctrl.get_param('tdo')) << (length-1))
-        ctrl.set_param(name='tms', value=1)
-        cycle()
+        # get data
+        shift_ir(tc_cfg_data, jtag_inst_width)
+        return shift_dr(0, tc_bus_width)
 
-        # Move to Update-DR state
-        ctrl.set_param(name='tms', value=1)
-        cycle()
+    def read_sc_reg(name):
+        # specify address
+        shift_ir(sc_cfg_addr, jtag_inst_width)
+        shift_dr(get_reg_addr(name), sc_addr_width)
 
-        # Move to Run-Test/Idle state
-        ctrl.set_param(name='tms', value=0)
-        cycle()
-        cycle()
+        # specify "READ" operation
+        shift_ir(sc_cfg_inst, jtag_inst_width)
+        shift_dr(read, sc_op_width)
 
-        # Return the output data
-        return data_out
+        # get data
+        shift_ir(sc_cfg_data, jtag_inst_width)
+        return shift_dr(0, sc_bus_width)
 
-    def read_id ():
-        shift_ir(1, 5)
-        return shift_dr(0, 32)
+    def load_weight(
+            d_idx, # 2 bits
+            w_idx, # 4 bits
+            value, # 10 bits
+    ):
+        print(f'Loading weight d_idx={d_idx}, w_idx={w_idx} with value {value}')
 
-    # reset emulator
-    ctrl.set_reset(1)
-    ctrl.set_reset(0)
+        # write wme_ffe_inst
+        wme_ffe_inst = 0
+        wme_ffe_inst |= d_idx & 0b11
+        wme_ffe_inst |= (w_idx & 0b1111) << 2
+        write_tc_reg('wme_ffe_inst', wme_ffe_inst)
 
-    # release external reset
-    ctrl.set_param(name='rstb', value=1)
+        # write wme_ffe_data
+        wme_ffe_data = value & 0b1111111111
+        write_tc_reg('wme_ffe_data', wme_ffe_data)
 
-    # release JTAG reset
+        # pulse wme_ffe_exec
+        write_tc_reg('wme_ffe_exec', 1)
+        write_tc_reg('wme_ffe_exec', 0)
+
+    # Initialize
+    set_sleep(22)
+    do_init()
+
+    # Clear emulator reset
+    set_emu_rst(0)
+
+    # Reset JTAG
+    print('Reset JTAG')
     do_reset()
 
-    # read ID
-    jtag_id = read_id()
+    # Release other reset signals
+    print('Release other reset signals')
+    set_rstb(1)
+
+    # Soft reset
+    print('Soft reset')
+    write_tc_reg('int_rstb', 1)
+    write_tc_reg('en_inbuf', 1)
+    write_tc_reg('en_gf', 1)
+    write_tc_reg('en_v2t', 1)
+
+    # read the ID
+    print('Reading ID...')
+    shift_ir(1, 5)
+    id_result = shift_dr(0, 32)
+    print(f'ID: {id_result}')
+
+    # Set PFD offset
+    print('Set PFD offset')
+    for k in range(16):
+        write_tc_reg(f'ext_pfd_offset[{k}]', 0)
+
+    # Configure PRBS checker
+    print('Configure the PRBS checker')
+    write_tc_reg('sel_prbs_mux', 1) # "0" is ADC, "1" is FFE, "3" is BIST
+
+    # Release the PRBS checker from reset
+    print('Release the PRBS checker from reset')
+    write_tc_reg('prbs_rstb', 1)
+
+    # Set up the FFE
+    dt=1.0/(16.0e9)
+    tau=25.0e-12
+    coeff0 = 128.0/(1.0-exp(-dt/tau))
+    coeff1 = -128.0*exp(-dt/tau)/(1.0-exp(-dt/tau))
+    for loop_var in range(16):
+        for loop_var2 in range(4):
+            if (loop_var2 == 0):
+                # The argument order for load() is depth, width, value
+                load_weight(loop_var2, loop_var, int(round(coeff0)))
+            elif (loop_var2 == 1):
+                load_weight(loop_var2, loop_var, int(round(coeff1)))
+            else:
+                load_weight(loop_var2, loop_var, 0)
+        write_tc_reg(f'ffe_shift[{loop_var}]', 7)
+
+    # Configure the CDR offsets
+    print('Configure the CDR offsets')
+    write_tc_reg('ext_pi_ctl_offset[0]', 0)
+    write_tc_reg('ext_pi_ctl_offset[1]', 128)
+    write_tc_reg('ext_pi_ctl_offset[2]', 256)
+    write_tc_reg('ext_pi_ctl_offset[3]', 384)
+    write_tc_reg('en_ext_max_sel_mux', 1)
+
+    # Configure the retimer
+    print('Configuring the retimer...')
+    write_tc_reg('retimer_mux_ctrl_1', 0xffff)
+    write_tc_reg('retimer_mux_ctrl_2', 0xffff)
+
+    # Configure the CDR
+    print('Configuring the CDR...')
+    write_tc_reg('Kp', 15)
+    write_tc_reg('Ki', 0)
+    write_tc_reg('invert', 1)
+    write_tc_reg('en_freq_est', 0)
+    write_tc_reg('en_ext_pi_ctl', 0)
+    write_tc_reg('sel_inp_mux', 1) # "0": use ADC output, "1": use FFE output
+
+    # Re-initialize ordering
+    print('Re-initialize ADC ordering')
+    write_tc_reg('en_v2t', 0)
+    write_tc_reg('en_v2t', 1)
+
+    # Wait for CDR to lock
+    print('Wait for PRBS checker to lock')
+    time.sleep(1.0)
+
+    # Run PRBS test
+    print('Run PRBS test')
+    write_tc_reg('prbs_checker_mode', 2)
+    time.sleep(10.0)
+
+    # Read out PRBS test results
+    print('Read out PRBS test results')
+    write_tc_reg('prbs_checker_mode', 3)
+
+    err_bits = 0
+    err_bits |= read_sc_reg('prbs_err_bits_upper')
+    err_bits <<= 32
+    err_bits |= read_sc_reg('prbs_err_bits_lower')
+    print(f'err_bits: {err_bits}')
+
+    total_bits = 0
+    total_bits |= read_sc_reg('prbs_total_bits_upper')
+    total_bits <<= 32
+    total_bits |= read_sc_reg('prbs_total_bits_lower')
+    print(f'total_bits: {total_bits}')
 
     # check results
     print('Checking the results...')
-    print(f'Got ID: {jtag_id}')
+    assert id_result == 497598771, 'ID mismatch'
+    assert err_bits == 0, 'Bit error detected'
+    assert total_bits > 100000, 'Not enough bits detected'
 
-    if jtag_id != 497598771:
-        raise Exception('ID mismatch')
-    else:
-        print('OK!')
+    # finish test
+    print('OK!')

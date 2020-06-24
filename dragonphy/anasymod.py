@@ -2,15 +2,33 @@ from pathlib import Path
 import yaml
 
 class AnasymodProjectConfig:
-    def __init__(self):
+    def __init__(self, fpga_sim_ctrl='UART_ZYNQ'):
         self.config = {
             'PROJECT': {
                 'dt': 50e-9,
                 'board_name': 'ZC702',
                 'plugins': ['msdsl'],
-                'emu_clk_freq': 20e6
+                'emu_clk_freq': 5e6,
+                'cpu_debug_mode': 0,
+                'cpu_debug_hierarchies': [],
+                'flatten_hierarchy': 'none'
+            },
+            'FPGA_TARGET': {
+                'fpga': {
+                    'fpga_sim_ctrl': fpga_sim_ctrl
+                }
             }
         }
+
+    def set_cpu_debug_mode(self, value):
+        self.config['PROJECT']['cpu_debug_mode'] = value
+
+    def set_flatten_hierarchy(self, value):
+        assert value in {'none', 'full', 'rebuilt'}, 'Invalid setting.'
+        self.config['PROJECT']['flatten_hierarchy'] = value
+
+    def add_debug_probe(self, depth, path):
+        self.config['PROJECT']['cpu_debug_hierarchies'].append([depth, path])
 
     def set_board_name(self, value):
         self.config['PROJECT']['board_name'] = value
@@ -60,6 +78,9 @@ class AnasymodSourceConfig:
 
     def add_verilog_headers(self, header_list, fileset=None):
         self.add_generic_sources('verilog_headers', header_list, fileset)
+
+    def add_firmware_files(self, file_list, fileset=None):
+        self.add_generic_sources('firmware_files', file_list, fileset)
 
     def add_defines(self, defines, fileset=None):
         if 'defines' not in self.sources:

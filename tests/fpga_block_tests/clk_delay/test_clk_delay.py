@@ -18,10 +18,10 @@ BUILD_DIR = Path(__file__).resolve().parent / 'build'
 SIMULATOR = 'vivado'
 
 # DUT options
-N_BITS = 8
-T_PER = 1e-9
-DEL_CODE = 25
-DEL_PREC = 0.25e-12
+N_BITS = 9
+T_PER = 250.0e-12
+DEL_CODE = 50
+DEL_PREC = 62.5e-12
 
 # simulator options
 TCLK = 1e-6
@@ -85,8 +85,8 @@ def test_clk_delay(float_real):
 
     # raise clock val
     t.poke(dut.clk_i_val, 1)
-    t.poke(dut.dt_req, 0.123e-9)
-    check_result(0.123e-9, 0)
+    t.poke(dut.dt_req, (0.123e-9)/4)
+    check_result((0.123e-9)/4, 0)
 
     # wait some time (expect dt_req ~ 0.1 ns)
     t.poke(dut.clk_i_val, 1)
@@ -95,28 +95,28 @@ def test_clk_delay(float_real):
 
     # lower clk_val, wait some time (expect dt_req ~ 0.345 ns)
     t.poke(dut.clk_i_val, 0)
-    t.poke(dut.dt_req, 0.345e-9)
-    check_result(0.345e-9, 1)
+    t.poke(dut.dt_req, (0.345e-9)/4)
+    check_result((0.345e-9)/4, 1)
 
     # wait some time (expect dt_req ~ 0.1 ns)
     t.poke(dut.clk_i_val, 0)
-    t.poke(dut.dt_req, 0.456e-9)
+    t.poke(dut.dt_req, (0.456e-9)/4)
     check_result(del_nom, 0)
 
     # raise clk_val, wait some time (expect dt_req ~ 0.567 ns)
     t.poke(dut.clk_i_val, 1)
-    t.poke(dut.dt_req, 0.567e-9)
-    check_result(0.567e-9, 0)
+    t.poke(dut.dt_req, (0.567e-9)/4)
+    check_result((0.567e-9)/4, 0)
 
     # wait some time (expect dt_req ~ 0.1 ns)
     t.poke(dut.clk_i_val, 1)
-    t.poke(dut.dt_req, 0.678e-9)
+    t.poke(dut.dt_req, (0.678e-9)/4)
     check_result(del_nom, 1)
 
     # lower clk_val, wait some time (expect dt_req ~ 0.789 ns)
     t.poke(dut.clk_i_val, 0)
-    t.poke(dut.dt_req, 0.789e-9)
-    check_result(0.789e-9, 1)
+    t.poke(dut.dt_req, (0.789e-9)/4)
+    check_result((0.789e-9)/4, 1)
 
     # run the simulation
     defines = {
@@ -130,7 +130,7 @@ def test_clk_delay(float_real):
         directory=BUILD_DIR,
         simulator=SIMULATOR,
         ext_srcs=[get_file('build/fpga_models/clk_delay_core/clk_delay_core.sv'),
-                  get_file('tests/test_clk_delay/test_clk_delay.sv')],
+                  get_file('tests/fpga_block_tests/clk_delay/test_clk_delay.sv')],
         inc_dirs=[get_svreal_header().parent, get_msdsl_header().parent],
         ext_model_file=True,
         defines=defines,

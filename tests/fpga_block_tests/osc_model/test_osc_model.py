@@ -115,10 +115,10 @@ def test_osc_model(float_real):
         directory=BUILD_DIR,
         simulator=SIMULATOR,
         ext_srcs=[get_file('build/fpga_models/osc_model_core/osc_model_core.sv'),
-                  get_file('tests/test_osc_model/test_osc_model.sv')],
+                  get_file('tests/fpga_block_tests/osc_model/test_osc_model.sv')],
         inc_dirs=[get_svreal_header().parent, get_msdsl_header().parent],
         ext_model_file=True,
         defines=defines,
-        parameters={'t_lo': 0.4e-9, 't_hi': 0.6e-9},
+        parameters={'t_lo': 0.4e-9, 't_hi': 0.6e-9, 't_del': 0.5e-9},
         disp_type='realtime'
     )

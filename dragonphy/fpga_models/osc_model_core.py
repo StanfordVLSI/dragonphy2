@@ -1,11 +1,15 @@
 from pathlib import Path
 from copy import deepcopy
+import numpy as np
 from msdsl import MixedSignalModel, VerilogGenerator
 from msdsl.expr.expr import array
 from msdsl.expr.extras import if_
 
 class OscModelCore:
     def __init__(self,  filename=None, **system_values):
+        # set a fixed random seed for repeatability
+        np.random.seed(2)
+
         module_name = Path(filename).stem
         build_dir   = Path(filename).parent
 
@@ -14,15 +18,14 @@ class OscModelCore:
             f'Cannot build {module_name}, Missing parameter in config file'
 
         m = MixedSignalModel(module_name, dt=system_values['dt'], build_dir=build_dir)
-        m.add_real_param('t_lo', default=system_values['tlo'])
-        m.add_real_param('t_hi', default=system_values['thi'])
+        m.add_real_param('t_del', 0)
         m.add_digital_input('emu_rst')
         m.add_digital_input('emu_clk')
+        m.add_analog_input('t_lo')
+        m.add_analog_input('t_hi')
         m.add_analog_input('emu_dt')
-        m.add_analog_output('dt_req', init=system_values['tdel'])
+        m.add_analog_output('dt_req', init='t_del')
         m.add_digital_output('clk_val')
-        m.add_digital_input('clk_i')
-        m.add_digital_output('clk_o')
 
         # determine if the request was granted
         m.bind_name('req_grant', m.dt_req == m.emu_dt)
@@ -55,9 +58,6 @@ class OscModelCore:
         m.bind_name('dt_req_imm', dt_req_imm_array, **dt_fmt_kwargs)
         m.set_next_cycle(m.dt_req, m.dt_req_imm, clk=m.emu_clk, rst=m.emu_rst)
 
-        # pass through clock input to clock output
-        m.set_this_cycle(m.clk_o, m.clk_i)
-
         # generate the model
         m.compile_to_file(VerilogGenerator())
 
@@ -65,5 +65,5 @@ class OscModelCore:
 
     @staticmethod
     def required_values():
-        return ['dt', 'tlo', 'thi', 'tdel']
+        return ['dt']
 

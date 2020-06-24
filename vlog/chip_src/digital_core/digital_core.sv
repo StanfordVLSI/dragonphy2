@@ -124,13 +124,22 @@ module digital_core import const_pack::*; (
 
     // This generates a JTAG-controlled clock divider - divisible by 1 to 2^5
 
-    freq_divider #(.N(4)) average_clk_gen (
-        .cki(clk_adc),
-        .cko(clk_avg),
-        .ndiv(ddbg_intf_i.Ndiv_clk_avg),
-        .rstb(rstb)
-    );
+    // TODO: Rather than generating a clock signal here (clk_avg), we should generate a
+    // clock enable signal that is passed into adc_unfolding, because that block
+    // converts clk_avg back into a clock enable signal anyway.  Since the current setup
+    // leads to hold violations when implementing the design for an FPGA, freq_divider
+    // is ifdef'd out for emulation.
 
+    `ifndef VIVADO
+        freq_divider #(.N(4)) average_clk_gen (
+            .cki(clk_adc),
+            .cko(clk_avg),
+            .ndiv(ddbg_intf_i.Ndiv_clk_avg),
+            .rstb(rstb)
+        );
+    `else
+        assign clk_avg = 1'b0;
+    `endif
 
     genvar k;
     generate
@@ -189,6 +198,18 @@ module digital_core import const_pack::*; (
         end
     endgenerate
 
+    // Select ADC signals (Nti-1) down through 0.  For some reason, passing the slice
+    // adcout_unfolded[15:0] directly into the comparator or DSP block does not work;
+    // some entries are X or high-Z (possible Vivado bug)
+
+    logic signed [(Nadc-1):0] adcout_unfolded_non_rep [(Nti-1):0];
+
+    generate
+        for (k=0; k<Nti; k=k+1) begin
+            assign adcout_unfolded_non_rep[k] = adcout_unfolded[k];
+        end
+    endgenerate
+
     // CDR
 
     logic signed [Nadc-1:0] mm_cdr_input [Nti-1:0];
@@ -226,28 +247,36 @@ module digital_core import const_pack::*; (
     assign dsp_dbg_intf_i.mlsd_shift      = ddbg_intf_i.mlsd_shift;
     assign dsp_dbg_intf_i.thresh          = ddbg_intf_i.cmp_thresh;
 
-    weight_manager #(.width(Nti), .depth(10), .bitwidth(10)) wme_ffe_i (
-        .data    (wdbg_intf_i.wme_ffe_data),
-        .inst    (wdbg_intf_i.wme_ffe_inst),
-        .exec    (wdbg_intf_i.wme_ffe_exec),
-        .clk     (clk_adc),
-        .rstb    (rstb),
+    weight_manager #(
+        .width(Nti),
+        .depth(ffe_gpack::length),
+        .bitwidth(ffe_gpack::weight_precision)
+    ) wme_ffe_i (
+        .data(wdbg_intf_i.wme_ffe_data),
+        .inst(wdbg_intf_i.wme_ffe_inst),
+        .exec(wdbg_intf_i.wme_ffe_exec),
+        .clk(clk_adc),
+        .rstb(rstb),
         .read_reg(wdbg_intf_i.wme_ffe_read),
         .weights (dsp_dbg_intf_i.weights)
     );
 
-    weight_manager #(.width(Nti), .depth(30), .bitwidth(8)) wme_channel_est_i (
-        .data    (wdbg_intf_i.wme_mlsd_data),
-        .inst    (wdbg_intf_i.wme_mlsd_inst),
-        .exec    (wdbg_intf_i.wme_mlsd_exec),
-        .clk     (clk_adc),
-        .rstb    (rstb),
+    weight_manager #(
+        .width(Nti),
+        .depth(mlsd_gpack::estimate_depth),
+        .bitwidth(mlsd_gpack::estimate_precision)
+    ) wme_channel_est_i (
+        .data(wdbg_intf_i.wme_mlsd_data),
+        .inst(wdbg_intf_i.wme_mlsd_inst),
+        .exec(wdbg_intf_i.wme_mlsd_exec),
+        .clk(clk_adc),
+        .rstb(rstb),
         .read_reg(wdbg_intf_i.wme_mlsd_read),
         .weights (dsp_dbg_intf_i.channel_est)
     );
 
     dsp_backend dsp_i(
-        .codes(adcout_unfolded[Nti-1:0]),
+        .codes(adcout_unfolded_non_rep),
         .clk(clk_adc),
         .rstb(rstb),
         .estimated_bits_q(estimated_bits),
@@ -300,7 +329,7 @@ module digital_core import const_pack::*; (
     logic bits_ffe [Nti-1:0];
 
     comb_comp #(.numChannels(16), .inputBitwidth(Nadc), .thresholdBitwidth(Nadc)) dig_comp_adc_i (
-        .codes     (adcout_unfolded[15:0]),
+        .codes     (adcout_unfolded_non_rep),
         .thresh    (ddbg_intf_i.adc_thresh),
         .clk       (clk_adc),
         .rstb      (rstb),
@@ -337,6 +366,7 @@ module digital_core import const_pack::*; (
     assign prbs_rx_bits = mux_prbs_rx_bits[ddbg_intf_i.sel_prbs_mux];
 
     // PRBS generator for BIST
+
     prbs_generator_syn #(
         .n_prbs(Nprbs)
     ) prbs_generator_syn_i (
@@ -358,6 +388,15 @@ module digital_core import const_pack::*; (
     );
 
     // PRBS checker
+
+    logic [63:0] prbs_err_bits;
+    assign pdbg_intf_i.prbs_err_bits_upper = prbs_err_bits[63:32];
+    assign pdbg_intf_i.prbs_err_bits_lower = prbs_err_bits[31:0];
+
+    logic [63:0] prbs_total_bits;
+    assign pdbg_intf_i.prbs_total_bits_upper = prbs_total_bits[63:32];
+    assign pdbg_intf_i.prbs_total_bits_lower = prbs_total_bits[31:0];
+
     prbs_checker #(
         .n_prbs(Nprbs),
         .n_channels(Nti)
@@ -378,8 +417,8 @@ module digital_core import const_pack::*; (
         // checker mode
         .checker_mode(pdbg_intf_i.prbs_checker_mode),
         // outputs
-        .err_bits({pdbg_intf_i.prbs_err_bits_upper, pdbg_intf_i.prbs_err_bits_lower}),
-        .total_bits({pdbg_intf_i.prbs_total_bits_upper, pdbg_intf_i.prbs_total_bits_lower})
+        .err_bits(prbs_err_bits),
+        .total_bits(prbs_total_bits)
     );
 
     // Output buffer
