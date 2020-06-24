@@ -80,7 +80,7 @@ def test_5():
     ana.set_target(target_name='fpga')
     ana.program_firmware()
 
-def test_6(ser_port, ffe_length, emu_clk_freq):
+def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
     jtag_inst_width = 5
     sc_bus_width = 32
     sc_addr_width = 14
@@ -308,14 +308,25 @@ def test_6(ser_port, ffe_length, emu_clk_freq):
     print('Wait for PRBS checker to lock')
     time.sleep(1.0)
 
-    # Run PRBS test
+    # Run PRBS test.  In order to get a conservative estimate for the throughput, the
+    # test duration includes the time it takes to send JTAG commands to start and stop
+    # the PRBS bit counter.  This is needed because the counter will start running partway
+    # through the first JTAG command, and stop running partway through the second command.
+    # Since we don't know exactly when this happens, a conservative estimate should include
+    # the full time taken by the two JTAG commands.  The effect of their inclusion can be
+    # minimized by running the test for a longer period.
     print('Run PRBS test')
+    t_start = time.time()
     write_tc_reg('prbs_checker_mode', 2)
-    time.sleep(10.0)
+    time.sleep(prbs_test_dur)
+    write_tc_reg('prbs_checker_mode', 3)
+    t_stop = time.time()
+
+    # Print out duration of PRBS test
+    print(f'PRBS test took {t_stop-t_start} seconds.')
 
     # Read out PRBS test results
     print('Read out PRBS test results')
-    write_tc_reg('prbs_checker_mode', 3)
 
     err_bits = 0
     err_bits |= read_sc_reg('prbs_err_bits_upper')

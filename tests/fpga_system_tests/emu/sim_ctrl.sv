@@ -46,33 +46,33 @@ module sim_ctrl(
         $display("Loading weight d_idx=%0d, w_idx=%0d with value %0d", d_idx, w_idx, value);
         `FORCE_JTAG(wme_ffe_inst, {1'b0, w_idx, d_idx});
         `FORCE_JTAG(wme_ffe_data, value);
-        #(40us);
+        #((200.0/(`EMU_CLK_FREQ))*1s);
         `FORCE_JTAG(wme_ffe_exec, 1);
-        #(40us);
+        #((200.0/(`EMU_CLK_FREQ))*1s);
         `FORCE_JTAG(wme_ffe_exec, 0);
-        #(40us);
+        #((200.0/(`EMU_CLK_FREQ))*1s);
     endtask
 
     initial begin
         // wait for emulator reset to complete
         $display("Waiting for emulator reset to complete...");
-        #(10us);
+        #((50.0/(`EMU_CLK_FREQ))*1s);
 
         // release external reset signals
         rstb = 1'b1;
         trst_n = 1'b1;
-        #(10us);
+        #((50.0/(`EMU_CLK_FREQ))*1s);
 
         // Soft reset sequence
         $display("Soft reset sequence...");
         `FORCE_JTAG(int_rstb, 1);
-        #(1us);
+        #((5.0/(`EMU_CLK_FREQ))*1s);
         `FORCE_JTAG(en_inbuf, 1);
-		#(1us);
+		#((5.0/(`EMU_CLK_FREQ))*1s);
         `FORCE_JTAG(en_gf, 1);
-        #(1us);
+        #((5.0/(`EMU_CLK_FREQ))*1s);
         `FORCE_JTAG(en_v2t, 1);
-        #(64us);
+        #((320.0/(`EMU_CLK_FREQ))*1s);
 
         // Set up the PFD offset
         $display("Setting up the PFD offset...");
@@ -80,17 +80,17 @@ module sim_ctrl(
             tmp_ext_pfd_offset[idx] = 0;
         end
         `FORCE_JTAG(ext_pfd_offset, tmp_ext_pfd_offset);
-        #(1us);
+        #((5.0/(`EMU_CLK_FREQ))*1s);
 
         // Select the PRBS checker data source
         $display("Select the PRBS checker data source");
         `FORCE_JTAG(sel_prbs_mux, 2'b01); // 2'b00: ADC, 2'b01: FFE
-        #(10us);
+        #((50.0/(`EMU_CLK_FREQ))*1s);
 
         // Release the PRBS checker from reset
         $display("Release the PRBS tester from reset");
         `FORCE_JTAG(prbs_rstb, 1);
-        #(50us);
+        #((250.0/(`EMU_CLK_FREQ))*1s);
 
         // Set up the FFE
         for (loop_var=0; loop_var<Nti; loop_var=loop_var+1) begin
@@ -115,14 +115,14 @@ module sim_ctrl(
         tmp_ext_pi_ctl_offset[2] = 256;
         tmp_ext_pi_ctl_offset[3] = 384;
         `FORCE_JTAG(ext_pi_ctl_offset, tmp_ext_pi_ctl_offset);
-        #(5us);
+        #((25.0/(`EMU_CLK_FREQ))*1s);
         `FORCE_JTAG(en_ext_max_sel_mux, 1);
-        #(5us);
+        #((25.0/(`EMU_CLK_FREQ))*1s);
 
         // Configure the retimer
         `FORCE_JTAG(retimer_mux_ctrl_1, 16'hFFFF);
         `FORCE_JTAG(retimer_mux_ctrl_2, 16'hFFFF);
-        #(5us);
+        #((25.0/(`EMU_CLK_FREQ))*1s);
 
         // Configure the CDR
         $display("Configuring the CDR...");
@@ -132,20 +132,20 @@ module sim_ctrl(
         `FORCE_JTAG(en_freq_est, 0);
         `FORCE_JTAG(en_ext_pi_ctl, 0);
         `FORCE_JTAG(sel_inp_mux, 1); // "0": use ADC output, "1": use FFE output
-        #(5us);
+        #((25.0/(`EMU_CLK_FREQ))*1s);
 
         // Toggle the en_v2t signal to re-initialize the V2T ordering
         $display("Toggling en_v2t...");
         `FORCE_JTAG(en_v2t, 0);
-        #(5us);
+        #((25.0/(`EMU_CLK_FREQ))*1s);
         `FORCE_JTAG(en_v2t, 1);
-        #(5us);
+        #((25.0/(`EMU_CLK_FREQ))*1s);
 
         // Wait for PRBS checker to lock
 		$display("Waiting for PRBS checker to lock...");
-		for (loop_var=0; loop_var<100; loop_var=loop_var+1) begin
-		    $display("Interval %0d/100", loop_var);
-		    #(100us);
+		for (loop_var=0; loop_var<50; loop_var=loop_var+1) begin
+		    $display("Interval %0d/50", loop_var);
+		    #((500.0/(`EMU_CLK_FREQ))*1s);
 		end
 
         // Run the PRBS tester
@@ -153,13 +153,13 @@ module sim_ctrl(
         `FORCE_JTAG(prbs_checker_mode, 2);
         for (loop_var=0; loop_var<100; loop_var=loop_var+1) begin
 		    $display("Interval %0d/100", loop_var);
-		    #(100us);
+		    #((500.0/(`EMU_CLK_FREQ))*1s);
 		end
-        #(25us);
+        #((125.0/(`EMU_CLK_FREQ))*1s);
 
         // Get results
         `FORCE_JTAG(prbs_checker_mode, 3);
-        #(10us);
+        #((50.0/(`EMU_CLK_FREQ))*1s);
 
         err_bits = 0;
         err_bits |= `GET_JTAG(prbs_err_bits_upper);
