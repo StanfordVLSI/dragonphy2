@@ -22,7 +22,7 @@ test1:
         dummy_digitalmode: 0
     offset:
     - coef:
-        (1.0): 0.2
+        (1.0): pi_obj.td_mixermb
       mode:
         dummy_digitalmode: 0
 

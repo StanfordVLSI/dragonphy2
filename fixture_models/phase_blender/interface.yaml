@@ -1,9 +1,9 @@
 description: placeholder
 modelparam:
-  placeholder:
-    datatype: real
-    description: placeholder
-    value: 42
+  Nblender:
+    datatype: integer
+    description: "# of control bits"
+    value: 4
 module_name: placeholder
 
 pin:
@@ -13,18 +13,19 @@ pin:
 #    direction: input
 #    is_optional: true
 #    name: gnd
-  ph_in[0]:
+  ph_in:
     datatype: logic
-    description: ph_in[0]
+    description: ph_in
     direction: input
     is_optional: false
-    name: ph_in[0]
-  ph_in[1]:
-    datatype: logic
-    description: ph_in[1]
-    direction: input
-    is_optional: false
-    name: ph_in[1]
+    name: ph_in
+    vectorsize: 2
+#  ph_in[1]:
+#    datatype: logic
+#    description: ph_in[1]
+#    direction: input
+#    is_optional: false
+#    name: ph_in[1]
   ph_out:
     datatype: logic
     description: ph_out

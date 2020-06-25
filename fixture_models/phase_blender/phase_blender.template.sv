@@ -33,6 +33,18 @@ module $$(Module.name()) #(
     timeunit 1fs;
     timeprecision 1fs;
 
+    import model_pack::PIParameter;
+
+    // design parameter class init
+    PIParameter pi_obj;
+    //real td;
+    initial begin
+        pi_obj = new();
+        // td is handled in parameters now?
+        //td = pi_obj.td_mixermb;
+    end
+
+
 $$Pin.print_map() $$# map between user pin names and generic ones
 $$PWL.declare_optional_analog_pins_in_real()
 $$PWL.instantiate_pwl2real_optional_analog_pins(['vss'] if Pin.is_exist('vss') else [])
@@ -54,82 +66,59 @@ model_param_map = { 'test1': {'gain': 'gain', 'offset': 'offset'} }
 
 }$$
 
-always @($$print_sensitivity_list(sensitivity)) begin
-  t0 = `get_time;
+//always @($$print_sensitivity_list(sensitivity)) begin
+//  t0 = `get_time;
 
 $${
 iv_map = {}
 }$$
+
+always @(*) begin
 $$annotate_modelparam(model_param_map, iv_map)
+end
 
-    real wgt = gain + offset;
+real wgt;
+assign wgt = gain;
+real td = offset;
 
-    // state variables
-    logic nxt_state=1'b0;
-    real rise0=-1;
-    real fall0=-1;
-    real rise1=-1;
-    real fall1=-1;
+// fixed blender error by sjkim85 (3th May 2020) ------------------------------------------------
+real rise_lead;
+real rise_lag;
+real fall_lead;
+real fall_lag;
+real rise_diff_in;
+real fall_diff_in;
+real ttotr;
+real ttotf;
+real flip;
 
-    real ttotr0;
-    always @(posedge ph_in[0]) begin
-        if (nxt_state != 1'b1) begin
-            // update nxt_state
-            nxt_state = 1'b1;
-            // calculate delay
-            if ((rise0 != -1) && (rise1 != -1) && (rise1 >= rise0)) begin
-                ttotr0 = wgt*(rise1-rise0) + td + pi_obj.get_rj_mixermb();
-            end else begin
-                ttotr0 = td + pi_obj.get_rj_mixer1b();
-            end
-            // schedule output
-            ph_out <= #(ttotr0*1s) 1'b1;
-        end
-        rise0 = $realtime/1s;
+    assign ph_and = ph_in[0]&ph_in[1];
+    assign ph_or = ph_in[0]|ph_in[1];
+
+    always @(posedge ph_in[0]) flip = ph_in[1];
+    always @(negedge ph_in[0]) flip = ~ph_in[1];
+
+    always @(posedge ph_or) begin
+        rise_lead = $realtime/1s;
+    end
+    always @(posedge ph_and) begin
+        rise_lag = $realtime/1s;
+        rise_diff_in = rise_lag - rise_lead;
+        ttotr = (flip+(1-2*flip)*wgt)*rise_diff_in + td + pi_obj.get_rj_mixermb() - rise_diff_in;
+        ph_out <= #(ttotr*1s) 1'b1;
+    end
+    always @(negedge ph_and) begin
+        fall_lead = $realtime/1s;
+    end
+    always @(negedge ph_or) begin
+        fall_lag = $realtime/1s;
+        fall_diff_in = fall_lag - fall_lead;
+        ttotf = (flip+(1-2*flip)*wgt)*fall_diff_in + td + pi_obj.get_rj_mixermb() - fall_diff_in;
+        ph_out <= #(ttotf*1s) 1'b0;
     end
 
-    real ttotf0;
-    always @(negedge ph_in[0]) begin
-        if (nxt_state != 1'b0) begin
-            nxt_state = 1'b0;
-            if ((fall0 != -1) && (fall1 != -1) && (fall1 >= fall0)) begin
-                ttotf0 = wgt*(fall1-fall0) + td + pi_obj.get_rj_mixermb();
-            end else begin
-                ttotf0 = td + pi_obj.get_rj_mixer1b();
-            end
-            ph_out <= #(ttotf0*1s) 1'b0;
-        end
-        fall0 = $realtime/1s;
-    end
 
-    real ttotr1;
-    always @(posedge ph_in[1]) begin
-        if (nxt_state != 1'b1) begin
-            // update nxt_state
-            nxt_state = 1'b1;
-            // calculate delay
-            if ((rise0 != -1) && (rise1 != -1) && (rise0 >= rise1)) begin
-                ttotr1 = (1.0-wgt)*(rise0-rise1) + td + pi_obj.get_rj_mixermb();
-            end else begin
-                ttotr1 = td + pi_obj.get_rj_mixer1b();
-            end
-            // schedule output
-            ph_out <= #(ttotr1*1s) 1'b1;
-        end
-        rise1 = $realtime/1s;
-    end
+//---------------------------------------------- ------------------------------------------------
 
-    real ttotf1;
-    always @(negedge ph_in[1]) begin
-        if (nxt_state != 1'b0) begin
-            nxt_state = 1'b0;
-            if ((fall0 != -1) && (fall1 != -1) && (fall0 >= fall1)) begin
-                ttotf1 = (1.0-wgt)*(fall0-fall1) + td + pi_obj.get_rj_mixermb();
-            end else begin
-                ttotf1 = td + pi_obj.get_rj_mixer1b();
-            end
-            ph_out <= #(ttotf1*1s) 1'b0;
-        end
-        fall1 = $realtime/1s;
-    end
 endmodule
+
