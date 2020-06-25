@@ -2,7 +2,7 @@ Jun 22, 2020
 * simulation with 4x channels:
   * PRBS test took 27.614053 seconds.
   * Total bits: 600000
-  * 21.7 kb/s
+  * Throughput: 21.7 kb/s
 
 Jun 24, 2020
 * Emulation with 16x channels on ZC706:
@@ -16,3 +16,9 @@ Jun 24, 2020
   * BRAM: 42.5 / 545
   * Build time: 30m 35.161s with Vivado 2020.1 on Intel(R) Core(TM) i5-2320 CPU @ 3.00GHz, Ubuntu 18.04.2 LTS, 6 GB RAM
     * use `cat /proc/cpuinfo`, `cat /proc/meminfo`, `lsb_release -a`
+* Simulation with 16x channels:
+  * PRBS test took 42.509094 seconds.
+  * Total_bits: 608192
+  * Throughput: 14.3 kb/s
+  * r7cad-generic processor, CentOS Linux release 7.7.1908 (Core), 128 GB RAM
+    * /proc/cpuinfo did not display the real CPU information since r7cad-generic is a VM
