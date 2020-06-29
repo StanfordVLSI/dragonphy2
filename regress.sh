@@ -28,7 +28,7 @@ if [[ -z "${FPGA_SERVER}" ]]; then
 else
     python make.py --view fpga
     xvfb-run pytest tests/fpga_block_tests tests/fpga_system_tests \
-        -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
+        -s -v -r s --cov-report=xml --cov=dragonphy --durations=0 -x
 fi
 
 # upload coverage

@@ -62,6 +62,10 @@ steps:
       python3.7 -m venv venv
       source venv/bin/activate
 
+      # scale down the size of the FFE and MLSD to fit on the regression FPGA
+      sed -i 's/\&ffe_length [[:digit:]]\+/\&ffe_length 4/g' config/system.yml
+      sed -i 's/\&estimate_depth [[:digit:]]\+/\&estimate_depth 4/g' config/system.yml
+
       # run regression script
       source regress.sh
 

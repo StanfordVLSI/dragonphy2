@@ -4,7 +4,7 @@ import time
 import json
 import re
 from pathlib import Path
-from math import exp
+from math import exp, ceil, log2
 
 from anasymod.analysis import Analysis
 from dragonphy import *
@@ -13,10 +13,11 @@ from dragonphy.git_util import get_git_hash_short
 THIS_DIR = Path(__file__).resolve().parent
 SIMULATOR = 'vivado'
 
-def test_1(board_name):
+def test_1(board_name, emu_clk_freq):
     # Write project config
     prj = AnasymodProjectConfig()
     prj.set_board_name(board_name)
+    prj.set_emu_clk_freq(emu_clk_freq)
     prj.write_to_file(THIS_DIR / 'prj.yaml')
 
     # Build up a configuration of source files for the project
@@ -79,7 +80,7 @@ def test_5():
     ana.set_target(target_name='fpga')
     ana.program_firmware()
 
-def test_6(ser_port):
+def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
     jtag_inst_width = 5
     sc_bus_width = 32
     sc_addr_width = 14
@@ -195,16 +196,19 @@ def test_6(ser_port):
         return shift_dr(0, sc_bus_width)
 
     def load_weight(
-            d_idx, # 2 bits
+            d_idx, # clog2(ffe_length)
             w_idx, # 4 bits
             value, # 10 bits
     ):
         print(f'Loading weight d_idx={d_idx}, w_idx={w_idx} with value {value}')
 
+        # determine number of bits for d_idx
+        d_idx_bits = int(ceil(log2(ffe_length)))
+
         # write wme_ffe_inst
         wme_ffe_inst = 0
-        wme_ffe_inst |= d_idx & 0b11
-        wme_ffe_inst |= (w_idx & 0b1111) << 2
+        wme_ffe_inst |= d_idx & ((1<<d_idx_bits)-1)
+        wme_ffe_inst |= (w_idx & 0b1111) << d_idx_bits
         write_tc_reg('wme_ffe_inst', wme_ffe_inst)
 
         # write wme_ffe_data
@@ -216,7 +220,8 @@ def test_6(ser_port):
         write_tc_reg('wme_ffe_exec', 0)
 
     # Initialize
-    set_sleep(22)
+    jtag_sleep_us = int(ceil((110/emu_clk_freq)*1e6))
+    set_sleep(jtag_sleep_us)
     do_init()
 
     # Clear emulator reset
@@ -262,7 +267,7 @@ def test_6(ser_port):
     coeff0 = 128.0/(1.0-exp(-dt/tau))
     coeff1 = -128.0*exp(-dt/tau)/(1.0-exp(-dt/tau))
     for loop_var in range(16):
-        for loop_var2 in range(4):
+        for loop_var2 in range(ffe_length):
             if (loop_var2 == 0):
                 # The argument order for load() is depth, width, value
                 load_weight(loop_var2, loop_var, int(round(coeff0)))
@@ -303,14 +308,25 @@ def test_6(ser_port):
     print('Wait for PRBS checker to lock')
     time.sleep(1.0)
 
-    # Run PRBS test
+    # Run PRBS test.  In order to get a conservative estimate for the throughput, the
+    # test duration includes the time it takes to send JTAG commands to start and stop
+    # the PRBS bit counter.  This is needed because the counter will start running partway
+    # through the first JTAG command, and stop running partway through the second command.
+    # Since we don't know exactly when this happens, a conservative estimate should include
+    # the full time taken by the two JTAG commands.  The effect of their inclusion can be
+    # minimized by running the test for a longer period.
     print('Run PRBS test')
+    t_start = time.time()
     write_tc_reg('prbs_checker_mode', 2)
-    time.sleep(10.0)
+    time.sleep(prbs_test_dur)
+    write_tc_reg('prbs_checker_mode', 3)
+    t_stop = time.time()
+
+    # Print out duration of PRBS test
+    print(f'PRBS test took {t_stop-t_start} seconds.')
 
     # Read out PRBS test results
     print('Read out PRBS test results')
-    write_tc_reg('prbs_checker_mode', 3)
 
     err_bits = 0
     err_bits |= read_sc_reg('prbs_err_bits_upper')
