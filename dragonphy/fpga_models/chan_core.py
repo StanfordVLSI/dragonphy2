@@ -33,7 +33,7 @@ class ChannelCore:
         view = system_values['view']
 
         # read in the channel data
-        chan = Filter.from_file(get_file('build/fpga_models/adapt_fir/chan.npy'))
+        chan = Filter.from_file(get_file('build/chip_src/adapt_fir/chan.npy'))
 
         # create a function
         domain = [chan.t_vec[0], chan.t_vec[-1]]

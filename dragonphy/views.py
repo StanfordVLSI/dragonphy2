@@ -14,7 +14,10 @@ def remove_dup(seq):
 def find_preferred_impl(cell_name, view_order, override):
     # if there is a specific view desired for this cell, use it instead of the view order
     if cell_name in override:
-        view_order = [override[cell_name]]
+        if isinstance(override[cell_name], Path):
+            return override[cell_name]
+        else:
+            view_order = [override[cell_name]]
 
     # walk through the view names in order, checking to see if there are any matches in each
     for view_name in view_order:
@@ -175,9 +178,12 @@ def get_deps_asic(cell_name=None, impl_file=None, process='tsmc16'):
     # Return the dependencies
     return deps
 
-def get_deps_cpu_sim(cell_name=None, impl_file=None):
-    deps = []
+def get_deps_cpu_sim(cell_name=None, impl_file=None, override=None):
+    # set defaults
+    if override is None:
+        override = {}
 
+    deps = []
     deps += get_deps(
         cell_name=cell_name,
         impl_file=impl_file,
@@ -190,7 +196,8 @@ def get_deps_cpu_sim(cell_name=None, impl_file=None):
             'DAVE_TIMEUNIT': '1fs',
             'NCVLOG': None,
             'SIMULATION': None  # for MDLL simulation
-        }
+        },
+        override=override
     )
 
     return deps
