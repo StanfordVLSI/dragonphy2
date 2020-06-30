@@ -13,13 +13,16 @@ from dragonphy import get_file
 
 THIS_DIR = Path(__file__).parent.resolve()
 BUILD_DIR = THIS_DIR / 'build'
-if shutil.which('iverilog'):
-    SIMULATOR = 'iverilog'
-else:
-    SIMULATOR = 'ncsim'
 
 @pytest.mark.parametrize('n_prbs', [7, 9, 11, 15, 17, 20, 23, 29, 31])
-def test_sim(n_prbs, n_channels=16, n_trials=256):
+def test_sim(simulator_name, n_prbs, n_channels=16, n_trials=256):
+    # set defaults
+    if simulator_name is None:
+        if shutil.which('iverilog'):
+            simulator_name = 'iverilog'
+        else:
+            simulator_name = 'ncsim'
+
     # determine the right equation
     if n_prbs == 7:
         eqn = (1 << 6) | (1 << 5)
@@ -94,7 +97,7 @@ def test_sim(n_prbs, n_channels=16, n_trials=256):
     # run the test
     t.compile_and_run(
         target='system-verilog',
-        simulator=SIMULATOR,
+        simulator=simulator_name,
         ext_srcs=[
             get_file('vlog/tb/prbs_generator.sv'),
             get_file('vlog/chip_src/prbs/prbs_checker_core.sv'),

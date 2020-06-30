@@ -6,6 +6,10 @@ def pytest_addoption(parser):
     )
 
     parser.addoption(
+        '--simulator_name', default=None, type=str, help='Name of the simulator to use.'
+    )
+
+    parser.addoption(
         '--board_name', default='ZC702', type=str, help='Name of the FPGA board.'
     )
 
@@ -28,6 +32,10 @@ def pytest_addoption(parser):
 @pytest.fixture
 def dump_waveforms(request):
     return request.config.getoption('--dump_waveforms')
+
+@pytest.fixture
+def simulator_name(request):
+    return request.config.getoption('--simulator_name')
 
 @pytest.fixture
 def board_name(request):

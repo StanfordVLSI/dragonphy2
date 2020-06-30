@@ -11,7 +11,6 @@ from dragonphy import *
 from dragonphy.git_util import get_git_hash_short
 
 THIS_DIR = Path(__file__).resolve().parent
-SIMULATOR = 'vivado'
 
 def test_1(board_name, emu_clk_freq):
     # Write project config
@@ -56,9 +55,13 @@ def test_1(board_name, emu_clk_freq):
     # "models" directory has to exist
     (THIS_DIR / 'build' / 'models').mkdir(exist_ok=True, parents=True)
 
-def test_2():
+def test_2(simulator_name):
+    # set defaults
+    if simulator_name is None:
+        simulator_name = 'vivado'
+
     # run simulation
-    ana = Analysis(input=str(THIS_DIR), simulator_name=SIMULATOR)
+    ana = Analysis(input=str(THIS_DIR), simulator_name=simulator_name)
     ana.set_target(target_name='sim')
     ana.simulate(convert_waveform=False)
 

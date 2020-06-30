@@ -11,12 +11,15 @@ from dragonphy import get_file
 
 THIS_DIR = Path(__file__).parent.resolve()
 BUILD_DIR = THIS_DIR / 'build'
-if shutil.which('iverilog'):
-    SIMULATOR = 'iverilog'
-else:
-    SIMULATOR = 'ncsim'
 
-def test_sim():
+def test_sim(simulator_name):
+    # set defaults
+    if simulator_name is None:
+        if shutil.which('iverilog'):
+            simulator_name = 'iverilog'
+        else:
+            simulator_name = 'ncsim'
+
     # declare circuit
     class dut(m.Circuit):
         name = 'prbs_generator_syn'
@@ -65,7 +68,7 @@ def test_sim():
     # run the test
     t.compile_and_run(
         target='system-verilog',
-        simulator=SIMULATOR,
+        simulator=simulator_name,
         ext_srcs=[
             get_file('vlog/chip_src/prbs/prbs_generator_syn.sv'),
         ],
