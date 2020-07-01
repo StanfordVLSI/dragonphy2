@@ -78,8 +78,9 @@ $$annotate_modelparam(model_param_map, iv_map)
 end
 
 real wgt;
+real td;
 assign wgt = gain;
-real td = offset;
+assign td = offset;
 
 // fixed blender error by sjkim85 (3th May 2020) ------------------------------------------------
 real rise_lead;

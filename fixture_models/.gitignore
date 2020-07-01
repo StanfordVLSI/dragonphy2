@@ -1,0 +1,5 @@
+mgenero_*.cfg
+*.sv.err
+*.intermediate.sv
+
+final.sv
