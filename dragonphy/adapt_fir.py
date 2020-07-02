@@ -17,7 +17,7 @@ class AdaptFir:
             tau=25e-12,
             t_delay=31.25e-12,
             sampl_rate=160e9,
-            resp_depth=500
+            resp_depth=512
         )
         chan = Channel(**kwargs)
 
