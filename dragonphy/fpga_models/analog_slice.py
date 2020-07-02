@@ -58,7 +58,7 @@ class AnalogSlice:
         # create a function
         domain = [chan.t_vec[0], chan.t_vec[-1]]
         chan_func = m.make_function(chan.interp, domain=domain, order=system_values['func_order'],
-                                    numel=system_values['func_numel'], verif_per_seg=10)
+                                    numel=system_values['func_numel'])
         self.check_func_error(chan_func)
 
         # compute weights to apply to pulse responses
@@ -70,7 +70,8 @@ class AnalogSlice:
                     range_=system_values['vref_tx']
                 )
             )
-            m.set_next_cycle(weights[-1], if_(m.chunk[k], system_values['vref_tx'], -system_values['vref_tx']))
+            m.set_next_cycle(weights[-1], if_(m.chunk[k], system_values['vref_tx'], -system_values['vref_tx']),
+                             clk=m.clk, rst=m.rst)
 
         # Compute the evaluation time for this slice
         t_samp = m.bind_name(
@@ -153,8 +154,8 @@ class AnalogSlice:
         samp = np.random.uniform(f.domain[0], f.domain[1], 1000)
         approx = f.eval_on(samp)
         exact = f.func(samp)
-        err = np.sqrt(np.mean((exact-approx)**2))
-        print(f'RMS error: {err}')
+        err = np.max(np.abs(exact-approx))
+        print(f'Worst-case error: {err}')
 
     @staticmethod
     def required_values():
