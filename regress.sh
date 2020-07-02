@@ -11,8 +11,11 @@ export PATH="$GENESIS_HOME/gui/bin:$PATH"
 
 # install DaVE
 # TODO: install from master branch
-git clone --single-branch --branch pwl_cos https://github.com/StanfordVLSI/DaVE.git
+git clone --single-branch --branch move_to_python3 https://github.com/StanfordVLSI/DaVE.git
 export mLINGUA_DIR=`realpath DaVE/mLingua`
+export DAVE_INST_DIR=`realpath DaVE`
+export PYTHONPATH="${DAVE_INST_DIR}:$PYTHONPATH"
+
 
 # install dragonphy
 pip install -e .
