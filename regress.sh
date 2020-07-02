@@ -24,6 +24,7 @@ pip install pytest pytest-cov
 if [[ -z "${FPGA_SERVER}" ]]; then
     python make.py --view cpu
     pytest tests/other_tests tests/cpu_block_tests tests/cpu_system_tests \
+        tests/fixture_tests \
         -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
 else
     python make.py --view fpga

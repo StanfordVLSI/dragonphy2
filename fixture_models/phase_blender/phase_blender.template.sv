@@ -37,13 +37,9 @@ module $$(Module.name()) #(
 
     // design parameter class init
     PIParameter pi_obj;
-    //real td;
     initial begin
         pi_obj = new();
-        // td is handled in parameters now?
-        //td = pi_obj.td_mixermb;
     end
-
 
 $$Pin.print_map() $$# map between user pin names and generic ones
 $$PWL.declare_optional_analog_pins_in_real()
@@ -52,8 +48,6 @@ $$PWL.instantiate_pwl2real_optional_analog_pins(['vss'] if Pin.is_exist('vss') e
 real gain;
 real offset;
 
-
-
 $${
 # sensitivity list of always @ statement
 # sensitivity = ['v_icm_r', 'vdd_r', 'wakeup'] + get_sensitivity_list() 
@@ -61,13 +55,9 @@ sensitivity = ['wakeup'] + get_sensitivity_list()
 
 # model parameter mapping for back-annotation
 # { testname : { test output : Verilog variable being mapped to } }
-#model_param_map = { 'test1': {'gain': 'Av', 'offset_to_cm': 'v_oc_r'} }
 model_param_map = { 'test1': {'gain': 'gain', 'offset': 'offset'} }
 
 }$$
-
-//always @($$print_sensitivity_list(sensitivity)) begin
-//  t0 = `get_time;
 
 $${
 iv_map = {}
