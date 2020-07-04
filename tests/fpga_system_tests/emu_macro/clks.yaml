@@ -1,0 +1,11 @@
+derived_clks:
+  tb_emu_io:
+    abspath: 'tb_i'
+    emu_clk: 'emu_clk'
+    emu_rst: 'emu_rst'
+  iacore_clk_adc:
+    abspath: 'tb_i.top_i.iacore'
+    emu_clk: 'emu_clk'
+    emu_rst: 'emu_rst'
+    gated_clk_req: 'clk_adc_val'
+    gated_clk: 'clk_adc_i'
