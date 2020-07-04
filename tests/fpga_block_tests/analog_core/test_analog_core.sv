@@ -1,8 +1,4 @@
-module test_analog_core #(
-    parameter integer Nti=16,
-    parameter integer Npi=9,
-    parameter integer Nadc=8,
-    parameter integer Nout=4
+module test_analog_core import const_pack::*; #(
 ) (
     // Input bits
     input [(Nti-1):0] bits,
@@ -64,15 +60,27 @@ module test_analog_core #(
     assign adder_out_14 = adder_out[14];
     assign adder_out_15 = adder_out[15];
 
+    // instantiate the debug interface (although it is unused)
+    acore_debug_intf adbg_intf_i ();
+
     // instantiate the model
     analog_core analog_core_i (
         .rx_inp(bits),
         .ctl_pi(ctl_pi),
         .adder_out(adder_out),
-        .sign_out(sign_out)
+        .sign_out(sign_out),
+        .adbg_intf_i(adbg_intf_i)
     );
 
     // wire emulator control signals through the hierarchy
     assign analog_core_i.emu_clk = clk;
     assign analog_core_i.emu_rst = rst;
+
+    // waveform dumping
+    initial begin
+        `ifdef DUMP_WAVEFORMS
+	        $shm_open("waves.shm");
+	        $shm_probe("ASMC");
+        `endif
+    end
 endmodule

@@ -1,10 +1,6 @@
 `include "iotype.sv"
 
-module analog_core #(
-    parameter integer Nti=16,
-    parameter integer Npi=9,
-    parameter integer Nadc=8,
-    parameter integer Nout=4
+module analog_core import const_pack::*; #(
 ) (
     input `pwl_t rx_inp,                                 // RX input (+) (from pad)
 	input `pwl_t rx_inn,                                 // RX input (-) (from pad)
@@ -33,10 +29,12 @@ module analog_core #(
     output wire logic [Nti-1:0] sign_out,                // adc output (to DCORE)
 
     output wire logic [Nadc-1:0] adder_out_rep [1:0],    // adc_rep output (to DCORE)
-    output wire logic [1:0] sign_out_rep                 // adc_rep_output (to DOORE)
+    output wire logic [1:0] sign_out_rep,                // adc_rep_output (to DOORE)
     
-	//acore_debug_intf.acore adbg_intf_i                 // TODO: uncomment
+	acore_debug_intf.acore adbg_intf_i
 );
+    // emulator I/O
+
     (* dont_touch = "true" *) logic emu_clk;
     (* dont_touch = "true" *) logic emu_rst;
 
@@ -49,11 +47,12 @@ module analog_core #(
 
     genvar i;
     generate
-        for (i=0; i<16; i=i+1) begin
+        for (i=0; i<Nti; i=i+1) begin
             // determine the slice offset
             logic [1:0] slice_offset;
             assign slice_offset = i%Nout;
 
+            // instantiate the slice
             analog_slice analog_slice_i (
                 .chunk(chunk),
                 .chunk_idx(chunk_idx),
@@ -111,4 +110,42 @@ module analog_core #(
     assign incr_sum = (counter != 1) ? 1'b1 : 1'b0;
     assign last_cycle = (counter == 5) ? 1'b1 : 1'b0;
 
+    // replica slices aren't modeled yet
+
+    assign adder_out_rep[0] = 0;
+    assign adder_out_rep[1] = 0;
+    assign sign_out_rep = 0;
+
+    // assign clk_adc
+
+    (* dont_touch = "true" *) logic clk_adc_val;
+    (* dont_touch = "true" *) logic clk_adc_i;
+
+    assign clk_adc_val = ((2 <= counter) && (counter <= 4)) ? 1'b0 : 1'b1;
+    assign clk_adc = clk_adc_i;
+
+    // assign outputs in analog interface (mostly set to zero)
+
+    generate
+        for (i=0; i<Nti; i=i+1) begin
+            assign adbg_intf_i.pm_out[i] = 0;
+        end
+        for (i=0; i<Nout; i=i+1) begin
+            assign adbg_intf_i.pm_out_pi[i] = 0;
+            assign adbg_intf_i.Qperi[i] = '1;
+            assign adbg_intf_i.max_sel_mux[i] = '1;
+        end
+        for (i=0; i<2; i=i+1) begin
+            assign adbg_intf_i.pm_out_rep[0] = 0;
+        end
+    endgenerate
+
+    assign adbg_intf_i.del_out = 0;
+    assign adbg_intf_i.del_out_pi = 0;
+    assign adbg_intf_i.cal_out_pi = 0;
+    assign adbg_intf_i.pi_out_meas = 0;
+    assign adbg_intf_i.del_out_rep = 0;
+    assign adbg_intf_i.inbuf_out_meas = 0;
+    assign adbg_intf_i.pfd_inp_meas = 0;
+    assign adbg_intf_i.pfd_inn_meas = 0;
 endmodule

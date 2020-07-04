@@ -13,7 +13,7 @@ from svreal import get_svreal_header
 from msdsl import get_msdsl_header
 
 # DragonPHY imports
-from dragonphy import get_file, get_dir, Filter
+from dragonphy import get_file, get_dir, Filter, get_deps_fpga_emu
 
 THIS_DIR = Path(__file__).resolve().parent
 BUILD_DIR = THIS_DIR / 'build'
@@ -73,7 +73,7 @@ def check_adc_result(sgn_meas, mag_meas, sgn_expct, mag_expct):
     if not ((expct-1) <= meas <= (expct+1)):
         raise Exception('BAD!')
 
-def test_analog_core(simulator_name, num_tests=5):
+def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
     # set seed for repeatable behavior
     random.seed(0)
 
@@ -134,7 +134,7 @@ def test_analog_core(simulator_name, num_tests=5):
     # initialize
     t.zero_inputs()
     t.poke(dut.rst, 1)
-    cycle(10)
+    cycle(2)
     t.poke(dut.rst, 0)
     for j in range(1 + CFG['num_chunks']):
         cycle()
@@ -151,16 +151,26 @@ def test_analog_core(simulator_name, num_tests=5):
     # run a few cycles at the end for better waveform visibility
     cycle(5)
 
+    # get dependencies for simulation
+    ext_srcs = get_deps_fpga_emu(impl_file = THIS_DIR / 'test_analog_core.sv')
+    print(ext_srcs)
+
+    # waveform dumping options
+    defines = {}
+    flags = []
+    if simulator_name == 'ncsim':
+        flags += ['-unbuffered']
+    if dump_waveforms:
+        defines['DUMP_WAVEFORMS'] = None
+        if simulator_name == 'ncsim':
+            flags += ['-access', '+r']
+
     # run the simulation
     t.compile_and_run(
         target='system-verilog',
         directory=BUILD_DIR,
         simulator=simulator_name,
-        ext_srcs=[
-            get_file('build/fpga_models/analog_slice/analog_slice.sv'),
-            get_file('vlog/fpga_models/analog_core/analog_core.sv'),
-            THIS_DIR / 'test_analog_core.sv'
-        ],
+        ext_srcs=ext_srcs,
         inc_dirs=[
             get_svreal_header().parent,
             get_msdsl_header().parent,
@@ -168,22 +178,43 @@ def test_analog_core(simulator_name, num_tests=5):
         ],
         ext_model_file=True,
         disp_type='realtime',
-        dump_waveforms=True
+        dump_waveforms=False,
+        defines=defines,
+        flags=flags,
+        timescale='1fs/1fs',
+        num_cycles=1e12
     )
 
     # process the results
-    # for k, (pi_ctl, all_bits, sgn_meas, mag_meas) in enumerate(test_cases):
-    #     # compute the expected ADC value
-    #     analog_sample = channel_model(slice_offset, pi_ctl, all_bits)
-    #     sgn_expct, mag_expct = adc_model(analog_sample)
-    #
-    #     # print measured and expected
-    #     print(f'Test case #{k}: slice_offset={slice_offset}, pi_ctl={pi_ctl}, all_bits={all_bits}')
-    #     print(f'[measured] sgn: {sgn_meas.value}, mag: {mag_meas.value}')
-    #     print(f'[expected] sgn: {sgn_expct}, mag: {mag_expct}, analog_sample: {analog_sample}')
-    #
-    #     # check result
-    #     check_adc_result(sgn_meas.value, mag_meas.value, sgn_expct, mag_expct)
+    for k in range(1, len(test_cases)-1):
+        # extract out parameters
+        pi_ctl, new_bits = test_cases[k]
+        prev_bits = test_cases[k-1][1]
+
+        # compute the expected ADC value
+        analog_sample, sgn_expct, mag_expct = [], [], []
+        all_bits = new_bits + prev_bits
+        for idx in range(16):
+            # determine the analog value sampled on this channel
+            analog_sample.append(channel_model(idx%4, pi_ctl[idx//4], all_bits))
+
+            # determine what the ADC output should be
+            adc_out = adc_model(analog_sample[-1])
+            sgn_expct.append(adc_out[0])
+            mag_expct.append(adc_out[1])
+
+        # extract out results
+        sgn_meas = [(results[k+1][0].value >> idx) & 1 for idx in range(16)]
+        mag_meas = [elem.value for elem in results[k+1][1]]
+
+        # print measured and expected
+        print(f'Test case #{k}: pi_ctl={pi_ctl}, all_bits={new_bits}')
+        print(f'[measured] sgn: {sgn_meas}, mag: {mag_meas}')
+        print(f'[expected] sgn: {sgn_expct}, mag: {mag_expct}, analog_sample: {analog_sample}')
+
+        # check results
+        for sm, mm, se, me in zip(sgn_meas, mag_meas, sgn_expct, mag_expct):
+            check_adc_result(sm, mm, se, me)
 
     # declare success
     print('Success!')
