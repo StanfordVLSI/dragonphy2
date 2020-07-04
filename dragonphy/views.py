@@ -218,7 +218,7 @@ def get_deps_fpga_emu(cell_name=None, impl_file=None):
         skip={'svreal', 'assign_real', 'comp_real', 'add_sub_real', 'ite_real',
               'dff_real', 'mul_real', 'mem_digital', 'sync_rom_real', 'DW_tap'},
         no_descend={'chan_core', 'tx_core', 'osc_model_core', 'clk_delay_core',
-                    'rx_adc_core'}
+                    'rx_adc_core', 'analog_slice'}
     )
 
     return deps
