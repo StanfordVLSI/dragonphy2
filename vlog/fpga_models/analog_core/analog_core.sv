@@ -136,7 +136,7 @@ module analog_core import const_pack::*; #(
             assign adbg_intf_i.max_sel_mux[i] = '1;
         end
         for (i=0; i<2; i=i+1) begin
-            assign adbg_intf_i.pm_out_rep[0] = 0;
+            assign adbg_intf_i.pm_out_rep[i] = 0;
         end
     endgenerate
 

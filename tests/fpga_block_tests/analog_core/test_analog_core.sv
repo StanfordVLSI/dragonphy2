@@ -69,7 +69,24 @@ module test_analog_core import const_pack::*; #(
         .ctl_pi(ctl_pi),
         .adder_out(adder_out),
         .sign_out(sign_out),
-        .adbg_intf_i(adbg_intf_i)
+        .adbg_intf_i(adbg_intf_i),
+
+        // unused I/O
+        // explicitly indicated to prevent noisy warnings
+        .clk_adc(),
+        .adder_out_rep(),
+        .sign_out_rep(),
+        .rx_inn(),
+        .Vcm(),
+        .rx_inp_test(),
+        .rx_inn_test(),
+        .ext_clk(),
+        .mdll_clk(),
+        .ext_clk_test0(),
+        .ext_clk_test1(),
+        .clk_async(),
+        .ctl_valid(),
+        .Vcal()
     );
 
     // wire emulator control signals through the hierarchy
