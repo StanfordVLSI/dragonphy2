@@ -23,9 +23,9 @@ def test_1(board_name, emu_clk_freq):
     src_cfg = AnasymodSourceConfig()
 
     # JTAG-related
-    #src_cfg.add_edif_files([os.environ['TAP_CORE_LOC']], fileset='fpga')
-    #src_cfg.add_verilog_sources([get_file('vlog/fpga_models/jtag/tap_core.sv')], fileset='fpga')
-    #src_cfg.add_verilog_sources([get_file('vlog/fpga_models/jtag/DW_tap.sv')], fileset='fpga')
+    src_cfg.add_edif_files([os.environ['TAP_CORE_LOC']], fileset='fpga')
+    src_cfg.add_verilog_sources([get_file('vlog/fpga_models/jtag/tap_core.sv')], fileset='fpga')
+    src_cfg.add_verilog_sources([get_file('vlog/fpga_models/jtag/DW_tap.sv')], fileset='fpga')
     src_cfg.add_verilog_sources([os.environ['DW_TAP']], fileset='sim')
     src_cfg.add_verilog_sources([get_file('build/cpu_models/jtag/jtag_reg_pack.sv')], fileset='sim')
 
@@ -41,9 +41,7 @@ def test_1(board_name, emu_clk_freq):
 
     # Verilog Defines
     src_cfg.add_defines({'VIVADO': None})
-    src_cfg.add_defines({'DT_EXPONENT': -46})  # TODO: move to DT_SCALE
     src_cfg.add_defines({'GIT_HASH': str(get_git_hash_short())}, fileset='sim')
-    src_cfg.add_defines({'LONG_WIDTH_REAL': 32})
 
     # Firmware
     src_cfg.add_firmware_files([THIS_DIR / 'main.c'])
