@@ -11,7 +11,7 @@ class AnasymodProjectConfig:
                 'emu_clk_freq': 5e6,
                 'cpu_debug_mode': 0,
                 'cpu_debug_hierarchies': [],
-                'flatten_hierarchy': 'none'
+                'flatten_hierarchy': 'rebuilt'
             },
             'FPGA_TARGET': {
                 'fpga': {
