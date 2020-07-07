@@ -293,7 +293,8 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
 
     # Configure the CDR
     print('Configuring the CDR...')
-    write_tc_reg('Kp', 15)
+    write_tc_reg('cdr_rstb', 0)
+    write_tc_reg('Kp', 18)
     write_tc_reg('Ki', 0)
     write_tc_reg('invert', 1)
     write_tc_reg('en_freq_est', 0)
@@ -305,8 +306,11 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
     write_tc_reg('en_v2t', 0)
     write_tc_reg('en_v2t', 1)
 
-    # Wait for CDR to lock
-    print('Wait for PRBS checker to lock')
+    # Release the CDR from reset, then wait for it to lock
+    # TODO: explore why it is not sufficient to pulse cdr_rstb low here
+    # (i.e., seems that it must be set to zero while configuring CDR parameters
+    print('Wait for the CDR to lock')
+    write_tc_reg('cdr_rstb', 1)
     time.sleep(1.0)
 
     # Run PRBS test.  In order to get a conservative estimate for the throughput, the
