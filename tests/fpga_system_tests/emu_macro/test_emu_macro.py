@@ -12,9 +12,9 @@ from dragonphy.git_util import get_git_hash_short
 
 THIS_DIR = Path(__file__).resolve().parent
 
-def test_1(board_name, emu_clk_freq):
+def test_1(board_name, emu_clk_freq, fpga_sim_ctrl):
     # Write project config
-    prj = AnasymodProjectConfig()
+    prj = AnasymodProjectConfig(fpga_sim_ctrl)
     prj.set_board_name(board_name)
     prj.set_emu_clk_freq(emu_clk_freq)
     prj.write_to_file(THIS_DIR / 'prj.yaml')
