@@ -30,7 +30,7 @@ def test_1(board_name, emu_clk_freq):
     src_cfg.add_verilog_sources([get_file('build/cpu_models/jtag/jtag_reg_pack.sv')], fileset='sim')
 
     # Verilog Sources
-    deps = get_deps_fpga_emu(impl_file=(THIS_DIR / 'tb.sv'))
+    deps = get_deps_fpga_emu(impl_file=(THIS_DIR / 'tb.sv'), override={'analog_core': 'chip_src'})
     deps = [dep for dep in deps if Path(dep).stem != 'tb']  # anasymod already includes tb.sv
     src_cfg.add_verilog_sources(deps)
     src_cfg.add_verilog_sources([THIS_DIR / 'sim_ctrl.sv'], fileset='sim')
