@@ -385,7 +385,10 @@ class JtagTester:
             # Return result
             return retval
         else:
-            return self.ser_cmd(f'SDR {val} {width}', expect_output=True)
+            if expect_output:
+                return self.ser_cmd(f'SDR {val} {width}', expect_output=True)
+            else:
+                self.ser_cmd(f'QSDR {val} {width}')
 
     def write_tc_reg(self, name, val):
         # update stats
@@ -662,13 +665,13 @@ class JtagTester:
 
 def main():
     # UART-based tests
-    #t = JtagTester(use_batch_mode=False, bit_bang=False, print_mode='test')
+    t = JtagTester(use_batch_mode=False, bit_bang=False, print_mode='test')
     #t = JtagTester(use_batch_mode=True, bit_bang=False, print_mode='test')
     #t = JtagTester(use_batch_mode=False, bit_bang=True, print_mode='debug')
     #t = JtagTester(use_batch_mode=True, bit_bang=True, print_mode='debug')
 
     # VIO-based test
-    t = JtagTester(comm_style='vio', bit_bang=True, use_ffe=True, print_mode='debug')
+    #t = JtagTester(comm_style='vio', bit_bang=True, use_ffe=True, print_mode='debug')
 
     # Run the test
     t.run_test()

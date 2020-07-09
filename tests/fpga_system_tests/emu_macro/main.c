@@ -146,6 +146,7 @@ enum cmd_t {
     ID,
     SIR,
     SDR,
+    QSDR, // "quiet" SDR -- does not print anything
     SET_RSTB,
     SET_EMU_RST,
     SET_SLEEP,
@@ -202,6 +203,9 @@ int main() {
                         nargs++;
                     } else if (strcmp(buf, "SDR") == 0) {
                         cmd = SDR;
+                        nargs++;
+                    } else if (strcmp(buf, "QSDR") == 0) {
+                        cmd = QSDR;
                         nargs++;
                     } else if (strcmp(buf, "SET_RSTB") == 0) {
                         cmd = SET_RSTB;
@@ -263,6 +267,8 @@ int main() {
                         shift_ir(arg1, arg2);
                     } else if (cmd == SDR) {
                         xil_printf("%lu\r\n", shift_dr(arg1, arg2));
+                    } else if (cmd == QSDR) {
+                        shift_dr(arg1, arg2);
                     }
                     nargs = 0;
                 }  

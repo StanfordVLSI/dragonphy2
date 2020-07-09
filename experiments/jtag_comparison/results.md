@@ -23,5 +23,34 @@
   * Register writes: 697
   * Register reads: 4
   * Test took 23908.544766187668 seconds.
+  
+## July 9, 2020
+* Trial 1:
+  * JtagTester(use_batch_mode=False, bit_bang=False, print_mode='test')
+  * Register writes: 697
+  * Register reads: 4
+  * Test took 3.76419997215271 seconds.
+  * Total bytes transmitted (UART): 41789
+* Trial 2:
+  * JtagTester(use_batch_mode=True, bit_bang=False, print_mode='test')
+  * Register writes: 697
+  * Register reads: 4
+  * Test took 3.7579543590545654 seconds.
+  * Total bytes transmitted (UART): 41789
+* Trial 3:
+  * JtagTester(use_batch_mode=False, bit_bang=True, print_mode='debug')
+  * Test took 186.3524034023285 seconds.
+  * Register writes: 697
+  * Register reads: 4
+  * Total bytes transmitted (UART): 2148226
+* Trial 4:
+  * JtagTester(use_batch_mode=True, bit_bang=True, print_mode='debug')
+  * Test took 186.54292559623718 seconds.
+  * Register writes: 697
+  * Register reads: 4
+  * Total bytes transmitted (UART): 2148226
+
+
+
 
 
