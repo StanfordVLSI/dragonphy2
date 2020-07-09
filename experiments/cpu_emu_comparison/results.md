@@ -64,3 +64,24 @@ July 7, 2020
   * BRAM: 42.5 / 545
   * Build time: 36m13.436s with Vivado 2020.1 on Intel(R) Core(TM) i5-2320 CPU @ 3.00GHz, Ubuntu 18.04.2 LTS, 6 GB RAM
     * use `cat /proc/cpuinfo`, `cat /proc/meminfo`, `lsb_release -a`
+
+July 8, 2020
+* Emulation with 16x channels on ZC706, using a macro model for analog_core that computes all of the ADC samples in parallel.  This measurement used a history length of 32 bits, processed over 4 cycles in chunks of size 8.  For this experiment, "flatten_hierarchy" was set to "rebuilt" (default from Vivado).  The fpga_sim_ctrl option used here was "VIVADO_VIO", for comparison with "UART_ZYNQ"
+  * Command: ``time pytest tests/fpga_system_tests/emu_macro/test_emu_macro.py::test_3 -s --board_name ZC706 --ser_port /dev/ttyUSB0 --ffe_length 10 --emu_clk_freq 30e6 --prbs_test_dur 30 --fpga_sim_ctrl VIVADO_VIO``
+  * PRBS test took  seconds.
+  * Total bits: 
+  *  Mb/s
+  * Slice LUTs: 88383 / 218600
+    * analog_core: 35754
+    * digital_core: 40170
+  * Slice Registers: 24737 / 437200
+    * analog_core: 3043
+    * digital_core: 17796
+  * Slice: 28508 / 54650
+    * analog_core: 11354
+    * digital_core: 15004
+  * DSP: 720 / 900
+  * BRAM: 42.5 / 545
+  * Build time: 37m31.047s with Vivado 2020.1 on Intel(R) Core(TM) i5-2320 CPU @ 3.00GHz, Ubuntu 18.04.2 LTS, 6 GB RAM
+    * use `cat /proc/cpuinfo`, `cat /proc/meminfo`, `lsb_release -a`
+
