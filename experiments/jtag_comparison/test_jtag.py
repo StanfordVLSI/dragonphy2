@@ -6,6 +6,7 @@ from pathlib import Path
 from math import exp, ceil, log2
 
 from dragonphy import *
+from anasymod.analysis import Analysis
 
 THIS_DIR = Path(__file__).resolve().parent
 
@@ -81,19 +82,20 @@ class DeferredValue(DeferredExpr):
         self.value = value
 
 class JtagTester:
-    def __init__(self, ser_port='/dev/ttyUSB0', ffe_length=10, bit_bang=False, uart=True,
+    def __init__(self, ser_port='/dev/ttyUSB0', ffe_length=10, bit_bang=False, comm_style='uart',
                  jtag_sleep_us=1, use_batch_mode=False, print_mode='debug',
-                 cdr_settling_time=0.1, prbs_test_dur=0.1):
+                 cdr_settling_time=0.1, prbs_test_dur=0.1, use_ffe=True):
         # save settings
         self.ser_port = ser_port
         self.bit_bang = bit_bang
-        self.uart = uart
+        self.comm_style = comm_style
         self.ffe_length = ffe_length
         self.jtag_sleep_us = jtag_sleep_us
         self.use_batch_mode = use_batch_mode
         self.print_mode = print_mode
         self.cdr_settling_time = cdr_settling_time
         self.prbs_test_dur = prbs_test_dur
+        self.use_ffe = use_ffe
 
         # initialize
 
@@ -121,17 +123,18 @@ class JtagTester:
         reg_list = json.load(open(get_file('build/all/jtag/reg_list.json'), 'r'))
         self.reg_dict = {elem['name']: elem['addresses'] for elem in reg_list}
 
-        # pattern for decoding array addresses
-        self.arr_pat = re.compile(r'([a-zA-Z_0-9]+)+\[(\d+)\]')
-
         # list of transactions queued up
         self.batch_started = False
         self.uart_batch = []
         self.uart_bytes_total = 0
+        self.reg_reads = 0
+        self.reg_writes = 0
 
         # connect UART if desired
-        if self.uart:
+        if self.comm_style == 'uart':
             self.connect_serial()
+        elif self.comm_style == 'vio':
+            self.connect_vio()
 
     def start_batch(self):
         self.batch_started = True
@@ -155,11 +158,12 @@ class JtagTester:
         self.batch_started = False
 
     def get_reg_addr(self, name):
-        m = self.arr_pat.match(name)
-        if m:
-            name = m.groups()[0]
-            index = int(m.groups()[1])
-            return self.reg_dict[name][index]
+        if '[' in name:
+            lbracket = name.index('[')
+            rbracket = name.index(']')
+            base_name = name[:lbracket]
+            index = int(name[(lbracket+1):rbracket])
+            return self.reg_dict[base_name][index]
         else:
             return self.reg_dict[name]
 
@@ -170,6 +174,16 @@ class JtagTester:
             port=self.ser_port,
             baudrate=115200
         )
+
+    def connect_vio(self):
+        # Create analysis object
+        self.ana = Analysis(input=get_dir('tests/fpga_system_tests/emu_macro'))
+
+        # Select the "FPGA" target (as opposed to CPU simulation)
+        self.ana.set_target(target_name='fpga')
+
+        # Start the interactive control
+        self.ctrl = self.ana.launch(debug=False)
 
     # run a serial command
     def ser_cmd(self, cmd, expect_output=False):
@@ -194,155 +208,192 @@ class JtagTester:
 
     # functions
     def do_reset(self):
-        if self.uart:
-            if self.bit_bang:
-                # initialize JTAG signals
-                self.set_tdi(0)
-                self.set_tck(0)
-                self.set_tms(1)
-                self.set_trst_n(0)
+        if self.bit_bang:
+            # initialize JTAG signals
+            self.set_tdi(0)
+            self.set_tck(0)
+            self.set_tms(1)
+            self.set_trst_n(0)
+            self.cycle_tck()
+
+            # de-assert reset
+            self.set_trst_n(1)
+            self.cycle_tck()
+
+            # go to the IDLE state
+            self.set_tms(1)
+            self.cycle_tck()
+            for _ in range(10):
                 self.cycle_tck()
 
-                # de-assert reset
-                self.set_trst_n(1)
-                self.cycle_tck()
-
-                # go to the IDLE state
-                self.set_tms(1)
-                self.cycle_tck()
-                for _ in range(10):
-                    self.cycle_tck()
-
-                self.set_tms(0)
-                self.cycle_tck()
-            else:
-                self.ser_cmd('RESET')
+            self.set_tms(0)
+            self.cycle_tck()
+        else:
+            self.ser_cmd('RESET')
 
     def do_init(self):
-        if self.uart:
+        if self.comm_style == 'uart':
             self.ser_cmd('INIT')
+        elif self.comm_style == 'vio':
+            # emulator control signal
+            self.set_emu_rst(1)
+
+            # JTAG-specific
+            self.set_tdi(0)
+            self.set_tck(0)
+            self.set_tms(1)
+            self.set_trst_n(0)
+
+            # Other signals
+            self.set_rstb(0)
 
     def cycle_tck(self):
         self.set_tck(1)
         self.set_tck(0)
 
     def set_emu_rst(self, val):
-        if self.uart:
+        if self.comm_style == 'uart':
             self.ser_cmd(f'SET_EMU_RST {val}')
+        elif self.comm_style == 'vio':
+            self.ctrl.set_reset(val)
 
     def set_rstb(self, val):
-        if self.uart:
+        if self.comm_style == 'uart':
             self.ser_cmd(f'SET_RSTB {val}')
+        elif self.comm_style == 'vio':
+            self.ctrl.set_param(name='rstb', value=val)
 
     def set_sleep(self, val):
-        if self.uart:
+        if self.comm_style == 'uart':
             self.ser_cmd(f'SET_SLEEP {val}')
 
     def set_tdi(self, val):
-        if self.uart:
+        if self.comm_style == 'uart':
             self.ser_cmd(f'SET_TDI {val}')
+        elif self.comm_style == 'vio':
+            self.ctrl.set_param(name='tdi', value=val)
 
     def set_tck(self, val):
-        if self.uart:
+        if self.comm_style == 'uart':
             self.ser_cmd(f'SET_TCK {val}')
+        elif self.comm_style == 'vio':
+            self.ctrl.set_param(name='tck', value=val)
 
     def set_tms(self, val):
-        if self.uart:
+        if self.comm_style == 'uart':
             self.ser_cmd(f'SET_TMS {val}')
+        elif self.comm_style == 'vio':
+            self.ctrl.set_param(name='tms', value=val)
 
     def set_trst_n(self, val):
-        if self.uart:
+        if self.comm_style == 'uart':
             self.ser_cmd(f'SET_TRST_N {val}')
+        elif self.comm_style == 'vio':
+            self.ctrl.set_param(name='trst_n', value=val)
 
     def get_tdo(self):
-        if self.uart:
+        if self.comm_style == 'uart':
             return self.ser_cmd(f'GET_TDO', expect_output=True)
+        elif self.comm_style == 'vio':
+            self.ctrl.refresh_param('vio_0_i')
+            return int(self.ctrl.get_param('tdo'))
+        else:
+            return 0  # dummy value
 
     def shift_ir(self, val, width):
-        if self.uart:
-            if self.bit_bang:
-                # Move to Select-DR-Scan state
-                self.set_tms(1)
-                self.cycle_tck()
-                
-                # Move to Select-IR-Scan state
-                self.set_tms(1)
+        if self.bit_bang:
+            # Move to Select-DR-Scan state
+            self.set_tms(1)
+            self.cycle_tck()
+
+            # Move to Select-IR-Scan state
+            self.set_tms(1)
+            self.cycle_tck()
+
+            # Move to Capture IR state
+            self.set_tms(0)
+            self.cycle_tck()
+
+            # Move to Shift-IR state
+            self.set_tms(0)
+            self.cycle_tck()
+
+            # Remain in Shift-IR state and shift in inst_in.
+            # Observe the TDO signal to read the x_inst_out
+            for i in range(width-1):
+                self.set_tdi((val >> i) & 1)
                 self.cycle_tck()
 
-                # Move to Capture IR state
-                self.set_tms(0)
-                self.cycle_tck()
-                
-                # Move to Shift-IR state
-                self.set_tms(0)
-                self.cycle_tck()
-                
-                # Remain in Shift-IR state and shift in inst_in.
-                # Observe the TDO signal to read the x_inst_out
-                for i in range(width-1):
-                    self.set_tdi((val >> i) & 1)
-                    self.cycle_tck()
-                
-                # Shift in the last bit and switch to Exit1-IR state
-                self.set_tdi((val >> (width - 1)) & 1)
-                self.set_tms(1)
-                self.cycle_tck()
-                
-                # Move to Update-IR state
-                self.set_tms(1)
-                self.cycle_tck()
-                
-                # Move to Run-Test/Idle state
-                self.set_tms(0)
-                self.cycle_tck()
-                self.cycle_tck()
-            else:
-                self.ser_cmd(f'SIR {val} {width}')
+            # Shift in the last bit and switch to Exit1-IR state
+            self.set_tdi((val >> (width - 1)) & 1)
+            self.set_tms(1)
+            self.cycle_tck()
 
-    def shift_dr(self, val, width):
-        if self.uart:
-            if self.bit_bang:
-                # Move to Select-DR-Scan state
-                self.set_tms(1)
-                self.cycle_tck()
+            # Move to Update-IR state
+            self.set_tms(1)
+            self.cycle_tck()
 
-                # Move to Capture-DR state
-                self.set_tms(0)
-                self.cycle_tck()
+            # Move to Run-Test/Idle state
+            self.set_tms(0)
+            self.cycle_tck()
+            self.cycle_tck()
+        else:
+            self.ser_cmd(f'SIR {val} {width}')
 
-                # Move to Shift-DR state
-                self.set_tms(0)
-                self.cycle_tck()
+    def shift_dr(self, val, width, expect_output=False):
+        if self.bit_bang:
+            # Move to Select-DR-Scan state
+            self.set_tms(1)
+            self.cycle_tck()
 
-                # Remain in Shift-DR state and shift in data_in.
-                # Observe the TDO signal to read the data_out
+            # Move to Capture-DR state
+            self.set_tms(0)
+            self.cycle_tck()
+
+            # Move to Shift-DR state
+            self.set_tms(0)
+            self.cycle_tck()
+
+            # Remain in Shift-DR state and shift in data_in.
+            # Observe the TDO signal to read the data_out
+            if expect_output:
                 retval = 0
-                for i in range(width-1):
-                    self.set_tdi((val >> i) & 1)
-                    retval |= (self.get_tdo() << i)
-                    self.cycle_tck()
-
-                # Shift in the last bit and switch to Exit1-DR state
-                self.set_tdi((val >> (width - 1)) & 1)
-                retval |= (self.get_tdo() << (width-1))
-                self.set_tms(1)
-                self.cycle_tck()
-
-                # Move to Update-DR state
-                self.set_tms(1)
-                self.cycle_tck()
-
-                # Move to Run-Test/Idle state
-                self.set_tms(0)
-                self.cycle_tck()
-                self.cycle_tck()
-
-                # Return result
-                return retval
             else:
-                return self.ser_cmd(f'SDR {val} {width}', expect_output=True)
+                retval = None
+            for i in range(width-1):
+                self.set_tdi((val >> i) & 1)
+                if expect_output:
+                    retval |= (self.get_tdo() << i)
+                self.cycle_tck()
+
+            # Shift in the last bit and switch to Exit1-DR state
+            self.set_tdi((val >> (width - 1)) & 1)
+            if expect_output:
+                retval |= (self.get_tdo() << (width-1))
+            self.set_tms(1)
+            self.cycle_tck()
+
+            # Move to Update-DR state
+            self.set_tms(1)
+            self.cycle_tck()
+
+            # Move to Run-Test/Idle state
+            self.set_tms(0)
+            self.cycle_tck()
+            self.cycle_tck()
+
+            # Return result
+            return retval
+        else:
+            return self.ser_cmd(f'SDR {val} {width}', expect_output=True)
 
     def write_tc_reg(self, name, val):
+        # update stats
+        self.reg_writes += 1
+
+        # print action
+        self.print(f'Writing TC register {name} with value {val}...')
+
         # specify address
         self.shift_ir(self.tc_cfg_addr, self.jtag_inst_width)
         self.shift_dr(self.get_reg_addr(name), self.tc_addr_width)
@@ -356,6 +407,12 @@ class JtagTester:
         self.shift_dr(self.write, self.tc_op_width)
 
     def write_sc_reg(self, name, val):
+        # update stats
+        self.reg_writes += 1
+
+        # print action
+        self.print(f'Writing SC register {name} with value {val}...')
+
         # specify address
         self.shift_ir(self.sc_cfg_addr, self.jtag_inst_width)
         self.shift_dr(self.get_reg_addr(name), self.sc_addr_width)
@@ -369,6 +426,12 @@ class JtagTester:
         self.shift_dr(self.write, self.sc_op_width)
 
     def read_tc_reg(self, name):
+        # update stats
+        self.reg_reads += 1
+
+        # print action
+        self.print(f'Reading TC register {name}...')
+
         # specify address
         self.shift_ir(self.tc_cfg_addr, self.jtag_inst_width)
         self.shift_dr(self.get_reg_addr(name), self.tc_addr_width)
@@ -379,9 +442,15 @@ class JtagTester:
 
         # get data
         self.shift_ir(self.tc_cfg_data, self.jtag_inst_width)
-        return self.shift_dr(0, self.tc_bus_width)
+        return self.shift_dr(0, self.tc_bus_width, expect_output=True)
 
     def read_sc_reg(self, name):
+        # update stats
+        self.reg_reads += 1
+
+        # print action
+        self.print(f'Reading SC register {name}...')
+
         # specify address
         self.shift_ir(self.sc_cfg_addr, self.jtag_inst_width)
         self.shift_dr(self.get_reg_addr(name), self.sc_addr_width)
@@ -392,7 +461,7 @@ class JtagTester:
 
         # get data
         self.shift_ir(self.sc_cfg_data, self.jtag_inst_width)
-        return self.shift_dr(0, self.sc_bus_width)
+        return self.shift_dr(0, self.sc_bus_width, expect_output=True)
 
     def load_weight(
         self,
@@ -432,7 +501,7 @@ class JtagTester:
             self.start_batch()
 
         # Initialize
-        if self.uart and not self.bit_bang:
+        if (self.comm_style == 'uart') and not self.bit_bang:
             self.set_sleep(self.jtag_sleep_us)
         self.do_init()
 
@@ -457,7 +526,7 @@ class JtagTester:
         # read the ID
         self.print('Reading ID...')
         self.shift_ir(1, 5)
-        id_result = self.shift_dr(0, 32)
+        id_result = self.shift_dr(0, 32, expect_output=True)
 
         # Set PFD offset
         self.print('Set PFD offset')
@@ -466,34 +535,39 @@ class JtagTester:
 
         # Configure PRBS checker
         self.print('Configure the PRBS checker')
-        self.write_tc_reg('sel_prbs_mux', 1) # "0" is ADC, "1" is FFE, "3" is BIST
+        if self.use_ffe:
+            # use FFE data
+            self.write_tc_reg('sel_prbs_mux', 1)
+        else:
+            # use ADC data instead
+            self.write_tc_reg('sel_prbs_mux', 0)
 
         # Release the PRBS checker from reset
         self.print('Release the PRBS checker from reset')
         self.write_tc_reg('prbs_rstb', 1)
 
         # Set up the FFE
-        dt=1.0/(16.0e9)
-        tau=25.0e-12
-        coeff0 = 128.0/(1.0-exp(-dt/tau))
-        coeff1 = -128.0*exp(-dt/tau)/(1.0-exp(-dt/tau))
-        for loop_var in range(16):
-            for loop_var2 in range(self.ffe_length):
-                if (loop_var2 == 0):
-                    # The argument order for load() is depth, width, value
-                    self.load_weight(loop_var2, loop_var, int(round(coeff0)))
-                elif (loop_var2 == 1):
-                    self.load_weight(loop_var2, loop_var, int(round(coeff1)))
-                else:
-                    self.load_weight(loop_var2, loop_var, 0)
-            self.write_tc_reg(f'ffe_shift[{loop_var}]', 7)
+        if self.use_ffe:
+            dt=1.0/(16.0e9)
+            tau=25.0e-12
+            coeff0 = 128.0/(1.0-exp(-dt/tau))
+            coeff1 = -128.0*exp(-dt/tau)/(1.0-exp(-dt/tau))
+            for loop_var in range(16):
+                for loop_var2 in range(self.ffe_length):
+                    if (loop_var2 == 0):
+                        # The argument order for load() is depth, width, value
+                        self.load_weight(loop_var2, loop_var, int(round(coeff0)))
+                    elif (loop_var2 == 1):
+                        self.load_weight(loop_var2, loop_var, int(round(coeff1)))
+                    else:
+                        self.load_weight(loop_var2, loop_var, 0)
+                self.write_tc_reg(f'ffe_shift[{loop_var}]', 7)
 
         # Configure the CDR offsets
         self.print('Configure the CDR offsets')
-        self.write_tc_reg('ext_pi_ctl_offset[0]', 0)
-        self.write_tc_reg('ext_pi_ctl_offset[1]', 128)
-        self.write_tc_reg('ext_pi_ctl_offset[2]', 256)
-        self.write_tc_reg('ext_pi_ctl_offset[3]', 384)
+        ext_pi_ctl_offset = [0, 128, 256, 384]
+        for k in range(4):
+            self.write_tc_reg(f'ext_pi_ctl_offset[{k}]', ext_pi_ctl_offset[k])
         self.write_tc_reg('en_ext_max_sel_mux', 1)
 
         # Configure the retimer
@@ -509,7 +583,12 @@ class JtagTester:
         self.write_tc_reg('invert', 1)
         self.write_tc_reg('en_freq_est', 0)
         self.write_tc_reg('en_ext_pi_ctl', 0)
-        self.write_tc_reg('sel_inp_mux', 1) # "0": use ADC output, "1": use FFE output
+        if self.use_ffe:
+            # use FFE data
+            self.write_tc_reg('sel_inp_mux', 1)
+        else:
+            # use ADC data instead
+            self.write_tc_reg('sel_inp_mux', 0)
 
         # Re-initialize ordering
         self.print('Re-initialize ADC ordering')
@@ -538,14 +617,15 @@ class JtagTester:
         self.write_tc_reg('prbs_checker_mode', 3)
 
         # Read out PRBS test results
-
         self.print('Read out PRBS test results')
 
+        self.print('Reading err_bits...')
         err_bits = 0
         err_bits = err_bits | self.read_sc_reg('prbs_err_bits_upper')
         err_bits = err_bits << 32
         err_bits = err_bits | self.read_sc_reg('prbs_err_bits_lower')
 
+        self.print('Reading total_bits...')
         total_bits = 0
         total_bits = total_bits | self.read_sc_reg('prbs_total_bits_upper')
         total_bits = total_bits << 32
@@ -561,7 +641,10 @@ class JtagTester:
         # Measure stop time
         stop_time = time.time()
         print(f'Test took {stop_time - start_time} seconds.')
-        print(f'Total bytes transmitted: {self.uart_bytes_total}')
+        print(f'Register writes: {self.reg_writes}')
+        print(f'Register reads: {self.reg_reads}')
+        if self.comm_style == 'uart':
+            print(f'Total bytes transmitted (UART): {self.uart_bytes_total}')
 
         # Print results
         print(f'id_result: {id_result}')
@@ -578,7 +661,16 @@ class JtagTester:
         print('OK!')
 
 def main():
-    t = JtagTester(use_batch_mode=True, print_mode='debug', bit_bang=True)
+    # UART-based tests
+    #t = JtagTester(use_batch_mode=False, bit_bang=False, print_mode='test')
+    #t = JtagTester(use_batch_mode=True, bit_bang=False, print_mode='test')
+    #t = JtagTester(use_batch_mode=False, bit_bang=True, print_mode='debug')
+    #t = JtagTester(use_batch_mode=True, bit_bang=True, print_mode='debug')
+
+    # VIO-based test
+    t = JtagTester(comm_style='vio', bit_bang=True, use_ffe=True, print_mode='debug')
+
+    # Run the test
     t.run_test()
 
 if __name__ == '__main__':
