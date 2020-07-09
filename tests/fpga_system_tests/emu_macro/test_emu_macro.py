@@ -82,7 +82,7 @@ def test_5():
     ana.set_target(target_name='fpga')
     ana.program_firmware()
 
-def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
+def test_6(ser_port, ffe_length, prbs_test_dur):
     jtag_inst_width = 5
     sc_bus_width = 32
     sc_addr_width = 14
@@ -141,9 +141,12 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
     def shift_ir(val, width):
         ser.write(f'SIR {val} {width}\n'.encode('utf-8'))
 
-    def shift_dr(val, width):
-        ser.write(f'SDR {val} {width}\n'.encode('utf-8'))
-        return int(ser.readline().strip())
+    def shift_dr(val, width, expect_output=False):
+        if expect_output:
+            ser.write(f'SDR {val} {width}\n'.encode('utf-8'))
+            return int(ser.readline().strip())
+        else:
+            ser.write(f'QSDR {val} {width}\n'.encode('utf-8'))
 
     def write_tc_reg(name, val):
         # specify address
@@ -182,7 +185,7 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
 
         # get data
         shift_ir(tc_cfg_data, jtag_inst_width)
-        return shift_dr(0, tc_bus_width)
+        return shift_dr(0, tc_bus_width, expect_output=True)
 
     def read_sc_reg(name):
         # specify address
@@ -195,7 +198,7 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
 
         # get data
         shift_ir(sc_cfg_data, jtag_inst_width)
-        return shift_dr(0, sc_bus_width)
+        return shift_dr(0, sc_bus_width, expect_output=True)
 
     def load_weight(
             d_idx, # clog2(ffe_length)
@@ -222,8 +225,7 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
         write_tc_reg('wme_ffe_exec', 0)
 
     # Initialize
-    jtag_sleep_us = int(ceil((110/emu_clk_freq)*1e6))
-    set_sleep(jtag_sleep_us)
+    set_sleep(1)
     do_init()
 
     # Clear emulator reset
@@ -247,7 +249,7 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
     # read the ID
     print('Reading ID...')
     shift_ir(1, 5)
-    id_result = shift_dr(0, 32)
+    id_result = shift_dr(0, 32, expect_output=True)
     print(f'ID: {id_result}')
 
     # Set PFD offset
