@@ -74,7 +74,7 @@ def check_adc_result(sgn_meas, mag_meas, sgn_expct, mag_expct):
         raise Exception('BAD!')
 
 @pytest.mark.parametrize('slice_offset', [0, 1, 2, 3])
-def test_analog_slice(simulator_name, slice_offset, num_tests=100):
+def test_analog_slice(simulator_name, slice_offset, dump_waveforms, num_tests=100):
     # set seed for repeatable behavior
     random.seed(0)
 
@@ -167,15 +167,27 @@ def test_analog_slice(simulator_name, slice_offset, num_tests=100):
         # gather results
         test_cases[i].extend([t.get_value(dut.out_sgn), t.get_value(dut.out_mag)])
 
+    # waveform dumping options
+    flags = []
+    if simulator_name == 'ncsim':
+        flags += ['-unbuffered']
+
     # run the simulation
     t.compile_and_run(
         target='system-verilog',
         directory=BUILD_DIR,
         simulator=simulator_name,
         ext_srcs=[get_file('build/fpga_models/analog_slice/analog_slice.sv')],
-        inc_dirs=[get_svreal_header().parent, get_msdsl_header().parent],
+        inc_dirs=[
+            get_svreal_header().parent,
+            get_msdsl_header().parent
+        ],
         ext_model_file=True,
-        disp_type='realtime'
+        disp_type='realtime',
+        dump_waveforms=dump_waveforms,
+        flags=flags,
+        timescale='1fs/1fs',
+        num_cycles=1e12
     )
 
     # process the results
