@@ -41,6 +41,7 @@ def test_1(board_name, emu_clk_freq, fpga_sim_ctrl):
 
     # Verilog Defines
     src_cfg.add_defines({'VIVADO': None})
+    src_cfg.add_defines({'FPGA_MACRO_MODEL': None})
     src_cfg.add_defines({'GIT_HASH': str(get_git_hash_short())}, fileset='sim')
 
     # Firmware

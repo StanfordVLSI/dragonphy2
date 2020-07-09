@@ -156,7 +156,7 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
     print(ext_srcs)
 
     # waveform dumping options
-    defines = {}
+    defines = {'FPGA_MACRO_MODEL': True}
     flags = []
     if simulator_name == 'ncsim':
         flags += ['-unbuffered']
