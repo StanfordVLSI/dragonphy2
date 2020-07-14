@@ -15,7 +15,6 @@ from msdsl import get_msdsl_header
 from dragonphy import get_file
 
 BUILD_DIR = Path(__file__).resolve().parent / 'build'
-SIMULATOR = 'vivado'
 
 def model(in_, n, vref):
     # determine sign
@@ -33,7 +32,11 @@ def model(in_, n, vref):
     # return result
     return sgn, mag
 
-def test_chan_model(n=8, vref=0.4, should_print=False):
+def test_chan_model(simulator_name, n=8, vref=0.4, should_print=False):
+    # set defaults
+    if simulator_name is None:
+        simulator_name = 'vivado'
+
     # declare circuit
     class dut(m.Circuit):
         name = 'test_adc_model'
@@ -93,7 +96,7 @@ def test_chan_model(n=8, vref=0.4, should_print=False):
     t.compile_and_run(
         target='system-verilog',
         directory=BUILD_DIR,
-        simulator=SIMULATOR,
+        simulator=simulator_name,
         ext_srcs=[get_file('build/fpga_models/rx_adc_core/rx_adc_core.sv'),
                   get_file('tests/fpga_block_tests/adc_model/test_adc_model.sv')],
         inc_dirs=[get_svreal_header().parent, get_msdsl_header().parent],

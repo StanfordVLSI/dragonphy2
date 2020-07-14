@@ -6,6 +6,10 @@ def pytest_addoption(parser):
     )
 
     parser.addoption(
+        '--simulator_name', default=None, type=str, help='Name of the simulator to use.'
+    )
+
+    parser.addoption(
         '--board_name', default='ZC702', type=str, help='Name of the FPGA board.'
     )
 
@@ -25,9 +29,17 @@ def pytest_addoption(parser):
         '--prbs_test_dur', default=10.0, type=float, help='Length of time of the PRBS emulation test.'
     )
 
+    parser.addoption(
+        '--fpga_sim_ctrl', default='UART_ZYNQ', type=str, help='Emulation control style (UART or VIO)'
+    )
+
 @pytest.fixture
 def dump_waveforms(request):
     return request.config.getoption('--dump_waveforms')
+
+@pytest.fixture
+def simulator_name(request):
+    return request.config.getoption('--simulator_name')
 
 @pytest.fixture
 def board_name(request):
@@ -48,3 +60,7 @@ def emu_clk_freq(request):
 @pytest.fixture
 def prbs_test_dur(request):
     return request.config.getoption('--prbs_test_dur')
+
+@pytest.fixture
+def fpga_sim_ctrl(request):
+    return request.config.getoption('--fpga_sim_ctrl')

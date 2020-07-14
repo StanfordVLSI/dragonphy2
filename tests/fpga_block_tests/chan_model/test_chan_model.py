@@ -13,12 +13,15 @@ from msdsl import get_msdsl_header
 from dragonphy import get_file, Filter
 
 BUILD_DIR = Path(__file__).resolve().parent / 'build'
-SIMULATOR = 'vivado'
 
 DELTA = 100e-9
 TPER = 1e-6
 
-def test_chan_model():
+def test_chan_model(simulator_name):
+    # set defaults
+    if simulator_name is None:
+        simulator_name = 'vivado'
+
     # declare circuit
     class dut(m.Circuit):
         name = 'test_chan_model'
@@ -146,7 +149,7 @@ def test_chan_model():
     t.compile_and_run(
         target='system-verilog',
         directory=BUILD_DIR,
-        simulator=SIMULATOR,
+        simulator=simulator_name,
         ext_srcs=[get_file('build/fpga_models/chan_core/chan_core.sv'),
                   get_file('tests/fpga_block_tests/chan_model/test_chan_model.sv')],
         inc_dirs=[get_svreal_header().parent, get_msdsl_header().parent],

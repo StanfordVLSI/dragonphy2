@@ -38,7 +38,7 @@ class ChannelCore:
         # create a function
         domain = [chan.t_vec[0], chan.t_vec[-1]]
         chan_func = m.make_function(chan.interp, domain=domain, order=system_values['func_order'],
-                                    numel=system_values['func_numel'], verif_per_seg=10)
+                                    numel=system_values['func_numel'])
         self.check_func_error(chan_func)
 
         # create a history of past inputs

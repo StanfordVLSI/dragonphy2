@@ -15,7 +15,6 @@ from msdsl import get_msdsl_header
 from dragonphy import get_file, Filter
 
 BUILD_DIR = Path(__file__).resolve().parent / 'build'
-SIMULATOR = 'vivado'
 
 # DUT options
 T_PER = 1e-9
@@ -26,7 +25,11 @@ TCLK = 1e-6
 DELTA = 0.1*TCLK
 
 @pytest.mark.parametrize('float_real', [False, True])
-def test_osc_model(float_real):
+def test_osc_model(simulator_name, float_real):
+    # set defaults
+    if simulator_name is None:
+        simulator_name = 'vivado'
+
     # declare circuit
     class dut(m.Circuit):
         name = 'test_osc_model'
@@ -113,7 +116,7 @@ def test_osc_model(float_real):
     t.compile_and_run(
         target='system-verilog',
         directory=BUILD_DIR,
-        simulator=SIMULATOR,
+        simulator=simulator_name,
         ext_srcs=[get_file('build/fpga_models/osc_model_core/osc_model_core.sv'),
                   get_file('tests/fpga_block_tests/osc_model/test_osc_model.sv')],
         inc_dirs=[get_svreal_header().parent, get_msdsl_header().parent],

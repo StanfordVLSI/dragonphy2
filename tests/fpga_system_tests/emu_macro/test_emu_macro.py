@@ -12,9 +12,9 @@ from dragonphy.git_util import get_git_hash_short
 
 THIS_DIR = Path(__file__).resolve().parent
 
-def test_1(board_name, emu_clk_freq):
+def test_1(board_name, emu_clk_freq, fpga_sim_ctrl):
     # Write project config
-    prj = AnasymodProjectConfig()
+    prj = AnasymodProjectConfig(fpga_sim_ctrl)
     prj.set_board_name(board_name)
     prj.set_emu_clk_freq(emu_clk_freq)
     prj.write_to_file(THIS_DIR / 'prj.yaml')
@@ -30,7 +30,7 @@ def test_1(board_name, emu_clk_freq):
     src_cfg.add_verilog_sources([get_file('build/cpu_models/jtag/jtag_reg_pack.sv')], fileset='sim')
 
     # Verilog Sources
-    deps = get_deps_fpga_emu(impl_file=(THIS_DIR / 'tb.sv'), override={'analog_core': 'chip_src'})
+    deps = get_deps_fpga_emu(impl_file=(THIS_DIR / 'tb.sv'))
     deps = [dep for dep in deps if Path(dep).stem != 'tb']  # anasymod already includes tb.sv
     src_cfg.add_verilog_sources(deps)
     src_cfg.add_verilog_sources([THIS_DIR / 'sim_ctrl.sv'], fileset='sim')
@@ -41,9 +41,8 @@ def test_1(board_name, emu_clk_freq):
 
     # Verilog Defines
     src_cfg.add_defines({'VIVADO': None})
-    src_cfg.add_defines({'DT_EXPONENT': -46})  # TODO: move to DT_SCALE
+    src_cfg.add_defines({'FPGA_MACRO_MODEL': None})
     src_cfg.add_defines({'GIT_HASH': str(get_git_hash_short())}, fileset='sim')
-    src_cfg.add_defines({'LONG_WIDTH_REAL': 32})
 
     # Firmware
     src_cfg.add_firmware_files([THIS_DIR / 'main.c'])
@@ -83,7 +82,7 @@ def test_5():
     ana.set_target(target_name='fpga')
     ana.program_firmware()
 
-def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
+def test_6(ser_port, ffe_length, prbs_test_dur):
     jtag_inst_width = 5
     sc_bus_width = 32
     sc_addr_width = 14
@@ -142,9 +141,12 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
     def shift_ir(val, width):
         ser.write(f'SIR {val} {width}\n'.encode('utf-8'))
 
-    def shift_dr(val, width):
-        ser.write(f'SDR {val} {width}\n'.encode('utf-8'))
-        return int(ser.readline().strip())
+    def shift_dr(val, width, expect_output=False):
+        if expect_output:
+            ser.write(f'SDR {val} {width}\n'.encode('utf-8'))
+            return int(ser.readline().strip())
+        else:
+            ser.write(f'QSDR {val} {width}\n'.encode('utf-8'))
 
     def write_tc_reg(name, val):
         # specify address
@@ -183,7 +185,7 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
 
         # get data
         shift_ir(tc_cfg_data, jtag_inst_width)
-        return shift_dr(0, tc_bus_width)
+        return shift_dr(0, tc_bus_width, expect_output=True)
 
     def read_sc_reg(name):
         # specify address
@@ -196,7 +198,7 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
 
         # get data
         shift_ir(sc_cfg_data, jtag_inst_width)
-        return shift_dr(0, sc_bus_width)
+        return shift_dr(0, sc_bus_width, expect_output=True)
 
     def load_weight(
             d_idx, # clog2(ffe_length)
@@ -223,8 +225,7 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
         write_tc_reg('wme_ffe_exec', 0)
 
     # Initialize
-    jtag_sleep_us = int(ceil((110/emu_clk_freq)*1e6))
-    set_sleep(jtag_sleep_us)
+    set_sleep(1)
     do_init()
 
     # Clear emulator reset
@@ -248,7 +249,7 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
     # read the ID
     print('Reading ID...')
     shift_ir(1, 5)
-    id_result = shift_dr(0, 32)
+    id_result = shift_dr(0, 32, expect_output=True)
     print(f'ID: {id_result}')
 
     # Set PFD offset
@@ -295,7 +296,8 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
 
     # Configure the CDR
     print('Configuring the CDR...')
-    write_tc_reg('Kp', 15)
+    write_tc_reg('cdr_rstb', 0)
+    write_tc_reg('Kp', 18)
     write_tc_reg('Ki', 0)
     write_tc_reg('invert', 1)
     write_tc_reg('en_freq_est', 0)
@@ -307,8 +309,11 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
     write_tc_reg('en_v2t', 0)
     write_tc_reg('en_v2t', 1)
 
-    # Wait for CDR to lock
-    print('Wait for PRBS checker to lock')
+    # Release the CDR from reset, then wait for it to lock
+    # TODO: explore why it is not sufficient to pulse cdr_rstb low here
+    # (i.e., seems that it must be set to zero while configuring CDR parameters
+    print('Wait for the CDR to lock')
+    write_tc_reg('cdr_rstb', 1)
     time.sleep(1.0)
 
     # Run PRBS test.  In order to get a conservative estimate for the throughput, the
