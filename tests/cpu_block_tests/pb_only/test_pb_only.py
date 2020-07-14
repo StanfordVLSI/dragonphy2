@@ -13,7 +13,6 @@ from dragonphy import *
 
 THIS_DIR = Path(__file__).parent.resolve()
 BUILD_DIR = THIS_DIR / 'build'
-SIMULATOR = 'ncsim'
 
 CLK_REF_FREQ = 4e9
 N_BLENDER = 4
@@ -41,7 +40,11 @@ class Results:
         self.freq = 1e9*np.array([elem.value for elem in self.freq], dtype=float)
         self.duty = np.array([elem.value for elem in self.duty], dtype=float)
 
-def test_sim():
+def test_sim(simulator_name):
+    # set defaults
+    if simulator_name is None:
+        simulator_name = 'ncsim'
+
     # declare circuit
     class dut(m.Circuit):
         name = 'test'
@@ -78,7 +81,7 @@ def test_sim():
 
     t.compile_and_run(
         target='system-verilog',
-        simulator=SIMULATOR,
+        simulator=simulator_name,
         ext_srcs=deps,
         ext_model_file=True,
         disp_type='realtime',

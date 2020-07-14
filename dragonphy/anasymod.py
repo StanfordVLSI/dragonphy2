@@ -3,6 +3,10 @@ import yaml
 
 class AnasymodProjectConfig:
     def __init__(self, fpga_sim_ctrl='UART_ZYNQ'):
+        # validate input
+        assert fpga_sim_ctrl in {'UART_ZYNQ', 'VIVADO_VIO'}, 'Invalid setting.'
+
+        # initialize the config dictionary
         self.config = {
             'PROJECT': {
                 'dt': 50e-9,
@@ -11,7 +15,7 @@ class AnasymodProjectConfig:
                 'emu_clk_freq': 5e6,
                 'cpu_debug_mode': 0,
                 'cpu_debug_hierarchies': [],
-                'flatten_hierarchy': 'none'
+                'flatten_hierarchy': 'rebuilt'
             },
             'FPGA_TARGET': {
                 'fpga': {

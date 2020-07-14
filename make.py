@@ -9,6 +9,7 @@ def create_fpga_graph():
     graph.add_config('system', folders=['config'])
     graph.add_config('jtag_config', folders=['config'])
     graph.add_config('chan', folders=['config', 'fpga'])
+    graph.add_config('analog_slice_cfg', folders=['config', 'fpga'])
     graph.add_config('osc_model', folders=['config', 'fpga'])
     graph.add_config('rx_adc', folders=['config', 'fpga'])
     graph.add_config('tx', folders=['config', 'fpga'])
@@ -33,6 +34,9 @@ def create_fpga_graph():
     graph.add_python('chan_core', 'chan_core', 'ChannelCore', view='fpga_models',
                      folders=['dragonphy', 'fpga_models'], sources={'adapt_fir'},
                      configs={'chan'})
+    graph.add_python('analog_slice', 'analog_slice', 'AnalogSlice', view='fpga_models',
+                     folders=['dragonphy', 'fpga_models'], sources={'adapt_fir'},
+                     configs={'analog_slice_cfg'})
     graph.add_python('osc_model_core', 'osc_model_core', 'OscModelCore', view='fpga_models',
                      folders=['dragonphy', 'fpga_models'], configs={'osc_model'})
     graph.add_python('rx_adc_core', 'rx_adc_core', 'RXAdcCore', view='fpga_models',
