@@ -16,7 +16,8 @@ from msdsl import get_msdsl_header
 # DragonPHY imports
 from dragonphy import get_file, Filter
 
-BUILD_DIR = Path(__file__).resolve().parent / 'build'
+THIS_DIR = Path(__file__).resolve().parent
+BUILD_DIR = THIS_DIR / 'build'
 
 DELTA = 100e-9
 TPER = 1e-6
@@ -84,7 +85,7 @@ def test_analog_slice(simulator_name, slice_offset, dump_waveforms, num_tests=10
 
     # declare circuit
     class dut(m.Circuit):
-        name = 'analog_slice'
+        name = 'test_analog_slice'
         io = m.IO(
             chunk=m.In(m.Bits[CFG['chunk_width']]),
             chunk_idx=m.In(m.Bits[int(ceil(log2(CFG['num_chunks'])))]),
@@ -96,7 +97,9 @@ def test_analog_slice(simulator_name, slice_offset, dump_waveforms, num_tests=10
             out_sgn=m.BitOut,
             out_mag=m.Out(m.Bits[CFG['n_adc']]),
             clk=m.BitIn,
-            rst=m.BitIn
+            rst=m.BitIn,
+            jitter_rms=fault.RealIn,
+            noise_rms=fault.RealIn
         )
 
     # create the tester
@@ -177,7 +180,10 @@ def test_analog_slice(simulator_name, slice_offset, dump_waveforms, num_tests=10
         target='system-verilog',
         directory=BUILD_DIR,
         simulator=simulator_name,
-        ext_srcs=[get_file('build/fpga_models/analog_slice/analog_slice.sv')],
+        ext_srcs=[
+            get_file('build/fpga_models/analog_slice/analog_slice.sv'),
+            THIS_DIR / 'test_analog_slice.sv'
+        ],
         inc_dirs=[
             get_svreal_header().parent,
             get_msdsl_header().parent

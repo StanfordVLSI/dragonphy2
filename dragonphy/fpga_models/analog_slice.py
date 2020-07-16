@@ -48,6 +48,10 @@ class AnalogSlice:
         m.add_digital_input('clk')
         m.add_digital_input('rst')
 
+        # Noise controls
+        m.add_analog_input('jitter_rms')
+        m.add_analog_input('noise_rms')
+
         # Sample the pi_ctl code
         m.add_digital_state('pi_ctl_sample', width=system_values['pi_ctl_width'])
         m.set_next_cycle(m.pi_ctl_sample, m.pi_ctl, clk=m.clk, rst=m.rst, ce=m.sample_ctl)
@@ -74,11 +78,15 @@ class AnalogSlice:
                              clk=m.clk, rst=m.rst)
 
         # Compute the evaluation time for this slice
-        t_samp = m.bind_name(
-            't_samp',
+        t_samp_pre = m.bind_name(
+            't_samp_pre',
             ((m.slice_offset*(1<<system_values['pi_ctl_width'])) + m.pi_ctl_sample)
             / ((2.0**system_values['pi_ctl_width'])*system_values['freq_rx'])
         )
+
+        # Add jitter to the sampling time
+        t_samp_jitter = m.set_gaussian_noise('t_samp_jitter', std=m.jitter_rms, clk=m.clk, rst=m.rst)
+        t_samp = m.bind_name('t_samp', t_samp_pre + t_samp_jitter)
 
         # Evaluate the step response function.  Note that the number of evaluation times is the
         # number of chunks plus one.
@@ -116,13 +124,17 @@ class AnalogSlice:
         pulse_resp_sum = m.bind_name('pulse_resp_sum', sum_op(pulse_resp))
 
         # update the overall sample value
-        sample_value = m.add_analog_state('analog_sample', range_=5*system_values['vref_rx'])
+        sample_value_pre = m.add_analog_state('analog_sample_pre', range_=5*system_values['vref_rx'])
         m.set_next_cycle(
-            sample_value,
-            if_(m.incr_sum, sample_value + pulse_resp_sum, pulse_resp_sum),
+            sample_value_pre,
+            if_(m.incr_sum, sample_value_pre + pulse_resp_sum, pulse_resp_sum),
             clk=m.clk,
             rst=m.rst
         )
+
+        # add noise to the sample value
+        sample_noise = m.set_gaussian_noise('sample_noise', std=m.noise_rms, clk=m.clk, rst=m.rst)
+        sample_value = m.bind_name('sample_value', sample_value_pre + sample_noise)
 
         # determine out_sgn (note that the definition is opposite of the typical
         # meaning; "0" means negative)

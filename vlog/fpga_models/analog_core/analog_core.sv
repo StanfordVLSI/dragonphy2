@@ -1,3 +1,4 @@
+`include "svreal.sv"
 `include "iotype.sv"
 
 module analog_core import const_pack::*; #(
@@ -38,6 +39,15 @@ module analog_core import const_pack::*; #(
     (* dont_touch = "true" *) logic emu_clk;
     (* dont_touch = "true" *) logic emu_rst;
 
+    // noise / jitter controls
+    // TODO: allow external user control
+
+    `MAKE_REAL(jitter_rms, 10e-12);
+    `MAKE_REAL(noise_rms, 10e-3);
+
+    `ASSIGN_CONST_REAL(0, jitter_rms);
+    `ASSIGN_CONST_REAL(0, noise_rms);
+
     // instantiate analog slices
 
     logic [7:0] chunk;
@@ -53,7 +63,10 @@ module analog_core import const_pack::*; #(
             assign slice_offset = i%Nout;
 
             // instantiate the slice
-            analog_slice analog_slice_i (
+            analog_slice #(
+                `PASS_REAL(jitter_rms, jitter_rms),
+                `PASS_REAL(noise_rms, noise_rms)
+            ) analog_slice_i (
                 .chunk(chunk),
                 .chunk_idx(chunk_idx),
                 .pi_ctl(ctl_pi[i/Nout]),
@@ -64,7 +77,9 @@ module analog_core import const_pack::*; #(
                 .out_sgn(sign_out[i]),
                 .out_mag(adder_out[i]),
                 .clk(emu_clk),
-                .rst(emu_rst)
+                .rst(emu_rst),
+                .jitter_rms(jitter_rms),
+                .noise_rms(noise_rms)
             );
         end
     endgenerate
