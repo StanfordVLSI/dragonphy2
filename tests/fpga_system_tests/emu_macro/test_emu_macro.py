@@ -135,6 +135,12 @@ def test_6(ser_port, ffe_length, prbs_test_dur):
     def set_rstb(val):
         ser.write(f'SET_RSTB {val}\n'.encode('utf-8'))
 
+    def set_jitter_rms(val):
+        ser.write(f'SET_JITTER_RMS {val}\n'.encode('utf-8'))
+
+    def set_noise_rms(val):
+        ser.write(f'SET_NOISE_RMS {val}\n'.encode('utf-8'))
+
     def set_sleep(val):
         ser.write(f'SET_SLEEP {val}\n'.encode('utf-8'))
 
@@ -238,6 +244,10 @@ def test_6(ser_port, ffe_length, prbs_test_dur):
     # Release other reset signals
     print('Release other reset signals')
     set_rstb(1)
+
+    # Configure noise
+    set_jitter_rms(0)
+    set_noise_rms(0)
 
     # Soft reset
     print('Soft reset')

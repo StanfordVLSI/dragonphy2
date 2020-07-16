@@ -85,3 +85,23 @@ July 8, 2020
   * Build time: 37m31.047s with Vivado 2020.1 on Intel(R) Core(TM) i5-2320 CPU @ 3.00GHz, Ubuntu 18.04.2 LTS, 6 GB RAM
     * use `cat /proc/cpuinfo`, `cat /proc/meminfo`, `lsb_release -a`
 
+July 16, 2020
+* First experiment with Gaussian noise -- there is an issue in this particular implementation having to do with LFSR seeding, since all of the analog_slices unfortunately are using the same seeds (although within each slice, the seeds for the sampling time and ADC noise are different).  Emulation with 16x channels on ZC706, using a macro model for analog_core that computes all of the ADC samples in parallel.  This measurement used a history length of 32 bits, processed over 4 cycles in chunks of size 8.  For this experiment, "flatten_hierarchy" was set to "rebuilt" (default from Vivado).
+  * Command: ``time pytest tests/fpga_system_tests/emu_macro/test_emu_macro.py::test_3 -s --board_name ZC706 --ser_port /dev/ttyUSB0 --ffe_length 10 --emu_clk_freq 30e6 --prbs_test_dur 1``
+  * PRBS test took 30.050543308258057 seconds.
+  * Total bits: 2402858272
+  * 79.96 Mb/s
+  * Slice LUTs: 94128 / 218600
+    * analog_core: 38263
+    * digital_core: 40007
+  * Slice Registers: 26261 / 437200
+    * analog_core: 4063
+    * digital_core: 17795
+  * Slice: 29521 / 54650
+    * analog_core: 12110
+    * digital_core: 14743
+  * DSP: 850 / 900
+  * BRAM: 50.5 / 545
+  * Build time: 40m5.904s with Vivado 2020.1 on Intel(R) Core(TM) i5-2320 CPU @ 3.00GHz, Ubuntu 18.04.2 LTS, 6 GB RAM
+    * use `cat /proc/cpuinfo`, `cat /proc/meminfo`, `lsb_release -a`
+  * In CPU simulation, the max jitter is "31" (3.1ps) and max noise is "658" (65.8mV); the observation period is approximately 10,000 bits.  In emulation, which is running about 2 billion bits over 30 seconds, the max jitter is reduced to "23" (2.3ps) and max noise is reduced to "564" (56.4mV).  The "maximum" in this case is the highest value of the parameter that yields no bit errors over the observation period, with the other noise sources set to "0".
