@@ -1,0 +1,97 @@
+# SimVision Command Script (Wed Jul 15 05:30:11 PM PDT 2020)
+#
+# Version 19.03.s003
+#
+# You can restore this configuration with:
+#
+#     simvision -input /home/sherbst/Code/dragonphy2/tests/fpga_system_tests/emu_macro/simvision.svcf
+#  or simvision -input /home/sherbst/Code/dragonphy2/tests/fpga_system_tests/emu_macro/simvision.svcf database1 database2 ...
+#
+
+
+#
+# Preferences
+#
+preferences set plugin-enable-svdatabrowser-new 1
+preferences set toolbar-Standard-Console {
+  usual
+  position -pos 1
+}
+preferences set toolbar-Search-Console {
+  usual
+  position -pos 2
+}
+preferences set toolbar-Standard-WaveWindow {
+  usual
+  position -pos 1
+}
+preferences set plugin-enable-groupscope 0
+preferences set plugin-enable-interleaveandcompare 0
+preferences set plugin-enable-waveformfrequencyplot 0
+preferences set whats-new-dont-show-at-startup 1
+
+#
+# Databases
+#
+array set dbNames ""
+set dbNames(realName1) [ database require top_sim -hints {
+	file ./tests/fpga_system_tests/emu_macro/build/sim/raw_results/top_sim.trn
+	file /home/sherbst/Code/dragonphy2/tests/fpga_system_tests/emu_macro/build/sim/raw_results/top_sim.trn
+}]
+if {$dbNames(realName1) == ""} {
+    set dbNames(realName1) top_sim
+}
+
+#
+# Mnemonic Maps
+#
+mmap new  -reuse -name {Boolean as Logic} -radix %b -contents {{%c=FALSE -edgepriority 1 -shape low}
+{%c=TRUE -edgepriority 1 -shape high}}
+mmap new  -reuse -name {Example Map} -radix %x -contents {{%b=11???? -bgcolor orange -label REG:%x -linecolor yellow -shape bus}
+{%x=1F -bgcolor red -label ERROR -linecolor white -shape EVENT}
+{%x=2C -bgcolor red -label ERROR -linecolor white -shape EVENT}
+{%x=* -label %x -linecolor gray -shape bus}}
+
+#
+# Waveform windows
+#
+if {[catch {window new WaveWindow -name "Waveform 1" -geometry 1311x563+48+62}] != ""} {
+    window geometry "Waveform 1" 1311x563+48+62
+}
+window target "Waveform 1" on
+waveform using {Waveform 1}
+waveform sidebar select designbrowser
+waveform set \
+    -primarycursor TimeA \
+    -signalnames name \
+    -signalwidth 175 \
+    -units fs \
+    -valuewidth 75
+waveform baseline set -time 18,960,190,546,529fs
+
+set id [waveform add -signals [subst  {
+	{$dbNames(realName1)::[format {top.trace_port_gen_i.ctl_pi_0[8:0]}]}
+	} ]]
+waveform format $id -radix %d -trace analogSampleAndHold
+waveform axis range $id -for default -min 0 -max 64 -scale linear
+set id [waveform add -signals [subst  {
+	{[format {signed(%s::top.trace_port_gen_i.adcout_unfolded_0)}  $dbNames(realName1)]}
+	} ]]
+waveform format $id -radix %d -trace analogSampleAndHold
+waveform axis range $id -for default -min -127 -max 127 -scale linear
+set id [waveform add -signals [subst  {
+	{[format {signed(%s::top.trace_port_gen_i.estimated_bits_0)}  $dbNames(realName1)]}
+	} ]]
+waveform format $id -radix %d -trace analogSampleAndHold
+waveform axis range $id -for default -min -127 -max 126 -scale linear
+
+waveform xview limits 1003999804688fs 1160499804688fs
+
+#
+# Waveform Window Links
+#
+
+#
+# Layout selection
+#
+
