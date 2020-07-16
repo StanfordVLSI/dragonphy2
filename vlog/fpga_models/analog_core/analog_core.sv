@@ -38,15 +38,16 @@ module analog_core import const_pack::*; #(
 
     (* dont_touch = "true" *) logic emu_clk;
     (* dont_touch = "true" *) logic emu_rst;
+    (* dont_touch = "true" *) logic [6:0] jitter_rms_int;
+    (* dont_touch = "true" *) logic [10:0] noise_rms_int;
 
-    // noise / jitter controls
-    // TODO: allow external user control
+    // convert noise / jitter to svreal types
 
-    `MAKE_REAL(jitter_rms, 10e-12);
-    `MAKE_REAL(noise_rms, 10e-3);
+    `INT_TO_REAL({1'b0, jitter_rms_int}, 8, jitter_rms_real);
+    `INT_TO_REAL({1'b0, noise_rms_int}, 12, noise_rms_real);
 
-    `ASSIGN_CONST_REAL(0, jitter_rms);
-    `ASSIGN_CONST_REAL(0, noise_rms);
+    `MUL_CONST_REAL(0.1e-12, jitter_rms_real, jitter_rms);
+    `MUL_CONST_REAL(0.1e-3, noise_rms_real, noise_rms);
 
     // instantiate analog slices
 

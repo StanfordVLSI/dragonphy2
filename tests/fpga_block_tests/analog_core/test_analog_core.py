@@ -91,6 +91,8 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
     io_dict['sign_out'] = m.Out(m.Bits[16])
     io_dict['clk'] = m.BitIn
     io_dict['rst'] = m.BitIn
+    io_dict['jitter_rms_int'] = m.In(m.Bits[7])
+    io_dict['noise_rms_int'] = m.In(m.Bits[11])
 
     # declare circuit
     class dut(m.Circuit):
