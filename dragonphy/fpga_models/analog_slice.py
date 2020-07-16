@@ -25,6 +25,10 @@ class AnalogSlice:
 
         m = MixedSignalModel(module_name, dt=system_values['dt'], build_dir=build_dir)
 
+        # Random number generator seeds (defaults generated with random.org)
+        m.add_digital_param('jitter_seed', width=32, default=46428)
+        m.add_digital_param('noise_seed', width=32, default=8518)
+
         # Chunk of bits from the history; corresponding delay is bit_idx/freq_tx delay
         m.add_digital_input('chunk', width=system_values['chunk_width'])
         m.add_digital_input('chunk_idx', width=int(ceil(log2(system_values['num_chunks']))))
@@ -85,7 +89,8 @@ class AnalogSlice:
         )
 
         # Add jitter to the sampling time
-        t_samp_jitter = m.set_gaussian_noise('t_samp_jitter', std=m.jitter_rms, clk=m.clk, rst=m.rst)
+        t_samp_jitter = m.set_gaussian_noise('t_samp_jitter', std=m.jitter_rms, clk=m.clk, rst=m.rst,
+                                             lfsr_init=m.jitter_seed)
         t_samp = m.bind_name('t_samp', t_samp_pre + t_samp_jitter)
 
         # Evaluate the step response function.  Note that the number of evaluation times is the
@@ -133,7 +138,8 @@ class AnalogSlice:
         )
 
         # add noise to the sample value
-        sample_noise = m.set_gaussian_noise('sample_noise', std=m.noise_rms, clk=m.clk, rst=m.rst)
+        sample_noise = m.set_gaussian_noise('sample_noise', std=m.noise_rms, clk=m.clk, rst=m.rst,
+                                            lfsr_init=m.noise_seed)
         sample_value = m.bind_name('sample_value', sample_value_pre + sample_noise)
 
         # determine out_sgn (note that the definition is opposite of the typical

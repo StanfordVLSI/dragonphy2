@@ -56,6 +56,10 @@ module analog_core import const_pack::*; #(
     logic incr_sum;
     logic last_cycle;
 
+    // random number seeds generated from random.org
+    localparam [31:0] jitter_seed [Nti] = '{32'd8485, 32'd25439, 32'd1655, 32'd2550, 32'd28814, 32'd19790, 32'd22931, 32'd18230, 32'd26850, 32'd11919, 32'd49789, 32'd57646, 32'd8568, 32'd25180, 32'd9577, 32'd38496};
+    localparam [31:0] noise_seed [Nti] = '{32'd61349, 32'd8335, 32'd9132, 32'd25683, 32'd13215, 32'd15813, 32'd48824, 32'd37609, 32'd36034, 32'd37264, 32'd50609, 32'd56017, 32'd36602, 32'd46638, 32'd60972, 32'd65135};
+
     genvar i;
     generate
         for (i=0; i<Nti; i=i+1) begin
@@ -65,6 +69,8 @@ module analog_core import const_pack::*; #(
 
             // instantiate the slice
             analog_slice #(
+                .jitter_seed(jitter_seed[i]),
+                .noise_seed(noise_seed[i]),
                 `PASS_REAL(jitter_rms, jitter_rms),
                 `PASS_REAL(noise_rms, noise_rms)
             ) analog_slice_i (
