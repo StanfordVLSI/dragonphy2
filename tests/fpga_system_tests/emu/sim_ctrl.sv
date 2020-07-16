@@ -124,6 +124,10 @@ module sim_ctrl(
         `FORCE_JTAG(retimer_mux_ctrl_2, 16'hFFFF);
         #((25.0/(`EMU_CLK_FREQ))*1s);
 
+        // Assert the CDR reset
+        `FORCE_JTAG(cdr_rstb, 0);
+        #((25.0/(`EMU_CLK_FREQ))*1s);
+
         // Configure the CDR
         $display("Configuring the CDR...");
         `FORCE_JTAG(Kp, 18);
@@ -139,6 +143,10 @@ module sim_ctrl(
         `FORCE_JTAG(en_v2t, 0);
         #((25.0/(`EMU_CLK_FREQ))*1s);
         `FORCE_JTAG(en_v2t, 1);
+        #((25.0/(`EMU_CLK_FREQ))*1s);
+
+        // De-assert the CDR reset
+        `FORCE_JTAG(cdr_rstb, 1);
         #((25.0/(`EMU_CLK_FREQ))*1s);
 
         // Wait for PRBS checker to lock
