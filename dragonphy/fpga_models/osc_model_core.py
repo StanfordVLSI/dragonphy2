@@ -24,7 +24,7 @@ class OscModelCore:
         m.add_analog_input('t_lo')
         m.add_analog_input('t_hi')
         m.add_analog_input('emu_dt')
-        m.add_analog_output('dt_req', init='t_del')
+        m.add_analog_output('dt_req', init=m.t_del)
         m.add_digital_output('clk_val')
 
         # determine if the request was granted
