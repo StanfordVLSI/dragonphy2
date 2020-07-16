@@ -268,10 +268,10 @@ int main() {
                         set_trst_n(arg1);
                         nargs=0;
                     } else if (cmd == SET_NOISE_RMS) {
-                        set_noise_rms(arg1);
+                        set_noise_rms_int(arg1);
                         nargs=0;
                     } else if (cmd == SET_JITTER_RMS) {
-                        set_jitter_rms(arg1);
+                        set_jitter_rms_int(arg1);
                         nargs=0;
                     } else if (cmd == SET_SLEEP) {
                         sleep_time = arg1;
