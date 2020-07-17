@@ -55,6 +55,7 @@ __pycache__
 *.str
 *.diag
 *.svg
+*.pickle
 
 .Xil
 fpga_prj
