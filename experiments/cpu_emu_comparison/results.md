@@ -134,5 +134,8 @@ Jul 17, 2020
   * PRBS test took 38.306903 seconds.
   * Total_bits: 608192
   * Throughput: 15.9 kb/s
+  * Max noise: 61 mV RMS  (@600k bits)
+  * Max jitter: 4.3 ps RMS (@600k bits)
+  * Interesting to observe that slightly higher noise is tolerated in this setup, particularly for jitter.  Possibly due to the Gaussian tail distortion in the emulator, or differences in the channel model (PWL LPF in simulation vs. PWL lookup table superposition).
   * r7cad-generic processor, CentOS Linux release 7.7.1908 (Core), 128 GB RAM
     * /proc/cpuinfo did not display the real CPU information since r7cad-generic is a VM
