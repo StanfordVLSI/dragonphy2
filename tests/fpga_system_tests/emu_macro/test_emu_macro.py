@@ -82,7 +82,7 @@ def test_5():
     ana.set_target(target_name='fpga')
     ana.program_firmware()
 
-def test_6(ser_port, ffe_length, prbs_test_dur):
+def test_6(ser_port, ffe_length, prbs_test_dur, jitter_rms, noise_rms):
     jtag_inst_width = 5
     sc_bus_width = 32
     sc_addr_width = 14
@@ -246,8 +246,8 @@ def test_6(ser_port, ffe_length, prbs_test_dur):
     set_rstb(1)
 
     # Configure noise
-    set_jitter_rms(0)
-    set_noise_rms(0)
+    set_jitter_rms(int(round(jitter_rms*1e13)))
+    set_noise_rms(int(round(noise_rms*1e4)))
 
     # Soft reset
     print('Soft reset')
