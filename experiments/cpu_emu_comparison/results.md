@@ -127,3 +127,12 @@ July 16, 2020
     * use `cat /proc/cpuinfo`, `cat /proc/meminfo`, `lsb_release -a`
   * Max noise code: "501" (--noise_rms 50.1e-3)
   * Max jitter code: "25" (--jitter_rms 2.5e-12)
+
+Jul 17, 2020
+* Simulation with 16x channels (using Xcelium)
+  * Command: ./experiment.py --noise_rms 10e-3 --jitter_rms 1e-12
+  * PRBS test took 38.306903 seconds.
+  * Total_bits: 608192
+  * Throughput: 15.9 kb/s
+  * r7cad-generic processor, CentOS Linux release 7.7.1908 (Core), 128 GB RAM
+    * /proc/cpuinfo did not display the real CPU information since r7cad-generic is a VM
