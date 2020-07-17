@@ -105,3 +105,25 @@ July 16, 2020
   * Build time: 40m5.904s with Vivado 2020.1 on Intel(R) Core(TM) i5-2320 CPU @ 3.00GHz, Ubuntu 18.04.2 LTS, 6 GB RAM
     * use `cat /proc/cpuinfo`, `cat /proc/meminfo`, `lsb_release -a`
   * In CPU simulation, the max jitter is "31" (3.1ps) and max noise is "658" (65.8mV); the observation period is approximately 10,000 bits.  In emulation, which is running about 2 billion bits over 30 seconds, the max jitter is reduced to "23" (2.3ps) and max noise is reduced to "564" (56.4mV).  The "maximum" in this case is the highest value of the parameter that yields no bit errors over the observation period, with the other noise sources set to "0".
+
+July 16, 2020
+* Second experiment with Gaussian noise -- this one fixed the previous issue with random seeding.  Emulation with 16x channels on ZC706, using a macro model for analog_core that computes all of the ADC samples in parallel.  This measurement used a history length of 32 bits, processed over 4 cycles in chunks of size 8.  For this experiment, "flatten_hierarchy" was set to "rebuilt" (default from Vivado).
+  * Command: ``time pytest tests/fpga_system_tests/emu_macro/test_emu_macro.py::test_3 -s --board_name ZC706 --ser_port /dev/ttyUSB0 --ffe_length 10 --emu_clk_freq 30e6 --prbs_test_dur 1``
+  * PRBS test took 30.038529634475708 seconds.
+  * Total bits: 2402005872
+  * 79.96 Mb/s
+  * Slice LUTs: 94244 / 218600
+    * analog_core: 38184
+    * digital_core: 40123
+  * Slice Registers: 26259 / 437200
+    * analog_core: 4060
+    * digital_core: 17796
+  * Slice: 29215 / 54650
+    * analog_core: 12050
+    * digital_core: 14464
+  * DSP: 850 / 900
+  * BRAM: 50.5 / 545
+  * Build time: 42m31.562s with Vivado 2020.1 on Intel(R) Core(TM) i5-2320 CPU @ 3.00GHz, Ubuntu 18.04.2 LTS, 6 GB RAM
+    * use `cat /proc/cpuinfo`, `cat /proc/meminfo`, `lsb_release -a`
+  * Max noise code: "501" (--noise_rms 50.1e-3)
+  * Max jitter code: "25" (--jitter_rms 2.5e-12)
