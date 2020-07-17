@@ -2,8 +2,6 @@
 
 `include "mLingua_pwl.vh"
 
-//`define FAST_JTAG
-
 `ifdef FAST_JTAG
     `define SET_JTAG(name, value) force top_i.idcore.jtag_i.rjtag_intf_i.``name`` = ``value``
     `define GET_JTAG(name) jtag_result = top_i.idcore.jtag_i.rjtag_intf_i.``name``
@@ -14,6 +12,10 @@
     `define GET_JTAG(name) jtag_drv_i.read_sc_reg(``name``, jtag_result)
     `define SET_JTAG_ARRAY(name, value, index) `SET_JTAG(``name``[``index``], ``value``)
     `define COMMIT_JTAG_ARRAY(name) 
+`endif
+
+`ifndef NBITS
+    `define NBITS 600000
 `endif
 
 module test;
@@ -167,6 +169,7 @@ module test;
 
     real start_time;
     real stop_time;
+    real target_sim_time;
 
     logic [7:0] tmp_ext_pfd_offset [(Nti-1):0];
     logic [4:0] tmp_ffe_shift [(Nti-1):0];
@@ -263,6 +266,10 @@ module test;
         `SET_JTAG(retimer_mux_ctrl_2, 16'hFFFF);
         #(5ns);
 
+        // Assert the CDR reset
+        `SET_JTAG(cdr_rstb, 0);
+        #(5ns);
+
         // Configure the CDR
       	$display("Configuring the CDR...");
       	`SET_JTAG(Kp, 18);
@@ -280,6 +287,10 @@ module test;
         `SET_JTAG(en_v2t, 1);
         #(5ns);
 
+        // De-assert the CDR reset
+        `SET_JTAG(cdr_rstb, 1);
+        #(5ns);
+
 		// Wait for MM_CDR to lock
 		$display("Waiting for MM_CDR to lock...");
 		for (loop_var=0; loop_var<2; loop_var=loop_var+1) begin
@@ -295,8 +306,9 @@ module test;
         $display("Running the PRBS tester");
         `SET_JTAG(prbs_checker_mode, 2);
 
+        target_sim_time = 62.5e-12*(`NBITS);
         start_time = get_time();
-        #(37.5us);
+        #(target_sim_time*1s);
 		stop_time = get_time();
 
         // Print out results of runtime experiment
