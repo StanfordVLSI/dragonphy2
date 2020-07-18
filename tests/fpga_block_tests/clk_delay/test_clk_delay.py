@@ -41,6 +41,7 @@ def test_clk_delay(simulator_name, float_real):
             clk_o_val=m.BitOut,
             dt_req=fault.RealIn,
             emu_dt=fault.RealOut,
+            jitter_rms=fault.RealIn,
             emu_clk=m.In(m.Clock),
             emu_rst=m.BitIn
         )
@@ -62,10 +63,8 @@ def test_clk_delay(simulator_name, float_real):
     del_nom = (DEL_CODE / (2.0**N_BITS)) * T_PER
 
     # initialize
+    t.zero_inputs()
     t.poke(dut.code, DEL_CODE)
-    t.poke(dut.clk_i_val, 0)
-    t.poke(dut.dt_req, 0.0)
-    t.poke(dut.emu_clk, 0)
     t.poke(dut.emu_rst, 1)
 
     # apply reset
