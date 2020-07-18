@@ -32,7 +32,7 @@ def model(in_, n, vref):
     # return result
     return sgn, mag
 
-def test_chan_model(simulator_name, n=8, vref=0.4, should_print=False):
+def test_adc_model(simulator_name, n=8, vref=0.4, should_print=False):
     # set defaults
     if simulator_name is None:
         simulator_name = 'vivado'
@@ -45,6 +45,7 @@ def test_chan_model(simulator_name, n=8, vref=0.4, should_print=False):
             clk_val=m.BitIn,
             out_mag=m.Out(m.Bits[n]),
             out_sgn=m.BitOut,
+            noise_rms=fault.RealIn,
             emu_rst=m.BitIn,
             emu_clk=m.ClockIn
         )
@@ -53,10 +54,8 @@ def test_chan_model(simulator_name, n=8, vref=0.4, should_print=False):
     t = fault.Tester(dut, dut.emu_clk)
 
     # initialize
-    t.poke(dut.in_, 0.0)
-    t.poke(dut.clk_val, 0)
+    t.zero_inputs()
     t.poke(dut.emu_rst, 1)
-    t.poke(dut.emu_clk, 0)
     t.step(4)
 
     # clear reset
