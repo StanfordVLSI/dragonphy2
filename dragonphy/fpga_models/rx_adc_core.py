@@ -18,14 +18,22 @@ class RXAdcCore:
             f'Cannot build {module_name}, Missing parameter in config file'
 
         m = MixedSignalModel(module_name, dt=system_values['dt'], build_dir=build_dir)
+
+        # Random number generator seed (default generated with random.org)
+        m.add_digital_param('noise_seed', width=32, default=8518)
+
         # main I/O: input, output, and clock
         m.add_analog_input('in_')
         m.add_digital_output('out_sgn')
         m.add_digital_output('out_mag', width=system_values['n'])
         m.add_digital_input('clk_val')
+
         # emulator clock and reset
         m.add_digital_input('emu_clk')
         m.add_digital_input('emu_rst')
+
+        # Noise controls
+        m.add_analog_input('noise_rms')
 
         # determine when sampling should happen
         m.add_digital_state('clk_val_prev')
@@ -38,14 +46,19 @@ class RXAdcCore:
         m.add_digital_state('pos_edge_prev', init=0)
         m.set_next_cycle(m.pos_edge_prev, m.pos_edge, clk=m.emu_clk, rst=m.emu_rst)
 
+        # add noise
+        sample_noise = m.set_gaussian_noise('sample_noise', std=m.noise_rms, clk=m.emu_clk,
+                                            rst=m.emu_rst, lfsr_init=m.noise_seed)
+        in_plus_noise = m.bind_name('in_plus_noise', m.in_ + sample_noise)
+
         # determine out_sgn (note that the definition is opposite of the typical
         # meaning; "0" means negative)
-        out_sgn = if_(m.in_ < 0, 0, 1)
+        out_sgn = if_(in_plus_noise < 0, 0, 1)
         m.set_next_cycle(m.out_sgn, out_sgn, clk=m.emu_clk, rst=m.emu_rst, ce=m.pos_edge_prev)
 
         # determine out_mag
         vref, n = system_values['vref'], system_values['n']
-        abs_val = if_(m.in_ < 0, -1.0*m.in_, m.in_)
+        abs_val = if_(in_plus_noise < 0, -1.0*in_plus_noise, in_plus_noise)
         code_real_unclamped = (abs_val / vref) * ((2**(n-1))-1)
         code_real = clamp_op(code_real_unclamped, 0, (2**(n-1))-1)
         code_sint = to_sint(code_real, width=n+1)
