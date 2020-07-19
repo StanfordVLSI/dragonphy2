@@ -33,6 +33,8 @@ module tb;
     (* dont_touch = "true" *) logic emu_clk;
     (* dont_touch = "true" *) `DECL_DT(emu_dt);
     (* dont_touch = "true" *) `DECL_DT(dt_req);
+    (* dont_touch = "true" *) logic [6:0] jitter_rms_int;
+    (* dont_touch = "true" *) logic [10:0] noise_rms_int;
 
     //////////////
 	// TX clock //
@@ -164,5 +166,39 @@ module tb;
         .inv_chicken(2'b00),
         .out(data_tx_i)
     );
+
+    /////////////////////
+	// Configure PRNGs //
+	/////////////////////
+
+    genvar i;
+
+    // ADC noise (seeds from random.org)
+
+    localparam [31:0] noise_seed [16] = '{32'd61349, 32'd8335, 32'd9132, 32'd25683, 32'd13215, 32'd15813, 32'd48824, 32'd37609, 32'd36034, 32'd37264, 32'd50609, 32'd56017, 32'd36602, 32'd46638, 32'd60972, 32'd65135};
+
+    generate
+        for (i=0; i<16; i=i+1) begin
+            // define noise seed
+            defparam top_i.iacore.iADC[i].iADC.noise_seed = noise_seed[i];
+
+            // wire up the noise control signal
+            assign top_i.iacore.iADC[i].iADC.noise_rms_int = noise_rms_int;
+        end
+    endgenerate
+
+    // PI jitter (seeds from random.org)
+
+    localparam [31:0] jitter_seed [4] = '{32'd8485, 32'd25439, 32'd1655, 32'd2550};
+
+    generate
+        for (i=0; i<4; i=i+1) begin
+            // define jitter seed
+            defparam top_i.iacore.iPI[i].iPI.jitter_seed = jitter_seed[i];
+
+            // wire up the jitter control signal
+            assign top_i.iacore.iPI[i].iPI.jitter_rms_int = jitter_rms_int;
+        end
+    endgenerate
 
 endmodule
