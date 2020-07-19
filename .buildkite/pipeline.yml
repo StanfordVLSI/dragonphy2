@@ -66,6 +66,9 @@ steps:
       sed -i 's/\&ffe_length [[:digit:]]\+/\&ffe_length 4/g' config/system.yml
       sed -i 's/\&estimate_depth [[:digit:]]\+/\&estimate_depth 4/g' config/system.yml
 
+      # scale down the channel response length to fit on the regression FPGA
+      sed -i 's/num_terms: [[:digit:]]\+/num_terms: 5/g' config/fpga/chan.yml
+
       # run regression script
       source regress.sh
 
