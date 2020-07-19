@@ -4,8 +4,7 @@ module phase_interpolator #(
     parameter Nbit = 9,
     parameter Nctl_dcdl = 2,
     parameter Nunit = 32,
-    parameter Nblender = 4,
-    parameter [31:0] jitter_seed=46428 // emulation parameter
+    parameter Nblender = 4
 )(
     input rstb,
     input clk_in,
@@ -59,8 +58,7 @@ module phase_interpolator #(
         `PASS_REAL(emu_dt, emu_dt),
         `PASS_REAL(dt_req, dt_req),
         `PASS_REAL(dt_req_max, dt_req_max),
-        `PASS_REAL(jitter_rms, jitter_rms),
-        .jitter_seed(jitter_seed)
+        `PASS_REAL(jitter_rms, jitter_rms)
     ) clk_delay_core_i (
         // main I/O: delay code, clock in/out values
         .code(ctl),

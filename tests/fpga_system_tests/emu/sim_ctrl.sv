@@ -14,8 +14,26 @@ module sim_ctrl(
     output reg tms=1'b1,
     output reg trst_n=1'b0,
     output reg dump_start=1'b0,
-    output reg [6:0] jitter_rms_int,
-    output reg [10:0] noise_rms_int,
+    output reg [6:0] jitter_rms_0,
+    output reg [6:0] jitter_rms_1,
+    output reg [6:0] jitter_rms_2,
+    output reg [6:0] jitter_rms_3,
+    output reg [10:0] noise_rms_0,
+    output reg [10:0] noise_rms_1,
+    output reg [10:0] noise_rms_2,
+    output reg [10:0] noise_rms_3,
+    output reg [10:0] noise_rms_4,
+    output reg [10:0] noise_rms_5,
+    output reg [10:0] noise_rms_6,
+    output reg [10:0] noise_rms_7,
+    output reg [10:0] noise_rms_8,
+    output reg [10:0] noise_rms_9,
+    output reg [10:0] noise_rms_10,
+    output reg [10:0] noise_rms_11,
+    output reg [10:0] noise_rms_12,
+    output reg [10:0] noise_rms_13,
+    output reg [10:0] noise_rms_14,
+    output reg [10:0] noise_rms_15,
     input wire tdo
 );
 	import const_pack::*;
@@ -55,10 +73,31 @@ module sim_ctrl(
         #((200.0/(`EMU_CLK_FREQ))*1s);
     endtask
 
+    localparam [6:0] jitter_rms = 0;
+    localparam [10:0] noise_rms = 0;
+
     initial begin
         // TODO: explore jitter/noise effect
-        jitter_rms_int = 0;
-        noise_rms_int = 0;
+        jitter_rms_0 = jitter_rms;
+        jitter_rms_1 = jitter_rms;
+        jitter_rms_2 = jitter_rms;
+        jitter_rms_3 = jitter_rms;
+        noise_rms_0 = noise_rms;
+        noise_rms_1 = noise_rms;
+        noise_rms_2 = noise_rms;
+        noise_rms_3 = noise_rms;
+        noise_rms_4 = noise_rms;
+        noise_rms_5 = noise_rms;
+        noise_rms_6 = noise_rms;
+        noise_rms_7 = noise_rms;
+        noise_rms_8 = noise_rms;
+        noise_rms_9 = noise_rms;
+        noise_rms_10 = noise_rms;
+        noise_rms_11 = noise_rms;
+        noise_rms_12 = noise_rms;
+        noise_rms_13 = noise_rms;
+        noise_rms_14 = noise_rms;
+        noise_rms_15 = noise_rms;
 
         // wait for emulator reset to complete
         $display("Waiting for emulator reset to complete...");

@@ -5,8 +5,7 @@ module stochastic_adc_PR #(
     parameter Nctl_TDC = 5,
     parameter Ndiv = 2,
     parameter Nctl_dcdl_fine = 2,
-    parameter Nadc = 8,
-    parameter [31:0] noise_seed=8518 // emulation parameter
+    parameter Nadc = 8
 )(
     input clk_in,
     input `pwl_t VinN,
@@ -118,8 +117,7 @@ module stochastic_adc_PR #(
     logic signed [8:0] adc_out;
     rx_adc_core #(
         `PASS_REAL(in_, VinP),
-        `PASS_REAL(noise_rms, noise_rms),
-        .noise_seed(noise_seed)
+        `PASS_REAL(noise_rms, noise_rms)
     ) rx_adc_core_i (
         // main I/O: input, output, and clock
         .in_(VinP),

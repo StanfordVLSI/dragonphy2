@@ -40,6 +40,10 @@ def pytest_addoption(parser):
     parser.addoption(
         '--noise_rms', default=0, type=float, help='RMS ADC noise (Volts)'
     )
+    
+    parser.addoption(
+        '--flatten_hierarchy', default='rebuilt', type=str, help='Vivado synthesis option.'
+    )
 
 @pytest.fixture
 def dump_waveforms(request):
@@ -80,3 +84,7 @@ def jitter_rms(request):
 @pytest.fixture
 def noise_rms(request):
     return request.config.getoption('--noise_rms')
+
+@pytest.fixture
+def flatten_hierarchy(request):
+    return request.config.getoption('--flatten_hierarchy')

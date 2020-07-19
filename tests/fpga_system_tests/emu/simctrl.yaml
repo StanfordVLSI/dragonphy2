@@ -23,12 +23,84 @@ digital_ctrl_inputs:
     abspath: 'tb_i.trst_n'
     width: 1
     init_value: 0
-  jitter_rms_int:
-    abspath: 'tb_i.jitter_rms_int'
+  jitter_rms_0:
+    abspath: 'tb_i.top_i.iacore.iPI[0].iPI.jitter_rms_int'
     width: 7
     init_value: 0
-  noise_rms_int:
-    abspath: 'tb_i.noise_rms_int'
+  jitter_rms_1:
+    abspath: 'tb_i.top_i.iacore.iPI[1].iPI.jitter_rms_int'
+    width: 7
+    init_value: 0
+  jitter_rms_2:
+    abspath: 'tb_i.top_i.iacore.iPI[2].iPI.jitter_rms_int'
+    width: 7
+    init_value: 0
+  jitter_rms_3:
+    abspath: 'tb_i.top_i.iacore.iPI[3].iPI.jitter_rms_int'
+    width: 7
+    init_value: 0
+  noise_rms_0:
+    abspath: 'tb_i.top_i.iacore.iADC[0].iADC.noise_rms_int'
+    width: 11
+    init_value: 0
+  noise_rms_1:
+    abspath: 'tb_i.top_i.iacore.iADC[1].iADC.noise_rms_int'
+    width: 11
+    init_value: 0
+  noise_rms_2:
+    abspath: 'tb_i.top_i.iacore.iADC[2].iADC.noise_rms_int'
+    width: 11
+    init_value: 0
+  noise_rms_3:
+    abspath: 'tb_i.top_i.iacore.iADC[3].iADC.noise_rms_int'
+    width: 11
+    init_value: 0
+  noise_rms_4:
+    abspath: 'tb_i.top_i.iacore.iADC[4].iADC.noise_rms_int'
+    width: 11
+    init_value: 0
+  noise_rms_5:
+    abspath: 'tb_i.top_i.iacore.iADC[5].iADC.noise_rms_int'
+    width: 11
+    init_value: 0
+  noise_rms_6:
+    abspath: 'tb_i.top_i.iacore.iADC[6].iADC.noise_rms_int'
+    width: 11
+    init_value: 0
+  noise_rms_7:
+    abspath: 'tb_i.top_i.iacore.iADC[7].iADC.noise_rms_int'
+    width: 11
+    init_value: 0
+  noise_rms_8:
+    abspath: 'tb_i.top_i.iacore.iADC[8].iADC.noise_rms_int'
+    width: 11
+    init_value: 0
+  noise_rms_9:
+    abspath: 'tb_i.top_i.iacore.iADC[9].iADC.noise_rms_int'
+    width: 11
+    init_value: 0
+  noise_rms_10:
+    abspath: 'tb_i.top_i.iacore.iADC[10].iADC.noise_rms_int'
+    width: 11
+    init_value: 0
+  noise_rms_11:
+    abspath: 'tb_i.top_i.iacore.iADC[11].iADC.noise_rms_int'
+    width: 11
+    init_value: 0
+  noise_rms_12:
+    abspath: 'tb_i.top_i.iacore.iADC[12].iADC.noise_rms_int'
+    width: 11
+    init_value: 0
+  noise_rms_13:
+    abspath: 'tb_i.top_i.iacore.iADC[13].iADC.noise_rms_int'
+    width: 11
+    init_value: 0
+  noise_rms_14:
+    abspath: 'tb_i.top_i.iacore.iADC[14].iADC.noise_rms_int'
+    width: 11
+    init_value: 0
+  noise_rms_15:
+    abspath: 'tb_i.top_i.iacore.iADC[15].iADC.noise_rms_int'
     width: 11
     init_value: 0
 digital_ctrl_outputs:
