@@ -42,14 +42,7 @@ module stochastic_adc_PR #(
 
     (* dont_touch = "true" *) logic emu_rst;
     (* dont_touch = "true" *) logic emu_clk;
-    (* dont_touch = "true" *) logic [10:0] noise_rms_int;
-
-    //////////////////////////////////
-    // convert noise to svreal type //
-    //////////////////////////////////
-
-    `INT_TO_REAL({1'b0, noise_rms_int}, 12, noise_rms_real);
-    `MUL_CONST_REAL(0.1e-3, noise_rms_real, noise_rms);
+    (* dont_touch = "true" *) `MAKE_REAL(noise_rms, 250e-3);
 
     ///////////////////////////
     // clk_in edge detection //
