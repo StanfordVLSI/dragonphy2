@@ -21,6 +21,10 @@ void do_init() {
    set_emu_ctrl_data(0);
    set_emu_dec_thr(0);
 
+   // noise controls
+   set_jitter_rms_int(0);
+   set_noise_rms_int(0);
+
    // JTAG-specific
    set_tdi(0);
    set_tck(0);

@@ -14,6 +14,8 @@ module sim_ctrl(
     output reg tms=1'b1,
     output reg trst_n=1'b0,
     output reg dump_start=1'b0,
+    output reg [6:0] jitter_rms_int,
+    output reg [10:0] noise_rms_int,
     input wire tdo
 );
 	import const_pack::*;
@@ -54,6 +56,10 @@ module sim_ctrl(
     endtask
 
     initial begin
+        // TODO: explore jitter/noise effect
+        jitter_rms_int = 0;
+        noise_rms_int = 0;
+
         // wait for emulator reset to complete
         $display("Waiting for emulator reset to complete...");
         #((50.0/(`EMU_CLK_FREQ))*1s);

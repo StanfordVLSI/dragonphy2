@@ -4,7 +4,8 @@ module phase_interpolator #(
     parameter Nbit = 9,
     parameter Nctl_dcdl = 2,
     parameter Nunit = 32,
-    parameter Nblender = 4
+    parameter Nblender = 4,
+    parameter [31:0] jitter_seed=46428 // emulation parameter
 )(
     input rstb,
     input clk_in,
@@ -42,28 +43,41 @@ module phase_interpolator #(
     (* dont_touch = "true" *) `DECL_DT(emu_dt);
     (* dont_touch = "true" *) logic emu_clk;
     (* dont_touch = "true" *) logic emu_rst;
+    (* dont_touch = "true" *) logic [6:0] jitter_rms_int;
 
     // declare signal for max timestep
     // TODO: make compatible with FLOAT_REAL
     (* dont_touch = "true" *) `DECL_DT(dt_req_max);
     assign dt_req_max = {1'b0, {((`DT_WIDTH)-1){1'b1}}};
 
+    // convert jitter to an svreal type
+    `INT_TO_REAL({1'b0, jitter_rms_int}, 8, jitter_rms_real);
+    `MUL_CONST_REAL(0.1e-12, jitter_rms_real, jitter_rms);
+
     // instantiate MSDSL model, passing through format information
     clk_delay_core #(
         `PASS_REAL(emu_dt, emu_dt),
         `PASS_REAL(dt_req, dt_req),
-        `PASS_REAL(dt_req_max, dt_req_max)
+        `PASS_REAL(dt_req_max, dt_req_max),
+        `PASS_REAL(jitter_rms, jitter_rms),
+        .jitter_seed(jitter_seed)
     ) clk_delay_core_i (
         // main I/O: delay code, clock in/out values
         .code(ctl),
         .clk_i_val(clk_in),
         .clk_o_val(clk_out_slice),
+
         // timestep control: DT request and response
         .dt_req(dt_req),
         .emu_dt(emu_dt),
+        
+        // jitter control
+        .jitter_rms(jitter_rms),
+
         // emulator clock and reset
         .emu_clk(emu_clk),
         .emu_rst(emu_rst),
+        
         // additional input: maximum timestep
         .dt_req_max(dt_req_max)
     );

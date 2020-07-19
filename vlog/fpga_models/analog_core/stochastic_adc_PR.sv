@@ -5,7 +5,8 @@ module stochastic_adc_PR #(
     parameter Nctl_TDC = 5,
     parameter Ndiv = 2,
     parameter Nctl_dcdl_fine = 2,
-    parameter Nadc = 8
+    parameter Nadc = 8,
+    parameter [31:0] noise_seed=8518 // emulation parameter
 )(
     input clk_in,
     input `pwl_t VinN,
@@ -42,6 +43,14 @@ module stochastic_adc_PR #(
 
     (* dont_touch = "true" *) logic emu_rst;
     (* dont_touch = "true" *) logic emu_clk;
+    (* dont_touch = "true" *) logic [10:0] noise_rms_int;
+
+    //////////////////////////////////
+    // convert noise to svreal type //
+    //////////////////////////////////
+
+    `INT_TO_REAL({1'b0, noise_rms_int}, 12, noise_rms_real);
+    `MUL_CONST_REAL(0.1e-3, noise_rms_real, noise_rms);
 
     ///////////////////////////
     // clk_in edge detection //
@@ -108,13 +117,19 @@ module stochastic_adc_PR #(
 
     logic signed [8:0] adc_out;
     rx_adc_core #(
-        `PASS_REAL(in_, VinP)
+        `PASS_REAL(in_, VinP),
+        `PASS_REAL(noise_rms, noise_rms),
+        .noise_seed(noise_seed)
     ) rx_adc_core_i (
         // main I/O: input, output, and clock
         .in_(VinP),
         .out_mag(adder_out),
         .out_sgn(sign_out),
         .clk_val(clk_adder),
+
+        // noise control
+        .noise_rms(noise_rms),
+
         // emulator clock and reset
         .emu_clk(emu_clk),
         .emu_rst(emu_rst)
