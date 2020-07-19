@@ -15,7 +15,8 @@ class AnasymodProjectConfig:
                 'emu_clk_freq': 5e6,
                 'cpu_debug_mode': 0,
                 'cpu_debug_hierarchies': [],
-                'flatten_hierarchy': 'rebuilt'
+                'flatten_hierarchy': 'rebuilt',
+                'dt_width': 25
             },
             'FPGA_TARGET': {
                 'fpga': {
@@ -30,6 +31,9 @@ class AnasymodProjectConfig:
     def set_flatten_hierarchy(self, value):
         assert value in {'none', 'full', 'rebuilt'}, 'Invalid setting.'
         self.config['PROJECT']['flatten_hierarchy'] = value
+
+    def set_dt_width(self, value):
+        self.config['PROJECT']['dt_width'] = value
 
     def add_debug_probe(self, depth, path):
         self.config['PROJECT']['cpu_debug_hierarchies'].append([depth, path])

@@ -44,7 +44,6 @@ def test_1(board_name, emu_clk_freq, flatten_hierarchy):
     src_cfg.add_defines({'VIVADO': None})
     src_cfg.add_defines({'DT_EXPONENT': -46})  # TODO: move to DT_SCALE
     src_cfg.add_defines({'GIT_HASH': str(get_git_hash_short())}, fileset='sim')
-    src_cfg.add_defines({'LONG_WIDTH_REAL': 32})
 
     # Firmware
     src_cfg.add_firmware_files([THIS_DIR / 'main.c'])
