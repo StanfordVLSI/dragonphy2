@@ -122,7 +122,7 @@ def test_clk_delay(simulator_name, float_real):
 
     # run the simulation
     defines = {
-        'DT_WIDTH': 27,
+        'DT_WIDTH': 25,
         'DT_EXPONENT': -46
     }
     if float_real:
