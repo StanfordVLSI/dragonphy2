@@ -161,3 +161,22 @@ July 18, 2020
     * use `cat /proc/cpuinfo`, `cat /proc/meminfo`, `lsb_release -a`
   * Max noise code: "560" (--noise_rms 56e-3)
   * Max jitter code: "26" (--jitter_rms 2.6e-12)
+* same as previous, but using default flatten_hierarchy setting (rebuilt)
+  * PRBS test took 30.04912281036377 seconds.
+  * Total bits: 150773520
+  * 5.018 Mb/s
+  * Slice LUTs: 76989 / 218600
+    * analog_core: 15547
+    * digital_core: 40043
+  * Slice Registers: / 437200
+    * analog_core: 1247
+    * digital_core: 17813
+  * Slice: 23970 / 54650
+    * analog_core: 4656
+    * digital_core: 14123
+  * DSP: 258 / 900
+  * BRAM: 49 / 545
+  * Build time: 34m7.993s with Vivado 2020.1 on Intel(R) Core(TM) i5-2320 CPU @ 3.00GHz, Ubuntu 18.04.2 LTS, 6 GB RAM
+    * use `cat /proc/cpuinfo`, `cat /proc/meminfo`, `lsb_release -a`
+  * Max noise code: "570" (--noise_rms 57e-3)
+  * Max jitter code: "26" (--jitter_rms 2.6e-12)
