@@ -180,3 +180,30 @@ July 18, 2020
     * use `cat /proc/cpuinfo`, `cat /proc/meminfo`, `lsb_release -a`
   * Max noise code: "570" (--noise_rms 57e-3)
   * Max jitter code: "26" (--jitter_rms 2.6e-12)
+
+July 19, 2020
+* Gaussian noise expermient with "low-level" model.  Emulation on ZC706 with flatten_hierarchy set to default (rebuilt).  For this experiment, there is just one CPU register each for noise_rms and jitter_rms to reduce resource utilization and simplify the design.
+  * command: ``time pytest tests/fpga_system_tests/emu/test_emu.py::test_3 -s --board_name ZC706 --ser_port /dev/ttyUSB0 --ffe_length 10 --emu_clk_freq 20e6 --prbs_test_dur 1``
+  * PRBS test took 30.042307376861572 seconds.
+  * Total bits: 150163760
+  * 4.998 Mb/s
+  * Slice LUTs: 77359 / 218600
+    * analog_core: 15556
+    * digital_core: 40056
+  * Slice Registers: 24928 / 437200
+    * analog_core: 1247
+    * digital_core: 17813
+  * Slice: 24221 / 54650
+    * analog_core: 4635
+    * digital_core: 14152
+  * DSP: 238 / 900
+    * interesting to note that some multiplications use up to 4 DSPs while others use 100-200 LUTs
+    * for rx_adc_core, LUT utilization is 698 and DSP utilization is 6 (16x instances)
+    * for clk_delay_core, LUT utilization is 701 and DSP utilization is 7 (4x instances)
+    * for chan_core, LUT utilization is 11,856 and DSP utilization is 100 (1x instances)
+    * total LUT utilization ends up being 13,972 for ADC and PI (124 DSPs)
+  * BRAM: 49 / 545
+  * Build time: 34m28.312s with Vivado 2020.1 on Intel(R) Core(TM) i5-2320 CPU @ 3.00GHz, Ubuntu 18.04.2 LTS, 6 GB RAM
+    * use `cat /proc/cpuinfo`, `cat /proc/meminfo`, `lsb_release -a`
+  * Max noise code: "560" (--noise_rms 56e-3)
+  * Max jitter code: "26" (--jitter_rms 2.6e-12)
