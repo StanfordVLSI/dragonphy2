@@ -207,3 +207,27 @@ July 19, 2020
     * use `cat /proc/cpuinfo`, `cat /proc/meminfo`, `lsb_release -a`
   * Max noise code: "560" (--noise_rms 56e-3)
   * Max jitter code: "26" (--jitter_rms 2.6e-12)
+* same as above, but with LONG_WIDTH_REAL and DT_WIDTH reduced from 32 to 25
+  * command: ``time pytest tests/fpga_system_tests/emu/test_emu.py::test_3 -s --board_name ZC706 --ser_port /dev/ttyUSB0 --ffe_length 10 --emu_clk_freq 20e6 --prbs_test_dur 1``
+  * PRBS test took 30.054484367370605 seconds.
+  * Total bits: 150206112
+  * 4.998 Mb/s
+  * Slice LUTs: 62288 / 218600
+    * analog_core: 6407
+    * digital_core: 40117
+  * Slice Registers: 24690 / 437200
+    * analog_core: 1191
+    * digital_core: 17813
+  * Slice: 20121 / 54650
+    * analog_core: 2040
+    * digital_core: 14248
+  * DSP: 187 / 900
+    * for rx_adc_core, LUT utilization is 255 and DSP utilization is 5 (16x instances)
+    * for clk_delay_core, LUT utilization is 410 and DSP utilization is 5 (4x instances)
+    * for chan_core, LUT utilization is 6096 and DSP utilization is 75 (1x instances)
+    * total LUT utilization ends up being 5720 for ADC and PI (100 DSPs)
+  * BRAM: 48.5 / 545
+  * Build time: 30m44.765s with Vivado 2020.1 on Intel(R) Core(TM) i5-2320 CPU @ 3.00GHz, Ubuntu 18.04.2 LTS, 6 GB RAM
+    * use `cat /proc/cpuinfo`, `cat /proc/meminfo`, `lsb_release -a`
+  * Max noise code: "560" (--noise_rms 56e-3)
+  * Max jitter code: "26" (--jitter_rms 2.6e-12)
