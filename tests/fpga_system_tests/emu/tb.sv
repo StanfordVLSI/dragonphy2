@@ -180,22 +180,22 @@ module tb;
     // value for each ADC is set separately due to synthesis limitations;
     // putting these assignments in a generate loop seems to create a
     // multiply-driven net.
-    assign tb_i.top_i.iacore.iADC[0].iADC.noise_rms = noise_rms;
-    assign tb_i.top_i.iacore.iADC[1].iADC.noise_rms = noise_rms;
-    assign tb_i.top_i.iacore.iADC[2].iADC.noise_rms = noise_rms;
-    assign tb_i.top_i.iacore.iADC[3].iADC.noise_rms = noise_rms;
-    assign tb_i.top_i.iacore.iADC[4].iADC.noise_rms = noise_rms;
-    assign tb_i.top_i.iacore.iADC[5].iADC.noise_rms = noise_rms;
-    assign tb_i.top_i.iacore.iADC[6].iADC.noise_rms = noise_rms;
-    assign tb_i.top_i.iacore.iADC[7].iADC.noise_rms = noise_rms;
-    assign tb_i.top_i.iacore.iADC[8].iADC.noise_rms = noise_rms;
-    assign tb_i.top_i.iacore.iADC[9].iADC.noise_rms = noise_rms;
-    assign tb_i.top_i.iacore.iADC[10].iADC.noise_rms = noise_rms;
-    assign tb_i.top_i.iacore.iADC[11].iADC.noise_rms = noise_rms;
-    assign tb_i.top_i.iacore.iADC[12].iADC.noise_rms = noise_rms;
-    assign tb_i.top_i.iacore.iADC[13].iADC.noise_rms = noise_rms;
-    assign tb_i.top_i.iacore.iADC[14].iADC.noise_rms = noise_rms;
-    assign tb_i.top_i.iacore.iADC[15].iADC.noise_rms = noise_rms;
+    assign top_i.iacore.iADC[0].iADC.noise_rms = noise_rms;
+    assign top_i.iacore.iADC[1].iADC.noise_rms = noise_rms;
+    assign top_i.iacore.iADC[2].iADC.noise_rms = noise_rms;
+    assign top_i.iacore.iADC[3].iADC.noise_rms = noise_rms;
+    assign top_i.iacore.iADC[4].iADC.noise_rms = noise_rms;
+    assign top_i.iacore.iADC[5].iADC.noise_rms = noise_rms;
+    assign top_i.iacore.iADC[6].iADC.noise_rms = noise_rms;
+    assign top_i.iacore.iADC[7].iADC.noise_rms = noise_rms;
+    assign top_i.iacore.iADC[8].iADC.noise_rms = noise_rms;
+    assign top_i.iacore.iADC[9].iADC.noise_rms = noise_rms;
+    assign top_i.iacore.iADC[10].iADC.noise_rms = noise_rms;
+    assign top_i.iacore.iADC[11].iADC.noise_rms = noise_rms;
+    assign top_i.iacore.iADC[12].iADC.noise_rms = noise_rms;
+    assign top_i.iacore.iADC[13].iADC.noise_rms = noise_rms;
+    assign top_i.iacore.iADC[14].iADC.noise_rms = noise_rms;
+    assign top_i.iacore.iADC[15].iADC.noise_rms = noise_rms;
 
     // set random seeds (from random.org)
     // each parameter is set separately due to synthesis limitations
@@ -229,10 +229,10 @@ module tb;
     // value for each PI is set separately due to synthesis limitations;
     // putting these assignments in a generate loop seems to create a
     // multiply-driven net.
-    assign tb_i.top_i.iacore.iPI[0].iPI.jitter_rms = jitter_rms;
-    assign tb_i.top_i.iacore.iPI[1].iPI.jitter_rms = jitter_rms;
-    assign tb_i.top_i.iacore.iPI[2].iPI.jitter_rms = jitter_rms;
-    assign tb_i.top_i.iacore.iPI[3].iPI.jitter_rms = jitter_rms;
+    assign top_i.iacore.iPI[0].iPI.jitter_rms = jitter_rms;
+    assign top_i.iacore.iPI[1].iPI.jitter_rms = jitter_rms;
+    assign top_i.iacore.iPI[2].iPI.jitter_rms = jitter_rms;
+    assign top_i.iacore.iPI[3].iPI.jitter_rms = jitter_rms;
 
     // set random seeds (from random.org)
     // each parameter is set explicitly due to synthesis limitations
