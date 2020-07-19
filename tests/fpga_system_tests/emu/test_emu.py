@@ -12,11 +12,12 @@ from dragonphy.git_util import get_git_hash_short
 
 THIS_DIR = Path(__file__).resolve().parent
 
-def test_1(board_name, emu_clk_freq):
+def test_1(board_name, emu_clk_freq, flatten_hierarchy):
     # Write project config
     prj = AnasymodProjectConfig()
     prj.set_board_name(board_name)
     prj.set_emu_clk_freq(emu_clk_freq)
+    prj.set_flatten_hierarchy(flatten_hierarchy)
     prj.write_to_file(THIS_DIR / 'prj.yaml')
 
     # Build up a configuration of source files for the project
@@ -83,7 +84,7 @@ def test_5():
     ana.set_target(target_name='fpga')
     ana.program_firmware()
 
-def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
+def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur, jitter_rms, noise_rms):
     jtag_inst_width = 5
     sc_bus_width = 32
     sc_addr_width = 14
@@ -136,15 +137,24 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
     def set_rstb(val):
         ser.write(f'SET_RSTB {val}\n'.encode('utf-8'))
 
+    def set_jitter_rms(val):
+        ser.write(f'SET_JITTER_RMS {val}\n'.encode('utf-8'))
+
+    def set_noise_rms(val):
+        ser.write(f'SET_NOISE_RMS {val}\n'.encode('utf-8'))
+
     def set_sleep(val):
         ser.write(f'SET_SLEEP {val}\n'.encode('utf-8'))
 
     def shift_ir(val, width):
         ser.write(f'SIR {val} {width}\n'.encode('utf-8'))
 
-    def shift_dr(val, width):
-        ser.write(f'SDR {val} {width}\n'.encode('utf-8'))
-        return int(ser.readline().strip())
+    def shift_dr(val, width, expect_output=False):
+        if expect_output:
+            ser.write(f'SDR {val} {width}\n'.encode('utf-8'))
+            return int(ser.readline().strip())
+        else:
+            ser.write(f'QSDR {val} {width}\n'.encode('utf-8'))
 
     def write_tc_reg(name, val):
         # specify address
@@ -183,7 +193,7 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
 
         # get data
         shift_ir(tc_cfg_data, jtag_inst_width)
-        return shift_dr(0, tc_bus_width)
+        return shift_dr(0, tc_bus_width, expect_output=True)
 
     def read_sc_reg(name):
         # specify address
@@ -196,7 +206,7 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
 
         # get data
         shift_ir(sc_cfg_data, jtag_inst_width)
-        return shift_dr(0, sc_bus_width)
+        return shift_dr(0, sc_bus_width, expect_output=True)
 
     def load_weight(
             d_idx, # clog2(ffe_length)
@@ -238,6 +248,10 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
     print('Release other reset signals')
     set_rstb(1)
 
+    # Configure noise
+    set_jitter_rms(int(round(jitter_rms*1e13)))
+    set_noise_rms(int(round(noise_rms*1e4)))
+
     # Soft reset
     print('Soft reset')
     write_tc_reg('int_rstb', 1)
@@ -248,7 +262,7 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
     # read the ID
     print('Reading ID...')
     shift_ir(1, 5)
-    id_result = shift_dr(0, 32)
+    id_result = shift_dr(0, 32, expect_output=True)
     print(f'ID: {id_result}')
 
     # Set PFD offset

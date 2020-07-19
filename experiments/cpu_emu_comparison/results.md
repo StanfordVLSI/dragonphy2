@@ -139,3 +139,25 @@ Jul 17, 2020
   * Interesting to observe that slightly higher noise is tolerated in this setup, particularly for jitter.  Possibly due to the Gaussian tail distortion in the emulator, or differences in the channel model (PWL LPF in simulation vs. PWL lookup table superposition).
   * r7cad-generic processor, CentOS Linux release 7.7.1908 (Core), 128 GB RAM
     * /proc/cpuinfo did not display the real CPU information since r7cad-generic is a VM
+
+July 18, 2020
+* Gaussian noise expermient with "low-level" model.  Emulation on ZC706, with flatten_hierarchy set to none for debugging.
+  * Command: ``time pytest tests/fpga_system_tests/emu/test_emu.py::test_3 -s --board_name ZC706 --ser_port /dev/ttyUSB0 --ffe_length 10 --emu_clk_freq 20e6 --prbs_test_dur 1 --flatten_hierarchy none``
+  * PRBS test took  seconds.
+  * Total bits: 
+  *  Mb/s
+  * Slice LUTs: 64852 / 218600
+    * analog_core: 8336
+    * digital_core: 47254
+  * Slice Registers: 26603 / 437200
+    * analog_core: 2039
+    * digital_core: 17635
+  * Slice: 20911 / 54650
+    * analog_core: 2694 
+    * digital_core: 15253
+  * DSP: 581 / 900
+  * BRAM: 53.5 / 545
+  * Build time: 33m36.902s with Vivado 2020.1 on Intel(R) Core(TM) i5-2320 CPU @ 3.00GHz, Ubuntu 18.04.2 LTS, 6 GB RAM
+    * use `cat /proc/cpuinfo`, `cat /proc/meminfo`, `lsb_release -a`
+  * Max noise code: "560" (--noise_rms 56e-3)
+  * Max jitter code: "26" (--jitter_rms 2.6e-12)

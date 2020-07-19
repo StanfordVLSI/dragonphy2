@@ -14,6 +14,32 @@ void cycle() {
     usleep(sleep_time);
 }
 
+void set_jitter_rms(u32 value) {
+   set_jitter_rms_0(value);
+   set_jitter_rms_1(value);
+   set_jitter_rms_2(value);
+   set_jitter_rms_3(value);
+}
+
+void set_noise_rms(u32 value) {
+   set_noise_rms_0(value);
+   set_noise_rms_1(value);
+   set_noise_rms_2(value);
+   set_noise_rms_3(value);
+   set_noise_rms_4(value);
+   set_noise_rms_5(value);
+   set_noise_rms_6(value);
+   set_noise_rms_7(value);
+   set_noise_rms_8(value);
+   set_noise_rms_9(value);
+   set_noise_rms_10(value);
+   set_noise_rms_11(value);
+   set_noise_rms_12(value);
+   set_noise_rms_13(value);
+   set_noise_rms_14(value);
+   set_noise_rms_15(value);
+}
+
 void do_init() {
    // emulator controls
    set_emu_rst(1);
@@ -22,8 +48,8 @@ void do_init() {
    set_emu_dec_thr(0);
 
    // noise controls
-   set_jitter_rms_int(0);
-   set_noise_rms_int(0);
+   set_jitter_rms(0);
+   set_noise_rms(0);
 
    // JTAG-specific
    set_tdi(0);
@@ -143,6 +169,21 @@ u32 read_id() {
     return shift_dr(0, 32);
 }
 
+enum cmd_t {
+    RESET,
+    INIT,
+    EXIT,
+    ID,
+    SIR,
+    SDR,
+    QSDR, // "quiet" SDR -- does not print anything
+    SET_RSTB,
+    SET_EMU_RST,
+    SET_SLEEP,
+    SET_NOISE_RMS,
+    SET_JITTER_RMS
+} cmd;
+
 int main() {
     // character buffering
     u32 idx = 0;
@@ -150,7 +191,6 @@ int main() {
     char buf [32];
     
     // command processing;
-    u32 cmd;
     u32 arg1;
     u32 arg2;
     u32 nargs = 0;
@@ -171,53 +211,75 @@ int main() {
                 buf[idx++] = '\0';
                 if (nargs == 0) {
                     if (strcmp(buf, "RESET") == 0) {
+                        cmd = RESET;
                         do_reset();
                         nargs = 0;
                     } else if (strcmp(buf, "INIT") == 0) {
+                        cmd = INIT;
                         do_init();
                         nargs = 0;
                     } else if (strcmp(buf, "EXIT") == 0) {
+                        cmd = EXIT;
                         return 0;
                     } else if (strcmp(buf, "ID") == 0) {
+                        cmd = ID;
                         xil_printf("%lu\r\n", read_id());
+                        nargs = 0;
                     } else if (strcmp(buf, "SIR") == 0) {
-                        cmd = 1;
+                        cmd = SIR;
                         nargs++;
                     } else if (strcmp(buf, "SDR") == 0) {
-                        cmd = 2;
+                        cmd = SDR;
+                        nargs++;
+                    } else if (strcmp(buf, "QSDR") == 0) {
+                        cmd = QSDR;
                         nargs++;
                     } else if (strcmp(buf, "SET_RSTB") == 0) {
-                        cmd = 3;
+                        cmd = SET_RSTB;
                         nargs++;
                     } else if (strcmp(buf, "SET_EMU_RST") == 0) {
-                        cmd = 4;
+                        cmd = SET_EMU_RST;
                         nargs++;
                     } else if (strcmp(buf, "SET_SLEEP") == 0) {
-                        cmd = 5;
+                        cmd = SET_SLEEP;
+                        nargs++;
+                    } else if (strcmp(buf, "SET_NOISE_RMS") == 0) {
+                        cmd = SET_NOISE_RMS;
+                        nargs++;
+                    } else if (strcmp(buf, "SET_JITTER_RMS") == 0) {
+                        cmd = SET_JITTER_RMS;
                         nargs++;
                     } else {
 	                xil_printf("ERROR: Unknown command\r\n");
 		            }
                 } else if (nargs == 1) {
                     sscanf(buf, "%lu", &arg1);
-                    if (cmd == 3) {
+                    if (cmd == SET_RSTB) {
                         set_rstb(arg1);
                         nargs=0;
-                    } else if (cmd == 4) {
+                    } else if (cmd == SET_EMU_RST) {
                         set_emu_rst(arg1);
                         nargs=0;
-                    } else if (cmd == 5) {
+                    } else if (cmd == SET_SLEEP) {
                         sleep_time = arg1;
+                        nargs=0;
+                    } else if (cmd == SET_NOISE_RMS) {
+                        set_noise_rms(arg1);
+                        nargs=0;
+                    } else if (cmd == SET_JITTER_RMS) {
+                        set_jitter_rms(arg1);
                         nargs=0;
                     } else {
                         nargs++;
                     }
                 } else if (nargs == 2) {
                     sscanf(buf, "%lu", &arg2);
-                    if (cmd == 1) {
+                    if (cmd == SIR) {
                         shift_ir(arg1, arg2);
-                    } else if (cmd == 2) {
+                    } else if (cmd == SDR) {
                         xil_printf("%lu\r\n", shift_dr(arg1, arg2));
+                    } else if (cmd == QSDR) {
+                        shift_dr(arg1, arg2);
                     }
                     nargs = 0;
                 }  
