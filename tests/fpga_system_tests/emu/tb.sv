@@ -33,6 +33,8 @@ module tb;
     (* dont_touch = "true" *) logic emu_clk;
     (* dont_touch = "true" *) `DECL_DT(emu_dt);
     (* dont_touch = "true" *) `DECL_DT(dt_req);
+    (* dont_touch = "true" *) logic [6:0] jitter_rms_int;
+    (* dont_touch = "true" *) logic [10:0] noise_rms_int;
 
     //////////////
     // TX clock //
@@ -165,13 +167,38 @@ module tb;
         .out(data_tx_i)
     );
 
-    /////////////////////
-    // Configure PRNGs //
-    /////////////////////
+    ///////////////
+    // ADC noise //
+    ///////////////
 
+    // calculate scale factor
+    `MAKE_REAL(noise_rms, 250e-3);
+    `INT_TO_REAL({1'b0, noise_rms_int}, 12, noise_rms_real);
+    `MUL_CONST_INTO_REAL(0.1e-3, noise_rms_real, noise_rms);
 
-    // ADC noise (seeds from random.org)
+    // write scale factor into hierarchy
+    // value for each ADC is set separately due to synthesis limitations;
+    // putting these assignments in a generate loop seems to create a
+    // multiply-driven net.
+    assign tb_i.top_i.iacore.iADC[0].iADC.noise_rms = noise_rms;
+    assign tb_i.top_i.iacore.iADC[1].iADC.noise_rms = noise_rms;
+    assign tb_i.top_i.iacore.iADC[2].iADC.noise_rms = noise_rms;
+    assign tb_i.top_i.iacore.iADC[3].iADC.noise_rms = noise_rms;
+    assign tb_i.top_i.iacore.iADC[4].iADC.noise_rms = noise_rms;
+    assign tb_i.top_i.iacore.iADC[5].iADC.noise_rms = noise_rms;
+    assign tb_i.top_i.iacore.iADC[6].iADC.noise_rms = noise_rms;
+    assign tb_i.top_i.iacore.iADC[7].iADC.noise_rms = noise_rms;
+    assign tb_i.top_i.iacore.iADC[8].iADC.noise_rms = noise_rms;
+    assign tb_i.top_i.iacore.iADC[9].iADC.noise_rms = noise_rms;
+    assign tb_i.top_i.iacore.iADC[10].iADC.noise_rms = noise_rms;
+    assign tb_i.top_i.iacore.iADC[11].iADC.noise_rms = noise_rms;
+    assign tb_i.top_i.iacore.iADC[12].iADC.noise_rms = noise_rms;
+    assign tb_i.top_i.iacore.iADC[13].iADC.noise_rms = noise_rms;
+    assign tb_i.top_i.iacore.iADC[14].iADC.noise_rms = noise_rms;
+    assign tb_i.top_i.iacore.iADC[15].iADC.noise_rms = noise_rms;
 
+    // set random seeds (from random.org)
+    // each parameter is set separately due to synthesis limitations
     defparam top_i.iacore.iADC[0].iADC.rx_adc_core_i.noise_seed = 32'd61349;
     defparam top_i.iacore.iADC[1].iADC.rx_adc_core_i.noise_seed = 32'd8335;
     defparam top_i.iacore.iADC[2].iADC.rx_adc_core_i.noise_seed = 32'd9132;
@@ -189,8 +216,26 @@ module tb;
     defparam top_i.iacore.iADC[14].iADC.rx_adc_core_i.noise_seed = 32'd60972;
     defparam top_i.iacore.iADC[15].iADC.rx_adc_core_i.noise_seed = 32'd65135;
 
-    // PI jitter (seeds from random.org)
+    ///////////////
+    // PI jitter //
+    ///////////////
 
+    // calculate scale factor
+    `MAKE_REAL(jitter_rms, 15e-12);
+    `INT_TO_REAL({1'b0, jitter_rms_int}, 8, jitter_rms_real);
+    `MUL_CONST_INTO_REAL(0.1e-12, jitter_rms_real, jitter_rms);
+
+    // write scale factor into hierarchy
+    // value for each PI is set separately due to synthesis limitations;
+    // putting these assignments in a generate loop seems to create a
+    // multiply-driven net.
+    assign tb_i.top_i.iacore.iPI[0].iPI.jitter_rms = jitter_rms;
+    assign tb_i.top_i.iacore.iPI[1].iPI.jitter_rms = jitter_rms;
+    assign tb_i.top_i.iacore.iPI[2].iPI.jitter_rms = jitter_rms;
+    assign tb_i.top_i.iacore.iPI[3].iPI.jitter_rms = jitter_rms;
+
+    // set random seeds (from random.org)
+    // each parameter is set explicitly due to synthesis limitations
     defparam top_i.iacore.iPI[0].iPI.clk_delay_core_i.jitter_seed = 32'd8485;
     defparam top_i.iacore.iPI[1].iPI.clk_delay_core_i.jitter_seed = 32'd25439;
     defparam top_i.iacore.iPI[2].iPI.clk_delay_core_i.jitter_seed = 32'd1655;

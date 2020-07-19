@@ -14,32 +14,6 @@ void cycle() {
     usleep(sleep_time);
 }
 
-void set_jitter_rms(u32 value) {
-   set_jitter_rms_0(value);
-   set_jitter_rms_1(value);
-   set_jitter_rms_2(value);
-   set_jitter_rms_3(value);
-}
-
-void set_noise_rms(u32 value) {
-   set_noise_rms_0(value);
-   set_noise_rms_1(value);
-   set_noise_rms_2(value);
-   set_noise_rms_3(value);
-   set_noise_rms_4(value);
-   set_noise_rms_5(value);
-   set_noise_rms_6(value);
-   set_noise_rms_7(value);
-   set_noise_rms_8(value);
-   set_noise_rms_9(value);
-   set_noise_rms_10(value);
-   set_noise_rms_11(value);
-   set_noise_rms_12(value);
-   set_noise_rms_13(value);
-   set_noise_rms_14(value);
-   set_noise_rms_15(value);
-}
-
 void do_init() {
    // emulator controls
    set_emu_rst(1);
@@ -48,8 +22,8 @@ void do_init() {
    set_emu_dec_thr(0);
 
    // noise controls
-   set_jitter_rms(0);
-   set_noise_rms(0);
+   set_jitter_rms_int(0);
+   set_noise_rms_int(0);
 
    // JTAG-specific
    set_tdi(0);
@@ -264,10 +238,10 @@ int main() {
                         sleep_time = arg1;
                         nargs=0;
                     } else if (cmd == SET_NOISE_RMS) {
-                        set_noise_rms(arg1);
+                        set_noise_rms_int(arg1);
                         nargs=0;
                     } else if (cmd == SET_JITTER_RMS) {
-                        set_jitter_rms(arg1);
+                        set_jitter_rms_int(arg1);
                         nargs=0;
                     } else {
                         nargs++;
