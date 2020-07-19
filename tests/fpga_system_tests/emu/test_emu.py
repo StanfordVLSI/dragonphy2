@@ -148,12 +148,9 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur, jitter_rms, noise_
     def shift_ir(val, width):
         ser.write(f'SIR {val} {width}\n'.encode('utf-8'))
 
-    def shift_dr(val, width, expect_output=False):
-        if expect_output:
-            ser.write(f'SDR {val} {width}\n'.encode('utf-8'))
-            return int(ser.readline().strip())
-        else:
-            ser.write(f'QSDR {val} {width}\n'.encode('utf-8'))
+    def shift_dr(val, width):
+        ser.write(f'SDR {val} {width}\n'.encode('utf-8'))
+        return int(ser.readline().strip())
 
     def write_tc_reg(name, val):
         # specify address
@@ -192,7 +189,7 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur, jitter_rms, noise_
 
         # get data
         shift_ir(tc_cfg_data, jtag_inst_width)
-        return shift_dr(0, tc_bus_width, expect_output=True)
+        return shift_dr(0, tc_bus_width)
 
     def read_sc_reg(name):
         # specify address
@@ -205,7 +202,7 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur, jitter_rms, noise_
 
         # get data
         shift_ir(sc_cfg_data, jtag_inst_width)
-        return shift_dr(0, sc_bus_width, expect_output=True)
+        return shift_dr(0, sc_bus_width)
 
     def load_weight(
             d_idx, # clog2(ffe_length)
@@ -261,7 +258,7 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur, jitter_rms, noise_
     # read the ID
     print('Reading ID...')
     shift_ir(1, 5)
-    id_result = shift_dr(0, 32, expect_output=True)
+    id_result = shift_dr(0, 32)
     print(f'ID: {id_result}')
 
     # Set PFD offset
