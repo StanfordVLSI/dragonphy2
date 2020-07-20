@@ -12,11 +12,12 @@ from dragonphy.git_util import get_git_hash_short
 
 THIS_DIR = Path(__file__).resolve().parent
 
-def test_1(board_name, emu_clk_freq):
+def test_1(board_name, emu_clk_freq, flatten_hierarchy):
     # Write project config
     prj = AnasymodProjectConfig()
     prj.set_board_name(board_name)
     prj.set_emu_clk_freq(emu_clk_freq)
+    prj.set_flatten_hierarchy(flatten_hierarchy)
     prj.write_to_file(THIS_DIR / 'prj.yaml')
 
     # Build up a configuration of source files for the project
@@ -43,7 +44,6 @@ def test_1(board_name, emu_clk_freq):
     src_cfg.add_defines({'VIVADO': None})
     src_cfg.add_defines({'DT_EXPONENT': -46})  # TODO: move to DT_SCALE
     src_cfg.add_defines({'GIT_HASH': str(get_git_hash_short())}, fileset='sim')
-    src_cfg.add_defines({'LONG_WIDTH_REAL': 32})
 
     # Firmware
     src_cfg.add_firmware_files([THIS_DIR / 'main.c'])
@@ -83,7 +83,7 @@ def test_5():
     ana.set_target(target_name='fpga')
     ana.program_firmware()
 
-def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
+def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur, jitter_rms, noise_rms):
     jtag_inst_width = 5
     sc_bus_width = 32
     sc_addr_width = 14
@@ -135,6 +135,12 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
 
     def set_rstb(val):
         ser.write(f'SET_RSTB {val}\n'.encode('utf-8'))
+
+    def set_jitter_rms(val):
+        ser.write(f'SET_JITTER_RMS {val}\n'.encode('utf-8'))
+
+    def set_noise_rms(val):
+        ser.write(f'SET_NOISE_RMS {val}\n'.encode('utf-8'))
 
     def set_sleep(val):
         ser.write(f'SET_SLEEP {val}\n'.encode('utf-8'))
@@ -238,6 +244,10 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
     print('Release other reset signals')
     set_rstb(1)
 
+    # Configure noise
+    set_jitter_rms(int(round(jitter_rms*1e13)))
+    set_noise_rms(int(round(noise_rms*1e4)))
+
     # Soft reset
     print('Soft reset')
     write_tc_reg('int_rstb', 1)
@@ -295,6 +305,7 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
 
     # Configure the CDR
     print('Configuring the CDR...')
+    write_tc_reg('cdr_rstb', 0)
     write_tc_reg('Kp', 15)
     write_tc_reg('Ki', 0)
     write_tc_reg('invert', 1)
@@ -307,8 +318,11 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur):
     write_tc_reg('en_v2t', 0)
     write_tc_reg('en_v2t', 1)
 
-    # Wait for CDR to lock
-    print('Wait for PRBS checker to lock')
+    # Release the CDR from reset, then wait for it to lock
+    # TODO: explore why it is not sufficient to pulse cdr_rstb low here
+    # (i.e., seems that it must be set to zero while configuring CDR parameters
+    print('Wait for the CDR to lock')
+    write_tc_reg('cdr_rstb', 1)
     time.sleep(1.0)
 
     # Run PRBS test.  In order to get a conservative estimate for the throughput, the

@@ -5,6 +5,10 @@
 `include "mLingua_pwl.vh"
 `include "iotype.sv"
 
+`ifndef NOISE_RMS
+    `define NOISE_RMS 0.0
+`endif
+
 module stochastic_adc_PR #(
     parameter Nctl_v2t = 5,
     parameter Nctl_TDC = 5,
@@ -47,6 +51,15 @@ module stochastic_adc_PR #(
 
     PWLMethod pm=new;
     `get_timeunit
+
+    ////////////////////////////////
+    // random seed initialization //
+    ////////////////////////////////
+
+    integer seed;
+    initial begin
+        seed = $urandom();
+    end
 
     //////////////////////////////
     // synchronization function //
@@ -118,6 +131,9 @@ module stochastic_adc_PR #(
             out_sgn = 0;
             samp = samp_n - samp_p;
         end
+
+        // add noise
+        samp += (`NOISE_RMS)*($dist_normal(seed, 0, 1000)/1000.0);
 
         // determine output magnitude
         out_mag = ((1.0*samp) / (0.3)) * ((2.0**(Nadc-1.0))-1.0);

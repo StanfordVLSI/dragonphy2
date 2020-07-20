@@ -33,6 +33,18 @@ def pytest_addoption(parser):
         '--fpga_sim_ctrl', default='UART_ZYNQ', type=str, help='Emulation control style (UART or VIO)'
     )
 
+    parser.addoption(
+        '--jitter_rms', default=0, type=float, help='RMS sampling jitter (seconds)'
+    )
+
+    parser.addoption(
+        '--noise_rms', default=0, type=float, help='RMS ADC noise (Volts)'
+    )
+    
+    parser.addoption(
+        '--flatten_hierarchy', default='rebuilt', type=str, help='Vivado synthesis option.'
+    )
+
 @pytest.fixture
 def dump_waveforms(request):
     return request.config.getoption('--dump_waveforms')
@@ -64,3 +76,15 @@ def prbs_test_dur(request):
 @pytest.fixture
 def fpga_sim_ctrl(request):
     return request.config.getoption('--fpga_sim_ctrl')
+
+@pytest.fixture
+def jitter_rms(request):
+    return request.config.getoption('--jitter_rms')
+
+@pytest.fixture
+def noise_rms(request):
+    return request.config.getoption('--noise_rms')
+
+@pytest.fixture
+def flatten_hierarchy(request):
+    return request.config.getoption('--flatten_hierarchy')

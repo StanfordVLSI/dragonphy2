@@ -21,6 +21,10 @@ void do_init() {
    set_emu_ctrl_data(0);
    set_emu_dec_thr(0);
 
+   // noise controls
+   set_jitter_rms_int(0);
+   set_noise_rms_int(0);
+
    // JTAG-specific
    set_tdi(0);
    set_tck(0);
@@ -154,7 +158,9 @@ enum cmd_t {
     SET_TCK,
     SET_TMS,
     SET_TRST_N,
-    GET_TDO
+    GET_TDO,
+    SET_NOISE_RMS,
+    SET_JITTER_RMS
 } cmd;
 
 int main() {
@@ -228,6 +234,12 @@ int main() {
                     } else if (strcmp(buf, "SET_TRST_N") == 0) {
                         cmd = SET_TRST_N;
                         nargs++;
+                    } else if (strcmp(buf, "SET_NOISE_RMS") == 0) {
+                        cmd = SET_NOISE_RMS;
+                        nargs++;
+                    } else if (strcmp(buf, "SET_JITTER_RMS") == 0) {
+                        cmd = SET_JITTER_RMS;
+                        nargs++;
                     } else if (strcmp(buf, "GET_TDO") == 0) {
                         cmd = GET_TDO;
                         xil_printf("%lu\r\n", get_tdo());
@@ -254,6 +266,12 @@ int main() {
                         nargs=0;
                     } else if (cmd == SET_TRST_N) {
                         set_trst_n(arg1);
+                        nargs=0;
+                    } else if (cmd == SET_NOISE_RMS) {
+                        set_noise_rms_int(arg1);
+                        nargs=0;
+                    } else if (cmd == SET_JITTER_RMS) {
+                        set_jitter_rms_int(arg1);
                         nargs=0;
                     } else if (cmd == SET_SLEEP) {
                         sleep_time = arg1;

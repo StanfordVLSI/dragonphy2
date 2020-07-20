@@ -2,11 +2,21 @@
 
 `include "mLingua_pwl.vh"
 
-//`define SET_JTAG(name, value) force top_i.idcore.jtag_i.rjtag_intf_i.``name`` = ``value``
-`define SET_JTAG(name, value) jtag_drv_i.write_tc_reg(``name``, ``value``)
+`ifdef FAST_JTAG
+    `define SET_JTAG(name, value) force top_i.idcore.jtag_i.rjtag_intf_i.``name`` = ``value``
+    `define GET_JTAG(name) jtag_result = top_i.idcore.jtag_i.rjtag_intf_i.``name``
+    `define SET_JTAG_ARRAY(name, value, index) tmp_``name``[``index``] = ``value``
+    `define COMMIT_JTAG_ARRAY(name) `SET_JTAG(``name``, tmp_``name``);
+`else
+    `define SET_JTAG(name, value) jtag_drv_i.write_tc_reg(``name``, ``value``)
+    `define GET_JTAG(name) jtag_drv_i.read_sc_reg(``name``, jtag_result)
+    `define SET_JTAG_ARRAY(name, value, index) `SET_JTAG(``name``[``index``], ``value``)
+    `define COMMIT_JTAG_ARRAY(name) 
+`endif
 
-//`define GET_JTAG(name) jtag_result = top_i.idcore.jtag_i.rjtag_intf_i.``name``
-`define GET_JTAG(name) jtag_drv_i.read_sc_reg(``name``, jtag_result)
+`ifndef NBITS
+    `define NBITS 600000
+`endif
 
 module test;
 
@@ -159,6 +169,10 @@ module test;
 
     real start_time;
     real stop_time;
+    real target_sim_time;
+
+    logic [7:0] tmp_ext_pfd_offset [(Nti-1):0];
+    logic [4:0] tmp_ffe_shift [(Nti-1):0];
 
 	initial begin
         `ifdef DUMP_WAVEFORMS
@@ -197,8 +211,9 @@ module test;
         // Set up the PFD offset
         $display("Setting up the PFD offset...");
         for (int idx=0; idx<Nti; idx=idx+1) begin
-            `SET_JTAG(ext_pfd_offset[idx], 0);
+            `SET_JTAG_ARRAY(ext_pfd_offset, 0, idx);
         end
+        `COMMIT_JTAG_ARRAY(ext_pfd_offset)
         #(1ns);
 
         // Set the equation for the PRBS checker
@@ -231,9 +246,9 @@ module test;
                     load_weight(loop_var2, loop_var, 0);
                 end
             end
-            `SET_JTAG(ffe_shift[loop_var], 7);
+            `SET_JTAG_ARRAY(ffe_shift, 7, loop_var);
         end
-
+        `COMMIT_JTAG_ARRAY(ffe_shift)
         #(10ns);
 
         // Configure the CDR offsets
@@ -249,6 +264,10 @@ module test;
         // Configure the retimer
         `SET_JTAG(retimer_mux_ctrl_1, 16'hFFFF);
         `SET_JTAG(retimer_mux_ctrl_2, 16'hFFFF);
+        #(5ns);
+
+        // Assert the CDR reset
+        `SET_JTAG(cdr_rstb, 0);
         #(5ns);
 
         // Configure the CDR
@@ -268,6 +287,10 @@ module test;
         `SET_JTAG(en_v2t, 1);
         #(5ns);
 
+        // De-assert the CDR reset
+        `SET_JTAG(cdr_rstb, 1);
+        #(5ns);
+
 		// Wait for MM_CDR to lock
 		$display("Waiting for MM_CDR to lock...");
 		for (loop_var=0; loop_var<2; loop_var=loop_var+1) begin
@@ -283,8 +306,9 @@ module test;
         $display("Running the PRBS tester");
         `SET_JTAG(prbs_checker_mode, 2);
 
+        target_sim_time = 62.5e-12*(`NBITS);
         start_time = get_time();
-        #(37.5us);
+        #(target_sim_time*1s);
 		stop_time = get_time();
 
         // Print out results of runtime experiment
