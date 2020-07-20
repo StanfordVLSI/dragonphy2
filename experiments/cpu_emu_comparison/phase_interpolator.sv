@@ -4,6 +4,10 @@
 
 `include "iotype.sv"
 
+`ifndef JITTER_RMS
+    `define JITTER_RMS 0
+`endif
+
 module phase_interpolator #(
     parameter Nbit = 9,
     parameter Nctl_dcdl = 2,
@@ -42,12 +46,27 @@ module phase_interpolator #(
     output [19:0]  pm_out
 );
 
+    // random seed initialization
+
+    integer seed;
+    initial begin
+        seed = $urandom();
+    end
+
     // delay clk_in to clk_out_slice
 
     real delay_s;
     always @(clk_in) begin
         // compute the delay
         delay_s = ((1.0*ctl)/(2.0**(Nbit)))*(250.0e-12);
+
+        // add jitter
+        delay_s += (`JITTER_RMS)*($dist_normal(seed, 0, 1000)/1000.0);
+
+        // clamp non-negative
+        if (delay_s < 0) begin
+            delay_s = 0.0;
+        end
 
         // apply the delay
         clk_out_slice <= #(delay_s*1s) clk_in;

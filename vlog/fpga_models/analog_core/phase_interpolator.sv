@@ -42,6 +42,7 @@ module phase_interpolator #(
     (* dont_touch = "true" *) `DECL_DT(emu_dt);
     (* dont_touch = "true" *) logic emu_clk;
     (* dont_touch = "true" *) logic emu_rst;
+    (* dont_touch = "true" *) `MAKE_REAL(jitter_rms, 15e-12);
 
     // declare signal for max timestep
     // TODO: make compatible with FLOAT_REAL
@@ -52,18 +53,25 @@ module phase_interpolator #(
     clk_delay_core #(
         `PASS_REAL(emu_dt, emu_dt),
         `PASS_REAL(dt_req, dt_req),
-        `PASS_REAL(dt_req_max, dt_req_max)
+        `PASS_REAL(dt_req_max, dt_req_max),
+        `PASS_REAL(jitter_rms, jitter_rms)
     ) clk_delay_core_i (
         // main I/O: delay code, clock in/out values
         .code(ctl),
         .clk_i_val(clk_in),
         .clk_o_val(clk_out_slice),
+
         // timestep control: DT request and response
         .dt_req(dt_req),
         .emu_dt(emu_dt),
+        
+        // jitter control
+        .jitter_rms(jitter_rms),
+
         // emulator clock and reset
         .emu_clk(emu_clk),
         .emu_rst(emu_rst),
+        
         // additional input: maximum timestep
         .dt_req_max(dt_req_max)
     );

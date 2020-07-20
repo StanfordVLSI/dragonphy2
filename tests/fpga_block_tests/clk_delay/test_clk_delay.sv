@@ -6,9 +6,14 @@ module test_clk_delay (
     output wire logic clk_o_val,
     input real dt_req,
     output real emu_dt,
+    input real jitter_rms,
     input wire logic emu_clk,
     input wire logic emu_rst
 );
+    // jitter control
+    `MAKE_REAL(jitter_rms_int, 10e-12);
+    assign `FORCE_REAL(jitter_rms, jitter_rms_int);
+
     // format for timesteps
     `REAL_FROM_WIDTH_EXP(emu_dt_int, `DT_WIDTH, `DT_EXPONENT);
     `REAL_FROM_WIDTH_EXP(dt_req_ext, `DT_WIDTH, `DT_EXPONENT);
@@ -33,18 +38,25 @@ module test_clk_delay (
     clk_delay_core #(
         `PASS_REAL(emu_dt, emu_dt_int),
         `PASS_REAL(dt_req, dt_req_dly),
-        `PASS_REAL(dt_req_max, dt_req_max)
+        `PASS_REAL(dt_req_max, dt_req_max),
+        `PASS_REAL(jitter_rms, jitter_rms_int)
     ) clk_delay_core_i (
         // main I/O: delay code, clock in/out values
         .code(code),
         .clk_i_val(clk_i_val),
         .clk_o_val(clk_o_val),
+
         // timestep control: DT request and response
         .dt_req(dt_req_dly),
         .emu_dt(emu_dt_int),
+
+        // jitter control
+        .jitter_rms(jitter_rms_int),
+
         // emulator clock and reset
         .emu_clk(emu_clk),
         .emu_rst(emu_rst),
+
         // additional input: maximum timestep
         .dt_req_max(dt_req_max)
     );

@@ -23,6 +23,14 @@ digital_ctrl_inputs:
     abspath: 'tb_i.trst_n'
     width: 1
     init_value: 0
+  jitter_rms_int:
+    abspath: 'tb_i.jitter_rms_int'
+    width: 7
+    init_value: 0
+  noise_rms_int:
+    abspath: 'tb_i.noise_rms_int'
+    width: 11
+    init_value: 0
 digital_ctrl_outputs:
   tdo:
     abspath: 'tb_i.tdo'

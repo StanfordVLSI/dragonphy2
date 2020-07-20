@@ -1,3 +1,4 @@
+`include "svreal.sv"
 `include "iotype.sv"
 
 module analog_core import const_pack::*; #(
@@ -37,6 +38,16 @@ module analog_core import const_pack::*; #(
 
     (* dont_touch = "true" *) logic emu_clk;
     (* dont_touch = "true" *) logic emu_rst;
+    (* dont_touch = "true" *) logic [6:0] jitter_rms_int;
+    (* dont_touch = "true" *) logic [10:0] noise_rms_int;
+
+    // convert noise / jitter to svreal types
+
+    `INT_TO_REAL({1'b0, jitter_rms_int}, 8, jitter_rms_real);
+    `INT_TO_REAL({1'b0, noise_rms_int}, 12, noise_rms_real);
+
+    `MUL_CONST_REAL(0.1e-12, jitter_rms_real, jitter_rms);
+    `MUL_CONST_REAL(0.1e-3, noise_rms_real, noise_rms);
 
     // instantiate analog slices
 
@@ -44,6 +55,10 @@ module analog_core import const_pack::*; #(
     logic [1:0] chunk_idx;
     logic incr_sum;
     logic last_cycle;
+
+    // random number seeds generated from random.org
+    localparam [31:0] jitter_seed [Nti] = '{32'd8485, 32'd25439, 32'd1655, 32'd2550, 32'd28814, 32'd19790, 32'd22931, 32'd18230, 32'd26850, 32'd11919, 32'd49789, 32'd57646, 32'd8568, 32'd25180, 32'd9577, 32'd38496};
+    localparam [31:0] noise_seed [Nti] = '{32'd61349, 32'd8335, 32'd9132, 32'd25683, 32'd13215, 32'd15813, 32'd48824, 32'd37609, 32'd36034, 32'd37264, 32'd50609, 32'd56017, 32'd36602, 32'd46638, 32'd60972, 32'd65135};
 
     genvar i;
     generate
@@ -53,7 +68,12 @@ module analog_core import const_pack::*; #(
             assign slice_offset = i%Nout;
 
             // instantiate the slice
-            analog_slice analog_slice_i (
+            analog_slice #(
+                .jitter_seed(jitter_seed[i]),
+                .noise_seed(noise_seed[i]),
+                `PASS_REAL(jitter_rms, jitter_rms),
+                `PASS_REAL(noise_rms, noise_rms)
+            ) analog_slice_i (
                 .chunk(chunk),
                 .chunk_idx(chunk_idx),
                 .pi_ctl(ctl_pi[i/Nout]),
@@ -64,7 +84,9 @@ module analog_core import const_pack::*; #(
                 .out_sgn(sign_out[i]),
                 .out_mag(adder_out[i]),
                 .clk(emu_clk),
-                .rst(emu_rst)
+                .rst(emu_rst),
+                .jitter_rms(jitter_rms),
+                .noise_rms(noise_rms)
             );
         end
     endgenerate

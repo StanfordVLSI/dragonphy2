@@ -17,22 +17,40 @@ class ClkDelayCore:
             f'Cannot build {module_name}, Missing parameter in config file'
 
         m = MixedSignalModel(module_name, dt=system_values['dt'], build_dir=build_dir)
+
+        # Random number generator seed (default generated with random.org)
+        m.add_digital_param('jitter_seed', width=32, default=46428)
+
         # main I/O: delay code, clock in/out values
         m.add_digital_input('code', width=system_values['n_bits'])
         m.add_digital_input('clk_i_val')
         m.add_digital_output('clk_o_val')
+
         # timestep control: DT request and response
         m.add_analog_output('dt_req')
         m.add_analog_input('emu_dt')
+
         # emulator clock and reset
         m.add_digital_input('emu_clk')
         m.add_digital_input('emu_rst')
+
         # additional input: maximum timestep
         # TODO: clean this up
         m.add_analog_input('dt_req_max')
 
-        # compute the delay
-        m.bind_name('delay_amt', m.code*(system_values['t_per']/(2.0**system_values['n_bits'])))
+        # jitter control
+        m.add_analog_input('jitter_rms')
+
+        # compute the delay (with no jitter)
+        m.bind_name('delay_amt_pre', m.code*(system_values['t_per']/(2.0**system_values['n_bits'])))
+
+        # add jitter to the delay amount (which might possibly yield a negative value)
+        m.set_gaussian_noise('t_jitter', std=m.jitter_rms, clk=m.emu_clk,
+                             rst=m.emu_rst, lfsr_init=m.jitter_seed)
+        m.bind_name('delay_amt_noisy', m.delay_amt_pre + m.t_jitter)
+
+        # make the delay amount non-negative
+        m.bind_name('delay_amt', if_(m.delay_amt_noisy >= 0.0, m.delay_amt_noisy, 0.0))
 
         # determine when the clock value has changed
         m.add_digital_state('clk_i_val_prev')

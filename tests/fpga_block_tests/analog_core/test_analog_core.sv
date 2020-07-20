@@ -32,7 +32,11 @@ module test_analog_core import const_pack::*; #(
 
     // Emulator clock and reset
     input clk,
-    input rst
+    input rst,
+
+    // Jitter/Noise commands
+    input [6:0] jitter_rms_int,
+    input [10:0] noise_rms_int
 );
     // wire ctl_pi
     logic [Npi-1:0] ctl_pi [Nout-1:0];
@@ -92,6 +96,8 @@ module test_analog_core import const_pack::*; #(
     // wire emulator control signals through the hierarchy
     assign analog_core_i.emu_clk = clk;
     assign analog_core_i.emu_rst = rst;
+    assign analog_core_i.jitter_rms_int = jitter_rms_int;
+    assign analog_core_i.noise_rms_int = noise_rms_int;
 
     // waveform dumping
     initial begin

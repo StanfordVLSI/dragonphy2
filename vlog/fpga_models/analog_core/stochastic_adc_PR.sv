@@ -42,6 +42,7 @@ module stochastic_adc_PR #(
 
     (* dont_touch = "true" *) logic emu_rst;
     (* dont_touch = "true" *) logic emu_clk;
+    (* dont_touch = "true" *) `MAKE_REAL(noise_rms, 250e-3);
 
     ///////////////////////////
     // clk_in edge detection //
@@ -108,13 +109,18 @@ module stochastic_adc_PR #(
 
     logic signed [8:0] adc_out;
     rx_adc_core #(
-        `PASS_REAL(in_, VinP)
+        `PASS_REAL(in_, VinP),
+        `PASS_REAL(noise_rms, noise_rms)
     ) rx_adc_core_i (
         // main I/O: input, output, and clock
         .in_(VinP),
         .out_mag(adder_out),
         .out_sgn(sign_out),
         .clk_val(clk_adder),
+
+        // noise control
+        .noise_rms(noise_rms),
+
         // emulator clock and reset
         .emu_clk(emu_clk),
         .emu_rst(emu_rst)

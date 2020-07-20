@@ -14,6 +14,8 @@ module sim_ctrl(
     output reg tms=1'b1,
     output reg trst_n=1'b0,
     output reg dump_start=1'b0,
+    output reg [6:0] jitter_rms_int,
+    output reg [10:0] noise_rms_int,
     input wire tdo
 );
 	import const_pack::*;
@@ -54,6 +56,10 @@ module sim_ctrl(
     endtask
 
     initial begin
+        // TODO: explore jitter/noise effect
+        jitter_rms_int = 0;
+        noise_rms_int = 0;
+
         // wait for emulator reset to complete
         $display("Waiting for emulator reset to complete...");
         #((50.0/(`EMU_CLK_FREQ))*1s);
@@ -124,6 +130,10 @@ module sim_ctrl(
         `FORCE_JTAG(retimer_mux_ctrl_2, 16'hFFFF);
         #((25.0/(`EMU_CLK_FREQ))*1s);
 
+        // Assert the CDR reset
+        `FORCE_JTAG(cdr_rstb, 0);
+        #((25.0/(`EMU_CLK_FREQ))*1s);
+
         // Configure the CDR
         $display("Configuring the CDR...");
         `FORCE_JTAG(Kp, 18);
@@ -139,6 +149,10 @@ module sim_ctrl(
         `FORCE_JTAG(en_v2t, 0);
         #((25.0/(`EMU_CLK_FREQ))*1s);
         `FORCE_JTAG(en_v2t, 1);
+        #((25.0/(`EMU_CLK_FREQ))*1s);
+
+        // De-assert the CDR reset
+        `FORCE_JTAG(cdr_rstb, 1);
         #((25.0/(`EMU_CLK_FREQ))*1s);
 
         // Wait for PRBS checker to lock
