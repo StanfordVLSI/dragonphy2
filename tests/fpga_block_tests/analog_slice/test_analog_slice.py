@@ -12,6 +12,7 @@ import fault
 # FPGA-specific imports
 from svreal import get_svreal_header
 from msdsl import get_msdsl_header
+from msdsl.function import PlaceholderFunction
 
 # DragonPHY imports
 from dragonphy import get_file, Filter
@@ -99,7 +100,11 @@ def test_analog_slice(simulator_name, slice_offset, dump_waveforms, num_tests=10
             clk=m.BitIn,
             rst=m.BitIn,
             jitter_rms=fault.RealIn,
-            noise_rms=fault.RealIn
+            noise_rms=fault.RealIn,
+            wdata0=m.In(m.Bits[18]),
+            wdata1=m.In(m.Bits[18]),
+            waddr=m.In(m.Bits[9]),
+            we=m.BitIn
         )
 
     # create the tester
@@ -132,7 +137,20 @@ def test_analog_slice(simulator_name, slice_offset, dump_waveforms, num_tests=10
     cycle(2)
     t.poke(dut.rst, 0)
 
-    # first cycle
+    # initialize step response functions
+    placeholder = PlaceholderFunction(domain=CFG['func_domain'], order=CFG['func_order'],
+                                      numel=CFG['func_numel'], coeff_widths=CFG['func_widths'],
+                                      coeff_exps=CFG['func_exps'])
+    coeffs_bin = placeholder.get_coeffs_bin_fmt(CHAN.interp)
+    t.poke(dut.we, 1)
+    for i in range(placeholder.numel):
+        t.poke(dut.wdata0, coeffs_bin[0][i])
+        t.poke(dut.wdata1, coeffs_bin[1][i])
+        t.poke(dut.waddr, i)
+        cycle()
+    t.poke(dut.we, 0)
+    
+    # f cycle
     t.poke(dut.chunk, 0)
     t.poke(dut.chunk_idx, 0)
     t.poke(dut.pi_ctl, test_cases[0][0])
