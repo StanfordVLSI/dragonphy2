@@ -31,6 +31,22 @@ digital_ctrl_inputs:
     abspath: 'tb_i.top_i.iacore.noise_rms_int'
     width: 11
     init_value: 0
+  chan_wdata_0:
+    abspath: 'tb_i.top_i.iacore.chan_wdata_0'
+    width: 18
+    init_value: 0
+  chan_wdata_1:
+    abspath: 'tb_i.top_i.iacore.chan_wdata_1'
+    width: 18
+    init_value: 0
+  chan_waddr:
+    abspath: 'tb_i.top_i.iacore.chan_waddr'
+    width: 9
+    init_value: 0
+  chan_we:
+    abspath: 'tb_i.top_i.iacore.chan_we'
+    width: 1
+    init_value: 0
 digital_ctrl_outputs:
   tdo:
     abspath: 'tb_i.tdo'

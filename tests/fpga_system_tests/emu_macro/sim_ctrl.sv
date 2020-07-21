@@ -16,6 +16,10 @@ module sim_ctrl(
     output reg dump_start=1'b0,
     output reg [6:0] jitter_rms_int,
     output reg [10:0] noise_rms_int,
+    output reg [17:0] chan_wdata_0,
+    output reg [17:0] chan_wdata_1,
+    output reg [8:0] chan_waddr,
+    output reg chan_we
     input wire tdo
 );
 	import const_pack::*;
@@ -24,6 +28,10 @@ module sim_ctrl(
     import ffe_gpack::length;
     import ffe_gpack::weight_precision;
     import constant_gpack::channel_width;
+
+    // function parameters
+    localparam real dt_samp=1.0/(160.0e9);
+    localparam integer numel=512;
 
     // calculate FFE coefficients
     localparam real dt=1.0/(16.0e9);
@@ -35,7 +43,8 @@ module sim_ctrl(
     logic [Npi-1:0] tmp_ext_pi_ctl_offset [Nout-1:0];
 
     integer loop_var, loop_var2;
-    longint err_bits, total_bits;
+    logic [63:0] err_bits;
+    logic [63:0] total_bits;
 
     logic [ffe_gpack::shift_precision-1:0] tmp_ffe_shift [constant_gpack::channel_width-1:0];
 
@@ -56,9 +65,13 @@ module sim_ctrl(
     endtask
 
     initial begin
-        // TODO: explore jitter/noise effect
+        // initialize control signals
         jitter_rms_int = 0;
         noise_rms_int = 0;
+        chan_wdata_0 = 0;
+        chan_wdata_1 = 0;
+        chan_waddr = 0;
+        chan_we = 0;
 
         // wait for emulator reset to complete
         $display("Waiting for emulator reset to complete...");
@@ -191,16 +204,16 @@ module sim_ctrl(
 
         // Check results
 
-        if (!(total_bits >= 500)) begin
-            $error("Not enough bits transmitted");
-        end else begin
+        if (total_bits >= 500) begin
             $display("Number of bits transmitted is OK");
+        end else begin
+            $error("Not enough bits transmitted");
         end
 
-        if (!(err_bits == 0)) begin
-            $error("Bit error detected");
-        end else begin
+        if (err_bits == 0) begin
             $display("No bit errors detected");
+        end else begin
+            $error("Bit error detected");
         end
 
 		// Finish test
