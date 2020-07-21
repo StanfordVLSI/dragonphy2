@@ -36,7 +36,13 @@ module test_analog_core import const_pack::*; #(
 
     // Jitter/Noise commands
     input [6:0] jitter_rms_int,
-    input [10:0] noise_rms_int
+    input [10:0] noise_rms_int,
+
+    // Step response control signals
+    input [17:0] chan_wdata_0,
+    input [17:0] chan_wdata_1,
+    input [8:0] chan_waddr,
+    input chan_we
 );
     // wire ctl_pi
     logic [Npi-1:0] ctl_pi [Nout-1:0];
@@ -98,6 +104,10 @@ module test_analog_core import const_pack::*; #(
     assign analog_core_i.emu_rst = rst;
     assign analog_core_i.jitter_rms_int = jitter_rms_int;
     assign analog_core_i.noise_rms_int = noise_rms_int;
+    assign analog_core_i.chan_wdata_0 = chan_wdata_0;
+    assign analog_core_i.chan_wdata_1 = chan_wdata_1;
+    assign analog_core_i.chan_waddr = chan_waddr;
+    assign analog_core_i.chan_we = chan_we;
 
     // waveform dumping
     initial begin
