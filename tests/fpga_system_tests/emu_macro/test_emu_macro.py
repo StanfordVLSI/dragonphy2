@@ -3,14 +3,18 @@ import serial
 import time
 import json
 import re
+import yaml
 from pathlib import Path
 from math import exp, ceil, log2
 
 from anasymod.analysis import Analysis
+from msdsl.function import PlaceholderFunction
 from dragonphy import *
 from dragonphy.git_util import get_git_hash_short
 
 THIS_DIR = Path(__file__).resolve().parent
+CFG = yaml.load(open(get_file('config/fpga/analog_slice_cfg.yml'), 'r'))
+CHAN = Filter.from_file(get_file('build/chip_src/adapt_fir/chan.npy'))
 
 def test_1(board_name, emu_clk_freq, fpga_sim_ctrl):
     # Write project config
@@ -147,12 +151,9 @@ def test_6(ser_port, ffe_length, prbs_test_dur, jitter_rms, noise_rms):
     def shift_ir(val, width):
         ser.write(f'SIR {val} {width}\n'.encode('utf-8'))
 
-    def shift_dr(val, width, expect_output=False):
-        if expect_output:
-            ser.write(f'SDR {val} {width}\n'.encode('utf-8'))
-            return int(ser.readline().strip())
-        else:
-            ser.write(f'QSDR {val} {width}\n'.encode('utf-8'))
+    def shift_dr(val, width):
+        ser.write(f'SDR {val} {width}\n'.encode('utf-8'))
+        return int(ser.readline().strip())
 
     def write_tc_reg(name, val):
         # specify address
@@ -191,7 +192,7 @@ def test_6(ser_port, ffe_length, prbs_test_dur, jitter_rms, noise_rms):
 
         # get data
         shift_ir(tc_cfg_data, jtag_inst_width)
-        return shift_dr(0, tc_bus_width, expect_output=True)
+        return shift_dr(0, tc_bus_width)
 
     def read_sc_reg(name):
         # specify address
@@ -204,7 +205,7 @@ def test_6(ser_port, ffe_length, prbs_test_dur, jitter_rms, noise_rms):
 
         # get data
         shift_ir(sc_cfg_data, jtag_inst_width)
-        return shift_dr(0, sc_bus_width, expect_output=True)
+        return shift_dr(0, sc_bus_width)
 
     def load_weight(
             d_idx, # clog2(ffe_length)
@@ -230,6 +231,17 @@ def test_6(ser_port, ffe_length, prbs_test_dur, jitter_rms, noise_rms):
         write_tc_reg('wme_ffe_exec', 1)
         write_tc_reg('wme_ffe_exec', 0)
 
+    def update_chan(coeffs, offset=0):
+        # put together the command
+        args = ['UPDATE_CHAN', offset, len(coeffs)]
+        for coeff_tuple in zip(*coeffs):
+            args += coeff_tuple
+        cmd = ' '.join(str(elem) for elem in args)
+        ser.write((cmd + '\n').encode('utf-8'))
+
+        # stall until confirmation is received
+        ser.readline()
+
     # Initialize
     set_sleep(1)
     do_init()
@@ -249,6 +261,15 @@ def test_6(ser_port, ffe_length, prbs_test_dur, jitter_rms, noise_rms):
     set_jitter_rms(int(round(jitter_rms*1e13)))
     set_noise_rms(int(round(noise_rms*1e4)))
 
+    # Configure step response function
+    placeholder = PlaceholderFunction(domain=CFG['func_domain'], order=CFG['func_order'],
+                                      numel=CFG['func_numel'], coeff_widths=CFG['func_widths'],
+                                      coeff_exps=CFG['func_exps'])
+    coeffs_bin = placeholder.get_coeffs_bin_fmt(CHAN.interp)
+    chunk_size = 32
+    for k in range(len(coeffs_bin)//chunk_size):
+        update_chan(coeffs_bin[(k*chunk_size):((k+1)*chunk_size)], offset=k*chunk_size)
+
     # Soft reset
     print('Soft reset')
     write_tc_reg('int_rstb', 1)
@@ -259,7 +280,7 @@ def test_6(ser_port, ffe_length, prbs_test_dur, jitter_rms, noise_rms):
     # read the ID
     print('Reading ID...')
     shift_ir(1, 5)
-    id_result = shift_dr(0, 32, expect_output=True)
+    id_result = shift_dr(0, 32)
     print(f'ID: {id_result}')
 
     # Set PFD offset
