@@ -342,9 +342,9 @@ int main() {
 
                             // check if that was the last update
                             if (nargs == (2 + arg2*2)) {
+                                xil_printf("OK\r\n");
                                 nargs = 0;
                             } else {
-                                xil_printf("OK\r\n");
                                 nargs++;
                             }
                         }
