@@ -231,3 +231,27 @@ July 19, 2020
     * use `cat /proc/cpuinfo`, `cat /proc/meminfo`, `lsb_release -a`
   * Max noise code: "560" (--noise_rms 56e-3)
   * Max jitter code: "26" (--jitter_rms 2.6e-12)
+
+July 21, 2020
+* First experiment with updatable functions, run on the "high-level" model.  A PWL representation was used for functions, with width=18 and exponent=-16 for both the offset and slope values (representing about +/-2 for each).  Run on ZC706.
+  * command: ``time pytest tests/fpga_system_tests/emu_macro/test_emu_macro.py::test_3 -s --board_name ZC706 --ser_port /dev/ttyUSB0 --ffe_length 10 --emu_clk_freq 30e6 --prbs_test_dur 1``
+  * PRBS test took 30.06890892982483 seconds.
+  * Total bits: 2403924544
+  * 79.95 Mb/s
+  * Slice LUTs: 85102 / 218600
+    * analog_core: 29028
+    * digital_core: 40163
+  * Slice Registers: 23828 / 437200
+    * analog_core: 1596
+    * digital_core: 17797
+  * Slice: 27902 / 54650
+    * analog_core: 9837
+    * digital_core: 15254
+  * DSP: 850 / 900
+    * 53 per slice
+  * BRAM: 194.5 / 545
+    * 9.5 per slice (16x), 32 in digital core and 10.5 from debug core
+    * sync_rams are all using 1/2 slice as expected
+  * Build time: 47m40.715s with Vivado 2020.1 on Intel(R) Core(TM) i5-2320 CPU @ 3.00GHz, Ubuntu 18.04.2 LTS, 6 GB RAM
+    * use `cat /proc/cpuinfo`, `cat /proc/meminfo`, `lsb_release -a`
+  * Maximum time constant: 217ps (--chan_tau=217e-12)

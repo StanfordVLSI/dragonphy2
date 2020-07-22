@@ -4,6 +4,7 @@ import time
 import json
 import re
 import yaml
+import numpy as np
 from pathlib import Path
 from math import exp, ceil, log2
 
@@ -14,7 +15,6 @@ from dragonphy.git_util import get_git_hash_short
 
 THIS_DIR = Path(__file__).resolve().parent
 CFG = yaml.load(open(get_file('config/fpga/analog_slice_cfg.yml'), 'r'))
-CHAN = Filter.from_file(get_file('build/chip_src/adapt_fir/chan.npy'))
 
 def test_1(board_name, emu_clk_freq, fpga_sim_ctrl):
     # Write project config
@@ -86,7 +86,7 @@ def test_5():
     ana.set_target(target_name='fpga')
     ana.program_firmware()
 
-def test_6(ser_port, ffe_length, prbs_test_dur, jitter_rms, noise_rms):
+def test_6(ser_port, ffe_length, prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
     jtag_inst_width = 5
     sc_bus_width = 32
     sc_addr_width = 14
@@ -231,16 +231,16 @@ def test_6(ser_port, ffe_length, prbs_test_dur, jitter_rms, noise_rms):
         write_tc_reg('wme_ffe_exec', 1)
         write_tc_reg('wme_ffe_exec', 0)
 
-    def update_chan(coeffs, offset=0):
+    def update_chan(coeff_tuples, offset=0):
         # put together the command
-        args = ['UPDATE_CHAN', offset, len(coeffs)]
-        for coeff_tuple in zip(*coeffs):
+        args = ['UPDATE_CHAN', offset, len(coeff_tuples)]
+        for coeff_tuple in coeff_tuples:
             args += coeff_tuple
         cmd = ' '.join(str(elem) for elem in args)
         ser.write((cmd + '\n').encode('utf-8'))
 
         # stall until confirmation is received
-        ser.readline()
+        assert ser.readline().decode('utf-8').strip() == 'OK', 'Serial error'
 
     # Initialize
     set_sleep(1)
@@ -265,10 +265,13 @@ def test_6(ser_port, ffe_length, prbs_test_dur, jitter_rms, noise_rms):
     placeholder = PlaceholderFunction(domain=CFG['func_domain'], order=CFG['func_order'],
                                       numel=CFG['func_numel'], coeff_widths=CFG['func_widths'],
                                       coeff_exps=CFG['func_exps'])
-    coeffs_bin = placeholder.get_coeffs_bin_fmt(CHAN.interp)
-    chunk_size = 32
-    for k in range(len(coeffs_bin)//chunk_size):
-        update_chan(coeffs_bin[(k*chunk_size):((k+1)*chunk_size)], offset=k*chunk_size)
+    chan_func = lambda t_vec: (1-np.exp(-(t_vec-chan_delay)/chan_tau))*np.heaviside(t_vec-chan_delay, 0)
+    coeffs_bin = placeholder.get_coeffs_bin_fmt(chan_func)
+    coeff_tuples = list(zip(*coeffs_bin))
+    chunk_size = 32 
+    for k in range(len(coeff_tuples)//chunk_size):
+        print(f'Updating channel at chunk {k}...')
+        update_chan(coeff_tuples[(k*chunk_size):((k+1)*chunk_size)], offset=k*chunk_size)
 
     # Soft reset
     print('Soft reset')
@@ -298,9 +301,8 @@ def test_6(ser_port, ffe_length, prbs_test_dur, jitter_rms, noise_rms):
 
     # Set up the FFE
     dt=1.0/(16.0e9)
-    tau=25.0e-12
-    coeff0 = 128.0/(1.0-exp(-dt/tau))
-    coeff1 = -128.0*exp(-dt/tau)/(1.0-exp(-dt/tau))
+    coeff0 = 128.0/(1.0-exp(-dt/chan_tau))
+    coeff1 = -128.0*exp(-dt/chan_tau)/(1.0-exp(-dt/chan_tau))
     for loop_var in range(16):
         for loop_var2 in range(ffe_length):
             if (loop_var2 == 0):
