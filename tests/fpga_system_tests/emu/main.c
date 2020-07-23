@@ -255,7 +255,7 @@ int main() {
                         nargs++;
                     } else {
 	                xil_printf("ERROR: Unknown command\r\n");
-		            }
+                    }
                 } else if (nargs == 1) {
                     sscanf(buf, "%lu", &arg1);
                     if (cmd == SET_RSTB) {
@@ -280,12 +280,15 @@ int main() {
                     sscanf(buf, "%lu", &arg2);
                     if (cmd == SIR) {
                         shift_ir(arg1, arg2);
+			nargs=0;
                     } else if (cmd == SDR) {
                         xil_printf("%lu\r\n", shift_dr(arg1, arg2));
+			nargs=0;
                     } else if (cmd == QSDR) {
                         shift_dr(arg1, arg2);
+			nargs=0;
                     } else {
-                        nargs++
+                        nargs++;
                     }
                 } else if (nargs > 2) {
                     sscanf(buf, "%lu", &argn);

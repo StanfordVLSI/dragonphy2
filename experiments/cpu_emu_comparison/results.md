@@ -255,3 +255,25 @@ July 21, 2020
   * Build time: 47m40.715s with Vivado 2020.1 on Intel(R) Core(TM) i5-2320 CPU @ 3.00GHz, Ubuntu 18.04.2 LTS, 6 GB RAM
     * use `cat /proc/cpuinfo`, `cat /proc/meminfo`, `lsb_release -a`
   * Maximum time constant: 217ps (--chan_tau=217e-12)
+
+July 23, 2020
+* Second experiment with updatable functions, this time run on the "low-level" model.  A PWL representation was used for functions, with width=18 and exponent=-16 for both the offset and slope values (representing about +/-2 for each).  Run on ZC706.
+  * command: ``time pytest tests/fpga_system_tests/emu/test_emu.py::test_3 -s --board_name ZC706 --ser_port /dev/ttyUSB1 --ffe_length 10 --emu_clk_freq 20e6 --prbs_test_dur 1``
+  * PRBS test took 30.0692880153656 seconds.
+  * Total bits: 150234304
+  * 4.996 Mb/s
+  * Slice LUTs: 60655 / 218600
+    * analog_core: 6405
+    * digital_core: 40044
+  * Slice Registers: 24311 / 437200
+    * analog_core: 1191
+    * digital_core: 17813
+  * Slice: 19882 / 54650
+    * analog_core: 2106 
+    * digital_core: 14249
+  * DSP: 187 / 900
+  * BRAM: 73.5 / 545
+    * exactly 25 for the channel model (i.e., number of taps).  this is the only delta in BRAM usage from the previous fixed-function version, so this is all as expected.
+  * Build time:  31m3.938s with Vivado 2020.1 on Intel(R) Core(TM) i5-2320 CPU @ 3.00GHz, Ubuntu 18.04.2 LTS, 6 GB RAM
+    * use `cat /proc/cpuinfo`, `cat /proc/meminfo`, `lsb_release -a`
+  * Maximum time constant: 217ps (--chan_tau=217e-12)
