@@ -1,12 +1,20 @@
 `include "svreal.sv"
 
-module test_chan_model (
+module test_chan_model #(
+    parameter integer width0=18,
+    parameter integer width1=18,
+    parameter integer naddr=9
+) (
     input real in_,
     output real out,
     input real dt_sig,
     input clk,
     input cke,
-    input rst
+    input rst,
+    input [(width0-1):0] wdata0,
+    input [(width1-1):0] wdata1,
+    input [(naddr-1):0] waddr,
+    input we
 );
     // wire input
     `REAL_FROM_WIDTH_EXP(in_int, 18, -12);
@@ -31,6 +39,11 @@ module test_chan_model (
         .dt_sig(dt_int),
         .clk(clk),
         .cke(cke),
-        .rst(rst)
+        .rst(rst),
+        // runtime-defined function controls
+        .wdata0(wdata0),
+        .wdata1(wdata1),
+        .waddr(waddr),
+        .we(we)
     );
 endmodule
