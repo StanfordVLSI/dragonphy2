@@ -167,7 +167,7 @@ def test_chan_model(simulator_name):
     # define parameters
     parameters = {
         'width0': CFG['func_widths'][0],
-        'wdata1': CFG['func_widths'][1],
+        'width1': CFG['func_widths'][1],
         'naddr': int(ceil(log2(CFG['func_numel'])))
     }
 
@@ -182,7 +182,9 @@ def test_chan_model(simulator_name):
         ext_model_file=True,
         disp_type='realtime',
         parameters=parameters,
-        dump_waveforms=False
+        dump_waveforms=False,
+        timescale='1ns/1ps', 
+		num_cycles=1e12
     )
 
     # check outputs
