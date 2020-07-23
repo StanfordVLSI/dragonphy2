@@ -25,6 +25,12 @@ void do_init() {
    set_jitter_rms_int(0);
    set_noise_rms_int(0);
 
+   // step response function
+   set_chan_wdata_0(0);
+   set_chan_wdata_1(0);
+   set_chan_waddr(0);
+   set_chan_we(0);
+
    // JTAG-specific
    set_tdi(0);
    set_tck(0);
@@ -143,6 +149,20 @@ u32 read_id() {
     return shift_dr(0, 32);
 }
 
+void write_chan_data(u32 chan_index, u32 chan_data_0, u32 chan_data_1) {
+    // update write data and address
+    set_chan_wdata_0(chan_data_0);
+    set_chan_wdata_1(chan_data_1);
+    set_chan_waddr(chan_index);
+
+    // pulse "write enable" high
+    usleep(1);
+    set_chan_we(1);
+    usleep(1);
+    set_chan_we(0);
+    usleep(1);
+}
+
 enum cmd_t {
     RESET,
     INIT,
@@ -155,7 +175,8 @@ enum cmd_t {
     SET_EMU_RST,
     SET_SLEEP,
     SET_NOISE_RMS,
-    SET_JITTER_RMS
+    SET_JITTER_RMS,
+    UPDATE_CHAN
 } cmd;
 
 int main() {
@@ -167,7 +188,13 @@ int main() {
     // command processing;
     u32 arg1;
     u32 arg2;
+    u32 argn;
     u32 nargs = 0;
+
+    // channel update variables
+    u32 chan_index;
+    u32 chan_data_0;
+    u32 chan_data_1;
 
     if (init_GPIO() != 0) {
         xil_printf("GPIO Initialization Failed\r\n");
@@ -223,6 +250,9 @@ int main() {
                     } else if (strcmp(buf, "SET_JITTER_RMS") == 0) {
                         cmd = SET_JITTER_RMS;
                         nargs++;
+                    } else if (strcmp(buf, "UPDATE_CHAN") == 0) {
+                        cmd = UPDATE_CHAN;
+                        nargs++;
                     } else {
 	                xil_printf("ERROR: Unknown command\r\n");
 		            }
@@ -254,9 +284,38 @@ int main() {
                         xil_printf("%lu\r\n", shift_dr(arg1, arg2));
                     } else if (cmd == QSDR) {
                         shift_dr(arg1, arg2);
+                    } else {
+                        nargs++
                     }
-                    nargs = 0;
-                }  
+                } else if (nargs > 2) {
+                    sscanf(buf, "%lu", &argn);
+                    if (cmd == UPDATE_CHAN) {
+                        if (nargs % 2 == 1) {
+                            // assign data to order "0"
+                            chan_data_0 = argn;
+
+                            // increment argument counter
+                            nargs++;
+                        } else {
+                            // assign data to order "1"
+                            chan_data_1 = argn;
+
+                            // write data to the correct index
+                            chan_index = arg1 + ((nargs-4)/2);
+                            write_chan_data(chan_index, chan_data_0, chan_data_1);
+
+                            // check if that was the last update
+                            if (nargs == (2 + arg2*2)) {
+                                xil_printf("OK\r\n");
+                                nargs = 0;
+                            } else {
+                                nargs++;
+                            }
+                        }
+                    } else {
+                        nargs++;
+                    }
+                }
             }
             idx = 0;
         } else {
