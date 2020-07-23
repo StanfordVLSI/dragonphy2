@@ -35,6 +35,10 @@ module tb;
     (* dont_touch = "true" *) `DECL_DT(dt_req);
     (* dont_touch = "true" *) logic [6:0] jitter_rms_int;
     (* dont_touch = "true" *) logic [10:0] noise_rms_int;
+    (* dont_touch = "true" *) logic [17:0] chan_wdata_0;
+    (* dont_touch = "true" *) logic [17:0] chan_wdata_1;
+    (* dont_touch = "true" *) logic [8:0] chan_waddr;
+    (* dont_touch = "true" *) logic chan_we;
 
     //////////////
     // TX clock //
@@ -103,7 +107,12 @@ module tb;
         .dt_sig(emu_dt),
         .clk(emu_clk),
         .rst(emu_rst),
-        .cke(clk_tx_val_posedge)
+        .cke(clk_tx_val_posedge),
+        // runtime-defined function controls
+        .wdata0(chan_wdata_0),
+        .wdata1(chan_wdata_1),
+        .waddr(chan_waddr),
+        .we(chan_we)
     );
 
     ///////////////////

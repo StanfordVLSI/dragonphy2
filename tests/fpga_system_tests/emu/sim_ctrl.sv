@@ -16,6 +16,10 @@ module sim_ctrl(
     output reg dump_start=1'b0,
     output reg [6:0] jitter_rms_int,
     output reg [10:0] noise_rms_int,
+    output reg [17:0] chan_wdata_0,
+    output reg [17:0] chan_wdata_1,
+    output reg [8:0] chan_waddr,
+    output reg chan_we,
     input wire tdo
 );
 	import const_pack::*;
@@ -24,6 +28,11 @@ module sim_ctrl(
     import ffe_gpack::length;
     import ffe_gpack::weight_precision;
     import constant_gpack::channel_width;
+
+    // function parameters
+    localparam real dt_samp=1.0/(160.0e9);
+    localparam integer numel=512;
+    localparam real chan_delay=31.25e-12;
 
     // calculate FFE coefficients
     localparam real dt=1.0/(16.0e9);
@@ -55,14 +64,36 @@ module sim_ctrl(
         #((200.0/(`EMU_CLK_FREQ))*1s);
     endtask
 
+    function real chan_func(input real t);
+        if (t <= chan_delay) begin
+            chan_func = 0.0;
+        end else begin
+            chan_func = 1.0-$exp(-(t-chan_delay)/tau);
+        end
+    endfunction
+
     initial begin
         // TODO: explore jitter/noise effect
         jitter_rms_int = 0;
         noise_rms_int = 0;
+        chan_wdata_0 = 0;
+        chan_wdata_1 = 0;
+        chan_waddr = 0;
+        chan_we = 0;
 
         // wait for emulator reset to complete
         $display("Waiting for emulator reset to complete...");
         #((50.0/(`EMU_CLK_FREQ))*1s);
+
+        // update the step response function
+        chan_we = 1'b1;
+        for (int idx=0; idx<512; idx=idx+1) begin
+            chan_wdata_0 = chan_func(idx*dt_samp)*(2.0**16);
+            chan_wdata_1 = (chan_func((idx+1)*dt_samp)-chan_func(idx*dt_samp))*(2.0**16);
+            chan_waddr = idx;
+            #((1.1/(`EMU_CLK_FREQ))*1s);
+        end
+        chan_we = 1'b0;
 
         // release external reset signals
         rstb = 1'b1;
