@@ -6,6 +6,7 @@ import numpy as np
 from msdsl import MixedSignalModel, VerilogGenerator, sum_op
 from msdsl.expr.signals import AnalogState
 from msdsl.expr.extras import if_
+from msdsl.function import PlaceholderFunction
 
 # DragonPHY imports
 from dragonphy import Filter, get_file
@@ -30,16 +31,27 @@ class ChannelCore:
         m.add_digital_input('cke')
         m.add_digital_input('rst')
 
-        view = system_values['view']
+        # Create "placeholder function" that can be updated
+        # at runtime with the channel function
+        chan_func = PlaceholderFunction(
+                domain=system_values['func_domain'],
+                order=system_values['func_order'],
+                numel=system_values['func_numel'],
+                coeff_widths=system_values['func_widths'],
+                coeff_exps=system_values['func_exps']
+        )
 
-        # read in the channel data
+        # Check the function on a representative test case
         chan = Filter.from_file(get_file('build/chip_src/adapt_fir/chan.npy'))
+        self.check_func_error(chan_func, chan.interp)
 
-        # create a function
-        domain = [chan.t_vec[0], chan.t_vec[-1]]
-        chan_func = m.make_function(chan.interp, domain=domain, order=system_values['func_order'],
-                                    numel=system_values['func_numel'])
-        self.check_func_error(chan_func)
+        # Add digital inputs that will be used to reconfigure
+        # the function at runtime
+        wdata = []
+        for k in range(chan_func.order+1):
+            wdata += [m.add_digital_input(f'wdata{k}', signed=True, width=chan_func.coeff_widths[k])]
+        waddr = m.add_digital_input('waddr', width=chan_func.addr_bits)
+        we = m.add_digital_input('we')
 
         # create a history of past inputs
         cke_d = m.add_digital_state('cke_d')
@@ -74,7 +86,8 @@ class ChannelCore:
         # evaluate step response function
         step = []
         for k in range(system_values['num_terms']):
-            step_sig = m.set_from_sync_func(f'step_{k}', chan_func, time_mux[k+1], clk=m.clk, rst=m.rst)
+            step_sig = m.set_from_sync_func(f'step_{k}', chan_func, time_mux[k+1], clk=m.clk, rst=m.rst,
+                                            wdata=wdata, waddr=waddr, we=we)
             step.append(step_sig)
 
         # compute the products to be summed
@@ -95,14 +108,30 @@ class ChannelCore:
         self.generated_files = [filename]
 
     @staticmethod
-    def check_func_error(f):
-        samp = np.random.uniform(f.domain[0], f.domain[1], 1000)
-        approx = f.eval_on(samp)
-        exact = f.func(samp)
-        err = np.sqrt(np.mean((exact-approx)**2))
-        print(f'RMS error: {err}')
+    def check_func_error(placeholder, func):
+        # calculate coeffients
+        coeffs = placeholder.get_coeffs(func)
+
+        # determine test points
+        samp = np.random.uniform(placeholder.domain[0],
+                                 placeholder.domain[1],
+                                 1000)
+
+        # evaluate the function at those test points using
+        # the calculated coefficients
+        approx = placeholder.eval_on(samp, coeffs)
+
+        # determine the values the function should have at
+        # the test points
+        exact = func(samp)
+
+        # calculate the error
+        err = np.max(np.abs(exact-approx))
+
+        # display the error
+        print(f'Worst-case error: {err}')
 
     @staticmethod
     def required_values():
-        return ['dt', 'func_order', 'func_numel', 'num_terms']
-
+        return ['dt', 'func_order', 'func_numel', 'num_terms',
+                'func_domain', 'func_widths', 'func_exps']

@@ -1,5 +1,7 @@
 # general imports
+import yaml
 from pathlib import Path
+from math import ceil, log2
 
 # AHA imports
 import magma as m
@@ -8,6 +10,7 @@ import fault
 # FPGA-specific imports
 from svreal import get_svreal_header
 from msdsl import get_msdsl_header
+from msdsl.function import PlaceholderFunction
 
 # DragonPHY imports
 from dragonphy import get_file, Filter
@@ -16,6 +19,12 @@ BUILD_DIR = Path(__file__).resolve().parent / 'build'
 
 DELTA = 100e-9
 TPER = 1e-6
+
+# read YAML file that was used to configure the generated model
+CFG = yaml.load(open(get_file('config/fpga/chan.yml'), 'r'))
+
+# read channel data
+CHAN = Filter.from_file(get_file('build/chip_src/adapt_fir/chan.npy'))
 
 def test_chan_model(simulator_name):
     # set defaults
@@ -31,36 +40,46 @@ def test_chan_model(simulator_name):
             dt_sig=fault.RealIn,
             clk=m.In(m.Clock),
             cke=m.BitIn,
-            rst=m.BitIn
+            rst=m.BitIn,
+            wdata0=m.In(m.Bits[CFG['func_widths'][0]]),
+            wdata1=m.In(m.Bits[CFG['func_widths'][1]]),
+            waddr=m.In(m.Bits[int(ceil(log2(CFG['func_numel'])))]),
+            we=m.BitIn
         )
 
     # create the t
     t = fault.Tester(dut, dut.clk)
 
-    def cycle():
-        t.delay(TPER/2 - DELTA)
-        t.poke(dut.clk, 0)
-        t.delay(TPER/2)
-        t.poke(dut.clk, 1)
-        t.delay(DELTA)
+    def cycle(k=1):
+        for _ in range(k):
+            t.delay(TPER/2 - DELTA)
+            t.poke(dut.clk, 0)
+            t.delay(TPER/2)
+            t.poke(dut.clk, 1)
+            t.delay(DELTA)
 
     # initialize
-    t.poke(dut.in_, 0.0)
-    t.poke(dut.dt_sig, 0.0)
-    t.poke(dut.clk, 0)
-    t.poke(dut.cke, 0)
+    t.zero_inputs()
     t.poke(dut.rst, 1)
-
-    # apply reset
-    t.poke(dut.clk, 1)
-    t.delay(TPER/2)
-    t.poke(dut.clk, 0)
-    t.delay(TPER/2)
-
-    # clear reset
+    cycle()
     t.poke(dut.rst, 0)
-    t.poke(dut.clk, 1)
-    t.delay(DELTA)
+
+    # initialize step response functions
+    placeholder = PlaceholderFunction(
+        domain=CFG['func_domain'],
+        order=CFG['func_order'],
+        numel=CFG['func_numel'],
+        coeff_widths=CFG['func_widths'],
+        coeff_exps=CFG['func_exps']
+    )
+    coeffs_bin = placeholder.get_coeffs_bin_fmt(CHAN.interp)
+    t.poke(dut.we, 1)
+    for i in range(placeholder.numel):
+        t.poke(dut.wdata0, coeffs_bin[0][i])
+        t.poke(dut.wdata1, coeffs_bin[1][i])
+        t.poke(dut.waddr, i)
+        cycle()
+    t.poke(dut.we, 0)
 
     # values
     val1 = +1.23
@@ -145,6 +164,13 @@ def test_chan_model(simulator_name):
              + val2*(f(dt5+dt6+dt7)-f(dt7))
              + val3*f(dt7))
 
+    # define parameters
+    parameters = {
+        'width0': CFG['func_widths'][0],
+        'wdata1': CFG['func_widths'][1],
+        'naddr': int(ceil(log2(CFG['func_numel'])))
+    }
+
     # run the simulation
     t.compile_and_run(
         target='system-verilog',
@@ -155,11 +181,12 @@ def test_chan_model(simulator_name):
         inc_dirs=[get_svreal_header().parent, get_msdsl_header().parent],
         ext_model_file=True,
         disp_type='realtime',
+        parameters=parameters,
         dump_waveforms=False
     )
 
     # check outputs
-    def check_output(name, meas, expct, abs_tol=0.02):
+    def check_output(name, meas, expct, abs_tol=0.001):
         print(f'checking {name}: measured {meas.value}, expected {expct}')
         if (expct-abs_tol) <= meas.value <= (expct+abs_tol):
             print('OK')
