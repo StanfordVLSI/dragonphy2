@@ -1,4 +1,4 @@
-# SimVision Command Script (Wed Jul 15 05:30:11 PM PDT 2020)
+# SimVision Command Script (Tue Jul 21 01:58:18 PM PDT 2020)
 #
 # Version 19.03.s003
 #
@@ -73,23 +73,29 @@ set id [waveform add -signals [subst  {
 	{$dbNames(realName1)::[format {top.trace_port_gen_i.ctl_pi_0[8:0]}]}
 	} ]]
 waveform format $id -radix %d -trace analogSampleAndHold
-waveform axis range $id -for default -min 0 -max 64 -scale linear
+waveform axis range $id -for default -min 0 -max 65 -scale linear
 set id [waveform add -signals [subst  {
 	{[format {signed(%s::top.trace_port_gen_i.adcout_unfolded_0)}  $dbNames(realName1)]}
 	} ]]
 waveform format $id -radix %d -trace analogSampleAndHold
-waveform axis range $id -for default -min -127 -max 127 -scale linear
+waveform axis range $id -for default -min -127 -max 126 -scale linear
 set id [waveform add -signals [subst  {
 	{[format {signed(%s::top.trace_port_gen_i.estimated_bits_0)}  $dbNames(realName1)]}
 	} ]]
 waveform format $id -radix %d -trace analogSampleAndHold
-waveform axis range $id -for default -min -127 -max 126 -scale linear
+waveform axis range $id -for default -min -127 -max 291 -scale linear
 
-waveform xview limits 1003999804688fs 1160499804688fs
+waveform xview limits 1091803118168fs 1418883118168fs
 
 #
 # Waveform Window Links
 #
+
+#
+# Console windows
+#
+console set -windowname Console
+window geometry Console 600x250+118+147
 
 #
 # Layout selection

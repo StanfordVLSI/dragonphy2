@@ -40,6 +40,10 @@ module analog_core import const_pack::*; #(
     (* dont_touch = "true" *) logic emu_rst;
     (* dont_touch = "true" *) logic [6:0] jitter_rms_int;
     (* dont_touch = "true" *) logic [10:0] noise_rms_int;
+    (* dont_touch = "true" *) logic [17:0] chan_wdata_0;
+    (* dont_touch = "true" *) logic [17:0] chan_wdata_1;
+    (* dont_touch = "true" *) logic [8:0] chan_waddr;
+    (* dont_touch = "true" *) logic chan_we;
 
     // convert noise / jitter to svreal types
 
@@ -86,7 +90,12 @@ module analog_core import const_pack::*; #(
                 .clk(emu_clk),
                 .rst(emu_rst),
                 .jitter_rms(jitter_rms),
-                .noise_rms(noise_rms)
+                .noise_rms(noise_rms),
+                // control signals to update step response
+                .wdata0(chan_wdata_0),
+                .wdata1(chan_wdata_1),
+                .waddr(chan_waddr),
+                .we(chan_we)
             );
         end
     endgenerate

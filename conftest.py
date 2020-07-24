@@ -45,6 +45,14 @@ def pytest_addoption(parser):
         '--flatten_hierarchy', default='rebuilt', type=str, help='Vivado synthesis option.'
     )
 
+    parser.addoption(
+        '--chan_tau', default=25e-12, type=float, help='Time constant of channel used in emulation (seconds).'
+    )
+
+    parser.addoption(
+        '--chan_delay', default=31.25e-12, type=float, help='Delay of channel used in emulation (seconds).'
+    )
+
 @pytest.fixture
 def dump_waveforms(request):
     return request.config.getoption('--dump_waveforms')
@@ -88,3 +96,11 @@ def noise_rms(request):
 @pytest.fixture
 def flatten_hierarchy(request):
     return request.config.getoption('--flatten_hierarchy')
+
+@pytest.fixture
+def chan_tau(request):
+    return request.config.getoption('--chan_tau')
+
+@pytest.fixture
+def chan_delay(request):
+    return request.config.getoption('--chan_delay')

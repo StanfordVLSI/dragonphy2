@@ -19,7 +19,11 @@ module test_analog_slice #(
     input wire logic clk,
     input wire logic rst,
     input real jitter_rms,
-    input real noise_rms
+    input real noise_rms,
+    input wire logic [17:0] wdata0,
+    input wire logic [17:0] wdata1,
+    input wire logic [8:0] waddr,
+    input wire logic we
 );
     // declare svreal types for jitter and noise
     `MAKE_REAL(jitter_rms_int, 10e-12);
@@ -46,6 +50,11 @@ module test_analog_slice #(
         .clk(clk),
         .rst(rst),
         .jitter_rms(jitter_rms_int),
-        .noise_rms(noise_rms_int)
+        .noise_rms(noise_rms_int),
+        // runtime-defined function controls
+        .wdata0(wdata0),
+        .wdata1(wdata1),
+        .waddr(waddr),
+        .we(we)
     );
 endmodule

@@ -11,6 +11,7 @@ import fault
 # FPGA-specific imports
 from svreal import get_svreal_header
 from msdsl import get_msdsl_header
+from msdsl.function import PlaceholderFunction
 
 # DragonPHY imports
 from dragonphy import get_file, get_dir, Filter, get_deps_fpga_emu
@@ -88,11 +89,17 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
         io_dict[f'ctl_pi_{k}'] = m.In(m.Bits[9])
     for k in range(16):
         io_dict[f'adder_out_{k}'] = m.Out(m.Bits[8])
-    io_dict['sign_out'] = m.Out(m.Bits[16])
-    io_dict['clk'] = m.BitIn
-    io_dict['rst'] = m.BitIn
-    io_dict['jitter_rms_int'] = m.In(m.Bits[7])
-    io_dict['noise_rms_int'] = m.In(m.Bits[11])
+    io_dict.update(dict(
+        sign_out=m.Out(m.Bits[16]),
+        clk=m.BitIn,
+        rst= m.BitIn,
+        jitter_rms_int= m.In(m.Bits[7]),
+        noise_rms_int= m.In(m.Bits[11]),
+        chan_wdata_0=m.In(m.Bits[18]),
+        chan_wdata_1=m.In(m.Bits[18]),
+        chan_waddr=m.In(m.Bits[9]),
+        chan_we=m.BitIn
+    ))
 
     # declare circuit
     class dut(m.Circuit):
@@ -140,6 +147,19 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
     t.poke(dut.rst, 0)
     for j in range(1 + CFG['num_chunks']):
         cycle()
+
+    # initialize step response functions
+    placeholder = PlaceholderFunction(domain=CFG['func_domain'], order=CFG['func_order'],
+                                      numel=CFG['func_numel'], coeff_widths=CFG['func_widths'],
+                                      coeff_exps=CFG['func_exps'])
+    coeffs_bin = placeholder.get_coeffs_bin_fmt(CHAN.interp)
+    t.poke(dut.chan_we, 1)
+    for i in range(placeholder.numel):
+        t.poke(dut.chan_wdata_0, coeffs_bin[0][i])
+        t.poke(dut.chan_wdata_1, coeffs_bin[1][i])
+        t.poke(dut.chan_waddr, i)
+        cycle()
+    t.poke(dut.chan_we, 0)
 
     # run test cases
     results = []
