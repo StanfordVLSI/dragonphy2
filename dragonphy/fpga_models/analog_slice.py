@@ -7,6 +7,7 @@ import numpy as np
 from msdsl import MixedSignalModel, VerilogGenerator, sum_op, clamp_op, to_uint, to_sint
 from msdsl.expr.extras import if_
 from msdsl.expr.format import SIntFormat
+from msdsl.function import PlaceholderFunction
 
 # DragonPHY imports
 from dragonphy import Filter, get_file
@@ -56,18 +57,31 @@ class AnalogSlice:
         m.add_analog_input('jitter_rms')
         m.add_analog_input('noise_rms')
 
+        # Create "placeholder function" that can be updated
+        # at runtime with the channel function
+        chan_func = PlaceholderFunction(
+                domain=system_values['func_domain'],
+                order=system_values['func_order'],
+                numel=system_values['func_numel'],
+                coeff_widths=system_values['func_widths'],
+                coeff_exps=system_values['func_exps']
+        )
+
+        # Check the function on a representative test case
+        chan = Filter.from_file(get_file('build/chip_src/adapt_fir/chan.npy'))
+        self.check_func_error(chan_func, chan.interp)
+
+        # Add digital inputs that will be used to reconfigure
+        # the function at runtime
+        wdata = []
+        for k in range(chan_func.order+1):
+            wdata += [m.add_digital_input(f'wdata{k}', signed=True, width=chan_func.coeff_widths[k])]
+        waddr = m.add_digital_input('waddr', width=chan_func.addr_bits)
+        we = m.add_digital_input('we')
+
         # Sample the pi_ctl code
         m.add_digital_state('pi_ctl_sample', width=system_values['pi_ctl_width'])
         m.set_next_cycle(m.pi_ctl_sample, m.pi_ctl, clk=m.clk, rst=m.rst, ce=m.sample_ctl)
-
-        # read in the channel data
-        chan = Filter.from_file(get_file('build/chip_src/adapt_fir/chan.npy'))
-
-        # create a function
-        domain = [chan.t_vec[0], chan.t_vec[-1]]
-        chan_func = m.make_function(chan.interp, domain=domain, order=system_values['func_order'],
-                                    numel=system_values['func_numel'])
-        self.check_func_error(chan_func)
 
         # compute weights to apply to pulse responses
         weights = []
@@ -112,8 +126,9 @@ class AnalogSlice:
             # compute the kth evaluation time
             t_eval = m.bind_name(f't_eval_{k}', t_samp - t_chg)
 
-            # evaluate the function
-            f_eval.append(m.set_from_sync_func(f'f_eval_{k}', chan_func, t_eval, clk=m.clk, rst=m.rst))
+            # evaluate the function (the last three inputs are used for updating the function contents)
+            f_eval.append(m.set_from_sync_func(f'f_eval_{k}', chan_func, t_eval, clk=m.clk, rst=m.rst,
+                                               wdata=wdata, waddr=waddr, we=we))
 
         # Compute the pulse responses for each bit
         pulse_resp = []
@@ -168,15 +183,32 @@ class AnalogSlice:
         self.generated_files = [filename]
 
     @staticmethod
-    def check_func_error(f):
-        samp = np.random.uniform(f.domain[0], f.domain[1], 1000)
-        approx = f.eval_on(samp)
-        exact = f.func(samp)
+    def check_func_error(placeholder, func):
+        # calculate coeffients
+        coeffs = placeholder.get_coeffs(func)
+
+        # determine test points
+        samp = np.random.uniform(placeholder.domain[0],
+                                 placeholder.domain[1],
+                                 1000)
+
+        # evaluate the function at those test points using
+        # the calculated coefficients
+        approx = placeholder.eval_on(samp, coeffs)
+
+        # determine the values the function should have at
+        # the test points
+        exact = func(samp)
+
+        # calculate the error
         err = np.max(np.abs(exact-approx))
+
+        # display the error
         print(f'Worst-case error: {err}')
 
     @staticmethod
     def required_values():
         return ['dt', 'func_order', 'func_numel', 'chunk_width', 'num_chunks',
                 'slices_per_bank', 'num_banks', 'pi_ctl_width', 'vref_rx',
-                'vref_tx', 'n_adc', 'freq_tx', 'freq_rx']
+                'vref_tx', 'n_adc', 'freq_tx', 'freq_rx', 'func_widths',
+                'func_exps', 'func_domain']

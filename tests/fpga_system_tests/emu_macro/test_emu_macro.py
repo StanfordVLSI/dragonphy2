@@ -3,14 +3,18 @@ import serial
 import time
 import json
 import re
+import yaml
+import numpy as np
 from pathlib import Path
 from math import exp, ceil, log2
 
 from anasymod.analysis import Analysis
+from msdsl.function import PlaceholderFunction
 from dragonphy import *
 from dragonphy.git_util import get_git_hash_short
 
 THIS_DIR = Path(__file__).resolve().parent
+CFG = yaml.load(open(get_file('config/fpga/analog_slice_cfg.yml'), 'r'))
 
 def test_1(board_name, emu_clk_freq, fpga_sim_ctrl):
     # Write project config
@@ -82,7 +86,7 @@ def test_5():
     ana.set_target(target_name='fpga')
     ana.program_firmware()
 
-def test_6(ser_port, ffe_length, prbs_test_dur, jitter_rms, noise_rms):
+def test_6(ser_port, ffe_length, prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
     jtag_inst_width = 5
     sc_bus_width = 32
     sc_addr_width = 14
@@ -147,12 +151,9 @@ def test_6(ser_port, ffe_length, prbs_test_dur, jitter_rms, noise_rms):
     def shift_ir(val, width):
         ser.write(f'SIR {val} {width}\n'.encode('utf-8'))
 
-    def shift_dr(val, width, expect_output=False):
-        if expect_output:
-            ser.write(f'SDR {val} {width}\n'.encode('utf-8'))
-            return int(ser.readline().strip())
-        else:
-            ser.write(f'QSDR {val} {width}\n'.encode('utf-8'))
+    def shift_dr(val, width):
+        ser.write(f'SDR {val} {width}\n'.encode('utf-8'))
+        return int(ser.readline().strip())
 
     def write_tc_reg(name, val):
         # specify address
@@ -191,7 +192,7 @@ def test_6(ser_port, ffe_length, prbs_test_dur, jitter_rms, noise_rms):
 
         # get data
         shift_ir(tc_cfg_data, jtag_inst_width)
-        return shift_dr(0, tc_bus_width, expect_output=True)
+        return shift_dr(0, tc_bus_width)
 
     def read_sc_reg(name):
         # specify address
@@ -204,7 +205,7 @@ def test_6(ser_port, ffe_length, prbs_test_dur, jitter_rms, noise_rms):
 
         # get data
         shift_ir(sc_cfg_data, jtag_inst_width)
-        return shift_dr(0, sc_bus_width, expect_output=True)
+        return shift_dr(0, sc_bus_width)
 
     def load_weight(
             d_idx, # clog2(ffe_length)
@@ -230,6 +231,17 @@ def test_6(ser_port, ffe_length, prbs_test_dur, jitter_rms, noise_rms):
         write_tc_reg('wme_ffe_exec', 1)
         write_tc_reg('wme_ffe_exec', 0)
 
+    def update_chan(coeff_tuples, offset=0):
+        # put together the command
+        args = ['UPDATE_CHAN', offset, len(coeff_tuples)]
+        for coeff_tuple in coeff_tuples:
+            args += coeff_tuple
+        cmd = ' '.join(str(elem) for elem in args)
+        ser.write((cmd + '\n').encode('utf-8'))
+
+        # stall until confirmation is received
+        assert ser.readline().decode('utf-8').strip() == 'OK', 'Serial error'
+
     # Initialize
     set_sleep(1)
     do_init()
@@ -249,6 +261,18 @@ def test_6(ser_port, ffe_length, prbs_test_dur, jitter_rms, noise_rms):
     set_jitter_rms(int(round(jitter_rms*1e13)))
     set_noise_rms(int(round(noise_rms*1e4)))
 
+    # Configure step response function
+    placeholder = PlaceholderFunction(domain=CFG['func_domain'], order=CFG['func_order'],
+                                      numel=CFG['func_numel'], coeff_widths=CFG['func_widths'],
+                                      coeff_exps=CFG['func_exps'])
+    chan_func = lambda t_vec: (1-np.exp(-(t_vec-chan_delay)/chan_tau))*np.heaviside(t_vec-chan_delay, 0)
+    coeffs_bin = placeholder.get_coeffs_bin_fmt(chan_func)
+    coeff_tuples = list(zip(*coeffs_bin))
+    chunk_size = 32 
+    for k in range(len(coeff_tuples)//chunk_size):
+        print(f'Updating channel at chunk {k}...')
+        update_chan(coeff_tuples[(k*chunk_size):((k+1)*chunk_size)], offset=k*chunk_size)
+
     # Soft reset
     print('Soft reset')
     write_tc_reg('int_rstb', 1)
@@ -259,7 +283,7 @@ def test_6(ser_port, ffe_length, prbs_test_dur, jitter_rms, noise_rms):
     # read the ID
     print('Reading ID...')
     shift_ir(1, 5)
-    id_result = shift_dr(0, 32, expect_output=True)
+    id_result = shift_dr(0, 32)
     print(f'ID: {id_result}')
 
     # Set PFD offset
@@ -277,9 +301,8 @@ def test_6(ser_port, ffe_length, prbs_test_dur, jitter_rms, noise_rms):
 
     # Set up the FFE
     dt=1.0/(16.0e9)
-    tau=25.0e-12
-    coeff0 = 128.0/(1.0-exp(-dt/tau))
-    coeff1 = -128.0*exp(-dt/tau)/(1.0-exp(-dt/tau))
+    coeff0 = 128.0/(1.0-exp(-dt/chan_tau))
+    coeff1 = -128.0*exp(-dt/chan_tau)/(1.0-exp(-dt/chan_tau))
     for loop_var in range(16):
         for loop_var2 in range(ffe_length):
             if (loop_var2 == 0):
