@@ -1,5 +1,4 @@
 import os
-import serial
 import time
 import json
 import re
@@ -87,7 +86,15 @@ def test_5():
     ana.set_target(target_name='fpga')
     ana.program_firmware()
 
-def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
+def test_6(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
+    # read ffe_length
+    SYSTEM = yaml.load(open(get_file('config/system.yml'), 'r'), Loader=yaml.FullLoader)
+    ffe_length = SYSTEM['generic']['ffe']['parameters']['length']
+
+    # read emu_clk_freq
+    PRJ = yaml.load(open(THIS_DIR / 'prj.yaml', 'r'), Loader=yaml.FullLoader)
+    emu_clk_freq = PRJ['PROJECT']['emu_clk_freq']
+
     jtag_inst_width = 5
     sc_bus_width = 32
     sc_addr_width = 14
@@ -122,10 +129,10 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur, jitter_rms, noise_
 
     # connect to the CPU
     print('Connecting to the CPU...')
-    ser = serial.Serial(
-        port=ser_port,
-        baudrate=115200
-    )
+    ana = Analysis(input=str(THIS_DIR))
+    ana.set_target(target_name='fpga')
+    ctrl = ana.launch()
+    ser = ctrl.ctrl_handler
 
     # functions
     def do_reset():
