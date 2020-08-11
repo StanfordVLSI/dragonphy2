@@ -16,6 +16,7 @@ class AnasymodProjectConfig:
                 'cpu_debug_mode': 0,
                 'cpu_debug_hierarchies': [],
                 'flatten_hierarchy': 'rebuilt',
+                'vivado_stack': 2000,
                 'dt_width': 25
             },
             'FPGA_TARGET': {
@@ -27,6 +28,9 @@ class AnasymodProjectConfig:
 
     def set_cpu_debug_mode(self, value):
         self.config['PROJECT']['cpu_debug_mode'] = value
+
+    def set_vivado_stack(self, value):
+        self.config['PROJECT']['vivado_stack'] = value
 
     def set_flatten_hierarchy(self, value):
         assert value in {'none', 'full', 'rebuilt'}, 'Invalid setting.'
