@@ -293,9 +293,10 @@ August 11, 2020
   * dbg_hub/inst/BSCANID.u_xsdbm_id/SWITCH_N_EXT_BSCAN.bscan_inst/SERIES7_BSCAN.bscan_inst/INTERNAL_TCK: ???
   * emu_clk: emu_clk
 * A good path forward could be to set false paths on the outputs of the Zynq core.  The individual paths are:
-  * sim_ctrl_gen_i/zynq_gpio_i/i_ctrl
-  * sim_ctrl_gen_i/zynq_gpio_i/i_data
-  * sim_ctrl_gen_i/zynq_gpio_i/o_ctrl
-  * sim_ctrl_gen_i/zynq_gpio_i/o_data
+  * ``sim_ctrl_gen_i/zynq_gpio_i/i_ctrl``
+  * ``sim_ctrl_gen_i/zynq_gpio_i/i_data``
+  * ``sim_ctrl_gen_i/zynq_gpio_i/o_ctrl``
+  * ``sim_ctrl_gen_i/zynq_gpio_i/o_data``
 * As a shorthand, we can specify:
-  * set_false_path -through [get_pins sim_ctrl_gen_i/zynq_gpio_i/*]
+  * ``set_false_path -through [get_pins sim_ctrl_gen_i/zynq_gpio_i/*]``
+* After adding that false path, the timing issues are resolved and the build time was reduced to 1.3 hrs (still using a lot of memory, though).  Utilization is similar at 92420 LUTS, 25167 FFs, 194.5 BRAM, 850 DSPs.
