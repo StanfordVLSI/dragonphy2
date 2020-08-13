@@ -1,7 +1,18 @@
+#include <xparameters.h>
+#include <xuartps.h>
+#include <xscugic.h>
+#include <xil_exception.h>
+
 #include "gpio_funcs.h"
 #include <stdio.h>
 #include <string.h>
 #include "sleep.h"
+
+// specify the UART device ID.  choose
+// the "PSU" version for Zynq UltraScale+
+// and the "PS7" version for Zynq 7-series
+#define UART_ID XPAR_PSU_UART_0_DEVICE_ID
+//#define UART_ID XPAR_PS7_UART_0_DEVICE_ID
 
 u32 sleep_time = 20;
 
@@ -201,14 +212,34 @@ int main() {
     u32 chan_data_0;
     u32 chan_data_1;
 
+    // UART objects
+    XUartPs u_obj;
+    XUartPs_Config *u_cfg;
+    int u_status;
+
     if (init_GPIO() != 0) {
         xil_printf("GPIO Initialization Failed\r\n");
         return XST_FAILURE;
     }
 
+    // configure UART
+    // ref: https://forums.xilinx.com/t5/Processor-System-Design-and-AXI/Handling-UART-with-an-Interrupt/td-p/571522
+    u_cfg = XUartPs_LookupConfig(UART_ID);
+    u_status = XUartPs_CfgInitialize(&u_obj, u_cfg, u_cfg->BaseAddress);
+    XUartPs_SetOperMode(&u_obj, XUARTPS_OPER_MODE_NORMAL);
+    XUartPsFormat u_fmt = {
+        115200,
+        XUARTPS_FORMAT_8_BITS,
+        XUARTPS_FORMAT_NO_PARITY,
+        XUARTPS_FORMAT_1_STOP_BIT
+    };
+    XUartPs_SetDataFormat(&u_obj, &u_fmt);
+
+    // initialize system
     do_init();
     do_reset();
     
+    // UART control loop
     while (1) {
         rcv = inbyte();
         if ((rcv == ' ') || (rcv == '\t') || (rcv == '\r') || (rcv == '\n')) {
