@@ -1,6 +1,10 @@
 `include "svreal.sv"
 `include "iotype.sv"
 
+`ifndef FUNC_DATA_WIDTH
+    `define FUNC_DATA_WIDTH 18
+`endif
+
 module analog_core import const_pack::*; #(
 ) (
     input `pwl_t rx_inp,                                 // RX input (+) (from pad)
@@ -40,8 +44,8 @@ module analog_core import const_pack::*; #(
     (* dont_touch = "true" *) logic emu_rst;
     (* dont_touch = "true" *) logic [6:0] jitter_rms_int;
     (* dont_touch = "true" *) logic [10:0] noise_rms_int;
-    (* dont_touch = "true" *) logic [17:0] chan_wdata_0;
-    (* dont_touch = "true" *) logic [17:0] chan_wdata_1;
+    (* dont_touch = "true" *) logic [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_0;
+    (* dont_touch = "true" *) logic [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_1;
     (* dont_touch = "true" *) logic [8:0] chan_waddr;
     (* dont_touch = "true" *) logic chan_we;
 

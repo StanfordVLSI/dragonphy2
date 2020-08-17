@@ -1,4 +1,5 @@
 `timescale 1s/1fs
+`include "svreal.sv"
 
 `ifndef GIT_HASH
     `define GIT_HASH 0
@@ -6,6 +7,10 @@
 
 `define FORCE_JTAG(name, value) force top.tb_i.top_i.idcore.jtag_i.rjtag_intf_i.``name`` = ``value``
 `define GET_JTAG(name) top.tb_i.top_i.idcore.jtag_i.rjtag_intf_i.``name``
+
+`ifndef FUNC_DATA_WIDTH
+    `define FUNC_DATA_WIDTH 18
+`endif
 
 module sim_ctrl(
     output reg rstb=1'b0,
@@ -16,8 +21,8 @@ module sim_ctrl(
     output reg dump_start=1'b0,
     output reg [6:0] jitter_rms_int,
     output reg [10:0] noise_rms_int,
-    output reg [17:0] chan_wdata_0,
-    output reg [17:0] chan_wdata_1,
+    output reg [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_0,
+    output reg [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_1,
     output reg [8:0] chan_waddr,
     output reg chan_we,
     input wire tdo
@@ -89,8 +94,13 @@ module sim_ctrl(
         // update the step response function
         chan_we = 1'b1;
         for (int idx=0; idx<512; idx=idx+1) begin
-            chan_wdata_0 = chan_func(idx*dt_samp)*(2.0**16); 
-            chan_wdata_1 = (chan_func((idx+1)*dt_samp)-chan_func(idx*dt_samp))*(2.0**16); 
+             `ifndef HARD_FLOAT
+                chan_wdata_0 = `FLOAT_TO_FIXED(chan_func(idx*dt_samp), -16);
+                chan_wdata_1 = `FLOAT_TO_FIXED(chan_func((idx+1)*dt_samp)-chan_func(idx*dt_samp), -16);
+            `else
+                chan_wdata_0 = `REAL_TO_REC_FN(chan_func(idx*dt_samp));
+                chan_wdata_1 = `REAL_TO_REC_FN(chan_func((idx+1)*dt_samp)-chan_func(idx*dt_samp));
+            `endif
             chan_waddr = idx;
             #((1.1/(`EMU_CLK_FREQ))*1s);
         end
