@@ -10,7 +10,8 @@ from msdsl.expr.format import SIntFormat
 from msdsl.function import PlaceholderFunction
 
 # DragonPHY imports
-from dragonphy import Filter, get_file
+from dragonphy import (Filter, get_file, get_dragonphy_real_type,
+                       add_placeholder_inputs)
 
 class AnalogSlice:
     def __init__(self, filename=None, **system_values):
@@ -24,7 +25,8 @@ class AnalogSlice:
         assert (all([req_val in system_values for req_val in self.required_values()])), \
             f'Cannot build {module_name}, Missing parameter in config file'
 
-        m = MixedSignalModel(module_name, dt=system_values['dt'], build_dir=build_dir)
+        m = MixedSignalModel(module_name, dt=system_values['dt'], build_dir=build_dir,
+                             real_type=get_dragonphy_real_type())
 
         # Random number generator seeds (defaults generated with random.org)
         m.add_digital_param('jitter_seed', width=32, default=46428)
@@ -71,13 +73,8 @@ class AnalogSlice:
         chan = Filter.from_file(get_file('build/chip_src/adapt_fir/chan.npy'))
         self.check_func_error(chan_func, chan.interp)
 
-        # Add digital inputs that will be used to reconfigure
-        # the function at runtime
-        wdata = []
-        for k in range(chan_func.order+1):
-            wdata += [m.add_digital_input(f'wdata{k}', signed=True, width=chan_func.coeff_widths[k])]
-        waddr = m.add_digital_input('waddr', width=chan_func.addr_bits)
-        we = m.add_digital_input('we')
+        # Add digital inputs that will be used to reconfigure the function at runtime
+        wdata, waddr, we = add_placeholder_inputs(m=m, f=chan_func)
 
         # Sample the pi_ctl code
         m.add_digital_state('pi_ctl_sample', width=system_values['pi_ctl_width'])

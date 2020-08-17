@@ -1,6 +1,10 @@
 # upgrade pip
 pip install -U pip
 
+# uncomment to install HardFloat
+# wget -O install_hardfloat.sh https://git.io/JJ5YF
+# source install_hardfloat.sh
+
 # install Genesis2
 git clone https://github.com/StanfordVLSI/Genesis2.git
 export GENESIS_HOME=`realpath Genesis2/Genesis2Tools`
