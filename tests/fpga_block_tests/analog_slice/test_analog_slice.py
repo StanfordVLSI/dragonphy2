@@ -206,6 +206,10 @@ def test_analog_slice(simulator_name, slice_offset, dump_waveforms, num_tests=10
             get_svreal_header().parent,
             get_msdsl_header().parent
         ],
+        parameters={
+            'chunk_width': CFG['chunk_width'],
+            'num_chunks': CFG['num_chunks']
+        },
         ext_model_file=True,
         disp_type='realtime',
         dump_waveforms=dump_waveforms,
