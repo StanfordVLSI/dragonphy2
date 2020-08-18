@@ -171,7 +171,7 @@ module analog_core import const_pack::*; #(
     (* dont_touch = "true" *) logic clk_adc_val;
     (* dont_touch = "true" *) logic clk_adc_i;
 
-    assign clk_adc_val = ((2 <= clock_fall) && (counter <= clock_rise)) ? 1'b0 : 1'b1;
+    assign clk_adc_val = ((clock_fall <= counter) && (counter <= clock_rise)) ? 1'b0 : 1'b1;
     assign clk_adc = clk_adc_i;
 
     // assign outputs in analog interface (mostly set to zero)
