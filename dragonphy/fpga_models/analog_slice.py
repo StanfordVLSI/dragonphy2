@@ -116,9 +116,17 @@ class AnalogSlice:
         )
 
         # Add jitter to the sampling time
-        t_samp_jitter = m.set_gaussian_noise('t_samp_jitter', std=m.jitter_rms, clk=m.clk, rst=m.rst,
-                                             lfsr_init=m.jitter_seed)
-        t_samp = m.bind_name('t_samp', t_samp_pre + t_samp_jitter)
+        if system_values['use_jitter']:
+            t_samp_jitter = m.set_gaussian_noise(
+                't_samp_jitter',
+                std=m.jitter_rms,
+                lfsr_init=m.jitter_seed,
+                clk=m.clk,
+                rst=m.rst
+            )
+            t_samp = m.bind_name('t_samp', t_samp_pre + t_samp_jitter)
+        else:
+            t_samp = t_samp_pre
 
         # Evaluate the step response function.  Note that the number of evaluation times is the
         # number of chunks plus one.
@@ -166,9 +174,17 @@ class AnalogSlice:
         )
 
         # add noise to the sample value
-        sample_noise = m.set_gaussian_noise('sample_noise', std=m.noise_rms, clk=m.clk, rst=m.rst,
-                                            lfsr_init=m.noise_seed)
-        sample_value = m.bind_name('sample_value', sample_value_pre + sample_noise)
+        if system_values['use_noise']:
+            sample_noise = m.set_gaussian_noise(
+                'sample_noise',
+                std=m.noise_rms,
+                clk=m.clk,
+                rst=m.rst,
+                lfsr_init=m.noise_seed
+            )
+            sample_value = m.bind_name('sample_value', sample_value_pre + sample_noise)
+        else:
+            sample_value = sample_value_pre
 
         # determine out_sgn (note that the definition is opposite of the typical
         # meaning; "0" means negative)
@@ -224,4 +240,4 @@ class AnalogSlice:
         return ['dt', 'func_order', 'func_numel', 'chunk_width', 'num_chunks',
                 'slices_per_bank', 'num_banks', 'pi_ctl_width', 'vref_rx',
                 'vref_tx', 'n_adc', 'freq_tx', 'freq_rx', 'func_widths',
-                'func_exps', 'func_domain']
+                'func_exps', 'func_domain', 'use_jitter', 'use_noise']
