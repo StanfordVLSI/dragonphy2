@@ -98,3 +98,14 @@ August 17, 2020
   * BRAM: 82 / 545
   * Build time: 55m41.090s with Vivado 2020.1 on Intel(R) Core(TM) i5-2320 CPU @ 3.00GHz, Ubuntu 18.04.2 LTS, 6 GB RAM.  32 GB swap space.
   * Didn't work, appears the problem may be within one of the slices so that will be tested next
+
+August 18, 2020
+* Sixth experiment with HardFloat
+  * Build time: 54m23.446s
+  * Looks OK: chunk, chunk_idx, pi_ctl, samp_ctl, incr_sum, write_output, slice_rst
+  * Not OK: out_sgn, out_mag
+  * Looks OK: weights, t_samp_pre (should be zero in this case), 
+  * Not OK: chg_idx looks suspect for two reasons: first the values are the same for both 0 and 1.  Second, the values look like they would be pretty large.
+  * With that in mind, t_chg and t_eval look OK.  f_eval looks OK too.
+  * By the time the signal gets to pulse_resp, it is zero
+  * Seems that it is possible that, only in synthesis, integer constants used in MAKE_CONST_REAL, MUL_REAL, etc. are getting converted to zero.

@@ -58,6 +58,7 @@ __pycache__
 *.pickle
 
 .Xil
+*.debug
 fpga_prj
 
 build_*
