@@ -79,3 +79,22 @@ August 17, 2020
   * BRAM: 74.5 / 545
   * Build time: 56m21.136s with Vivado 2020.1 on Intel(R) Core(TM) i5-2320 CPU @ 3.00GHz, Ubuntu 18.04.2 LTS, 6 GB RAM.  32 GB swap space.
   * Doesn't seem to work unfortunately, need to add some debug probes to investigate.
+* Fifth experiment run with HardFloat.  The high-level architecture was used, and the board targeted was ZC706.  Both noise sources had to be disabled to fit within board resources, and a bug in the clk_adc generated was fixed.  Also, a bunch of debug probes were added.
+  * command: ``time pytest -s -k test_3 --board_name ZC706 --emu_clk_freq 10e6``
+  * Timing: no issues, but slack is down to 3.636ns
+  * Slice LUTs: 163909 / 218600
+    * analog_core: 113922
+      * per slice: 7086
+      * outside of the slices: 
+    * digital_core: 40121
+    * outside of analog_core and digital_core: 
+    * outside of the slices: 
+  * Slice Registers: 25211 / 437200
+    * analog_core: 1771
+    * digital_core: 17797
+  * Slices: 47888 / 54650
+  * DSP: 544 / 900
+    * per slice: 34
+  * BRAM: 82 / 545
+  * Build time: 55m41.090s with Vivado 2020.1 on Intel(R) Core(TM) i5-2320 CPU @ 3.00GHz, Ubuntu 18.04.2 LTS, 6 GB RAM.  32 GB swap space.
+  * Didn't work, appears the problem may be within one of the slices so that will be tested next
