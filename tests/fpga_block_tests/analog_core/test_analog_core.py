@@ -9,12 +9,14 @@ import magma as m
 import fault
 
 # FPGA-specific imports
-from svreal import get_svreal_header
+from svreal import (get_svreal_header, RealType, get_hard_float_inc_dirs,
+                    get_hard_float_sources, DEF_HARD_FLOAT_WIDTH)
 from msdsl import get_msdsl_header
 from msdsl.function import PlaceholderFunction
 
 # DragonPHY imports
-from dragonphy import get_file, get_dir, Filter, get_deps_fpga_emu
+from dragonphy import (get_file, get_dir, Filter, get_deps_fpga_emu,
+                       get_dragonphy_real_type)
 
 THIS_DIR = Path(__file__).resolve().parent
 BUILD_DIR = THIS_DIR / 'build'
@@ -82,6 +84,15 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
     if simulator_name is None:
         simulator_name = 'vivado'
 
+    # determine the real-number formatting
+    real_type = get_dragonphy_real_type()
+    if real_type in {RealType.FixedPoint, RealType.FloatReal}:
+        func_widths = CFG['func_widths']
+    elif real_type == RealType.HardFloat:
+        func_widths = [DEF_HARD_FLOAT_WIDTH, DEF_HARD_FLOAT_WIDTH]
+    else:
+        raise Exception('Unsupported RealType.')
+
     # set up the IO definitions
     io_dict = {}
     io_dict['bits'] = m.In(m.Bits[16])
@@ -95,8 +106,8 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
         rst= m.BitIn,
         jitter_rms_int= m.In(m.Bits[7]),
         noise_rms_int= m.In(m.Bits[11]),
-        chan_wdata_0=m.In(m.Bits[18]),
-        chan_wdata_1=m.In(m.Bits[18]),
+        chan_wdata_0=m.In(m.Bits[func_widths[0]]),
+        chan_wdata_1=m.In(m.Bits[func_widths[1]]),
         chan_waddr=m.In(m.Bits[9]),
         chan_we=m.BitIn
     ))
@@ -151,7 +162,7 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
     # initialize step response functions
     placeholder = PlaceholderFunction(domain=CFG['func_domain'], order=CFG['func_order'],
                                       numel=CFG['func_numel'], coeff_widths=CFG['func_widths'],
-                                      coeff_exps=CFG['func_exps'])
+                                      coeff_exps=CFG['func_exps'], real_type=real_type)
     coeffs_bin = placeholder.get_coeffs_bin_fmt(CHAN.interp)
     t.poke(dut.chan_we, 1)
     for i in range(placeholder.numel):
@@ -173,16 +184,31 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
     # run a few cycles at the end for better waveform visibility
     cycle(5)
 
-    # get dependencies for simulation
-    ext_srcs = get_deps_fpga_emu(impl_file = THIS_DIR / 'test_analog_core.sv')
-    print(ext_srcs)
-
-    # waveform dumping options
+    # define macros
     defines = {
         'FPGA_MACRO_MODEL': True,
         'CHUNK_WIDTH': CFG['chunk_width'],
         'NUM_CHUNKS': CFG['num_chunks']
     }
+
+    # include directories
+    inc_dirs = [
+        get_svreal_header().parent,
+        get_msdsl_header().parent,
+        get_dir('inc/fpga')
+    ]
+
+    # source files
+    ext_srcs = get_deps_fpga_emu(impl_file=THIS_DIR/'test_analog_core.sv')
+
+    # adjust for HardFloat if needed
+    if real_type == RealType.HardFloat:
+        ext_srcs = get_hard_float_sources() + ext_srcs
+        inc_dirs = get_hard_float_inc_dirs() + inc_dirs
+        defines['HARD_FLOAT'] = None
+        defines['FUNC_DATA_WIDTH'] = DEF_HARD_FLOAT_WIDTH
+
+    # waveform dumping options
     flags = []
     if simulator_name == 'ncsim':
         flags += ['-unbuffered']
@@ -196,16 +222,12 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
         target='system-verilog',
         directory=BUILD_DIR,
         simulator=simulator_name,
+        defines=defines,
+        inc_dirs=inc_dirs,
         ext_srcs=ext_srcs,
-        inc_dirs=[
-            get_svreal_header().parent,
-            get_msdsl_header().parent,
-            get_dir('inc/fpga')
-        ],
         ext_model_file=True,
         disp_type='realtime',
         dump_waveforms=False,
-        defines=defines,
         flags=flags,
         timescale='1fs/1fs',
         num_cycles=1e12
