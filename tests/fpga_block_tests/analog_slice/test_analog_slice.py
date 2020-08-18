@@ -10,12 +10,13 @@ import magma as m
 import fault
 
 # FPGA-specific imports
-from svreal import get_svreal_header
+from svreal import (get_svreal_header, RealType, DEF_HARD_FLOAT_WIDTH,
+                    get_hard_float_sources, get_hard_float_inc_dirs)
 from msdsl import get_msdsl_header
 from msdsl.function import PlaceholderFunction
 
 # DragonPHY imports
-from dragonphy import get_file, Filter
+from dragonphy import get_file, Filter, get_dragonphy_real_type
 
 THIS_DIR = Path(__file__).resolve().parent
 BUILD_DIR = THIS_DIR / 'build'
@@ -84,6 +85,15 @@ def test_analog_slice(simulator_name, slice_offset, dump_waveforms, num_tests=10
     if simulator_name is None:
         simulator_name = 'vivado'
 
+    # determine the real-number formatting
+    real_type = get_dragonphy_real_type()
+    if real_type in {RealType.FixedPoint, RealType.FloatReal}:
+        func_widths = CFG['func_widths']
+    elif real_type == RealType.HardFloat:
+        func_widths = [DEF_HARD_FLOAT_WIDTH, DEF_HARD_FLOAT_WIDTH]
+    else:
+        raise Exception('Unsupported RealType.')
+
     # declare circuit
     class dut(m.Circuit):
         name = 'test_analog_slice'
@@ -101,8 +111,8 @@ def test_analog_slice(simulator_name, slice_offset, dump_waveforms, num_tests=10
             rst=m.BitIn,
             jitter_rms=fault.RealIn,
             noise_rms=fault.RealIn,
-            wdata0=m.In(m.Bits[18]),
-            wdata1=m.In(m.Bits[18]),
+            wdata0=m.In(m.Bits[func_widths[0]]),
+            wdata1=m.In(m.Bits[func_widths[1]]),
             waddr=m.In(m.Bits[9]),
             we=m.BitIn
         )
@@ -140,7 +150,7 @@ def test_analog_slice(simulator_name, slice_offset, dump_waveforms, num_tests=10
     # initialize step response functions
     placeholder = PlaceholderFunction(domain=CFG['func_domain'], order=CFG['func_order'],
                                       numel=CFG['func_numel'], coeff_widths=CFG['func_widths'],
-                                      coeff_exps=CFG['func_exps'])
+                                      coeff_exps=CFG['func_exps'], real_type=real_type)
     coeffs_bin = placeholder.get_coeffs_bin_fmt(CHAN.interp)
     t.poke(dut.we, 1)
     for i in range(placeholder.numel):
@@ -188,6 +198,28 @@ def test_analog_slice(simulator_name, slice_offset, dump_waveforms, num_tests=10
         # gather results
         test_cases[i].extend([t.get_value(dut.out_sgn), t.get_value(dut.out_mag)])
 
+    # define macros
+    defines = {}
+
+    # include directories
+    inc_dirs = [
+        get_svreal_header().parent,
+        get_msdsl_header().parent
+    ]
+
+    # source files
+    ext_srcs = [
+        get_file('build/fpga_models/analog_slice/analog_slice.sv'),
+        THIS_DIR / 'test_analog_slice.sv'
+    ]
+
+    # adjust for HardFloat if needed
+    if real_type == RealType.HardFloat:
+        ext_srcs = get_hard_float_sources() + ext_srcs
+        inc_dirs = get_hard_float_inc_dirs() + inc_dirs
+        defines['HARD_FLOAT'] = None
+        defines['FUNC_DATA_WIDTH'] = DEF_HARD_FLOAT_WIDTH
+
     # waveform dumping options
     flags = []
     if simulator_name == 'ncsim':
@@ -198,14 +230,9 @@ def test_analog_slice(simulator_name, slice_offset, dump_waveforms, num_tests=10
         target='system-verilog',
         directory=BUILD_DIR,
         simulator=simulator_name,
-        ext_srcs=[
-            get_file('build/fpga_models/analog_slice/analog_slice.sv'),
-            THIS_DIR / 'test_analog_slice.sv'
-        ],
-        inc_dirs=[
-            get_svreal_header().parent,
-            get_msdsl_header().parent
-        ],
+        defines=defines,
+        inc_dirs=inc_dirs,
+        ext_srcs=ext_srcs,
         parameters={
             'chunk_width': CFG['chunk_width'],
             'num_chunks': CFG['num_chunks']
