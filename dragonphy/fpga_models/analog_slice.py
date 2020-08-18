@@ -83,14 +83,30 @@ class AnalogSlice:
         # compute weights to apply to pulse responses
         weights = []
         for k in range(system_values['chunk_width']):
+            # create a weight value for this bit
             weights.append(
                 m.add_analog_state(
                     f'weights_{k}',
                     range_=system_values['vref_tx']
                 )
             )
-            m.set_next_cycle(weights[-1], if_(m.chunk[k], system_values['vref_tx'], -system_values['vref_tx']),
-                             clk=m.clk, rst=m.rst)
+
+            # select a single bit from the chunk.  chunk_width=1 is unfortunately
+            # a special case because some simulators don't support the bit-selection
+            # syntax on a single-bit variable
+            chunk_bit = m.chunk[k] if system_values['chunk_width'] > 1 else m.chunk
+
+            # write the weight value
+            m.set_next_cycle(
+                weights[-1],
+                if_(
+                    chunk_bit,
+                    system_values['vref_tx'],
+                    -system_values['vref_tx']
+                ),
+                clk=m.clk,
+                rst=m.rst
+            )
 
         # Compute the evaluation time for this slice
         t_samp_pre = m.bind_name(
