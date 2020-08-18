@@ -1,5 +1,9 @@
 `include "svreal.sv"
 
+`ifndef FUNC_DATA_WIDTH
+    `define FUNC_DATA_WIDTH 18
+`endif
+
 module test_analog_slice #(
     parameter integer chunk_width=8,
     parameter integer num_chunks=4,
@@ -20,8 +24,8 @@ module test_analog_slice #(
     input wire logic rst,
     input real jitter_rms,
     input real noise_rms,
-    input wire logic [17:0] wdata0,
-    input wire logic [17:0] wdata1,
+    input wire logic [((`FUNC_DATA_WIDTH)-1):0] wdata0,
+    input wire logic [((`FUNC_DATA_WIDTH)-1):0] wdata1,
     input wire logic [8:0] waddr,
     input wire logic we
 );
