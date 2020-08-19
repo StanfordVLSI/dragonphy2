@@ -112,18 +112,40 @@ August 18, 2020
 * Seventh experiment with HardFloat.  The clock frequency was reduced to 5MHz, the noise sources were disabled, and a bunch of debug probes were added.  Since the clock frequency was reduced, the JTAG sleep time was set to 20us (originally 1us)
   * Build time: 59m43.479s
   * Seems to have worked.
-  * Timing: No issues; slack is 96.023ns on a 200ns clock period.  Suggests the design could have worked up to 9.6 MHz.
-  * Slice LUTs: 169057 / 218600
+  * timing: no issues; slack is 96.023ns on a 200ns clock period.  suggests the design could have worked up to 9.6 Mhz.
+  * slice luts: 169057 / 218600
     * analog_core: 117205
       * per slice: 7350
     * digital_core: 39901
-  * Slice Registers: 29299 / 437200
+  * slice registers: 29299 / 437200
     * analog_core: 1894
     * digital_core: 17795
-  * Slices: 48991 / 54650
-  * DSP: 544 / 900
+  * slices: 48991 / 54650
+  * dsp: 544 / 900
     * per slice: 34
-  * BRAM: 133 / 545
-  * PRBS test took 30.07004952430725 seconds.
-  * Total bits: 70694320
-  * 2.35 Mb/s
+  * bram: 133 / 545
+  * prbs test took 30.07004952430725 seconds.
+  * total bits: 70694320
+  * 2.35 mb/s
+
+August 19, 2020
+* Eigth experiment with HardFloat.  The extra debug probes were removed and the clock frequency was bumped back up to 10 MHz.
+  * Build time: 59m57.426s
+  * PRBS test took 30.05630898475647 seconds
+  * total_bits: 141330704
+  * 4.702 Mb/s
+  * timing: no issues; slack is 6.045ns.  means the design could potentially run at up to 10.6 MHz.
+  * slice luts: 164371 / 218600
+    * analog_core: 115194
+      * per slice: 7169
+    * digital_core: 40091
+  * slice registers: 24039 / 437200
+    * analog_core: 1771
+    * digital_core: 17798
+  * slices: 47847 / 54650
+  * dsp: 544 / 900
+    * per slice: 34
+  * bram: 74.5 / 545
+  * prbs test took 30.07004952430725 seconds.
+  * total bits: 70694320
+  * 2.35 mb/s
