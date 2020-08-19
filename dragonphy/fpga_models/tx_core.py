@@ -1,7 +1,10 @@
 from pathlib import Path
 import numpy as np
+
 from msdsl import MixedSignalModel, VerilogGenerator
 from msdsl.expr.extras import if_
+
+from dragonphy import get_dragonphy_real_type
 
 class TXCore:
     def __init__(self, filename=None, **system_values):
@@ -15,7 +18,8 @@ class TXCore:
         assert (all([req_val in system_values for req_val in self.required_values()])), \
             f'Cannot build {module_name}, Missing parameter in config file'
 
-        m = MixedSignalModel(module_name, dt=system_values['dt'], build_dir=build_dir)
+        m = MixedSignalModel(module_name, dt=system_values['dt'], build_dir=build_dir,
+                             real_type=get_dragonphy_real_type())
         m.add_digital_input('in_')
         m.add_analog_output('out')
         m.add_digital_input('cke')

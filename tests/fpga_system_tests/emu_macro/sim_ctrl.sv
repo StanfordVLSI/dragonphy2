@@ -1,4 +1,5 @@
 `timescale 1s/1fs
+`include "svreal.sv"
 
 `ifndef GIT_HASH
     `define GIT_HASH 0
@@ -6,6 +7,21 @@
 
 `define FORCE_JTAG(name, value) force top.tb_i.top_i.idcore.jtag_i.rjtag_intf_i.``name`` = ``value``
 `define GET_JTAG(name) top.tb_i.top_i.idcore.jtag_i.rjtag_intf_i.``name``
+
+`ifndef FUNC_DATA_WIDTH
+    `define FUNC_DATA_WIDTH 18
+`endif
+
+`ifndef NUM_CHUNKS
+    `define NUM_CHUNKS 4
+`endif
+
+// macro to delay for slightly more than one "tick" of emu_clk
+`define EMU_CLK_DLY #((1.1/(`EMU_CLK_FREQ))*1s)
+
+// macro to delay for slightly more than one "tick" of clk_adc
+// it is set to be one emu_clk cycle longer than the clk_adc period
+`define CLK_ADC_DLY #((((`NUM_CHUNKS)+3.0)/(`EMU_CLK_FREQ))*1s)
 
 module sim_ctrl(
     output reg rstb=1'b0,
@@ -16,12 +32,16 @@ module sim_ctrl(
     output reg dump_start=1'b0,
     output reg [6:0] jitter_rms_int,
     output reg [10:0] noise_rms_int,
-    output reg [17:0] chan_wdata_0,
-    output reg [17:0] chan_wdata_1,
+    output reg [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_0,
+    output reg [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_1,
     output reg [8:0] chan_waddr,
     output reg chan_we,
     input wire tdo
 );
+    // calculate number of emulator cycles per "tick" of clk_adc
+    localparam integer cyc_per_tick = (`NUM_CHUNKS)+2;
+    localparam real clk_adc_dly = (cyc_per_tick+1.0)/(`EMU_CLK_FREQ);
+
 	import const_pack::*;
     import jtag_reg_pack::*;
 
@@ -58,11 +78,11 @@ module sim_ctrl(
         $display("Loading weight d_idx=%0d, w_idx=%0d with value %0d", d_idx, w_idx, value);
         `FORCE_JTAG(wme_ffe_inst, {1'b0, w_idx, d_idx});
         `FORCE_JTAG(wme_ffe_data, value);
-        #((10.0/(`EMU_CLK_FREQ))*1s);
+        `CLK_ADC_DLY;
         `FORCE_JTAG(wme_ffe_exec, 1);
-        #((10.0/(`EMU_CLK_FREQ))*1s);
+        `CLK_ADC_DLY;
         `FORCE_JTAG(wme_ffe_exec, 0);
-        #((10.0/(`EMU_CLK_FREQ))*1s);
+        `CLK_ADC_DLY;
     endtask
 
     function real chan_func(input real t);
@@ -84,33 +104,41 @@ module sim_ctrl(
 
         // wait for emulator reset to complete
         $display("Waiting for emulator reset to complete...");
-        #((10.0/(`EMU_CLK_FREQ))*1s);
+        `CLK_ADC_DLY;
 
         // update the step response function
         chan_we = 1'b1;
         for (int idx=0; idx<512; idx=idx+1) begin
-            chan_wdata_0 = chan_func(idx*dt_samp)*(2.0**16); 
-            chan_wdata_1 = (chan_func((idx+1)*dt_samp)-chan_func(idx*dt_samp))*(2.0**16); 
+             if ((idx % 16) == 0) begin
+                $display("Updating function coefficients %0d/32", idx/16);
+             end
+             `ifndef HARD_FLOAT
+                chan_wdata_0 = `FLOAT_TO_FIXED(chan_func(idx*dt_samp), -16);
+                chan_wdata_1 = `FLOAT_TO_FIXED(chan_func((idx+1)*dt_samp)-chan_func(idx*dt_samp), -16);
+            `else
+                chan_wdata_0 = `REAL_TO_REC_FN(chan_func(idx*dt_samp));
+                chan_wdata_1 = `REAL_TO_REC_FN(chan_func((idx+1)*dt_samp)-chan_func(idx*dt_samp));
+            `endif
             chan_waddr = idx;
-            #((1.1/(`EMU_CLK_FREQ))*1s);
+            `EMU_CLK_DLY;
         end
         chan_we = 1'b0;
 
         // release external reset signals
         rstb = 1'b1;
         trst_n = 1'b1;
-        #((10.0/(`EMU_CLK_FREQ))*1s);
+        `CLK_ADC_DLY;
 
         // Soft reset sequence
         $display("Soft reset sequence...");
         `FORCE_JTAG(int_rstb, 1);
-        #((10.0/(`EMU_CLK_FREQ))*1s);
+        `CLK_ADC_DLY;
         `FORCE_JTAG(en_inbuf, 1);
-		#((10.0/(`EMU_CLK_FREQ))*1s);
+		`CLK_ADC_DLY;
         `FORCE_JTAG(en_gf, 1);
-        #((10.0/(`EMU_CLK_FREQ))*1s);
+        `CLK_ADC_DLY;
         `FORCE_JTAG(en_v2t, 1);
-        #((10.0/(`EMU_CLK_FREQ))*1s);
+        `CLK_ADC_DLY;
 
         // Set up the PFD offset
         $display("Setting up the PFD offset...");
@@ -118,17 +146,17 @@ module sim_ctrl(
             tmp_ext_pfd_offset[idx] = 0;
         end
         `FORCE_JTAG(ext_pfd_offset, tmp_ext_pfd_offset);
-        #((10.0/(`EMU_CLK_FREQ))*1s);
+        `CLK_ADC_DLY;
 
         // Select the PRBS checker data source
         $display("Select the PRBS checker data source");
         `FORCE_JTAG(sel_prbs_mux, 2'b01); // 2'b00: ADC, 2'b01: FFE
-        #((10.0/(`EMU_CLK_FREQ))*1s);
+        `CLK_ADC_DLY;
 
         // Release the PRBS checker from reset
         $display("Release the PRBS tester from reset");
         `FORCE_JTAG(prbs_rstb, 1);
-        #((10.0/(`EMU_CLK_FREQ))*1s);
+        `CLK_ADC_DLY;
 
         // Set up the FFE
         for (loop_var=0; loop_var<Nti; loop_var=loop_var+1) begin
@@ -153,18 +181,19 @@ module sim_ctrl(
         tmp_ext_pi_ctl_offset[2] = 256;
         tmp_ext_pi_ctl_offset[3] = 384;
         `FORCE_JTAG(ext_pi_ctl_offset, tmp_ext_pi_ctl_offset);
-        #((10.0/(`EMU_CLK_FREQ))*1s);
+        `CLK_ADC_DLY;
         `FORCE_JTAG(en_ext_max_sel_mux, 1);
-        #((10.0/(`EMU_CLK_FREQ))*1s);
+        `CLK_ADC_DLY;
 
         // Configure the retimer
         `FORCE_JTAG(retimer_mux_ctrl_1, 16'hFFFF);
         `FORCE_JTAG(retimer_mux_ctrl_2, 16'hFFFF);
-        #((10.0/(`EMU_CLK_FREQ))*1s);
+        `CLK_ADC_DLY;
 
         // Assert the CDR reset
+        // TODO: do we really need to wait three cycles of clk_adc?
         `FORCE_JTAG(cdr_rstb, 0);
-        #((25.0/(`EMU_CLK_FREQ))*1s);
+        repeat (3) `CLK_ADC_DLY;
 
         // Configure the CDR
         $display("Configuring the CDR...");
@@ -174,24 +203,25 @@ module sim_ctrl(
         `FORCE_JTAG(en_freq_est, 0);
         `FORCE_JTAG(en_ext_pi_ctl, 0);
         `FORCE_JTAG(sel_inp_mux, 1); // "0": use ADC output, "1": use FFE output
-        #((10.0/(`EMU_CLK_FREQ))*1s);
+        `CLK_ADC_DLY;
 
         // Toggle the en_v2t signal to re-initialize the V2T ordering
         $display("Toggling en_v2t...");
         `FORCE_JTAG(en_v2t, 0);
-        #((10.0/(`EMU_CLK_FREQ))*1s);
+        `CLK_ADC_DLY;
         `FORCE_JTAG(en_v2t, 1);
-        #((10.0/(`EMU_CLK_FREQ))*1s);
+        `CLK_ADC_DLY;
 
         // De-assert the CDR reset
+        // TODO: do we really need to wait three cycles of clk_adc?
         `FORCE_JTAG(cdr_rstb, 1);
-        #((25.0/(`EMU_CLK_FREQ))*1s);
+        repeat (3) `CLK_ADC_DLY;
 
         // Wait for PRBS checker to lock
 		$display("Waiting for PRBS checker to lock...");
 		for (loop_var=0; loop_var<50; loop_var=loop_var+1) begin
 		    $display("Interval %0d/50", loop_var);
-		    #((50.0/(`EMU_CLK_FREQ))*1s);
+            repeat (8) `CLK_ADC_DLY;
 		end
 
         // Run the PRBS tester
@@ -199,13 +229,13 @@ module sim_ctrl(
         `FORCE_JTAG(prbs_checker_mode, 2);
         for (loop_var=0; loop_var<100; loop_var=loop_var+1) begin
 		    $display("Interval %0d/100", loop_var);
-		    #((50.0/(`EMU_CLK_FREQ))*1s);
+            repeat (8) `CLK_ADC_DLY;
 		end
-        #((10.0/(`EMU_CLK_FREQ))*1s);
+        `CLK_ADC_DLY;
 
         // Get results
         `FORCE_JTAG(prbs_checker_mode, 3);
-        #((10.0/(`EMU_CLK_FREQ))*1s);
+        `CLK_ADC_DLY;
 
         err_bits = 0;
         err_bits |= `GET_JTAG(prbs_err_bits_upper);

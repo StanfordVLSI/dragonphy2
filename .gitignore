@@ -58,6 +58,7 @@ __pycache__
 *.pickle
 
 .Xil
+*.debug
 fpga_prj
 
 build_*
@@ -69,3 +70,6 @@ wave.*
 
 *_gpack.sv
 build/
+
+HardFloat-1/
+install_hardfloat.sh

@@ -9,7 +9,8 @@ from msdsl.expr.extras import if_
 from msdsl.function import PlaceholderFunction
 
 # DragonPHY imports
-from dragonphy import Filter, get_file
+from dragonphy import (Filter, get_file, get_dragonphy_real_type,
+                       add_placeholder_inputs)
 
 class ChannelCore:
     def __init__(self, filename=None, **system_values):
@@ -23,7 +24,8 @@ class ChannelCore:
         assert (all([req_val in system_values for req_val in self.required_values()])), \
             f'Cannot build {module_name}, Missing parameter in config file'
 
-        m = MixedSignalModel(module_name, dt=system_values['dt'], build_dir=build_dir)
+        m = MixedSignalModel(module_name, dt=system_values['dt'], build_dir=build_dir,
+                             real_type=get_dragonphy_real_type())
         m.add_analog_input('in_')
         m.add_analog_output('out')
         m.add_analog_input('dt_sig')
@@ -45,13 +47,8 @@ class ChannelCore:
         chan = Filter.from_file(get_file('build/chip_src/adapt_fir/chan.npy'))
         self.check_func_error(chan_func, chan.interp)
 
-        # Add digital inputs that will be used to reconfigure
-        # the function at runtime
-        wdata = []
-        for k in range(chan_func.order+1):
-            wdata += [m.add_digital_input(f'wdata{k}', signed=True, width=chan_func.coeff_widths[k])]
-        waddr = m.add_digital_input('waddr', width=chan_func.addr_bits)
-        we = m.add_digital_input('we')
+        # Add digital inputs that will be used to reconfigure the function at runtime
+        wdata, waddr, we = add_placeholder_inputs(m=m, f=chan_func)
 
         # create a history of past inputs
         cke_d = m.add_digital_state('cke_d')

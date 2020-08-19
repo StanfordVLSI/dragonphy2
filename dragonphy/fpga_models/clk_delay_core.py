@@ -1,8 +1,11 @@
 from pathlib import Path
 import numpy as np
+
 from msdsl import MixedSignalModel, VerilogGenerator, min_op
 from msdsl.expr.expr import array, concatenate
 from msdsl.expr.extras import if_
+
+from dragonphy import get_dragonphy_real_type
 
 class ClkDelayCore:
     def __init__(self, filename=None, **system_values):
@@ -16,7 +19,8 @@ class ClkDelayCore:
         assert (all([req_val in system_values for req_val in self.required_values()])), \
             f'Cannot build {module_name}, Missing parameter in config file'
 
-        m = MixedSignalModel(module_name, dt=system_values['dt'], build_dir=build_dir)
+        m = MixedSignalModel(module_name, dt=system_values['dt'], build_dir=build_dir,
+                             real_type=get_dragonphy_real_type())
 
         # Random number generator seed (default generated with random.org)
         m.add_digital_param('jitter_seed', width=32, default=46428)

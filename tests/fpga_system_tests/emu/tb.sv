@@ -1,5 +1,9 @@
 `include "iotype.sv"
 
+`ifndef FUNC_DATA_WIDTH
+    `define FUNC_DATA_WIDTH 18
+`endif
+
 module tb;
     //////////////////
     // External IOs //
@@ -35,8 +39,8 @@ module tb;
     (* dont_touch = "true" *) `DECL_DT(dt_req);
     (* dont_touch = "true" *) logic [6:0] jitter_rms_int;
     (* dont_touch = "true" *) logic [10:0] noise_rms_int;
-    (* dont_touch = "true" *) logic [17:0] chan_wdata_0;
-    (* dont_touch = "true" *) logic [17:0] chan_wdata_1;
+    (* dont_touch = "true" *) logic [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_0;
+    (* dont_touch = "true" *) logic [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_1;
     (* dont_touch = "true" *) logic [8:0] chan_waddr;
     (* dont_touch = "true" *) logic chan_we;
 

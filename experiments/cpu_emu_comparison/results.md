@@ -277,3 +277,26 @@ July 23, 2020
   * Build time:  31m3.938s with Vivado 2020.1 on Intel(R) Core(TM) i5-2320 CPU @ 3.00GHz, Ubuntu 18.04.2 LTS, 6 GB RAM
     * use `cat /proc/cpuinfo`, `cat /proc/meminfo`, `lsb_release -a`
   * Maximum time constant: 217ps (--chan_tau=217e-12)
+
+August 11, 2020
+* Experiment building for ZCU106.  In general the build seems to be much slower, taking 1.6 hours to complete.  I had to use the option "-stack 2000" and increase swap space to 32 GB to get the build to complete.  Unknown whether both options are needed or just the swap space increase, but the peak memory consumption was 14.5 GB, which is 0.5 GB more than what was available before.
+* The build took 1.6 hours & the design did not meet timing with emu\_clk\_freq set to 30 MHz.  WNS was 1.341 ns with 134 failing endpoints and WHS was 0.014 ns with 6 failing endpoints.
+* All failing endpoints for WNS are from clk\_pl\_0 to emu\_clk, which shouldn't even be considered as a source\_clk.
+* The hold-time violation is within emu\_clk and inside the PRBS generator.  Looks like it is caused by high clock skew.
+* Overall resource utilization is 92455 LUTs, 25157 DFF, 194.5 BRAM, 850 DSPs, which is quite similar to what had been seen before.
+* The clocks listed are:
+  * clk_in1_p: external clock
+  * clk_other_0: "clk ADC"
+  * clk_out1_clk_wiz_0: emu_clk_2x
+  * clk_out2_clk_wiz_0: dbg_hub_clk
+  * clk_pl_0: internal to the block diagram
+  * dbg_hub/inst/BSCANID.u_xsdbm_id/SWITCH_N_EXT_BSCAN.bscan_inst/SERIES7_BSCAN.bscan_inst/INTERNAL_TCK: ???
+  * emu_clk: emu_clk
+* A good path forward could be to set false paths on the outputs of the Zynq core.  The individual paths are:
+  * ``sim_ctrl_gen_i/zynq_gpio_i/i_ctrl``
+  * ``sim_ctrl_gen_i/zynq_gpio_i/i_data``
+  * ``sim_ctrl_gen_i/zynq_gpio_i/o_ctrl``
+  * ``sim_ctrl_gen_i/zynq_gpio_i/o_data``
+* As a shorthand, we can specify:
+  * ``set_false_path -through [get_pins sim_ctrl_gen_i/zynq_gpio_i/*]``
+* After adding that false path, the timing issues are resolved and the build time was reduced to 1.3 hrs (still using a lot of memory, though).  Utilization is similar at 92420 LUTS, 25167 FFs, 194.5 BRAM, 850 DSPs.

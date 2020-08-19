@@ -1,3 +1,7 @@
+`ifndef FUNC_DATA_WIDTH
+    `define FUNC_DATA_WIDTH 18
+`endif
+
 module test_analog_core import const_pack::*; #(
 ) (
     // Input bits
@@ -39,8 +43,8 @@ module test_analog_core import const_pack::*; #(
     input [10:0] noise_rms_int,
 
     // Step response control signals
-    input [17:0] chan_wdata_0,
-    input [17:0] chan_wdata_1,
+    input [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_0,
+    input [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_1,
     input [8:0] chan_waddr,
     input chan_we
 );
