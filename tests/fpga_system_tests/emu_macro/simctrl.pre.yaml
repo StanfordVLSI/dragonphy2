@@ -1,0 +1,195 @@
+#################################
+# inputs controlled by firmware #
+#################################
+
+digital_ctrl_inputs:
+
+  rstb:
+    abspath: 'tb_i.rstb'
+    width: 1
+    init_value: 0
+  dump_start:
+    abspath: 'tb_i.dump_start'
+    width: 1
+    init_value: 0
+  tdi:
+    abspath: 'tb_i.tdi'
+    width: 1
+    init_value: 0
+  tck:
+    abspath: 'tb_i.tck'
+    width: 1
+    init_value: 0
+  tms:
+    abspath: 'tb_i.tms'
+    width: 1
+    init_value: 1
+  trst_n:
+    abspath: 'tb_i.trst_n'
+    width: 1
+    init_value: 0
+  jitter_rms_int:
+    abspath: 'tb_i.top_i.iacore.jitter_rms_int'
+    width: 7
+    init_value: 0
+  noise_rms_int:
+    abspath: 'tb_i.top_i.iacore.noise_rms_int'
+    width: 11
+    init_value: 0
+  chan_wdata_0:
+    abspath: 'tb_i.top_i.iacore.chan_wdata_0'
+    width: 18
+    init_value: 0
+  chan_wdata_1:
+    abspath: 'tb_i.top_i.iacore.chan_wdata_1'
+    width: 18
+    init_value: 0
+  chan_waddr:
+    abspath: 'tb_i.top_i.iacore.chan_waddr'
+    width: 9
+    init_value: 0
+  chan_we:
+    abspath: 'tb_i.top_i.iacore.chan_we'
+    width: 1
+    init_value: 0
+
+################################
+# outputs observed by firmware #
+################################
+
+digital_ctrl_outputs:
+
+  tdo:
+    abspath: 'tb_i.tdo'
+    width: 1
+
+###########################
+# outputs observed by ILA #
+###########################
+
+digital_probes:
+
+  # standard signals
+  ctl_pi_0:
+    abspath: 'tb_i.top_i.iacore.ctl_pi[0]'
+    width: 9
+  adcout_unfolded_0:
+    abspath: 'tb_i.top_i.idcore.adcout_unfolded[0]'
+    width: 8
+    signed: 1
+  estimated_bits_0:
+    abspath: 'tb_i.top_i.idcore.estimated_bits[0]'
+    width: 10
+    signed: 1
+
+  # uncomment to analog_slice debug signals
+  # chunk:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.chunk'
+  #   width: 1
+  # chunk_idx:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.chunk_idx'
+  #   width: 5
+  # pi_ctl:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.pi_ctl'
+  #   width: 9
+  # slice_offset:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.slice_offset'
+  #   width: 2
+  # sample_ctl:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.sample_ctl'
+  #   width: 1
+  # incr_sum:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.incr_sum'
+  #   width: 1
+  # write_output:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.write_output'
+  #   width: 1
+  # out_sgn:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.out_sgn'
+  #   width: 1
+  # out_mag:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.out_mag'
+  #   width: 8
+  # slice_rst:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.rst'
+  #   width: 1
+  # weights_0:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.weights_0'
+  #   width: 32
+  # t_samp_pre:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.t_samp_pre'
+  #   width: 32
+  # chg_idx_0:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.chg_idx_0'
+  #   width: 32
+  # chg_idx_1:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.chg_idx_1'
+  #   width: 32
+  # t_chg_0:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.t_chg_0'
+  #   width: 32
+  # t_chg_1:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.t_chg_1'
+  #   width: 32
+  # t_eval_0:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.t_eval_0'
+  #   width: 32
+  # t_eval_1:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.t_eval_1'
+  #   width: 32
+  # f_eval_0:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.f_eval_0'
+  #   width: 32
+  # f_eval_1:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.f_eval_1'
+  #   width: 32
+  # pulse_resp_0:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.pulse_resp_0'
+  #   width: 32
+  # pulse_resp_sum:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.pulse_resp_sum'
+  #   width: 32
+  # analog_sample_pre:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.analog_sample_pre'
+  #   width: 32
+  # abs_val:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.abs_val'
+  #   width: 32
+  # code_real:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.code_real'
+  #   width: 32
+  # code_sint:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.code_sint'
+  #   width: 9
+  # code_uint:
+  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.code_uint'
+  #   width: 8
+
+  # uncomment to add analog_core debug signals
+  # data_rx_i:
+  #   abspath: 'tb_i.data_rx_i'
+  #   width: 16
+  # prbs_cke:
+  #   abspath: 'tb_i.prbs_cke'
+  #   width: 1
+  # counter:
+  #   abspath: 'tb_i.top_i.iacore.counter'
+  #   width: 6
+  # chunk_idx:
+  #   abspath: 'tb_i.top_i.iacore.chunk_idx'
+  #   width: 5
+  # incr_sum:
+  #   abspath: 'tb_i.top_i.iacore.incr_sum'
+  #   width: 1
+  # last_cycle:
+  #   abspath: 'tb_i.top_i.iacore.last_cycle'
+  #   width: 1
+  # history_shift:
+  #   abspath: 'tb_i.top_i.iacore.history_shift'
+  #   width: 5
+  # history:
+  #   abspath: 'tb_i.top_i.iacore.history'
+  #   width: 32
+  # clk_adc_val:
+  #   abspath: 'tb_i.top_i.iacore.clk_adc_val'
+  #   width: 1

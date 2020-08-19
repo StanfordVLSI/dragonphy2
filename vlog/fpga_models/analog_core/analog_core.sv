@@ -1,7 +1,21 @@
 `include "svreal.sv"
 `include "iotype.sv"
 
+`ifndef FUNC_DATA_WIDTH
+    `define FUNC_DATA_WIDTH 18
+`endif
+
+`ifndef CHUNK_WIDTH
+    `define CHUNK_WIDTH 8
+`endif
+
+`ifndef NUM_CHUNKS
+    `define NUM_CHUNKS 4
+`endif
+
 module analog_core import const_pack::*; #(
+    parameter integer chunk_width=`CHUNK_WIDTH,
+    parameter integer num_chunks=`NUM_CHUNKS
 ) (
     input `pwl_t rx_inp,                                 // RX input (+) (from pad)
 	input `pwl_t rx_inn,                                 // RX input (-) (from pad)
@@ -34,14 +48,19 @@ module analog_core import const_pack::*; #(
     
 	acore_debug_intf.acore adbg_intf_i
 );
+    // parameters used to determine when the clock rise & fall times should occur
+    // the parameters are selected so that the clock has a 50% duty cycle
+    localparam integer clock_fall = 2;
+    localparam integer clock_rise = clock_fall + ((2+num_chunks)/2) - 1;
+
     // emulator I/O
 
     (* dont_touch = "true" *) logic emu_clk;
     (* dont_touch = "true" *) logic emu_rst;
     (* dont_touch = "true" *) logic [6:0] jitter_rms_int;
     (* dont_touch = "true" *) logic [10:0] noise_rms_int;
-    (* dont_touch = "true" *) logic [17:0] chan_wdata_0;
-    (* dont_touch = "true" *) logic [17:0] chan_wdata_1;
+    (* dont_touch = "true" *) logic [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_0;
+    (* dont_touch = "true" *) logic [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_1;
     (* dont_touch = "true" *) logic [8:0] chan_waddr;
     (* dont_touch = "true" *) logic chan_we;
 
@@ -55,8 +74,8 @@ module analog_core import const_pack::*; #(
 
     // instantiate analog slices
 
-    logic [7:0] chunk;
-    logic [1:0] chunk_idx;
+    logic [(chunk_width-1):0] chunk;
+    logic [($clog2(num_chunks)-1):0] chunk_idx;
     logic incr_sum;
     logic last_cycle;
 
@@ -102,13 +121,13 @@ module analog_core import const_pack::*; #(
 
     // save history of input bits
 
-    logic [31:0] history;
+    logic [((num_chunks*chunk_width)-1):0] history;
 
     always @(posedge emu_clk) begin
         if (emu_rst) begin
             history <= 0;
         end else if (last_cycle) begin
-            history <= {rx_inp, history[31:16]};
+            history <= {rx_inp, history[((num_chunks*chunk_width)-1):((num_chunks*chunk_width)-16)]};
         end else begin
             history <= history;
         end
@@ -116,19 +135,19 @@ module analog_core import const_pack::*; #(
 
     // select chunk of input bits
 
-    logic [4:0] history_shift;
+    logic [($clog2(num_chunks*chunk_width)-1):0] history_shift;
 
-    assign history_shift = 5'd8*(5'd3 - chunk_idx);
-    assign chunk = (history >> history_shift) & 8'hFF;
+    assign history_shift = ((num_chunks*chunk_width)-chunk_width) - chunk_width*chunk_idx;
+    assign chunk = (history >> history_shift) & {chunk_width{1'b1}};
 
     // main state machine
 
-    logic [3:0] counter;
+    logic [($clog2(num_chunks+2)-1):0] counter;
 
     always @(posedge emu_clk) begin
         if (emu_rst) begin
             counter <= 0;
-        end else if (counter == 5) begin
+        end else if (counter == (num_chunks+1)) begin
             counter <= 0;
         end else begin
             counter <= counter + 1;
@@ -137,9 +156,9 @@ module analog_core import const_pack::*; #(
 
     // assign various control signals
 
-    assign chunk_idx = (counter < 4) ? counter[1:0] : 2'd0;
+    assign chunk_idx = (counter < num_chunks) ? counter[($clog2(num_chunks)-1):0] : '0;
     assign incr_sum = (counter != 1) ? 1'b1 : 1'b0;
-    assign last_cycle = (counter == 5) ? 1'b1 : 1'b0;
+    assign last_cycle = (counter == (num_chunks+1)) ? 1'b1 : 1'b0;
 
     // replica slices aren't modeled yet
 
@@ -152,7 +171,7 @@ module analog_core import const_pack::*; #(
     (* dont_touch = "true" *) logic clk_adc_val;
     (* dont_touch = "true" *) logic clk_adc_i;
 
-    assign clk_adc_val = ((2 <= counter) && (counter <= 4)) ? 1'b0 : 1'b1;
+    assign clk_adc_val = ((clock_fall <= counter) && (counter <= clock_rise)) ? 1'b0 : 1'b1;
     assign clk_adc = clk_adc_i;
 
     // assign outputs in analog interface (mostly set to zero)

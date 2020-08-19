@@ -1,5 +1,4 @@
 import os
-import serial
 import time
 import json
 import re
@@ -8,8 +7,11 @@ import numpy as np
 from pathlib import Path
 from math import exp, ceil, log2
 
-from anasymod.analysis import Analysis
+from svreal import (RealType, DEF_HARD_FLOAT_WIDTH,
+                    get_hard_float_sources, get_hard_float_headers)
 from msdsl.function import PlaceholderFunction
+from anasymod.analysis import Analysis
+
 from dragonphy import *
 from dragonphy.git_util import get_git_hash_short
 
@@ -17,14 +19,25 @@ THIS_DIR = Path(__file__).resolve().parent
 CFG = yaml.load(open(get_file('config/fpga/chan.yml'), 'r'))
 
 def test_1(board_name, emu_clk_freq, flatten_hierarchy):
-    # Write project config
+    ########################
+    # Write project config #
+    ########################
+
     prj = AnasymodProjectConfig()
     prj.set_board_name(board_name)
     prj.set_emu_clk_freq(emu_clk_freq)
     prj.set_flatten_hierarchy(flatten_hierarchy)
+
+    # uncomment for debug probing
+    # prj.config['PROJECT']['cpu_debug_mode'] = 1
+    # prj.config['PROJECT']['cpu_debug_hierarchies'] = [[0, 'top']]
+
     prj.write_to_file(THIS_DIR / 'prj.yaml')
 
-    # Build up a configuration of source files for the project
+    #######################
+    # Write source config #
+    #######################
+
     src_cfg = AnasymodSourceConfig()
 
     # JTAG-related
@@ -49,12 +62,29 @@ def test_1(board_name, emu_clk_freq, flatten_hierarchy):
     src_cfg.add_defines({'DT_EXPONENT': -46})  # TODO: move to DT_SCALE
     src_cfg.add_defines({'GIT_HASH': str(get_git_hash_short())}, fileset='sim')
 
+    # HardFloat-related defines
+    # (not yet fully supported)
+    if get_dragonphy_real_type() == RealType.HardFloat:
+        src_cfg.add_defines({
+            'HARD_FLOAT': None,
+            'FUNC_DATA_WIDTH': DEF_HARD_FLOAT_WIDTH
+        })
+        src_cfg.add_verilog_sources(get_hard_float_sources())
+        src_cfg.add_verilog_headers(get_hard_float_headers())
+
     # Firmware
     src_cfg.add_firmware_files([THIS_DIR / 'main.c'])
 
     # Write source config
     # TODO: interact directly with anasymod library rather than through config files
     src_cfg.write_to_file(THIS_DIR / 'source.yaml')
+
+    # Update simctrl.yaml if needed
+    simctrl = yaml.load(open(THIS_DIR / 'simctrl.pre.yaml', 'r'))
+    if get_dragonphy_real_type() == RealType.HardFloat:
+        simctrl['digital_ctrl_inputs']['chan_wdata_0']['width'] = DEF_HARD_FLOAT_WIDTH
+        simctrl['digital_ctrl_inputs']['chan_wdata_1']['width'] = DEF_HARD_FLOAT_WIDTH
+    yaml.dump(simctrl, open(THIS_DIR / 'simctrl.yaml', 'w'))
 
     # "models" directory has to exist
     (THIS_DIR / 'build' / 'models').mkdir(exist_ok=True, parents=True)
@@ -87,7 +117,15 @@ def test_5():
     ana.set_target(target_name='fpga')
     ana.program_firmware()
 
-def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
+def test_6(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
+    # read ffe_length
+    SYSTEM = yaml.load(open(get_file('config/system.yml'), 'r'), Loader=yaml.FullLoader)
+    ffe_length = SYSTEM['generic']['ffe']['parameters']['length']
+
+    # read emu_clk_freq
+    PRJ = yaml.load(open(THIS_DIR / 'prj.yaml', 'r'), Loader=yaml.FullLoader)
+    emu_clk_freq = PRJ['PROJECT']['emu_clk_freq']
+
     jtag_inst_width = 5
     sc_bus_width = 32
     sc_addr_width = 14
@@ -122,10 +160,10 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur, jitter_rms, noise_
 
     # connect to the CPU
     print('Connecting to the CPU...')
-    ser = serial.Serial(
-        port=ser_port,
-        baudrate=115200
-    )
+    ana = Analysis(input=str(THIS_DIR))
+    ana.set_target(target_name='fpga')
+    ctrl = ana.launch()
+    ser = ctrl.ctrl_handler
 
     # functions
     def do_reset():
@@ -266,7 +304,7 @@ def test_6(ser_port, ffe_length, emu_clk_freq, prbs_test_dur, jitter_rms, noise_
     # Configure step response function
     placeholder = PlaceholderFunction(domain=CFG['func_domain'], order=CFG['func_order'],
                                       numel=CFG['func_numel'], coeff_widths=CFG['func_widths'],
-                                      coeff_exps=CFG['func_exps'])
+                                      coeff_exps=CFG['func_exps'], real_type=get_dragonphy_real_type())
     chan_func = lambda t_vec: (1-np.exp(-(t_vec-chan_delay)/chan_tau))*np.heaviside(t_vec-chan_delay, 0)
     coeffs_bin = placeholder.get_coeffs_bin_fmt(chan_func)
     coeff_tuples = list(zip(*coeffs_bin))

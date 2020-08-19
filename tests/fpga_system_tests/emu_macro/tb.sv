@@ -1,9 +1,19 @@
+`ifndef CHUNK_WIDTH
+    `define CHUNK_WIDTH 8
+`endif
+
+`ifndef NUM_CHUNKS
+    `define NUM_CHUNKS 4
+`endif
+
 module tb;
     ///////////////
     // Constants //
     ///////////////
 
     import const_pack::Nti;
+    localparam integer chunk_width=`CHUNK_WIDTH;
+    localparam integer num_chunks=`NUM_CHUNKS;
 
     //////////////////
     // External IOs //
@@ -63,15 +73,15 @@ module tb;
     // PRBS //
     //////////
 
-    logic [3:0] counter;
+    logic [($clog2(num_chunks+2)-1):0] counter;
     logic prbs_cke;
 
-    assign prbs_cke = (counter == 5) ? 1'b1 : 1'b0;
+    assign prbs_cke = (counter == (num_chunks+1)) ? 1'b1 : 1'b0;
 
     always @(posedge emu_clk) begin
         if (emu_rst) begin
             counter <= 0;
-        end else if (counter == 5) begin
+        end else if (counter == (num_chunks+1)) begin
             counter <= 0;
         end else begin
             counter <= counter + 1;

@@ -10,7 +10,8 @@ from msdsl.expr.format import SIntFormat
 from msdsl.function import PlaceholderFunction
 
 # DragonPHY imports
-from dragonphy import Filter, get_file
+from dragonphy import (Filter, get_file, get_dragonphy_real_type,
+                       add_placeholder_inputs)
 
 class AnalogSlice:
     def __init__(self, filename=None, **system_values):
@@ -24,7 +25,8 @@ class AnalogSlice:
         assert (all([req_val in system_values for req_val in self.required_values()])), \
             f'Cannot build {module_name}, Missing parameter in config file'
 
-        m = MixedSignalModel(module_name, dt=system_values['dt'], build_dir=build_dir)
+        m = MixedSignalModel(module_name, dt=system_values['dt'], build_dir=build_dir,
+                             real_type=get_dragonphy_real_type())
 
         # Random number generator seeds (defaults generated with random.org)
         m.add_digital_param('jitter_seed', width=32, default=46428)
@@ -71,13 +73,8 @@ class AnalogSlice:
         chan = Filter.from_file(get_file('build/chip_src/adapt_fir/chan.npy'))
         self.check_func_error(chan_func, chan.interp)
 
-        # Add digital inputs that will be used to reconfigure
-        # the function at runtime
-        wdata = []
-        for k in range(chan_func.order+1):
-            wdata += [m.add_digital_input(f'wdata{k}', signed=True, width=chan_func.coeff_widths[k])]
-        waddr = m.add_digital_input('waddr', width=chan_func.addr_bits)
-        we = m.add_digital_input('we')
+        # Add digital inputs that will be used to reconfigure the function at runtime
+        wdata, waddr, we = add_placeholder_inputs(m=m, f=chan_func)
 
         # Sample the pi_ctl code
         m.add_digital_state('pi_ctl_sample', width=system_values['pi_ctl_width'])
@@ -86,14 +83,30 @@ class AnalogSlice:
         # compute weights to apply to pulse responses
         weights = []
         for k in range(system_values['chunk_width']):
+            # create a weight value for this bit
             weights.append(
                 m.add_analog_state(
                     f'weights_{k}',
                     range_=system_values['vref_tx']
                 )
             )
-            m.set_next_cycle(weights[-1], if_(m.chunk[k], system_values['vref_tx'], -system_values['vref_tx']),
-                             clk=m.clk, rst=m.rst)
+
+            # select a single bit from the chunk.  chunk_width=1 is unfortunately
+            # a special case because some simulators don't support the bit-selection
+            # syntax on a single-bit variable
+            chunk_bit = m.chunk[k] if system_values['chunk_width'] > 1 else m.chunk
+
+            # write the weight value
+            m.set_next_cycle(
+                weights[-1],
+                if_(
+                    chunk_bit,
+                    system_values['vref_tx'],
+                    -system_values['vref_tx']
+                ),
+                clk=m.clk,
+                rst=m.rst
+            )
 
         # Compute the evaluation time for this slice
         t_samp_pre = m.bind_name(
@@ -103,9 +116,17 @@ class AnalogSlice:
         )
 
         # Add jitter to the sampling time
-        t_samp_jitter = m.set_gaussian_noise('t_samp_jitter', std=m.jitter_rms, clk=m.clk, rst=m.rst,
-                                             lfsr_init=m.jitter_seed)
-        t_samp = m.bind_name('t_samp', t_samp_pre + t_samp_jitter)
+        if system_values['use_jitter']:
+            t_samp_jitter = m.set_gaussian_noise(
+                't_samp_jitter',
+                std=m.jitter_rms,
+                lfsr_init=m.jitter_seed,
+                clk=m.clk,
+                rst=m.rst
+            )
+            t_samp = m.bind_name('t_samp', t_samp_pre + t_samp_jitter)
+        else:
+            t_samp = t_samp_pre
 
         # Evaluate the step response function.  Note that the number of evaluation times is the
         # number of chunks plus one.
@@ -153,9 +174,17 @@ class AnalogSlice:
         )
 
         # add noise to the sample value
-        sample_noise = m.set_gaussian_noise('sample_noise', std=m.noise_rms, clk=m.clk, rst=m.rst,
-                                            lfsr_init=m.noise_seed)
-        sample_value = m.bind_name('sample_value', sample_value_pre + sample_noise)
+        if system_values['use_noise']:
+            sample_noise = m.set_gaussian_noise(
+                'sample_noise',
+                std=m.noise_rms,
+                clk=m.clk,
+                rst=m.rst,
+                lfsr_init=m.noise_seed
+            )
+            sample_value = m.bind_name('sample_value', sample_value_pre + sample_noise)
+        else:
+            sample_value = sample_value_pre
 
         # determine out_sgn (note that the definition is opposite of the typical
         # meaning; "0" means negative)
@@ -211,4 +240,4 @@ class AnalogSlice:
         return ['dt', 'func_order', 'func_numel', 'chunk_width', 'num_chunks',
                 'slices_per_bank', 'num_banks', 'pi_ctl_width', 'vref_rx',
                 'vref_tx', 'n_adc', 'freq_tx', 'freq_rx', 'func_widths',
-                'func_exps', 'func_domain']
+                'func_exps', 'func_domain', 'use_jitter', 'use_noise']
