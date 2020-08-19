@@ -14,3 +14,5 @@ vref_tx: 0.4
 n_adc: 8
 freq_tx: 16.0e+9
 freq_rx: 4.0e+9
+use_jitter: true
+use_noise: true
