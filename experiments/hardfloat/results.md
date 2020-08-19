@@ -109,3 +109,21 @@ August 18, 2020
   * With that in mind, t_chg and t_eval look OK.  f_eval looks OK too.
   * By the time the signal gets to pulse_resp, it is zero
   * Seems that it is possible that, only in synthesis, integer constants used in MAKE_CONST_REAL, MUL_REAL, etc. are getting converted to zero.
+* Seventh experiment with HardFloat.  The clock frequency was reduced to 5MHz, the noise sources were disabled, and a bunch of debug probes were added.  Since the clock frequency was reduced, the JTAG sleep time was set to 20us (originally 1us)
+  * Build time: 59m43.479s
+  * Seems to have worked.
+  * Timing: No issues; slack is 96.023ns on a 200ns clock period.  Suggests the design could have worked up to 9.6 MHz.
+  * Slice LUTs: 169057 / 218600
+    * analog_core: 117205
+      * per slice: 7350
+    * digital_core: 39901
+  * Slice Registers: 29299 / 437200
+    * analog_core: 1894
+    * digital_core: 17795
+  * Slices: 48991 / 54650
+  * DSP: 544 / 900
+    * per slice: 34
+  * BRAM: 133 / 545
+  * PRBS test took 30.07004952430725 seconds.
+  * Total bits: 70694320
+  * 2.35 Mb/s
