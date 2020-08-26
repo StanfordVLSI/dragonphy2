@@ -28,6 +28,8 @@ module tb;
 	(* dont_touch = "true" *) logic tms;
 	(* dont_touch = "true" *) logic trst_n;
 
+    (* dont_touch = "true" *) logic [31:0] prbs_eqn;
+
     ////////////////////
 	// JTAG Interface //
 	////////////////////
@@ -98,7 +100,7 @@ module tb;
                 .rst(emu_rst),
                 .cke(prbs_cke),
                 .init_val(i+1),
-                .eqn(32'b00000000000000000000000001100000),
+                .eqn(prbs_eqn),
                 .inj_err(1'b0),
                 .inv_chicken(2'b00),
                 .out(data_rx_i[i])
