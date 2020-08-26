@@ -183,6 +183,9 @@ def test_6(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
     def set_noise_rms(val):
         ser.write(f'SET_NOISE_RMS {val}\n'.encode('utf-8'))
 
+    def set_prbs_eqn(val):
+        ser.write(f'SET_PRBS_EQN {val}\n'.encode('utf-8'))
+
     def set_sleep(val):
         ser.write(f'SET_SLEEP {val}\n'.encode('utf-8'))
 
@@ -328,6 +331,10 @@ def test_6(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
     print('Set PFD offset')
     for k in range(16):
         write_tc_reg(f'ext_pfd_offset[{k}]', 0)
+
+    # Set the equation for the PRBS checker
+    print('Setting the PRBS equation')
+    write_tc_reg('prbs_eqn', 0x100002)  # matches equation used by prbs21 in DaVE
 
     # Configure PRBS checker
     print('Configure the PRBS checker')
