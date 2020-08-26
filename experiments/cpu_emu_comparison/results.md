@@ -316,6 +316,18 @@ August 25, 2020
     * For the FPGA: 7.572e-3 BER @ 80 M samples (using 100ps tau and 15 ps delay)
     * For the FPGA: 7.525e-3 BER @ 80 M samples (using 100ps tau and 18.75 ps delay)
     * mismatch could be related to short PRBS equation on FPGA -- 7 bit vs 21 bit in simulation.  may need to re-build to wire out that signal
+    * After switching to the same PRBS equation for the FPGA, the BER is pretty much unchanged: 7.566e-3
+    * Could be related to PWL accuracy settings in simulation, too.
+    * In CPU simulation with etol=0.01: BER=1.267400e-02 (1M samples)
+    * In CPU simulation with etol=0.001: BER=1.012000e-02 (1M samples)
+    * In CPU simulation with etol=0.0001: BER=9.995000e-03 (1M samples)
+    * In CPU simulation with etol=0.00001: BER=9.939000e-03 (1M samples)
+    * In CPU simulation with etol=0.000001: BER=9.933000e-03 (1M samples)
+    * In CPU simulation with t_tr=10e-12: BER=1.012000e-02 (1M samples)
+    * In CPU simulation with t_tr=1e-12: BER=9.832000e-03 (1M samples)
+    * In CPU simulation with t_tr=0.1e-12: BER=9.828000e-03 (1M samples)
+    * In CPU simulation with t_tr=0.01e-12: BER=9.861000e-03 (1M samples)
+    * In CPU simulation with timescales explicitly set for various blocks in the tb/ directory: BER: 1.012000e-02 (1M samples).  In other words no change at all
   * With 8.0 ps and 35 mV, the BER is 7.67e-3 (@100k)
   * With 7.8 ps and 34 mV, the BER is 6.47e-3 (@100k)
   * With 7.6 ps and 33 mV, the BER is 5.06e-3 (@100k)
@@ -326,6 +338,7 @@ August 25, 2020
   * With 6.6 ps and 28 mV, the BER is 1.11e-3 (@200k), 1.1325e-3 @ 2M samples
     * For the FPGA: 1.758e-3 BER @ 80 M samples (using 100ps tau and 15 ps delay)
     * For the FPGA: 1.722e-3 BER @ 80 M samples (using 100ps tau and 18.75 ps delay)
+    * For the FPGA with updated PRBS eqn: 1.752273e-03 (with 15ps delay)
   * With 6.4 ps and 27 mV, the BER is 6.3e-4 (@200k)
   * With 6.2 ps and 26 mV, the BER is 4.35e-4 (@200k)
   * With 6.0 ps and 25 mV, the BER is 2.4e-4 (@200k)
@@ -333,7 +346,12 @@ August 25, 2020
   * With 5.6 ps and 23 mV, the BER is 1.095e-4 (@2M), 1.1925e-4 @4M samples
     * For the FPGA: 4.251e-4 BER @ 80 M samples (using 100ps tau and 15 ps delay)
     * For the FPGA: 4.308e-4 BER @ 80 M samples (using 100ps tau and 18.75 ps delay)
+    * For the FPGA with updated PRBS eqn: 4.233167e-04
   * With 5.0 ps and 20 mV, the BER is 1.275e-5 (@40M) 
     * For the FPGA: 1.356e-4 BER @ 80 M samples (using 100ps tau and 15 ps delay)
     * For the FPGA: 1.428e-4 BER @ 80 M samples (using 100ps tau and 18.75 ps delay)
-   
+    * For the FPGA with updated PRBS eqn: 1.331437e-04
+* Debugging the mismatch.
+  * On the FPGA, with a 100ps tau and 15ps delay, the PI CTL code is 30-32.  This matches pretty well with the CPU simulation which is 32-33 (originally there was some extra delay on the CPU side due to the rise/fall time of the TX driver -- this was bumping the codes up to 41-42)
+  * On the FPGA, with a 100ps tau and 18.75ps delay, the PI CTL code is 39-40.  This is exactly the same as seen in the CPU simulation.
+  * On the CPU side, need to investigate both the meaning of "tau" and the error tolerance settings.

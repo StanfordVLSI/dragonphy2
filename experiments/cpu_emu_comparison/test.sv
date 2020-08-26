@@ -26,6 +26,14 @@
     `define CHAN_DLY 31.25e-12
 `endif
 
+`ifndef CHAN_ETOL
+    `define CHAN_ETOL 0.001
+`endif
+
+`ifndef TX_TTR
+    `define TX_TTR 10e-12
+`endif
+
 module test;
 
 	import const_pack::*;
@@ -99,7 +107,9 @@ module test;
     pwl tx_p;
     pwl tx_n;
 
-    diff_tx_driver diff_tx_driver_i (
+    diff_tx_driver #(
+        .tr(`TX_TTR)
+    ) diff_tx_driver_i (
         .in(tx_data),
         .out_p(tx_p),
         .out_n(tx_n)
@@ -108,6 +118,7 @@ module test;
     // Differential channel
 
     diff_channel #(
+        .etol(`CHAN_ETOL),
         .tau(tau)
     ) diff_channel_i (
         .in_p(tx_p),
@@ -344,6 +355,7 @@ module test;
         // Print results
         $display("err_bits: %0d", err_bits);
         $display("total_bits: %0d", total_bits);
+        $display("BER: %0e", (1.0*err_bits)/(1.0*total_bits));
 
         // Check results
 
