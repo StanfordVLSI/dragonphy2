@@ -39,6 +39,7 @@ module tb;
     (* dont_touch = "true" *) `DECL_DT(dt_req);
     (* dont_touch = "true" *) logic [6:0] jitter_rms_int;
     (* dont_touch = "true" *) logic [10:0] noise_rms_int;
+    (* dont_touch = "true" *) logic [31:0] prbs_eqn;
     (* dont_touch = "true" *) logic [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_0;
     (* dont_touch = "true" *) logic [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_1;
     (* dont_touch = "true" *) logic [8:0] chan_waddr;
@@ -174,7 +175,7 @@ module tb;
         .rst(emu_rst),
         .cke(clk_tx_val_posedge),
         .init_val(32'h00000001),
-        .eqn(32'b00000000000000000000000001100000),
+        .eqn(prbs_eqn),
         .inj_err(1'b0),
         .inv_chicken(2'b00),
         .out(data_tx_i)

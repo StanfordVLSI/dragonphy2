@@ -25,6 +25,9 @@ void do_init() {
    set_jitter_rms_int(0);
    set_noise_rms_int(0);
 
+   // prbs control
+   set_prbs_eqn(0x100002);
+
    // step response function
    set_chan_wdata_0(0);
    set_chan_wdata_1(0);
@@ -176,6 +179,7 @@ enum cmd_t {
     SET_SLEEP,
     SET_NOISE_RMS,
     SET_JITTER_RMS,
+    SET_PRBS_EQN,
     UPDATE_CHAN
 } cmd;
 
@@ -250,6 +254,9 @@ int main() {
                     } else if (strcmp(buf, "SET_JITTER_RMS") == 0) {
                         cmd = SET_JITTER_RMS;
                         nargs++;
+                    } else if (strcmp(buf, "SET_PRBS_EQN") == 0) {
+                        cmd = SET_PRBS_EQN;
+                        nargs++;
                     } else if (strcmp(buf, "UPDATE_CHAN") == 0) {
                         cmd = UPDATE_CHAN;
                         nargs++;
@@ -273,6 +280,9 @@ int main() {
                     } else if (cmd == SET_JITTER_RMS) {
                         set_jitter_rms_int(arg1);
                         nargs=0;
+                    } else if (cmd == SET_PRBS_EQN) {
+                        set_prbs_eqn(arg1);
+                        nargs=0;
                     } else {
                         nargs++;
                     }
@@ -280,13 +290,13 @@ int main() {
                     sscanf(buf, "%lu", &arg2);
                     if (cmd == SIR) {
                         shift_ir(arg1, arg2);
-			nargs=0;
+                        nargs=0;
                     } else if (cmd == SDR) {
                         xil_printf("%lu\r\n", shift_dr(arg1, arg2));
-			nargs=0;
+                        nargs=0;
                     } else if (cmd == QSDR) {
                         shift_dr(arg1, arg2);
-			nargs=0;
+                        nargs=0;
                     } else {
                         nargs++;
                     }

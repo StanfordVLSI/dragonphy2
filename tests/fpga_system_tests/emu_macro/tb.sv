@@ -28,8 +28,6 @@ module tb;
 	(* dont_touch = "true" *) logic tms;
 	(* dont_touch = "true" *) logic trst_n;
 
-    (* dont_touch = "true" *) logic [31:0] prbs_eqn;
-
     ////////////////////
 	// JTAG Interface //
 	////////////////////
@@ -47,6 +45,7 @@ module tb;
 
     (* dont_touch = "true" *) logic emu_rst;
     (* dont_touch = "true" *) logic emu_clk;
+    (* dont_touch = "true" *) logic [31:0] prbs_eqn;
 
     ////////////////
 	// Top module //
