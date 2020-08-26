@@ -19,6 +19,8 @@ parser.add_argument('--noise_rms', default=0, type=float, help='RMS ADC noise (V
 parser.add_argument('--nbits', default=600000, type=int, help='Number of bits run through link during testing.')
 parser.add_argument('--chan_tau', default=25.0e-12, type=float, help='Time constant of the channel in seconds')
 parser.add_argument('--chan_dly', default=31.25e-12, type=float, help='Delay of the channel in seconds.')
+parser.add_argument('--chan_etol', default=0.001, type=float, help='Error tolerance in the channel (DaVE parameter)')
+parser.add_argument('--tx_ttr', default=10e-12, type=float, help='TX rise/fall time (seconds)')
 parser.add_argument('--cached_deps', action='store_true', help='Read dependencies that were cached in a file (creating the cache file if necessary).')
 args = parser.parse_args()
 
@@ -53,6 +55,8 @@ with open('deps.pickle', 'wb') as f:
 defines = {
     'CHAN_TAU': args.chan_tau,
     'CHAN_DLY': args.chan_dly,
+    'CHAN_ETOL': args.chan_etol,
+    'TX_TTR': args.tx_ttr,
     'JITTER_RMS': args.jitter_rms,
     'NOISE_RMS': args.noise_rms,
     'NBITS': args.nbits
