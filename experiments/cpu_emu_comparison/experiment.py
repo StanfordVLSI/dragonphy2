@@ -17,6 +17,8 @@ parser.add_argument('--dump_waveforms', action='store_true', help='Dump waveform
 parser.add_argument('--jitter_rms', default=0, type=float, help='RMS sampling jitter (seconds)')
 parser.add_argument('--noise_rms', default=0, type=float, help='RMS ADC noise (Volts)')
 parser.add_argument('--nbits', default=600000, type=int, help='Number of bits run through link during testing.')
+parser.add_argument('--chan_tau', default=25.0e-12, type=float, help='Time constant of the channel in seconds')
+parser.add_argument('--chan_dly', default=31.25e-12, type=float, help='Delay of the channel in seconds.')
 parser.add_argument('--cached_deps', action='store_true', help='Read dependencies that were cached in a file (creating the cache file if necessary).')
 args = parser.parse_args()
 
@@ -49,6 +51,8 @@ with open('deps.pickle', 'wb') as f:
     pickle.dump(deps, f)
 
 defines = {
+    'CHAN_TAU': args.chan_tau,
+    'CHAN_DLY': args.chan_dly,
     'JITTER_RMS': args.jitter_rms,
     'NOISE_RMS': args.noise_rms,
     'NBITS': args.nbits

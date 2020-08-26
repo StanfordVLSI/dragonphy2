@@ -281,7 +281,7 @@ July 23, 2020
 August 11, 2020
 * Experiment building for ZCU106.  In general the build seems to be much slower, taking 1.6 hours to complete.  I had to use the option "-stack 2000" and increase swap space to 32 GB to get the build to complete.  Unknown whether both options are needed or just the swap space increase, but the peak memory consumption was 14.5 GB, which is 0.5 GB more than what was available before.
 * The build took 1.6 hours & the design did not meet timing with emu\_clk\_freq set to 30 MHz.  WNS was 1.341 ns with 134 failing endpoints and WHS was 0.014 ns with 6 failing endpoints.
-* All failing endpoints for WNS are from clk\_pl\_0 to emu\_clk, which shouldn't even be considered as a source\_clk.
+* All failing endpoints for WNS are from clk\_pl\_0 to emu\_clk, which shouldnt even be considered as a source\_clk.
 * The hold-time violation is within emu\_clk and inside the PRBS generator.  Looks like it is caused by high clock skew.
 * Overall resource utilization is 92455 LUTs, 25157 DFF, 194.5 BRAM, 850 DSPs, which is quite similar to what had been seen before.
 * The clocks listed are:
@@ -300,3 +300,40 @@ August 11, 2020
 * As a shorthand, we can specify:
   * ``set_false_path -through [get_pins sim_ctrl_gen_i/zynq_gpio_i/*]``
 * After adding that false path, the timing issues are resolved and the build time was reduced to 1.3 hrs (still using a lot of memory, though).  Utilization is similar at 92420 LUTS, 25167 FFs, 194.5 BRAM, 850 DSPs.
+
+August 25, 2020
+* Experiment to verify BER result.
+* Looked at a few different variables in the CPU comparison simulation.
+  * Max time constant is 217 ps, so 100ps is a good default choice
+  * For 100ps, 15 ps is a good default delay.  The PI code (with no noise) should be ... in that case.
+  * For 100ps tau and 15 ps delay, the max jitter is 8 ps and the max noise is 32 mV
+  * For the dist_normal functions, which had been using integers between 0 and 1000, it looks like a much higher value should be used for proper modeling of the tails.  10,000,000 seems to be a good choice since there is an issue with 1,000,000,000 (100,000,00 is OK too)
+  * To get a small, but reliable, error rate in simulation, it is recommended to pick 5.6 ps jitter and 23 mV noise (with 100ps tau and 15 ps delay).  Expected BER is about 1.095e-4 (@2M)
+  * With 2M bits, it takes 1.5 min to simulate, so 40 Mbit can fit in a half hour.
+  * Can get down to 6e-6 BER (@2M) with 5ps and 20mV noise
+  * With 8.4 ps and 37 mV, the BER is 1.218e-2 (@100k)
+  * With 8.2 ps and 36 mV, the BER is 9.57e-3 (@100k), 1.012e-2 @ 1M samples 
+    * For the FPGA: 7.572e-3 BER @ 80 M samples (using 100ps tau and 15 ps delay)
+    * For the FPGA: 7.525e-3 BER @ 80 M samples (using 100ps tau and 18.75 ps delay)
+    * mismatch could be related to short PRBS equation on FPGA -- 7 bit vs 21 bit in simulation.  may need to re-build to wire out that signal
+  * With 8.0 ps and 35 mV, the BER is 7.67e-3 (@100k)
+  * With 7.8 ps and 34 mV, the BER is 6.47e-3 (@100k)
+  * With 7.6 ps and 33 mV, the BER is 5.06e-3 (@100k)
+  * With 7.4 ps and 32 mV, the BER is 3.80e-3 (@100k)
+  * With 7.2 ps and 31 mV, the BER is 2.69e-3 (@100k)
+  * With 7.0 ps and 30 mV, the BER is 1.88e-3 (@100k)
+  * With 6.8 ps and 29 mV, the BER is 1.41e-3 (@100k)
+  * With 6.6 ps and 28 mV, the BER is 1.11e-3 (@200k), 1.1325e-3 @ 2M samples
+    * For the FPGA: 1.758e-3 BER @ 80 M samples (using 100ps tau and 15 ps delay)
+    * For the FPGA: 1.722e-3 BER @ 80 M samples (using 100ps tau and 18.75 ps delay)
+  * With 6.4 ps and 27 mV, the BER is 6.3e-4 (@200k)
+  * With 6.2 ps and 26 mV, the BER is 4.35e-4 (@200k)
+  * With 6.0 ps and 25 mV, the BER is 2.4e-4 (@200k)
+  * With 5.8 ps and 24 mV, the BER is 2.33e-4 (@400k)
+  * With 5.6 ps and 23 mV, the BER is 1.095e-4 (@2M), 1.1925e-4 @4M samples
+    * For the FPGA: 4.251e-4 BER @ 80 M samples (using 100ps tau and 15 ps delay)
+    * For the FPGA: 4.308e-4 BER @ 80 M samples (using 100ps tau and 18.75 ps delay)
+  * With 5.0 ps and 20 mV, the BER is 1.275e-5 (@40M) 
+    * For the FPGA: 1.356e-4 BER @ 80 M samples (using 100ps tau and 15 ps delay)
+    * For the FPGA: 1.428e-4 BER @ 80 M samples (using 100ps tau and 18.75 ps delay)
+   
