@@ -21,6 +21,7 @@ module sim_ctrl(
     output reg dump_start=1'b0,
     output reg [6:0] jitter_rms_int,
     output reg [10:0] noise_rms_int,
+    output reg [31:0] prbs_eqn,
     output reg [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_0,
     output reg [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_1,
     output reg [8:0] chan_waddr,
@@ -81,6 +82,7 @@ module sim_ctrl(
         // TODO: explore jitter/noise effect
         jitter_rms_int = 0;
         noise_rms_int = 0;
+        prbs_eqn = 32'h100002;  // matches equation used by prbs21 in DaVE
         chan_wdata_0 = 0;
         chan_wdata_1 = 0;
         chan_waddr = 0;
@@ -127,6 +129,11 @@ module sim_ctrl(
             tmp_ext_pfd_offset[idx] = 0;
         end
         `FORCE_JTAG(ext_pfd_offset, tmp_ext_pfd_offset);
+        #((5.0/(`EMU_CLK_FREQ))*1s);
+
+        // Set the equation for the PRBS checker
+        $display("Setting the PRBS equation");
+        `FORCE_JTAG(prbs_eqn, prbs_eqn);
         #((5.0/(`EMU_CLK_FREQ))*1s);
 
         // Select the PRBS checker data source

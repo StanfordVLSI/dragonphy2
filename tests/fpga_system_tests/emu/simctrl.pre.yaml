@@ -31,6 +31,10 @@ digital_ctrl_inputs:
     abspath: 'tb_i.noise_rms_int'
     width: 11
     init_value: 0
+  prbs_eqn:
+    abspath: 'tb_i.prbs_eqn'
+    width: 32
+    init_value: 1048578 # hex value: 0x100002
   chan_wdata_0:
     abspath: 'tb_i.chan_wdata_0'
     width: 18
