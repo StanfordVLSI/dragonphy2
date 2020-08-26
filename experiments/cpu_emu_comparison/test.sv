@@ -18,6 +18,14 @@
     `define NBITS 600000
 `endif
 
+`ifndef CHAN_TAU
+    `define CHAN_TAU 25.0e-12
+`endif
+
+`ifndef CHAN_DLY
+    `define CHAN_DLY 31.25e-12
+`endif
+
 module test;
 
 	import const_pack::*;
@@ -28,7 +36,8 @@ module test;
     import constant_gpack::channel_width;
 
     localparam real dt=1.0/(16.0e9);
-    localparam real tau=25.0e-12;
+    localparam real tau=(`CHAN_TAU);
+    localparam real dly=(`CHAN_DLY);
     localparam integer coeff0 = 128.0/(1.0-$exp(-dt/tau));
     localparam integer coeff1 = -128.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
 
@@ -79,7 +88,7 @@ module test;
 
     tx_prbs #(
         .freq(16.0e9),
-        .td(31.25e-12)
+        .td(dly)
     ) tx_prbs_i (
         .clk(tx_clk),
         .out(tx_data)

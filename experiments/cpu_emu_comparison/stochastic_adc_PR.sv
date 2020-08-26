@@ -133,7 +133,7 @@ module stochastic_adc_PR #(
         end
 
         // add noise
-        samp += (`NOISE_RMS)*($dist_normal(seed, 0, 1000)/1000.0);
+        samp += (`NOISE_RMS)*($dist_normal(seed, 0, 10000000)/10000000.0);
 
         // determine output magnitude
         out_mag = ((1.0*samp) / (0.3)) * ((2.0**(Nadc-1.0))-1.0);
