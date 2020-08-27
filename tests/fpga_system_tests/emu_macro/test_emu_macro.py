@@ -426,6 +426,8 @@ def test_6(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
     total_bits |= read_sc_reg('prbs_total_bits_lower')
     print(f'total_bits: {total_bits}')
 
+    print(f'BER: {err_bits/total_bits:e}')
+
     # check results
     print('Checking the results...')
     assert id_result == 497598771, 'ID mismatch'
