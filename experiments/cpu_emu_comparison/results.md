@@ -355,3 +355,31 @@ August 25, 2020
   * On the FPGA, with a 100ps tau and 15ps delay, the PI CTL code is 30-32.  This matches pretty well with the CPU simulation which is 32-33 (originally there was some extra delay on the CPU side due to the rise/fall time of the TX driver -- this was bumping the codes up to 41-42)
   * On the FPGA, with a 100ps tau and 18.75ps delay, the PI CTL code is 39-40.  This is exactly the same as seen in the CPU simulation.
   * On the CPU side, need to investigate both the meaning of "tau" and the error tolerance settings.
+
+August 27, 2020:
+* Investigating BER discrepancy -- now using the new Gaussian modeling that better represents the tails of the distribution.
+  * Build time: 41m58.077s
+  * Timing: no issues
+  * Slice LUTs: 89528 / 218600
+    * analog_core: 33371
+    * digital_core: 40018
+  * Slice Registers: 24376 / 437200
+    * analog_core: 1757
+    * digital_core: 17795
+  * Slice: 28983 / 54650
+    * analog_core: 11107
+    * digital_core: 15253
+  * DSP: 850 / 900
+  * BRAM: 194.5 / 545
+* Tests
+  * Use 100ps tau and 15 ps delay with 10s test duration as default expect where noted
+  * Look at 8.2 ps and 36 mV (expect around 1.012e-2)
+    * got 3.727750e-03
+    * got 3.759463e-03 with 18.75 ps
+    * got 3.727197e-03 over 30s
+  * Look at 6.6 ps and 28 mV (expect around 1.1325e-3)
+    * got 2.761388e-04
+  * Look at 5.6 ps and 23 mV (expect around 1.1925e-4)
+    * got 2.042935e-05
+  * Look at 5.0 ps and 20 mV (expect around 1.275e-5)
+    * got 2.347451e-06
