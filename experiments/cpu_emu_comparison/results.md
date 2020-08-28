@@ -373,13 +373,96 @@ August 27, 2020:
   * BRAM: 194.5 / 545
 * Tests
   * Use 100ps tau and 15 ps delay with 10s test duration as default expect where noted
-  * Look at 8.2 ps and 36 mV (expect around 1.012e-2)
-    * got 3.727750e-03
-    * got 3.759463e-03 with 18.75 ps
-    * got 3.727197e-03 over 30s
-  * Look at 6.6 ps and 28 mV (expect around 1.1325e-3)
-    * got 2.761388e-04
-  * Look at 5.6 ps and 23 mV (expect around 1.1925e-4)
-    * got 2.042935e-05
-  * Look at 5.0 ps and 20 mV (expect around 1.275e-5)
-    * got 2.347451e-06
+  * FPGA (expected values from CPU)
+    * Look at 8.2 ps and 36 mV (expect around 1.012e-2)
+      * got 3.727750e-03
+      * got 3.759463e-03 with 18.75 ps
+      * got 3.727197e-03 over 30s
+    * Look at 6.6 ps and 28 mV (expect around 1.1325e-3)
+      * got 2.761388e-04
+    * Look at 5.6 ps and 23 mV (expect around 1.1925e-4)
+      * got 2.042935e-05
+    * Look at 5.0 ps and 20 mV (expect around 1.275e-5)
+      * got 2.347451e-06
+    * Look at 47 mV (no jitter)
+      * got 1.554461e-03
+    * Look at 39 mV (no jitter)
+      * got 1.273410e-04
+    * Look at 32 mV (no jitter)
+      * got 2.915821e-06
+    * Look at 13 ps (no ADC noise)?
+      * (scale only goes up to 10)
+    * Look at 10 ps (no ADC noise)
+      * got 1.391138e-03 (28.3% higher than CPU)
+    * Look at 9 ps
+      * got 4.865750e-04 (46.1% higher than CPU) 
+    * Look at 8 ps (no ADC noise)
+      * got 1.305171e-04 (85.1% higher than CPU)
+  * CPU (measured values are 2M samples)
+    * Look at 47 mV (no jitter)
+      * got 9.134500e-03
+    * Look at 39 mV (no jitter)
+      * got 1.791000e-03
+    * Look at 32 mV (no jitter)
+      * got 1.290000e-04
+    * Look at 13 ps (no ADC noise)
+      * got 1.079800e-02
+    * Look at 10 ps (no ADC noise)
+      * got 1.084500e-03
+    * Look at 9 ps (no ADC noise)
+      * got 3.330000e-04
+    * Look at 8 ps (no ADC noise)
+      * got 7.050000e-05
+
+August 28, 2020
+* For comparison purposes, am running the same CPU vs. FPGA comparison using the low-level architecture.  One of the key differences are the values coming out of the PRBS generator.  In the low-level architecture, a single PRBS generator provides these, whereas in the low-level architecture, these come from parallel generators that are seeded to provide different sequences.  But the seeding does not yet produce the same sequence (i.e., would need to pick the seed values in a certain way to make the sequences match).  There is also potentially a difference in the effects of jitter, since in the low-level architecture, 4 PIs are run through clock dividers to produce sampling signals, whereas in the high-level architecture, all 16 sampling points are computed separately.
+  * Build time: 32m8.282s
+  * Timing: No issues
+  * Slice LUTs: 63324 / 218600
+    * analog_core: 9171
+    * digital_core: 40046
+  * Slice Registers: 24451 / 437200
+    * analog_core: 1301
+    * digital_core: 17813
+  * Slice: 20639 / 54650
+    * analog_core: 2925
+    * digital_core: 14283
+  * DSP: 110 / 900
+  * BRAM: 187 / 545
+* Experiments  
+  * In terms of signal amplitude, seeing +/- 118 at tau == 100 ps.  For default setting (25ps?), the ADC output is basically clipped.  Could be that there is a discrepancy in amplitude between CPU and FPGA.
+  * FPGA (expected values from CPU).  Using 10 second measurement except as noted.
+    * Look at 8.2 ps and 36 mV (expect around 1.012e-2)
+      * got 3.457085e-03.  pretty close to high-level, but not close to low-level
+      * got 3.457829e-03 with 30 second measurement.  Almost exactly the same as shorter measurement.
+      * got 9.963938e-02 with 18.75 ps delay. ???
+      * got 9.979784e-02 with 18.5 ps delay. ???
+      * got 3.486779e-03 with 18 ps delay.
+    * Look at 6.6 ps and 28 mV (expect around 1.1325e-3)
+      * got 2.340181e-04
+      * got 2.511964e-04 with 18.75ps delay
+    * Look at 5.6 ps and 23 mV (expect around 1.1925e-4)
+      * got 1.440353e-05
+      * got 1.667146e-05 with 18.75ps delay
+    * Look at 5.0 ps and 20 mV (expect around 1.275e-5)
+      * got 1.733487e-06 with 15ps delay
+      * got 1.374297e-06 with 18.75ps delay
+    * Look at 47 mV (no jitter).  Expect 9.134500e-03
+      * got 1.506769e-03
+      * got 9.110364e-04 with 18.75 ps delay
+    * Look at 39 mV (no jitter).  Expect 1.791000e-03
+      * got 1.165054e-04 with 15 ps delay
+      * got 5.621766e-05 with 18.75 ps delay
+    * Look at 32 mV (no jitter).  Expect 1.290000e-04
+      * got 3.289563e-06 with 15 ps delay
+      * got 1.016820e-06 with 18.75 ps delay
+    * Look at 10 ps (no ADC noise).  Expect 1.084500e-03
+      * got 1.797101e-01 with 15 ps delay
+      * got 1.824650e-01 with 18.75 ps delay
+    * Look at 9 ps.  Expect 3.330000e-04
+      * got 1.056114e-02 with 15 ps delay
+      * got 1.785382e-01 with 18.75 ps delay
+    * Look at 8 ps (no ADC noise).  Expect 7.050000e-05
+      * got 7.311704e-05 with 15 ps delay
+      * got 9.444676e-02 with 18.75 ps delay
+* Conclusions so far -- emulators match pretty well in terms of response to ADC noise when there is no jitter, as long as the delay is 15 ps.  Unclear what is happening at 18.75ps delay.  The jitter response for the low-level case, though, is somewhat sporadic and delay-dependent.
