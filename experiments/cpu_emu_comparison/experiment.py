@@ -17,11 +17,12 @@ parser.add_argument('--dump_waveforms', action='store_true', help='Dump waveform
 parser.add_argument('--jitter_rms', default=0, type=float, help='RMS sampling jitter (seconds)')
 parser.add_argument('--noise_rms', default=0, type=float, help='RMS ADC noise (Volts)')
 parser.add_argument('--nbits', default=600000, type=int, help='Number of bits run through link during testing.')
-parser.add_argument('--chan_tau', default=25.0e-12, type=float, help='Time constant of the channel in seconds')
-parser.add_argument('--chan_dly', default=31.25e-12, type=float, help='Delay of the channel in seconds.')
+parser.add_argument('--chan_tau', default=100e-12, type=float, help='Time constant of the channel in seconds')
+parser.add_argument('--chan_dly', default=15e-12, type=float, help='Delay of the channel in seconds.')
 parser.add_argument('--chan_etol', default=0.001, type=float, help='Error tolerance in the channel (DaVE parameter)')
-parser.add_argument('--tx_ttr', default=10e-12, type=float, help='TX rise/fall time (seconds)')
+parser.add_argument('--tx_ttr', default=1e-12, type=float, help='TX rise/fall time (seconds)')
 parser.add_argument('--cached_deps', action='store_true', help='Read dependencies that were cached in a file (creating the cache file if necessary).')
+parser.add_argument('--adc_rounding', action='store_true', help='Use rounding in the ADC model, not $floor')
 args = parser.parse_args()
 
 # read dependencies from a pickle file if desired
@@ -63,6 +64,8 @@ defines = {
 }
 if args.fast_jtag:
     defines['FAST_JTAG'] = True
+if args.adc_rounding:
+    defines['ADC_ROUNDING'] = True
 
 DragonTester(
     ext_srcs=deps,
