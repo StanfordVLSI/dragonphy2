@@ -108,7 +108,9 @@ module test;
     pwl tx_n;
 
     diff_tx_driver #(
-        .tr(`TX_TTR)
+        .tr(`TX_TTR),
+        .vl(0.1),
+        .vh(0.4)
     ) diff_tx_driver_i (
         .in(tx_data),
         .out_p(tx_p),
