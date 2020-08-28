@@ -466,3 +466,30 @@ August 28, 2020
       * got 7.311704e-05 with 15 ps delay
       * got 9.444676e-02 with 18.75 ps delay
 * Conclusions so far -- emulators match pretty well in terms of response to ADC noise when there is no jitter, as long as the delay is 15 ps.  Unclear what is happening at 18.75ps delay.  The jitter response for the low-level case, though, is somewhat sporadic and delay-dependent.
+* CPU experiments: investigate discrepancy in data amplitude: vref for TX/RX is 0.4 on emulator but 0.3 on CPU simulation.  Faster to check CPU first so I changed both to 0.4 on the CPU.  Experiments are 2M bits, 100ps tau, 15ps delay except as noted.
+  * Look at 8.2 ps and 36 mV (expect around 1.012e-2)
+    * got 2.856500e-03
+    * got 2.928000e-03 with 18.75 ps delay
+    * got 3.724000e-03 after fixing the issue with the sign decision
+    * got 3.724000e-03 after repeating experiment with sign decision fix
+    * got 3.775500e-03 after using the floor operation
+  * Look at 6.6 ps and 28 mV (expect around 1.1325e-3)
+    * got 3.220000e-04
+    * got 3.280000e-04 with 18.75 ps delay
+    * got 3.015000e-04 using rounding instead of floor
+  * Look at 5.6 ps and 23 mV (expect around 1.1925e-4)
+    * got 2.400000e-05
+    * got 2.100000e-05 with 18.75 ps delay
+    * got 1.950000e-05 using rounding instead of floor
+  * Look at 47 mV (no jitter).  Expect 9.134500e-03
+    * got 1.200000e-03
+  * Look at 39 mV (no jitter).  Expect 1.791000e-03
+    * got 9.600000e-05
+  * Look at 10 ps (no ADC noise).  Expect 1.084500e-03
+    * got 1.209000e-03
+  * Look at 9 ps (no ADC noise).  Expect 3.330000e-04
+    * got 3.720000e-04
+  * Look at 8 ps (no ADC noise).  Expect 7.050000e-05
+    * got 8.850000e-05
+    * got 8.400000e-05 with 18.75 ps delay
+    * got 7.500000e-05 with ADC rounding

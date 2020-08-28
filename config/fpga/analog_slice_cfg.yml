@@ -9,8 +9,8 @@ num_chunks: 4
 slices_per_bank: 4
 num_banks: 4
 pi_ctl_width: 9
-vref_rx: 0.4
-vref_tx: 0.4
+vref_rx: 0.3
+vref_tx: 0.3
 n_adc: 8
 freq_tx: 16.0e+9
 freq_rx: 4.0e+9
