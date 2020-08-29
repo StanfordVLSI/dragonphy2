@@ -211,24 +211,25 @@ module tb;
     assign top_i.iacore.iADC[14].iADC.noise_rms = noise_rms;
     assign top_i.iacore.iADC[15].iADC.noise_rms = noise_rms;
 
-    // set random seeds (from random.org)
+    // set random seeds
+    // print(f"32'h{random.randint(0, (1<<32)-1):08x}")
     // each parameter is set separately due to synthesis limitations
-    defparam top_i.iacore.iADC[0].iADC.rx_adc_core_i.noise_seed = 32'd61349;
-    defparam top_i.iacore.iADC[1].iADC.rx_adc_core_i.noise_seed = 32'd8335;
-    defparam top_i.iacore.iADC[2].iADC.rx_adc_core_i.noise_seed = 32'd9132;
-    defparam top_i.iacore.iADC[3].iADC.rx_adc_core_i.noise_seed = 32'd25683;
-    defparam top_i.iacore.iADC[4].iADC.rx_adc_core_i.noise_seed = 32'd13215;
-    defparam top_i.iacore.iADC[5].iADC.rx_adc_core_i.noise_seed = 32'd15813;
-    defparam top_i.iacore.iADC[6].iADC.rx_adc_core_i.noise_seed = 32'd48824;
-    defparam top_i.iacore.iADC[7].iADC.rx_adc_core_i.noise_seed = 32'd37609;
-    defparam top_i.iacore.iADC[8].iADC.rx_adc_core_i.noise_seed = 32'd36034;
-    defparam top_i.iacore.iADC[9].iADC.rx_adc_core_i.noise_seed = 32'd37264;
-    defparam top_i.iacore.iADC[10].iADC.rx_adc_core_i.noise_seed = 32'd50609;
-    defparam top_i.iacore.iADC[11].iADC.rx_adc_core_i.noise_seed = 32'd56017;
-    defparam top_i.iacore.iADC[12].iADC.rx_adc_core_i.noise_seed = 32'd36602;
-    defparam top_i.iacore.iADC[13].iADC.rx_adc_core_i.noise_seed = 32'd46638;
-    defparam top_i.iacore.iADC[14].iADC.rx_adc_core_i.noise_seed = 32'd60972;
-    defparam top_i.iacore.iADC[15].iADC.rx_adc_core_i.noise_seed = 32'd65135;
+    defparam top_i.iacore.iADC[0].iADC.rx_adc_core_i.noise_seed  = 32'hcc37e574;
+    defparam top_i.iacore.iADC[1].iADC.rx_adc_core_i.noise_seed  = 32'he967ed2e;
+    defparam top_i.iacore.iADC[2].iADC.rx_adc_core_i.noise_seed  = 32'h926efedc;
+    defparam top_i.iacore.iADC[3].iADC.rx_adc_core_i.noise_seed  = 32'h9e873f52;
+    defparam top_i.iacore.iADC[4].iADC.rx_adc_core_i.noise_seed  = 32'h2ab0aafa;
+    defparam top_i.iacore.iADC[5].iADC.rx_adc_core_i.noise_seed  = 32'hb61849f5;
+    defparam top_i.iacore.iADC[6].iADC.rx_adc_core_i.noise_seed  = 32'hc88ee432;
+    defparam top_i.iacore.iADC[7].iADC.rx_adc_core_i.noise_seed  = 32'h2b855bae;
+    defparam top_i.iacore.iADC[8].iADC.rx_adc_core_i.noise_seed  = 32'h5b646081;
+    defparam top_i.iacore.iADC[9].iADC.rx_adc_core_i.noise_seed  = 32'h69dc28be;
+    defparam top_i.iacore.iADC[10].iADC.rx_adc_core_i.noise_seed = 32'h48031e36;
+    defparam top_i.iacore.iADC[11].iADC.rx_adc_core_i.noise_seed = 32'hfe712f71;
+    defparam top_i.iacore.iADC[12].iADC.rx_adc_core_i.noise_seed = 32'h6e67c14c;
+    defparam top_i.iacore.iADC[13].iADC.rx_adc_core_i.noise_seed = 32'h4a64eb5e;
+    defparam top_i.iacore.iADC[14].iADC.rx_adc_core_i.noise_seed = 32'hbd08afd1;
+    defparam top_i.iacore.iADC[15].iADC.rx_adc_core_i.noise_seed = 32'hc673c47e;
 
     ///////////////
     // PI jitter //
@@ -248,11 +249,12 @@ module tb;
     assign top_i.iacore.iPI[2].iPI.jitter_rms = jitter_rms;
     assign top_i.iacore.iPI[3].iPI.jitter_rms = jitter_rms;
 
-    // set random seeds (from random.org)
+    // set random seeds
+    // print(f"32'h{random.randint(0, (1<<32)-1):08x}")
     // each parameter is set explicitly due to synthesis limitations
-    defparam top_i.iacore.iPI[0].iPI.clk_delay_core_i.jitter_seed = 32'd8485;
-    defparam top_i.iacore.iPI[1].iPI.clk_delay_core_i.jitter_seed = 32'd25439;
-    defparam top_i.iacore.iPI[2].iPI.clk_delay_core_i.jitter_seed = 32'd1655;
-    defparam top_i.iacore.iPI[3].iPI.clk_delay_core_i.jitter_seed = 32'd2550;
+    defparam top_i.iacore.iPI[0].iPI.clk_delay_core_i.jitter_seed = 32'h2406e5ea;
+    defparam top_i.iacore.iPI[1].iPI.clk_delay_core_i.jitter_seed = 32'hf7afc1bf;
+    defparam top_i.iacore.iPI[2].iPI.clk_delay_core_i.jitter_seed = 32'h75fbb26c;
+    defparam top_i.iacore.iPI[3].iPI.clk_delay_core_i.jitter_seed = 32'h7d4439cd;
 
 endmodule
