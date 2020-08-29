@@ -211,8 +211,7 @@ int main() {
     }
 
     do_init();
-    do_reset();
-    
+
     while (1) {
         rcv = inbyte();
         if ((rcv == ' ') || (rcv == '\t') || (rcv == '\r') || (rcv == '\n')) {
