@@ -289,8 +289,11 @@ def test_6(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
     set_sleep(jtag_sleep_us)
     do_init()
 
-    # Clear emulator reset
+    # Clear emulator reset.  The "sleep" is needed because
+    # the RNG takes 20k cycles to start.  We add 10x margin
+    # here to be safe.
     set_emu_rst(0)
+    time.sleep(10*20e3/emu_clk_freq)
 
     # Reset JTAG
     print('Reset JTAG')

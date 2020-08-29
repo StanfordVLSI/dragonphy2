@@ -206,7 +206,6 @@ int main() {
     }
 
     do_init();
-    do_reset();
     
     while (1) {
         rcv = inbyte();

@@ -35,9 +35,12 @@ def test_3():
     ctrl = ana.launch(debug=True)
 
     # reset sequence
+    # the RNG takes 25000 cycles to start up, but we wait
+    # 10x longer to be extra sure (i.e., 25ms)
     ctrl.set_param('cdf_rst', 1)
     ctrl.set_reset(1)
     ctrl.set_reset(0)
+    time.sleep(25e-3)
     ctrl.set_param('cdf_rst', 0)
 
     # run for some time (each second yields 10M points)

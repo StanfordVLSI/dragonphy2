@@ -29,8 +29,10 @@ module sim_ctrl (
         // wait for reset to finish
         wait_emu_reset();
 
-        // run for a little bit before releasing reset
-        sleep_emu(1e-6);
+        // wait for RNG to start up
+        sleep_emu(2.5e-3);
+
+        // release CDF monitor from reset
         cdf_rst = 1'b0;
 
         // run for a little bit

@@ -493,3 +493,25 @@ August 28, 2020
     * got 8.850000e-05
     * got 8.400000e-05 with 18.75 ps delay
     * got 7.500000e-05 with ADC rounding
+* Rebuilt the high-level emulator after fixing the TX/RX range issue and improving seeding for RNGs and the parallel PRBS
+  * FPGA observations.  Using tau=100e-12, delay=18.75e-12
+    * Look at 8.2 ps and 36 mV.  Expect 1.476850e-02 (CPU @ 2M)
+      * got 1.472966e-02
+    * Look at 6.6 ps and 28 mV.  Expect 1.718000e-03 (CPU @ 2M)
+      * got 1.688736e-03
+    * Look at 5.6 ps and 23 mV.  Expect 1.755000e-04 (CPU @ 2M)
+      * got 1.795417e-04
+    * Look at 47 mV (no jitter).  Expect 1.738050e-02 (CPU @ 2M)
+      * got 1.663161e-02
+    * Look at 39 mV (no jitter).  Expect 3.580500e-03 (CPU @ 2M)
+      * got 3.350426e-03
+    * Look at 32 mV (no jitter).  Expect 3.350000e-04 (CPU @ 2M)
+      * got 2.990770e-04
+    * Look at 10 ps (no ADC noise).  Expect 1.174500e-03 (CPU @ 2M)
+      * got 1.694186e-03
+    * Look at 9 ps (no ADC noise).  Expect 3.690000e-04 (CPU @ 2M)
+      * got 6.193283e-04
+    * Look at 8 ps (no ADC noise).  Expect 8.550000e-05 (CPU @ 2M)
+      * got 1.753008e-04
+* Investigate https://ieeexplore-ieee-org.stanford.idm.oclc.org/document/5380287
+* Investigate https://github.com/alexforencich/verilog-mersenne
