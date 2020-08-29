@@ -67,6 +67,7 @@ xrun.*
 waves.*
 wave.*
 .simvision*
+DVEfiles
 
 *_gpack.sv
 build/
