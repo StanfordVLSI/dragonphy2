@@ -155,7 +155,7 @@ module test;
     task load_weight(
         input logic [$clog2(length)-1:0] d_idx,
         logic [$clog2(channel_width)-1:0] w_idx,
-        logic [weight_precision-1:0] value
+        logic signed [weight_precision-1:0] value
     );
         $display("Loading weight d_idx=%0d, w_idx=%0d with value %0d", d_idx, w_idx, value);
         `SET_JTAG(wme_ffe_inst, {1'b0, w_idx, d_idx});
@@ -315,8 +315,8 @@ module test;
 
 		// Wait for MM_CDR to lock
 		$display("Waiting for MM_CDR to lock...");
-		for (loop_var=0; loop_var<2; loop_var=loop_var+1) begin
-		    $display("Interval %0d/2", loop_var);
+		for (loop_var=0; loop_var<100; loop_var=loop_var+1) begin
+		    $display("Interval %0d/100", loop_var);
 		    #(100ns);
 		end
 
@@ -377,4 +377,10 @@ module test;
 		$display("Test complete.");
 		$finish;
     end
+
+    // wired for debug purposes
+    `ifdef VCS
+        logic [8:0] ctl_pi_0;
+        assign ctl_pi_0 = top_i.iacore.ctl_pi[0];
+    `endif
 endmodule
