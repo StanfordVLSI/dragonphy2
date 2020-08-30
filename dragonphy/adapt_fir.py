@@ -12,12 +12,14 @@ class AdaptFir:
         comp_config     = system_values['generic']['comp']
 
         # create channel model
+        chan_resp_depth = 512
+        chan_samp_step = 1e-9/(chan_resp_depth-1)
         kwargs = dict(
             channel_type='exponent',
-            tau=25e-12,
-            t_delay=31.25e-12,
-            sampl_rate=160e9,
-            resp_depth=512
+            tau=100e-12,
+            t_delay=10*chan_samp_step,
+            sampl_rate=1/chan_samp_step,
+            resp_depth=chan_resp_depth
         )
         chan = Channel(**kwargs)
 

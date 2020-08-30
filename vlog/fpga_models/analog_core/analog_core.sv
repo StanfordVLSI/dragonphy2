@@ -80,19 +80,45 @@ module analog_core import const_pack::*; #(
     logic last_cycle;
 
     // random number seeds
+    // assigned as wires instead of params since
+    // there may have been an issue with the parameter array
     // print(f"32'h{random.randint(0, (1<<32)-1):08x}")
-    localparam [31:0] jitter_seed [Nti] = '{
-        32'h95dfecdc, 32'h0985b36b, 32'h5514e4a9, 32'had34ef7c,
-        32'h9268bd6b, 32'h8e683253, 32'h53c0e5a7, 32'hdcfc13b5,
-        32'h437ae78b, 32'h484c279e, 32'h4670617a, 32'h41df025b,
-        32'h5e0b6994, 32'hfd479055, 32'h766b51c3, 32'haab466dc
-    };
-    localparam [31:0] noise_seed [Nti] = '{
-        32'h047c067b, 32'hf6b2c5e6, 32'h9e189bc2, 32'hdc986d0c,
-        32'hf3347558, 32'h4f67e54a, 32'h37a0fc82, 32'he73aca54,
-        32'h62410d72, 32'h7cb9b73b, 32'hb5e52ef8, 32'h0b3bb57b,
-        32'hc2cf2beb, 32'h88a22bee, 32'h8e8c2794, 32'haa1dd342
-    };
+
+    logic [31:0] jitter_seed [Nti];
+    assign jitter_seed[ 0] = 32'h95dfecdc;
+    assign jitter_seed[ 1] = 32'h0985b36b;
+    assign jitter_seed[ 2] = 32'h5514e4a9;
+    assign jitter_seed[ 3] = 32'had34ef7c;
+    assign jitter_seed[ 4] = 32'h9268bd6b;
+    assign jitter_seed[ 5] = 32'h8e683253;
+    assign jitter_seed[ 6] = 32'h53c0e5a7;
+    assign jitter_seed[ 7] = 32'hdcfc13b5;
+    assign jitter_seed[ 8] = 32'h437ae78b;
+    assign jitter_seed[ 9] = 32'h484c279e;
+    assign jitter_seed[10] = 32'h4670617a;
+    assign jitter_seed[11] = 32'h41df025b;
+    assign jitter_seed[12] = 32'h5e0b6994;
+    assign jitter_seed[13] = 32'hfd479055;
+    assign jitter_seed[14] = 32'h766b51c3;
+    assign jitter_seed[15] = 32'haab466dc;
+
+    logic [31:0] noise_seed [Nti];
+    assign noise_seed[ 0] = 32'h047c067b;
+    assign noise_seed[ 1] = 32'hf6b2c5e6;
+    assign noise_seed[ 2] = 32'h9e189bc2;
+    assign noise_seed[ 3] = 32'hdc986d0c;
+    assign noise_seed[ 4] = 32'hf3347558;
+    assign noise_seed[ 5] = 32'h4f67e54a;
+    assign noise_seed[ 6] = 32'h37a0fc82;
+    assign noise_seed[ 7] = 32'he73aca54;
+    assign noise_seed[ 8] = 32'h62410d72;
+    assign noise_seed[ 9] = 32'h7cb9b73b;
+    assign noise_seed[10] = 32'hb5e52ef8;
+    assign noise_seed[11] = 32'h0b3bb57b;
+    assign noise_seed[12] = 32'hc2cf2beb;
+    assign noise_seed[13] = 32'h88a22bee;
+    assign noise_seed[14] = 32'h8e8c2794;
+    assign noise_seed[15] = 32'haa1dd342;
 
     genvar i;
     generate
@@ -103,8 +129,6 @@ module analog_core import const_pack::*; #(
 
             // instantiate the slice
             analog_slice #(
-                .jitter_seed(jitter_seed[i]),
-                .noise_seed(noise_seed[i]),
                 `PASS_REAL(jitter_rms, jitter_rms),
                 `PASS_REAL(noise_rms, noise_rms)
             ) analog_slice_i (
@@ -119,7 +143,9 @@ module analog_core import const_pack::*; #(
                 .out_mag(adder_out[i]),
                 .clk(emu_clk),
                 .rst(emu_rst),
+                .jitter_seed(jitter_seed[i]),
                 .jitter_rms(jitter_rms),
+                .noise_seed(noise_seed[i]),
                 .noise_rms(noise_rms),
                 // control signals to update step response
                 .wdata0(chan_wdata_0),
