@@ -515,3 +515,63 @@ August 28, 2020
       * got 1.753008e-04
 * Investigate https://ieeexplore-ieee-org.stanford.idm.oclc.org/document/5380287
 * Investigate https://github.com/alexforencich/verilog-mersenne
+
+/////////////////
+August 29
+* Rebuilt high-level architecture with MT19937 PRNG instead of LFSRs
+* Building took 44m36.835s (about 4-5 min longer)
+* No timing issues
+* Resources
+  * Slice LUTs: 99440 / 218600
+    * analog_core: 43185
+    * digital_core: 40158
+  * Slice Registers: 28651 / 437200
+    * analog_core: 6031
+    * digital_core: 17796
+  * Slice: 32566 / 54650
+    * analog_core: 14182
+    * digital_core: 15446
+  * DSP: 850 / 900
+  * BRAM: 258.5 / 545
+* FPGA observations.  Using tau=100e-12, delay=18.75e-12
+  * Look at 8.2 ps and 36 mV.  Expect 1.476850e-02 (CPU @ 2M)
+    * got 2.909135e-03
+  * Look at 6.6 ps and 28 mV.  Expect 1.718000e-03 (CPU @ 2M)
+    * got 2.382552e-04
+  * Look at 5.6 ps and 23 mV.  Expect 1.755000e-04 (CPU @ 2M)
+    * got 1.629381e-05
+  * Look at 47 mV (no jitter).  Expect 1.738050e-02 (CPU @ 2M)
+    * got 1.049163e-03
+    * VCS: got 2.104134e-02 (\* likely bad, includes settling)
+    * VCS: got 1.679300e-02
+  * Look at 39 mV (no jitter).  Expect 3.580500e-03 (CPU @ 2M)
+    * got 1.906558e-04
+    * VCS: got 3.738500e-03 (\* includes settling)
+  * Look at 32 mV (no jitter).  Expect 3.350000e-04 (CPU @ 2M)
+    * got 1.568562e-05
+    * VCS: got 3.465000e-04 (\* includes settling)
+    * VCS: got 3.780000e-04
+  * Look at 10 ps (no ADC noise).  Expect 1.174500e-03 (CPU @ 2M)
+    * got 5.480766e-03
+    * VCS: got 4.468000e-03 (\* includes settling)
+  * Look at 9 ps (no ADC noise).  Expect 3.690000e-04 (CPU @ 2M)
+    * got 2.162146e-03
+    * VCS: got 1.885000e-03 (\* includes settling)
+  * Look at 8 ps (no ADC noise).  Expect 8.550000e-05 (CPU @ 2M)
+    * got 6.259609e-04
+    * VCS: got 5.935000e-04 (\* includes settling)
+* Found a big issue -- it takes at least 5us for the loop to settle when there is a lot of noise.  We should wait at least 10us.
+* Ran an experiment where I set the voltage noise to 32mVrms and set the channel output to zero.  Got 13.588 rms noise in the ADC codes from the FPGA and 13.55 mVrms from the CPU.  
+
+August 30
+* Re-ran FPGA build with a more old-fashioned way of setting random seeds, using wires instead of parameters, in case a synthesis bug was causing parameters to all be set to the same value.  In addition, the resolution of the step response function was increased about 3x.  Additional probe signals were added as well to investigate the ADC ordering.  For these experiments, the channel delay changed to 19.5694716243e-12 so as to line up with the new sampling interval.
+* Look at 47 mV (no jitter).  Previous value from the FPGA was 1.049163e-03.
+  * got 1.047985e-03 -- almost exactly the same.  Perhaps the channel dynamics accuracy is not to blame for the discrepancy?
+* Look at 39 mV
+  * got 1.905372e-04
+* Look at 32 mV
+  * got 1.564454e-05
+* Observations -- setting a much smaller ETOL and TX driver time makes little difference.  We might want to use 0.1e-3 ETOL and TX driver 0.1ps for a very close match, but the difference is less than 5%.
+* Using the exact same PRBS generator in CPU simulation makes no difference to the result
+* Summing together a bunch of pseudo-random numbers (either from different seeds or the same seed) makes no difference as long as their standard deviation matches that of the original generator.
+* Maybe there is a limitation of the fixed-point representation?
