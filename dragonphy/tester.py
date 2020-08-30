@@ -84,7 +84,7 @@ class DragonTester:
 			if self.clean:
 				flags += ['-clean']
 			if self.seed is not None:
-				flags += ['-seed', self.seed]
+				flags += ['-seed', str(self.seed)]
 			if self.unbuffered:
 				flags += ['-unbuffered']
 			if self.dump_waveforms:

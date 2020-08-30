@@ -96,11 +96,44 @@ module test;
 
     tx_prbs #(
         .freq(16.0e9),
-        .td(dly)
+        .td(0.0) // delay is applied later
     ) tx_prbs_i (
         .clk(tx_clk),
         .out(tx_data)
     );
+
+// Uncomment to use a pattern generator that is
+// useful for debugging the sequence of operations
+
+//    pwl fake_p;
+//    pwl fake_n;
+//
+//    integer bit_index = 0;
+//    integer pattern_index = 0;
+//    always @(posedge tx_clk) begin
+//        if (bit_index == pattern_index) begin
+//            fake_p <= #(dly*1s) '{0.4, 0, 0};        
+//            fake_n <= #(dly*1s) '{0.1, 0, 0};        
+//        end else begin
+//            fake_p <= #(dly*1s) '{0.25, 0, 0};        
+//            fake_n <= #(dly*1s) '{0.25, 0, 0};        
+//        end
+//        bit_index = bit_index + 1;
+//        if (bit_index == 16) begin
+//            bit_index = 0;
+//            pattern_index = pattern_index + 1;
+//            if (pattern_index == 17) begin
+//                pattern_index = 0;
+//            end
+//        end
+//    end
+
+    // apply delay to data
+
+    logic tx_data_dly;
+    always @(tx_data) begin
+        tx_data_dly <= #(dly*1s) tx_data;
+    end
 
     // TX driver
 
@@ -112,7 +145,7 @@ module test;
         .vl(0.1),
         .vh(0.4)
     ) diff_tx_driver_i (
-        .in(tx_data),
+        .in(tx_data_dly),
         .out_p(tx_p),
         .out_n(tx_n)
     );
@@ -129,16 +162,19 @@ module test;
         .out_n(ch_outn)
     );
 
-	// External clock
+	// Divide down 16 GHz clock to
+    // produce 8 GHz clock to make
+    // sure that it stays synchronized
 
-	clock #(
-		.freq(8.0e9), // This depends on the frequency divider in the ACORE's input buffer
-		.duty(0.5),
-		.td(0)
-	) iEXTCLK (
-		.ckout(ext_clkp),
-		.ckoutb(ext_clkn)
-	);
+    initial begin
+        ext_clkp = 0;
+    end
+
+    always @(posedge tx_clk) begin
+        ext_clkp = ~ext_clkp;
+    end
+
+    assign ext_clkn = ~ext_clkp;
 
     //  Main test
 
@@ -283,9 +319,11 @@ module test;
         `SET_JTAG(en_ext_max_sel_mux, 1);
         #(5ns);
 
-        // Configure the retimer
-        `SET_JTAG(retimer_mux_ctrl_1, 16'hFFFF);
-        `SET_JTAG(retimer_mux_ctrl_2, 16'hFFFF);
+        // Configure the retimer (emulator has there as 16'hFFFF)
+        //`SET_JTAG(retimer_mux_ctrl_1, 16'hFFFF);
+        //`SET_JTAG(retimer_mux_ctrl_2, 16'hFFFF);
+        `SET_JTAG(retimer_mux_ctrl_1, 16'b0000111111110000);
+        `SET_JTAG(retimer_mux_ctrl_2, 16'b1111000000000000);
         #(5ns);
 
         // Assert the CDR reset
