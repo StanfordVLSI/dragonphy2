@@ -319,11 +319,12 @@ module test;
         `SET_JTAG(en_ext_max_sel_mux, 1);
         #(5ns);
 
-        // Configure the retimer (emulator has there as 16'hFFFF)
-        //`SET_JTAG(retimer_mux_ctrl_1, 16'hFFFF);
-        //`SET_JTAG(retimer_mux_ctrl_2, 16'hFFFF);
-        `SET_JTAG(retimer_mux_ctrl_1, 16'b0000111111110000);
-        `SET_JTAG(retimer_mux_ctrl_2, 16'b1111000000000000);
+        // Configure the retimer (first option matches the emulator, 
+        // second option matches the chip defaults)
+        `SET_JTAG(retimer_mux_ctrl_1, 16'b1111111111111111);
+        `SET_JTAG(retimer_mux_ctrl_2, 16'b1111111111111111);
+        //`SET_JTAG(retimer_mux_ctrl_1, 16'b0000111111110000);
+        //`SET_JTAG(retimer_mux_ctrl_2, 16'b1111000000000000);
         #(5ns);
 
         // Assert the CDR reset
