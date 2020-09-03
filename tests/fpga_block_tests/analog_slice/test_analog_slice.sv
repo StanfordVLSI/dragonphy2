@@ -53,7 +53,9 @@ module test_analog_slice #(
         .out_mag(out_mag),
         .clk(clk),
         .rst(rst),
+        .jitter_seed(0), // unused in this test
         .jitter_rms(jitter_rms_int),
+        .noise_seed(0), // unused in this test
         .noise_rms(noise_rms_int),
         // runtime-defined function controls
         .wdata0(wdata0),

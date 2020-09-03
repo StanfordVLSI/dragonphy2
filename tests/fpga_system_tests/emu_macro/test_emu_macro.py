@@ -65,6 +65,9 @@ def test_1(board_name, emu_clk_freq, fpga_sim_ctrl):
     })
     src_cfg.add_defines({'GIT_HASH': str(get_git_hash_short())}, fileset='sim')
 
+    # uncomment to use floating-point for simulation only
+    # src_cfg.add_defines({'FLOAT_REAL': None}, fileset='sim')
+
     # HardFloat-related defines
     # (not yet fully supported)
     if get_dragonphy_real_type() == RealType.HardFloat:
@@ -287,9 +290,9 @@ def test_6(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
     set_sleep(1)
     do_init()
 
-    # Clear emulator reset.  The "sleep" is needed because
-    # the RNG takes 20k cycles to start.  This nominally
-    # takes 20e3/30e6=0.7ms, but we add plenty of margin.
+    # Clear emulator reset.  A bit of delay is added just in case
+    # the MT19937 generator is being used, because it takes awhile
+    # to start up (LCG and LFSR start almost immediately)
     set_emu_rst(0)
     time.sleep(10e-3)
 
