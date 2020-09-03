@@ -108,6 +108,14 @@ module sim_ctrl(
         $display("Waiting for emulator reset to complete...");
         `CLK_ADC_DLY;
 
+        // uncomment if the MT19937 mode is used (takes 25k cycles)
+        // $display("Waiting for the PRNG to start...");
+        // for (loop_var=0; loop_var<450; loop_var=loop_var+1) begin
+		//     $display("Interval %0d/450", loop_var);
+        //     repeat (56) `EMU_CLK_DLY;
+		// end
+        // `EMU_CLK_DLY;
+
         // update the step response function
         chan_we = 1'b1;
         for (int idx=0; idx<512; idx=idx+1) begin
@@ -257,6 +265,7 @@ module sim_ctrl(
         // Print results
         $display("err_bits: %0d", err_bits);
         $display("total_bits: %0d", total_bits);
+        $display("BER: %0e", (1.0*err_bits)/(1.0*total_bits));
 
         // Check results
 

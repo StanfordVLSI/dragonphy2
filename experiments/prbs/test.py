@@ -59,13 +59,13 @@ step_both()
 
 # read out bits from "a"
 hist_a = []
-for _ in range(32*16):
+for _ in range(100*16):
     hist_a.append(t.get_value(dut.out_a))
     step_a()
 
 # read out bits from "b"
 hist_b = []
-for _ in range(32):
+for _ in range(100):
     hist_b.append(t.get_value(dut.out_b))
     step_b()
 
@@ -94,3 +94,4 @@ for elem in hist_b:
     hist_b_post += bin_vals
 
 assert hist_a == hist_b_post, 'Data mismatch.'
+print('OK')
