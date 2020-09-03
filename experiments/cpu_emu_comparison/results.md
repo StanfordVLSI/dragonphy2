@@ -575,3 +575,38 @@ August 30
 * Using the exact same PRBS generator in CPU simulation makes no difference to the result
 * Summing together a bunch of pseudo-random numbers (either from different seeds or the same seed) makes no difference as long as their standard deviation matches that of the original generator.
 * Maybe there is a limitation of the fixed-point representation?
+
+Sept 3
+* Re-built high-level emulator with LCG random number generator instead of MT19937.  Took 45m51.206s.  Experiments are run with --chan_delay 19.5694716243e-12 --chan_tau 100e-12.  CPU comparisons are taken with 2M points @ 0.1 ps T_TR and 1e-4 ETOL.
+* Vivado Report (note: many probe signals are included)
+  * No timing issue
+  * Slice LUTs: 97460 / 218600
+    * analog_core: 37553
+    * digital_core: 40125
+  * Slice Registers: 29078 / 437200
+    * analog_core: 1743
+    * digital_core: 17798
+  * Slice: 31290 / 54650
+    * analog_core: 12642
+    * digital_core: 15234
+  * DSP: 850 / 900
+  * BRAM: 229.5 / 545
+* Results
+  * Look at 8.2 ps and 36 mV.  Expect  (CPU @ 2M)
+    * got 1.431280e-02
+  * Look at 6.6 ps and 28 mV.  Expect  (CPU @ 2M)
+    * got 1.547181e-03
+  * Look at 5.6 ps and 23 mV.  Expect  (CPU @ 2M)
+    * got 1.460300e-04
+  * Look at 47 mV (no jitter).  Expect 1.648650e-02 (CPU @ 2M)
+    * got 1.662033e-02
+  * Look at 39 mV (no jitter).  Expect 3.297000e-03 (CPU @ 2M)
+    * got 3.352081e-03
+  * Look at 32 mV (no jitter).  Expect 3.215000e-04 (CPU @ 2M, may need more)
+    * got 3.000045e-04
+  * Look at 10 ps (no ADC noise).  Expect 1.225500e-03 (CPU @ 2M)
+    * got 1.134025e-03
+  * Look at 9 ps (no ADC noise).  Expect 3.840000e-04 (CPU @ 2M)
+    * got 3.460385e-04
+  * Look at 8 ps (no ADC noise).  Expect  7.800000e-05 (CPU @ 2M)
+    * got 7.496870e-05
