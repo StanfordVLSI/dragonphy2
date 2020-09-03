@@ -51,13 +51,13 @@ module sim_ctrl(
     import constant_gpack::channel_width;
 
     // function parameters
-    localparam real dt_samp=1.0/(160.0e9);
+    localparam real dt_samp=1.0e-9/511.0;
     localparam integer numel=512;
-    localparam real chan_delay=31.25e-12;
+    localparam real chan_delay=10.0*dt_samp;
 
     // calculate FFE coefficients
     localparam real dt=1.0/(16.0e9);
-    localparam real tau=25.0e-12;
+    localparam real tau=100.0e-12;
     localparam integer coeff0 = 128.0/(1.0-$exp(-dt/tau));
     localparam integer coeff1 = -128.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
 
@@ -107,6 +107,14 @@ module sim_ctrl(
         // wait for emulator reset to complete
         $display("Waiting for emulator reset to complete...");
         `CLK_ADC_DLY;
+
+        // uncomment if the MT19937 mode is used (takes 25k cycles)
+        // $display("Waiting for the PRNG to start...");
+        // for (loop_var=0; loop_var<450; loop_var=loop_var+1) begin
+		//     $display("Interval %0d/450", loop_var);
+        //     repeat (56) `EMU_CLK_DLY;
+		// end
+        // `EMU_CLK_DLY;
 
         // update the step response function
         chan_we = 1'b1;
@@ -257,6 +265,7 @@ module sim_ctrl(
         // Print results
         $display("err_bits: %0d", err_bits);
         $display("total_bits: %0d", total_bits);
+        $display("BER: %0e", (1.0*err_bits)/(1.0*total_bits));
 
         // Check results
 

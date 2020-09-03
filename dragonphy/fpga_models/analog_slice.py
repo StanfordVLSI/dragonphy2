@@ -29,8 +29,8 @@ class AnalogSlice:
                              real_type=get_dragonphy_real_type())
 
         # Random number generator seeds (defaults generated with random.org)
-        m.add_digital_param('jitter_seed', width=32, default=46428)
-        m.add_digital_param('noise_seed', width=32, default=8518)
+        m.add_digital_input('jitter_seed', width=32)
+        m.add_digital_input('noise_seed', width=32)
 
         # Chunk of bits from the history; corresponding delay is bit_idx/freq_tx delay
         m.add_digital_input('chunk', width=system_values['chunk_width'])
