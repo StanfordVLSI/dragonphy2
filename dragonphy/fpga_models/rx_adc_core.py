@@ -23,7 +23,7 @@ class RXAdcCore:
                              real_type=get_dragonphy_real_type())
 
         # Random number generator seed (default generated with random.org)
-        m.add_digital_param('noise_seed', width=32, default=8518)
+        m.add_digital_input('noise_seed', width=32)
 
         # main I/O: input, output, and clock
         m.add_analog_input('in_')

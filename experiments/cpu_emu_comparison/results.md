@@ -610,3 +610,66 @@ Sept 3
     * got 3.460385e-04
   * Look at 8 ps (no ADC noise).  Expect  7.800000e-05 (CPU @ 2M)
     * got 7.496870e-05
+* Low-level tests (simulation-based)
+  * Look at 47 mV (no jitter).  Expect 1.648650e-02 (CPU @ 2M), got 1.716e-2 @ 10k pts.
+  * Look at 10 ps (no noise).  Expect 1.225500e-03 (CPU @ 2M), got 1.116071e-03 @ 10k pts.
+
+* Re-built low-level emulator with LCG.
+  * Took 37m44.638s
+* Vivado Report
+  * Timing: 
+  * Slice LUTs: / 218600
+    * analog_core: 
+    * digital_core: 
+  * Slice Registers: / 437200
+    * analog_core: 
+    * digital_core: 
+  * Slice: / 54650
+    * analog_core: 
+    * digital_core: 
+  * DSP: / 900
+  * BRAM:  / 545
+
+* Results
+  * Look at 8.2 ps and 36 mV.  Expect (CPU @ 2M)
+    * got 
+  * Look at 6.6 ps and 28 mV.  Expect  (CPU @ 2M)
+    * got 
+  * Look at 5.6 ps and 23 mV.  Expect  (CPU @ 2M)
+    * got 
+  * Look at 47 mV (no jitter).  Expect 1.648650e-02 (CPU @ 2M)
+    * got 2.025764e-01
+  * Look at 39 mV (no jitter).  Expect 3.297000e-03 (CPU @ 2M)
+    * got 2.898693e-03
+  * Look at 32 mV (no jitter).  Expect 3.215000e-04 (CPU @ 2M, may need more)
+    * got 2.473714e-04
+  * Look at 10 ps (no ADC noise).  Expect 1.225500e-03 (CPU @ 2M)
+    * got 1.839753e-01
+  * Look at 9 ps (no ADC noise).  Expect 3.840000e-04 (CPU @ 2M)
+    * got 1.803612e-01
+  * Look at 8 ps (no ADC noise).  Expect  7.800000e-05 (CPU @ 2M)
+    * got 8.228506e-05 or 1.824274e-01
+* Looks like one of the models is getting stuck -- if the jitter is set to "10ps" then returned to "0ps", the errors remain.
+* What may be happening is that the jitter causes one or more delays to exceed the period of the 250ps oscillator, at which point the whole model locks up.
+* To fix this I added back a more flexible clock delay model developed a few months ago and set it up to handle up to 1.5 periods.
+* Rebuild with that model (plus a few ILA probes) took 38m31.408s
+
+* Results with new clock delay model
+  * Look at 8.2 ps and 36 mV.  Expect 1.437900e-02 (CPU @ 2M)
+    * got 1.475821e-02
+  * Look at 6.6 ps and 28 mV.  Expect 1.672000e-03 (CPU @ 2M)
+    * got 1.651813e-03
+  * Look at 5.6 ps and 23 mV.  Expect 1.785000e-04 (CPU @ 2M)
+    * got 1.637477e-04
+  * Look at 47 mV (no jitter).  Expect 1.648650e-02 (CPU @ 2M)
+    * got 1.657856e-02
+  * Look at 39 mV (no jitter).  Expect 3.297000e-03 (CPU @ 2M)
+    * got 3.339682e-03
+  * Look at 32 mV (no jitter).  Expect 3.215000e-04 (CPU @ 2M, may need more)
+    * got 2.978066e-04
+  * Look at 10 ps (no ADC noise).  Expect 1.225500e-03 (CPU @ 2M)
+    * got 1.220498e-03
+  * Look at 9 ps (no ADC noise).  Expect 3.840000e-04 (CPU @ 2M, may need more)
+    * got 3.865024e-04
+  * Look at 8 ps (no ADC noise).  Expect  7.800000e-05 (CPU @ 2M, may need more)
+    * got 8.510833e-05

@@ -62,6 +62,9 @@ def test_1(board_name, emu_clk_freq, flatten_hierarchy):
     src_cfg.add_defines({'DT_EXPONENT': -46})  # TODO: move to DT_SCALE
     src_cfg.add_defines({'GIT_HASH': str(get_git_hash_short())}, fileset='sim')
 
+    # uncomment to use floating-point for simulation only
+    # src_cfg.add_defines({'FLOAT_REAL': None}, fileset='sim')
+
     # HardFloat-related defines
     # (not yet fully supported)
     if get_dragonphy_real_type() == RealType.HardFloat:
@@ -187,6 +190,9 @@ def test_6(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
     def set_prbs_eqn(val):
         ser.write(f'SET_PRBS_EQN {val}\n'.encode('utf-8'))
 
+    def set_emu_dec_thr(val):
+        ser.write(f'SET_EMU_DEC_THR {val}\n'.encode('utf-8'))
+
     def set_sleep(val):
         ser.write(f'SET_SLEEP {val}\n'.encode('utf-8'))
 
@@ -287,6 +293,7 @@ def test_6(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
     # Initialize
     jtag_sleep_us = int(ceil((110/emu_clk_freq)*1e6))
     set_sleep(jtag_sleep_us)
+    set_emu_dec_thr(1)  # decimation ratio for ILA
     do_init()
 
     # Clear emulator reset.  A bit of delay is added just in case
@@ -374,13 +381,15 @@ def test_6(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
 
     # Configure the retimer
     print('Configuring the retimer...')
-    write_tc_reg('retimer_mux_ctrl_1', 0xffff)
-    write_tc_reg('retimer_mux_ctrl_2', 0xffff)
+    write_tc_reg('retimer_mux_ctrl_1', 0b1111111111111111)
+    write_tc_reg('retimer_mux_ctrl_2', 0b1111111111111111)
+    #write_tc_reg('retimer_mux_ctrl_1', 0b0000111111110000)
+    #write_tc_reg('retimer_mux_ctrl_2', 0b1111000000000000)
 
     # Configure the CDR
     print('Configuring the CDR...')
     write_tc_reg('cdr_rstb', 0)
-    write_tc_reg('Kp', 15)
+    write_tc_reg('Kp', 18)
     write_tc_reg('Ki', 0)
     write_tc_reg('invert', 1)
     write_tc_reg('en_freq_est', 0)

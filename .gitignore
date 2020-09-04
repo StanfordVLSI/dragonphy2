@@ -59,6 +59,7 @@ __pycache__
 
 .Xil
 *.debug
+*.layout
 fpga_prj
 
 build_*

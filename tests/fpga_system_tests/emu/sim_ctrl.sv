@@ -36,13 +36,13 @@ module sim_ctrl(
     import constant_gpack::channel_width;
 
     // function parameters
-    localparam real dt_samp=1.0/(160.0e9);
+    localparam real dt_samp=1.0e-9/511.0;
     localparam integer numel=512;
-    localparam real chan_delay=31.25e-12;
+    localparam real chan_delay=10.0*dt_samp;
 
     // calculate FFE coefficients
     localparam real dt=1.0/(16.0e9);
-    localparam real tau=25.0e-12;
+    localparam real tau=100.0e-12;
     localparam integer coeff0 = 128.0/(1.0-$exp(-dt/tau));
     localparam integer coeff1 = -128.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
 
@@ -236,6 +236,7 @@ module sim_ctrl(
         // Print results
         $display("err_bits: %0d", err_bits);
         $display("total_bits: %0d", total_bits);
+        $display("BER: %0e", (1.0*err_bits)/(1.0*total_bits));
 
         // Check results
 
