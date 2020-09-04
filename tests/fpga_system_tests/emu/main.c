@@ -180,6 +180,7 @@ enum cmd_t {
     SET_NOISE_RMS,
     SET_JITTER_RMS,
     SET_PRBS_EQN,
+    SET_EMU_DEC_THR,
     UPDATE_CHAN
 } cmd;
 
@@ -256,6 +257,9 @@ int main() {
                     } else if (strcmp(buf, "SET_PRBS_EQN") == 0) {
                         cmd = SET_PRBS_EQN;
                         nargs++;
+                    } else if (strcmp(buf, "SET_EMU_DEC_THR") == 0) {
+                        cmd = SET_EMU_DEC_THR;
+                        nargs++;
                     } else if (strcmp(buf, "UPDATE_CHAN") == 0) {
                         cmd = UPDATE_CHAN;
                         nargs++;
@@ -281,6 +285,9 @@ int main() {
                         nargs=0;
                     } else if (cmd == SET_PRBS_EQN) {
                         set_prbs_eqn(arg1);
+                        nargs=0;
+                    } else if (cmd == SET_EMU_DEC_THR) {
+                        set_emu_dec_thr(arg1);
                         nargs=0;
                     } else {
                         nargs++;

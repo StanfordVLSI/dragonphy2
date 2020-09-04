@@ -375,8 +375,10 @@ def test_6(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
 
     # Configure the retimer
     print('Configuring the retimer...')
-    write_tc_reg('retimer_mux_ctrl_1', 0xffff)
-    write_tc_reg('retimer_mux_ctrl_2', 0xffff)
+    write_tc_reg('retimer_mux_ctrl_1', 0b1111111111111111)
+    write_tc_reg('retimer_mux_ctrl_2', 0b1111111111111111)
+    # write_tc_reg('retimer_mux_ctrl_1', 0b0000111111110000)
+    # write_tc_reg('retimer_mux_ctrl_2', 0b1111000000000000)
 
     # Configure the CDR
     print('Configuring the CDR...')
@@ -436,9 +438,9 @@ def test_6(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
 
     # check results
     print('Checking the results...')
-#    assert id_result == 497598771, 'ID mismatch'
-#    assert err_bits == 0, 'Bit error detected'
-#    assert total_bits > 100000, 'Not enough bits detected'
+    assert id_result == 497598771, 'ID mismatch'
+    assert err_bits == 0, 'Bit error detected'
+    assert total_bits > 100000, 'Not enough bits detected'
 
     # finish test
     print('OK!')

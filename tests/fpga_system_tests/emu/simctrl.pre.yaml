@@ -67,3 +67,29 @@ digital_probes:
     abspath: 'tb_i.top_i.idcore.estimated_bits[0]'
     width: 10
     signed: 1
+
+  # clock inputs and outputs for the four PIs
+  #  clk_i_pi_0:
+  #    abspath: 'tb_i.top_i.iacore.iPI[0].iPI.clk_in'
+  #    width: 1
+  #  clk_o_pi_0:
+  #    abspath: 'tb_i.top_i.iacore.iPI[0].iPI.clk_out_slice'
+  #    width: 1
+  #  clk_i_pi_1:
+  #    abspath: 'tb_i.top_i.iacore.iPI[1].iPI.clk_in'
+  #    width: 1
+  #  clk_o_pi_1:
+  #    abspath: 'tb_i.top_i.iacore.iPI[1].iPI.clk_out_slice'
+  #    width: 1
+  #  clk_i_pi_2:
+  #    abspath: 'tb_i.top_i.iacore.iPI[2].iPI.clk_in'
+  #    width: 1
+  #  clk_o_pi_2:
+  #    abspath: 'tb_i.top_i.iacore.iPI[2].iPI.clk_out_slice'
+  #    width: 1
+  #  clk_i_pi_3:
+  #    abspath: 'tb_i.top_i.iacore.iPI[3].iPI.clk_in'
+  #    width: 1
+  #  clk_o_pi_3:
+  #    abspath: 'tb_i.top_i.iacore.iPI[3].iPI.clk_out_slice'
+  #    width: 1
