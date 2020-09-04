@@ -49,6 +49,7 @@ def test_adc_model(simulator_name, should_print=False):
             clk_val=m.BitIn,
             out_mag=m.Out(m.Bits[CFG['n']]),
             out_sgn=m.BitOut,
+            noise_seed=m.In(m.Bits[32]),
             noise_rms=fault.RealIn,
             emu_rst=m.BitIn,
             emu_clk=m.ClockIn

@@ -4,6 +4,7 @@ module test_adc_model #(
     parameter integer n=8
 ) (
     input real in_,
+    input [31:0] noise_seed,
     input real noise_rms,
     input wire logic clk_val,
     output wire logic [(n-1):0] out_mag,
@@ -31,6 +32,7 @@ module test_adc_model #(
         .clk_val(clk_val),
 
         // noise control
+	.noise_seed(noise_seed),
         .noise_rms(noise_rms_int),
 
         // emulator I/O

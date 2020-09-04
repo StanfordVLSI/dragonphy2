@@ -6,6 +6,7 @@ module test_clk_delay (
     output wire logic clk_o_val,
     input real dt_req,
     output real emu_dt,
+    input [31:0] jitter_seed,
     input real jitter_rms,
     input wire logic emu_clk,
     input wire logic emu_rst
@@ -51,6 +52,7 @@ module test_clk_delay (
         .emu_dt(emu_dt_int),
 
         // jitter control
+	.jitter_seed(jitter_seed),
         .jitter_rms(jitter_rms_int),
 
         // emulator clock and reset
