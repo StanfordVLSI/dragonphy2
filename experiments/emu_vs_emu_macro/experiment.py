@@ -11,14 +11,17 @@ from anasymod.analysis import Analysis
 from dragonphy import *
 
 mode = 'emu_macro'
+
 if mode == 'emu_macro':
     cfg_yaml = 'config/fpga/analog_slice_cfg.yml'
     prj_yaml = 'tests/fpga_system_tests/emu_macro/prj.yaml'
-    run_time = 10.0/16.0
+    emu_rate = 80e6
+    jtag_sleep_us = 1
 else:
     cfg_yaml = 'config/fpga/chan.yml'
     prj_yaml = 'tests/fpga_system_tests/emu/prj.yaml'
-    run_time = 10.0
+    emu_rate = 5e6
+    jtag_sleep_us = 10
 
 CFG = yaml.load(open(get_file(cfg_yaml), 'r'))
 
@@ -192,7 +195,6 @@ def update_chan(coeff_tuples, offset=0):
     assert ser.readline().decode('utf-8').strip() == 'OK', 'Serial error'
 
 # Initialize
-jtag_sleep_us = int(ceil((110/emu_clk_freq)*1e6))
 set_sleep(jtag_sleep_us)
 do_init()
 
@@ -304,14 +306,22 @@ write_tc_reg('en_v2t', 0)
 write_tc_reg('en_v2t', 1)
 
 # jitter
-# for k in range(11):
-#     print(f'Using jitter={k} ps')
-#     set_jitter_rms(k*10)
+
+# no noise case
+set_noise_rms(0)
+for k, n_req in [(6, 2.5e9), (7, 125e6), (8, 10*emu_rate), (9, 10*emu_rate), (10, 10*emu_rate)]:
+
+# 30 mV rms noise case
+# set_noise_rms(300)
+# for k, n_req in [(6, 10*emu_rate), (7, 10*emu_rate), (8, 10*emu_rate), (9, 10*emu_rate), (10, 10*emu_rate)]:
+
+    print(f'Using jitter={k} ps')
+    set_jitter_rms(k*10)
 
 # noise
-for k in range(0, 51, 5):
-    print(f'Using noise={k} mV')
-    set_noise_rms(k*10)
+# for k in range(0, 51, 5):
+#     print(f'Using noise={k} mV')
+#     set_noise_rms(k*10)
 
     # Release the CDR from reset, then wait for it to lock
     write_tc_reg('cdr_rstb', 1)
@@ -319,7 +329,7 @@ for k in range(0, 51, 5):
     time.sleep(1.0)
     t_start = time.time()
     write_tc_reg('prbs_checker_mode', 2)
-    time.sleep(run_time)
+    time.sleep(n_req/emu_rate)
     write_tc_reg('prbs_checker_mode', 3)
     t_stop = time.time()
 
