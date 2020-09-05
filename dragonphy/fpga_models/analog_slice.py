@@ -5,6 +5,7 @@ import numpy as np
 
 # FPGA-specific imports
 from msdsl import MixedSignalModel, VerilogGenerator, sum_op, clamp_op, to_uint, to_sint
+from msdsl.expr.expr import array, concatenate
 from msdsl.expr.extras import if_
 from msdsl.expr.format import SIntFormat
 from msdsl.function import PlaceholderFunction
@@ -122,6 +123,7 @@ class AnalogSlice:
                 std=m.jitter_rms,
                 lfsr_init=m.jitter_seed,
                 clk=m.clk,
+                ce=m.sample_ctl,
                 rst=m.rst
             )
 
@@ -137,7 +139,33 @@ class AnalogSlice:
         t_slice_offset = m.bind_name('t_slice_offset', m.slice_offset/system_values['freq_rx'])
 
         # Add the delay amount to the slice offset
-        t_samp = m.bind_name('t_samp', t_slice_offset + delay_amt)
+        t_samp_new = m.bind_name('t_samp_new', t_slice_offset + delay_amt)
+
+        # Determine if the new sampling time happens after the end of this period
+        t_one_period = m.bind_name('t_one_period', system_values['slices_per_bank']/system_values['freq_rx'])
+        exceeds_period = m.bind_name('exceeds_period', t_samp_new >= t_one_period)
+
+        # Save the previous sample time
+        t_samp_prev = m.add_analog_state('t_samp_prev', range_=system_values['slices_per_bank']/system_values['freq_rx'])
+        m.set_next_cycle(t_samp_prev, t_samp_new-t_one_period, clk=m.clk, rst=m.rst, ce=m.sample_ctl)
+
+        # Save whether the previous sample time exceeded one period
+        prev_exceeded = m.add_digital_state('prev_exceeded')
+        m.set_next_cycle(prev_exceeded, exceeds_period, clk=m.clk, rst=m.rst, ce=m.sample_ctl)
+
+        # Compute the sample time to use for this period
+        t_samp_idx = m.bind_name('t_samp_idx', concatenate([exceeds_period, prev_exceeded]))
+        t_samp = m.bind_name(
+            't_samp',
+            array(
+                [
+                    t_samp_new,   # 0b00: exceeds_period=0, prev_exceeded=0
+                    t_samp_new,   # 0b01: exceeds_period=0, prev_exceeded=1
+                    0.0,          # 0b10: exceeds_period=1, prev_exceeded=0
+                    t_samp_prev   # 0b11: exceeds_period=1, prev_exceeded=1
+                ], t_samp_idx
+            )
+        )
 
         # Evaluate the step response function.  Note that the number of evaluation times is the
         # number of chunks plus one.
@@ -191,16 +219,23 @@ class AnalogSlice:
                 std=m.noise_rms,
                 clk=m.clk,
                 rst=m.rst,
+                ce=m.write_output,
                 lfsr_init=m.noise_seed
             )
             sample_value = m.bind_name('sample_value', sample_value_pre + sample_noise)
         else:
             sample_value = sample_value_pre
 
+        # there is a special case in which the output should not be updated:
+        # when the previous cycle did not exceed the period, but this one did
+        # in that case the sample value should be held constant
+        should_write_output = m.bind_name('should_write_output',
+                                          (prev_exceeded | (~exceeds_period)) & m.write_output)
+
         # determine out_sgn (note that the definition is opposite of the typical
         # meaning; "0" means negative)
         out_sgn = if_(sample_value < 0, 0, 1)
-        m.set_next_cycle(m.out_sgn, out_sgn, clk=m.clk, rst=m.rst, ce=m.write_output)
+        m.set_next_cycle(m.out_sgn, out_sgn, clk=m.clk, rst=m.rst, ce=should_write_output)
 
         # determine out_mag
         vref_rx, n_adc = system_values['vref_rx'], system_values['n_adc']
@@ -215,7 +250,7 @@ class AnalogSlice:
         code_sint = m.bind_name('code_sint', code_sint)
 
         code_uint = m.bind_name('code_uint', to_uint(code_sint, width=n_adc))
-        m.set_next_cycle(m.out_mag, code_uint, clk=m.clk, rst=m.rst, ce=m.write_output)
+        m.set_next_cycle(m.out_mag, code_uint, clk=m.clk, rst=m.rst, ce=should_write_output)
 
         # generate the model
         m.compile_to_file(VerilogGenerator())

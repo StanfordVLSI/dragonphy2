@@ -308,12 +308,12 @@ write_tc_reg('en_v2t', 1)
 # jitter
 
 # no noise case
-set_noise_rms(0)
-for k, n_req in [(6, 2.5e9), (7, 125e6), (8, 10*emu_rate), (9, 10*emu_rate), (10, 10*emu_rate)]:
+#set_noise_rms(0)
+#for k, n_req in [(6, 2.5e9), (7, 125e6), (8, 10*emu_rate), (9, 10*emu_rate), (10, 10*emu_rate)]:
 
 # 30 mV rms noise case
-# set_noise_rms(300)
-# for k, n_req in [(6, 10*emu_rate), (7, 10*emu_rate), (8, 10*emu_rate), (9, 10*emu_rate), (10, 10*emu_rate)]:
+set_noise_rms(300)
+for k, n_req in [(6, 10*emu_rate), (7, 10*emu_rate), (8, 10*emu_rate), (9, 10*emu_rate), (10, 10*emu_rate)]:
 
     print(f'Using jitter={k} ps')
     set_jitter_rms(k*10)

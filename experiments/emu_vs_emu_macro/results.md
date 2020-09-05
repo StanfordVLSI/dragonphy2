@@ -111,3 +111,9 @@ High-level, with noise: [1.719253e-03, 3.082160e-03, 5.311254e-03, 8.697677e-03,
 Jitter = [8, 9, 10], Noise=30mV when added
 CPU sim, no noise: [8.340000e-05, 3.789000e-04, 1.252800e-03].  Used 20M, 10M, 5M points respectively.
 CPU sim, with noise: [5.474500e-03, 8.858500e-03, 1.371100e-02].  Used 2M points.
+
+===== high-level accuracy improvement: add delay clamping as in the CPU and low-level cases
+
+Jitter = [6, 7, 8, 9, 10], Noise=30mV when added
+High-level, no noise: [4.313291e-07, 8.136145e-06, 6.675373e-05, 3.101205e-04, 1.006634e-03]
+High-level, with noise: [1.717128e-03, 3.066376e-03, 5.245636e-03, 8.503689e-03, 1.312462e-02]
