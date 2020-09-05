@@ -94,3 +94,20 @@ Using noise=50 mV
 BER: 2.528944e-02
 Total bits: 81858208
 
+* Comparing at max jitter: 12.7ps
+Low-level: 9.580927e-03
+High-level: 9.503907e-03
+
+============
+
+Jitter = [6, 7, 8, 9, 10], Noise=30mV when added
+Low-level, no noise: [6.245447e-07, 1.170676e-05, 8.705806e-05, 3.917500e-04, 1.195517e-03]
+Low-level, with noise: [1.819405e-03, 3.249811e-03, 5.565236e-03, 9.108862e-03, 1.398099e-02]
+
+Jitter = [6, 7, 8, 9, 10], Noise=30mV when added
+High-level, no noise: [4.540911e-07, 8.923727e-06, 7.380974e-05, 3.465255e-04, 1.137632e-03]
+High-level, with noise: [1.719253e-03, 3.082160e-03, 5.311254e-03, 8.697677e-03, 1.356970e-02]
+
+Jitter = [8, 9, 10], Noise=30mV when added
+CPU sim, no noise: [8.340000e-05, 3.789000e-04, 1.252800e-03].  Used 20M, 10M, 5M points respectively.
+CPU sim, with noise: [5.474500e-03, 8.858500e-03, 1.371100e-02].  Used 2M points.
