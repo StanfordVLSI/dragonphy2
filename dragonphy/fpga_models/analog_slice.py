@@ -108,25 +108,36 @@ class AnalogSlice:
                 rst=m.rst
             )
 
-        # Compute the evaluation time for this slice
-        t_samp_pre = m.bind_name(
-            't_samp_pre',
-            ((m.slice_offset*(1<<system_values['pi_ctl_width'])) + m.pi_ctl_sample)
-            / ((2.0**system_values['pi_ctl_width'])*system_values['freq_rx'])
+        # Compute the delay due to the PI control code
+        delay_amt_pre = m.bind_name(
+            'delay_amt_pre',
+            m.pi_ctl_sample / ((2.0**system_values['pi_ctl_width'])*system_values['freq_rx'])
         )
 
         # Add jitter to the sampling time
         if system_values['use_jitter']:
-            t_samp_jitter = m.set_gaussian_noise(
-                't_samp_jitter',
+            # create a signal to represent jitter
+            delay_amt_jitter = m.set_gaussian_noise(
+                'delay_amt_jitter',
                 std=m.jitter_rms,
                 lfsr_init=m.jitter_seed,
                 clk=m.clk,
                 rst=m.rst
             )
-            t_samp = m.bind_name('t_samp', t_samp_pre + t_samp_jitter)
+
+            # add jitter to the delay amount (which might possibly yield a negative value)
+            delay_amt_noisy = m.bind_name('delay_amt_noisy', delay_amt_pre + delay_amt_jitter)
+
+            # make the delay amount non-negative
+            delay_amt = m.bind_name('delay_amt', if_(delay_amt_noisy >= 0.0, delay_amt_noisy, 0.0))
         else:
-            t_samp = t_samp_pre
+            delay_amt = delay_amt_pre
+
+        # Compute the delay due to the slice offset
+        t_slice_offset = m.bind_name('t_slice_offset', m.slice_offset/system_values['freq_rx'])
+
+        # Add the delay amount to the slice offset
+        t_samp = m.bind_name('t_samp', t_slice_offset + delay_amt)
 
         # Evaluate the step response function.  Note that the number of evaluation times is the
         # number of chunks plus one.
