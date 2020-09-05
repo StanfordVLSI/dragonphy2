@@ -91,52 +91,52 @@ digital_probes:
 
   # handling of rare cases in analog_slice
   t_samp_idx_0:
-    abspath: 'abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.t_samp_idx'
+    abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.t_samp_idx'
     width: 2
   t_samp_idx_1:
-    abspath: 'abspath: 'tb_i.top_i.iacore.genblk1[1].analog_slice_i.t_samp_idx'
+    abspath: 'tb_i.top_i.iacore.genblk1[1].analog_slice_i.t_samp_idx'
     width: 2
   t_samp_idx_2:
-    abspath: 'abspath: 'tb_i.top_i.iacore.genblk1[2].analog_slice_i.t_samp_idx'
+    abspath: 'tb_i.top_i.iacore.genblk1[2].analog_slice_i.t_samp_idx'
     width: 2
   t_samp_idx_3:
-    abspath: 'abspath: 'tb_i.top_i.iacore.genblk1[3].analog_slice_i.t_samp_idx'
+    abspath: 'tb_i.top_i.iacore.genblk1[3].analog_slice_i.t_samp_idx'
     width: 2
   t_samp_idx_4:
-    abspath: 'abspath: 'tb_i.top_i.iacore.genblk1[4].analog_slice_i.t_samp_idx'
+    abspath: 'tb_i.top_i.iacore.genblk1[4].analog_slice_i.t_samp_idx'
     width: 2
   t_samp_idx_5:
-    abspath: 'abspath: 'tb_i.top_i.iacore.genblk1[5].analog_slice_i.t_samp_idx'
+    abspath: 'tb_i.top_i.iacore.genblk1[5].analog_slice_i.t_samp_idx'
     width: 2
   t_samp_idx_6:
-    abspath: 'abspath: 'tb_i.top_i.iacore.genblk1[6].analog_slice_i.t_samp_idx'
+    abspath: 'tb_i.top_i.iacore.genblk1[6].analog_slice_i.t_samp_idx'
     width: 2
   t_samp_idx_7:
-    abspath: 'abspath: 'tb_i.top_i.iacore.genblk1[7].analog_slice_i.t_samp_idx'
+    abspath: 'tb_i.top_i.iacore.genblk1[7].analog_slice_i.t_samp_idx'
     width: 2
   t_samp_idx_8:
-    abspath: 'abspath: 'tb_i.top_i.iacore.genblk1[8].analog_slice_i.t_samp_idx'
+    abspath: 'tb_i.top_i.iacore.genblk1[8].analog_slice_i.t_samp_idx'
     width: 2
   t_samp_idx_9:
-    abspath: 'abspath: 'tb_i.top_i.iacore.genblk1[9].analog_slice_i.t_samp_idx'
+    abspath: 'tb_i.top_i.iacore.genblk1[9].analog_slice_i.t_samp_idx'
     width: 2
   t_samp_idx_10:
-    abspath: 'abspath: 'tb_i.top_i.iacore.genblk1[10].analog_slice_i.t_samp_idx'
+    abspath: 'tb_i.top_i.iacore.genblk1[10].analog_slice_i.t_samp_idx'
     width: 2
   t_samp_idx_11:
-    abspath: 'abspath: 'tb_i.top_i.iacore.genblk1[11].analog_slice_i.t_samp_idx'
+    abspath: 'tb_i.top_i.iacore.genblk1[11].analog_slice_i.t_samp_idx'
     width: 2
   t_samp_idx_12:
-    abspath: 'abspath: 'tb_i.top_i.iacore.genblk1[12].analog_slice_i.t_samp_idx'
+    abspath: 'tb_i.top_i.iacore.genblk1[12].analog_slice_i.t_samp_idx'
     width: 2
   t_samp_idx_13:
-    abspath: 'abspath: 'tb_i.top_i.iacore.genblk1[13].analog_slice_i.t_samp_idx'
+    abspath: 'tb_i.top_i.iacore.genblk1[13].analog_slice_i.t_samp_idx'
     width: 2
   t_samp_idx_14:
-    abspath: 'abspath: 'tb_i.top_i.iacore.genblk1[14].analog_slice_i.t_samp_idx'
+    abspath: 'tb_i.top_i.iacore.genblk1[14].analog_slice_i.t_samp_idx'
     width: 2
   t_samp_idx_15:
-    abspath: 'abspath: 'tb_i.top_i.iacore.genblk1[15].analog_slice_i.t_samp_idx'
+    abspath: 'tb_i.top_i.iacore.genblk1[15].analog_slice_i.t_samp_idx'
     width: 2
 
   # extra ctl_pi signals
