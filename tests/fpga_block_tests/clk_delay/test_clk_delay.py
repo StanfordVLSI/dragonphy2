@@ -41,6 +41,7 @@ def test_clk_delay(simulator_name, float_real):
             clk_o_val=m.BitOut,
             dt_req=fault.RealIn,
             emu_dt=fault.RealOut,
+            jitter_seed=m.In(m.Bits[32]),
             jitter_rms=fault.RealIn,
             emu_clk=m.In(m.Clock),
             emu_rst=m.BitIn

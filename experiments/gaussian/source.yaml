@@ -1,0 +1,11 @@
+verilog_sources:
+  sim_ctrl:
+    files: "sim_ctrl.sv"
+    fileset: "sim"
+defines:
+  DT_MSDSL:
+    name: DT_MSDSL
+    value: 0.1e-6
+  SIMULATION_MODE_MSDSL:
+    name: SIMULATION_MODE_MSDSL
+    fileset: "sim"

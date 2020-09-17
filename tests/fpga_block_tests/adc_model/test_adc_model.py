@@ -1,4 +1,5 @@
 # general imports
+import yaml
 import numpy as np
 from pathlib import Path
 from math import floor
@@ -16,7 +17,10 @@ from dragonphy import get_file
 
 BUILD_DIR = Path(__file__).resolve().parent / 'build'
 
-def model(in_, n, vref):
+# read YAML file that was used to configure the generated model
+CFG = yaml.load(open(get_file('config/fpga/rx_adc.yml'), 'r'))
+
+def model(in_):
     # determine sign
     if in_ < 0:
         sgn = 0
@@ -25,14 +29,14 @@ def model(in_, n, vref):
 
     # determine magnitude
     in_abs = abs(in_)
-    mag_real = (abs(in_abs) / vref) * ((2**(n-1)) - 1)
+    mag_real = (abs(in_abs) / CFG['vref']) * ((2**(CFG['n']-1)) - 1)
     mag_unclamped = int(floor(mag_real))
-    mag = min(max(mag_unclamped, 0), (2**(n-1))-1)
+    mag = min(max(mag_unclamped, 0), (2**(CFG['n']-1))-1)
 
     # return result
     return sgn, mag
 
-def test_adc_model(simulator_name, n=8, vref=0.4, should_print=False):
+def test_adc_model(simulator_name, should_print=False):
     # set defaults
     if simulator_name is None:
         simulator_name = 'vivado'
@@ -43,8 +47,9 @@ def test_adc_model(simulator_name, n=8, vref=0.4, should_print=False):
         io = m.IO(
             in_=fault.RealIn,
             clk_val=m.BitIn,
-            out_mag=m.Out(m.Bits[n]),
+            out_mag=m.Out(m.Bits[CFG['n']]),
             out_sgn=m.BitOut,
+            noise_seed=m.In(m.Bits[32]),
             noise_rms=fault.RealIn,
             emu_rst=m.BitIn,
             emu_clk=m.ClockIn
@@ -80,15 +85,15 @@ def test_adc_model(simulator_name, n=8, vref=0.4, should_print=False):
                     dut.in_, dut.out_sgn, dut.out_mag)
 
         # get expected output
-        expct_sgn, expct_mag = model(in_=in_, n=n, vref=vref)
+        expct_sgn, expct_mag = model(in_=in_)
 
         # check results
         t.expect(dut.out_sgn, expct_sgn)
         t.expect(dut.out_mag, expct_mag)
 
     # specify trials to be run
-    delta = 0.1*vref
-    for in_ in np.linspace(-vref-delta, vref+delta, 100):
+    delta = 0.1*CFG['vref']
+    for in_ in np.linspace(-CFG['vref']-delta, CFG['vref']+delta, 100):
         run_trial(in_=in_)
 
     # run the simulation
@@ -101,6 +106,6 @@ def test_adc_model(simulator_name, n=8, vref=0.4, should_print=False):
         inc_dirs=[get_svreal_header().parent, get_msdsl_header().parent],
         ext_model_file=True,
         disp_type='realtime',
-        parameters={'n': n},
+        parameters={'n': CFG['n']},
         dump_waveforms=False
     )
