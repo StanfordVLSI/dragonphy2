@@ -21,6 +21,7 @@ module sim_ctrl(
     output reg dump_start=1'b0,
     output reg [6:0] jitter_rms_int,
     output reg [10:0] noise_rms_int,
+    output reg [31:0] prbs_eqn,
     output reg [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_0,
     output reg [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_1,
     output reg [8:0] chan_waddr,
@@ -35,13 +36,13 @@ module sim_ctrl(
     import constant_gpack::channel_width;
 
     // function parameters
-    localparam real dt_samp=1.0/(160.0e9);
+    localparam real dt_samp=1.0e-9/511.0;
     localparam integer numel=512;
-    localparam real chan_delay=31.25e-12;
+    localparam real chan_delay=10.0*dt_samp;
 
     // calculate FFE coefficients
     localparam real dt=1.0/(16.0e9);
-    localparam real tau=25.0e-12;
+    localparam real tau=100.0e-12;
     localparam integer coeff0 = 128.0/(1.0-$exp(-dt/tau));
     localparam integer coeff1 = -128.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
 
@@ -81,6 +82,7 @@ module sim_ctrl(
         // TODO: explore jitter/noise effect
         jitter_rms_int = 0;
         noise_rms_int = 0;
+        prbs_eqn = 32'h100002;  // matches equation used by prbs21 in DaVE
         chan_wdata_0 = 0;
         chan_wdata_1 = 0;
         chan_waddr = 0;
@@ -127,6 +129,11 @@ module sim_ctrl(
             tmp_ext_pfd_offset[idx] = 0;
         end
         `FORCE_JTAG(ext_pfd_offset, tmp_ext_pfd_offset);
+        #((5.0/(`EMU_CLK_FREQ))*1s);
+
+        // Set the equation for the PRBS checker
+        $display("Setting the PRBS equation");
+        `FORCE_JTAG(prbs_eqn, prbs_eqn);
         #((5.0/(`EMU_CLK_FREQ))*1s);
 
         // Select the PRBS checker data source
@@ -229,6 +236,7 @@ module sim_ctrl(
         // Print results
         $display("err_bits: %0d", err_bits);
         $display("total_bits: %0d", total_bits);
+        $display("BER: %0e", (1.0*err_bits)/(1.0*total_bits));
 
         // Check results
 

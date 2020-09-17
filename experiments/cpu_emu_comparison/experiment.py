@@ -16,8 +16,14 @@ parser.add_argument('--fast_jtag', action='store_true', help='Use hierarchical I
 parser.add_argument('--dump_waveforms', action='store_true', help='Dump waveforms for debugging purposes.  Useful for debugging, but should be disabled when gathering experimental data.')
 parser.add_argument('--jitter_rms', default=0, type=float, help='RMS sampling jitter (seconds)')
 parser.add_argument('--noise_rms', default=0, type=float, help='RMS ADC noise (Volts)')
-parser.add_argument('--nbits', default=600000, type=int, help='Number of bits run through link during testing.')
+parser.add_argument('--nbits', default=200000, type=int, help='Number of bits run through link during testing.')
+parser.add_argument('--chan_tau', default=100e-12, type=float, help='Time constant of the channel in seconds')
+parser.add_argument('--chan_dly', default=19.5694716243e-12, type=float, help='Delay of the channel in seconds.')
+parser.add_argument('--chan_etol', default=1e-4, type=float, help='Error tolerance in the channel (DaVE parameter)')
+parser.add_argument('--tx_ttr', default=0.1e-12, type=float, help='TX rise/fall time (seconds)')
 parser.add_argument('--cached_deps', action='store_true', help='Read dependencies that were cached in a file (creating the cache file if necessary).')
+parser.add_argument('--adc_rounding', action='store_true', help='Use rounding in the ADC model, not $floor')
+parser.add_argument('--simulator', default='ncsim', type=str, help='Simulator to use (vcs or ncsim)')
 args = parser.parse_args()
 
 # read dependencies from a pickle file if desired
@@ -49,16 +55,23 @@ with open('deps.pickle', 'wb') as f:
     pickle.dump(deps, f)
 
 defines = {
+    'CHAN_TAU': args.chan_tau,
+    'CHAN_DLY': args.chan_dly,
+    'CHAN_ETOL': args.chan_etol,
+    'TX_TTR': args.tx_ttr,
     'JITTER_RMS': args.jitter_rms,
     'NOISE_RMS': args.noise_rms,
     'NBITS': args.nbits
 }
 if args.fast_jtag:
     defines['FAST_JTAG'] = True
+if args.adc_rounding:
+    defines['ADC_ROUNDING'] = True
 
 DragonTester(
     ext_srcs=deps,
     directory=BUILD_DIR,
     defines=defines,
+    simulator=args.simulator,
     dump_waveforms=args.dump_waveforms
 ).run()

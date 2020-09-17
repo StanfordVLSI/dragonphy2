@@ -31,6 +31,10 @@ digital_ctrl_inputs:
     abspath: 'tb_i.noise_rms_int'
     width: 11
     init_value: 0
+  prbs_eqn:
+    abspath: 'tb_i.prbs_eqn'
+    width: 32
+    init_value: 1048578 # hex value: 0x100002
   chan_wdata_0:
     abspath: 'tb_i.chan_wdata_0'
     width: 18
@@ -63,3 +67,29 @@ digital_probes:
     abspath: 'tb_i.top_i.idcore.estimated_bits[0]'
     width: 10
     signed: 1
+
+  # clock inputs and outputs for the four PIs
+  #  clk_i_pi_0:
+  #    abspath: 'tb_i.top_i.iacore.iPI[0].iPI.clk_in'
+  #    width: 1
+  #  clk_o_pi_0:
+  #    abspath: 'tb_i.top_i.iacore.iPI[0].iPI.clk_out_slice'
+  #    width: 1
+  #  clk_i_pi_1:
+  #    abspath: 'tb_i.top_i.iacore.iPI[1].iPI.clk_in'
+  #    width: 1
+  #  clk_o_pi_1:
+  #    abspath: 'tb_i.top_i.iacore.iPI[1].iPI.clk_out_slice'
+  #    width: 1
+  #  clk_i_pi_2:
+  #    abspath: 'tb_i.top_i.iacore.iPI[2].iPI.clk_in'
+  #    width: 1
+  #  clk_o_pi_2:
+  #    abspath: 'tb_i.top_i.iacore.iPI[2].iPI.clk_out_slice'
+  #    width: 1
+  #  clk_i_pi_3:
+  #    abspath: 'tb_i.top_i.iacore.iPI[3].iPI.clk_in'
+  #    width: 1
+  #  clk_o_pi_3:
+  #    abspath: 'tb_i.top_i.iacore.iPI[3].iPI.clk_out_slice'
+  #    width: 1

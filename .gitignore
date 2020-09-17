@@ -59,6 +59,7 @@ __pycache__
 
 .Xil
 *.debug
+*.layout
 fpga_prj
 
 build_*
@@ -67,6 +68,7 @@ xrun.*
 waves.*
 wave.*
 .simvision*
+DVEfiles
 
 *_gpack.sv
 build/

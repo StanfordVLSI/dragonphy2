@@ -18,6 +18,22 @@
     `define NBITS 600000
 `endif
 
+`ifndef CHAN_TAU
+    `define CHAN_TAU 25.0e-12
+`endif
+
+`ifndef CHAN_DLY
+    `define CHAN_DLY 31.25e-12
+`endif
+
+`ifndef CHAN_ETOL
+    `define CHAN_ETOL 0.001
+`endif
+
+`ifndef TX_TTR
+    `define TX_TTR 10e-12
+`endif
+
 module test;
 
 	import const_pack::*;
@@ -28,7 +44,8 @@ module test;
     import constant_gpack::channel_width;
 
     localparam real dt=1.0/(16.0e9);
-    localparam real tau=25.0e-12;
+    localparam real tau=(`CHAN_TAU);
+    localparam real dly=(`CHAN_DLY);
     localparam integer coeff0 = 128.0/(1.0-$exp(-dt/tau));
     localparam integer coeff1 = -128.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
 
@@ -79,19 +96,78 @@ module test;
 
     tx_prbs #(
         .freq(16.0e9),
-        .td(31.25e-12)
+        .td(0.0) // delay is applied later
     ) tx_prbs_i (
         .clk(tx_clk),
         .out(tx_data)
     );
+
+// uncomment to try using the same PRBS stimulus used in the emulator
+
+//    logic tx_rst;
+//    initial begin
+//        tx_rst = 1'b1;
+//        #(1ns);
+//        tx_rst = 1'b0;
+//    end
+//
+//    prbs_generator_syn #(
+//        .n_prbs(32)
+//    ) prbs_generator_syn_i (
+//        .clk(tx_clk),
+//        .rst(tx_rst),
+//        .cke(1'b1),
+//        .init_val(32'h00000001),
+//        .eqn(32'h100002),
+//        .inj_err(1'b0),
+//        .inv_chicken(2'b00),
+//        .out(tx_data)
+//    );
+
+// Uncomment to use a pattern generator that is
+// useful for debugging the sequence of operations
+
+//    pwl fake_p;
+//    pwl fake_n;
+//
+//    integer bit_index = 0;
+//    integer pattern_index = 0;
+//    always @(posedge tx_clk) begin
+//        if (bit_index == pattern_index) begin
+//            fake_p <= #(dly*1s) '{0.4, 0, 0};        
+//            fake_n <= #(dly*1s) '{0.1, 0, 0};        
+//        end else begin
+//            fake_p <= #(dly*1s) '{0.25, 0, 0};        
+//            fake_n <= #(dly*1s) '{0.25, 0, 0};        
+//        end
+//        bit_index = bit_index + 1;
+//        if (bit_index == 16) begin
+//            bit_index = 0;
+//            pattern_index = pattern_index + 1;
+//            if (pattern_index == 17) begin
+//                pattern_index = 0;
+//            end
+//        end
+//    end
+
+    // apply delay to data
+
+    logic tx_data_dly;
+    always @(tx_data) begin
+        tx_data_dly <= #(dly*1s) tx_data;
+    end
 
     // TX driver
 
     pwl tx_p;
     pwl tx_n;
 
-    diff_tx_driver diff_tx_driver_i (
-        .in(tx_data),
+    diff_tx_driver #(
+        .tr(`TX_TTR),
+        .vl(0.1),
+        .vh(0.4)
+    ) diff_tx_driver_i (
+        .in(tx_data_dly),
         .out_p(tx_p),
         .out_n(tx_n)
     );
@@ -99,6 +175,7 @@ module test;
     // Differential channel
 
     diff_channel #(
+        .etol(`CHAN_ETOL),
         .tau(tau)
     ) diff_channel_i (
         .in_p(tx_p),
@@ -107,16 +184,19 @@ module test;
         .out_n(ch_outn)
     );
 
-	// External clock
+	// Divide down 16 GHz clock to
+    // produce 8 GHz clock to make
+    // sure that it stays synchronized
 
-	clock #(
-		.freq(8.0e9), // This depends on the frequency divider in the ACORE's input buffer
-		.duty(0.5),
-		.td(0)
-	) iEXTCLK (
-		.ckout(ext_clkp),
-		.ckoutb(ext_clkn)
-	);
+    initial begin
+        ext_clkp = 0;
+    end
+
+    always @(posedge tx_clk) begin
+        ext_clkp = ~ext_clkp;
+    end
+
+    assign ext_clkn = ~ext_clkp;
 
     //  Main test
 
@@ -133,7 +213,7 @@ module test;
     task load_weight(
         input logic [$clog2(length)-1:0] d_idx,
         logic [$clog2(channel_width)-1:0] w_idx,
-        logic [weight_precision-1:0] value
+        logic signed [weight_precision-1:0] value
     );
         $display("Loading weight d_idx=%0d, w_idx=%0d with value %0d", d_idx, w_idx, value);
         `SET_JTAG(wme_ffe_inst, {1'b0, w_idx, d_idx});
@@ -261,9 +341,12 @@ module test;
         `SET_JTAG(en_ext_max_sel_mux, 1);
         #(5ns);
 
-        // Configure the retimer
-        `SET_JTAG(retimer_mux_ctrl_1, 16'hFFFF);
-        `SET_JTAG(retimer_mux_ctrl_2, 16'hFFFF);
+        // Configure the retimer (first option matches the emulator, 
+        // second option matches the chip defaults)
+        `SET_JTAG(retimer_mux_ctrl_1, 16'b1111111111111111);
+        `SET_JTAG(retimer_mux_ctrl_2, 16'b1111111111111111);
+        //`SET_JTAG(retimer_mux_ctrl_1, 16'b0000111111110000);
+        //`SET_JTAG(retimer_mux_ctrl_2, 16'b1111000000000000);
         #(5ns);
 
         // Assert the CDR reset
@@ -293,8 +376,8 @@ module test;
 
 		// Wait for MM_CDR to lock
 		$display("Waiting for MM_CDR to lock...");
-		for (loop_var=0; loop_var<2; loop_var=loop_var+1) begin
-		    $display("Interval %0d/2", loop_var);
+		for (loop_var=0; loop_var<100; loop_var=loop_var+1) begin
+		    $display("Interval %0d/100", loop_var);
 		    #(100ns);
 		end
 
@@ -335,6 +418,7 @@ module test;
         // Print results
         $display("err_bits: %0d", err_bits);
         $display("total_bits: %0d", total_bits);
+        $display("BER: %0e", (1.0*err_bits)/(1.0*total_bits));
 
         // Check results
 
@@ -354,4 +438,10 @@ module test;
 		$display("Test complete.");
 		$finish;
     end
+
+    // wired for debug purposes
+    `ifdef VCS
+        logic [8:0] ctl_pi_0;
+        assign ctl_pi_0 = top_i.iacore.ctl_pi[0];
+    `endif
 endmodule

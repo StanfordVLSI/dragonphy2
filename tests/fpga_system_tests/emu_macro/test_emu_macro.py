@@ -65,6 +65,9 @@ def test_1(board_name, emu_clk_freq, fpga_sim_ctrl):
     })
     src_cfg.add_defines({'GIT_HASH': str(get_git_hash_short())}, fileset='sim')
 
+    # uncomment to use floating-point for simulation only
+    # src_cfg.add_defines({'FLOAT_REAL': None}, fileset='sim')
+
     # HardFloat-related defines
     # (not yet fully supported)
     if get_dragonphy_real_type() == RealType.HardFloat:
@@ -183,6 +186,9 @@ def test_6(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
     def set_noise_rms(val):
         ser.write(f'SET_NOISE_RMS {val}\n'.encode('utf-8'))
 
+    def set_prbs_eqn(val):
+        ser.write(f'SET_PRBS_EQN {val}\n'.encode('utf-8'))
+
     def set_sleep(val):
         ser.write(f'SET_SLEEP {val}\n'.encode('utf-8'))
 
@@ -284,8 +290,11 @@ def test_6(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
     set_sleep(1)
     do_init()
 
-    # Clear emulator reset
+    # Clear emulator reset.  A bit of delay is added just in case
+    # the MT19937 generator is being used, because it takes awhile
+    # to start up (LCG and LFSR start almost immediately)
     set_emu_rst(0)
+    time.sleep(10e-3)
 
     # Reset JTAG
     print('Reset JTAG')
@@ -329,6 +338,10 @@ def test_6(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
     for k in range(16):
         write_tc_reg(f'ext_pfd_offset[{k}]', 0)
 
+    # Set the equation for the PRBS checker
+    print('Setting the PRBS equation')
+    write_tc_reg('prbs_eqn', 0x100002)  # matches equation used by prbs21 in DaVE
+
     # Configure PRBS checker
     print('Configure the PRBS checker')
     write_tc_reg('sel_prbs_mux', 1) # "0" is ADC, "1" is FFE, "3" is BIST
@@ -362,8 +375,10 @@ def test_6(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
 
     # Configure the retimer
     print('Configuring the retimer...')
-    write_tc_reg('retimer_mux_ctrl_1', 0xffff)
-    write_tc_reg('retimer_mux_ctrl_2', 0xffff)
+    write_tc_reg('retimer_mux_ctrl_1', 0b1111111111111111)
+    write_tc_reg('retimer_mux_ctrl_2', 0b1111111111111111)
+    # write_tc_reg('retimer_mux_ctrl_1', 0b0000111111110000)
+    # write_tc_reg('retimer_mux_ctrl_2', 0b1111000000000000)
 
     # Configure the CDR
     print('Configuring the CDR...')
@@ -418,6 +433,8 @@ def test_6(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
     total_bits <<= 32
     total_bits |= read_sc_reg('prbs_total_bits_lower')
     print(f'total_bits: {total_bits}')
+
+    print(f'BER: {err_bits/total_bits:e}')
 
     # check results
     print('Checking the results...')
