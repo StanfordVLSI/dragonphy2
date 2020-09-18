@@ -3,6 +3,8 @@
 #include <string.h>
 #include "sleep.h"
 
+#define BUF_SIZE 32
+
 u32 sleep_time = 20;
 
 void cycle() {
@@ -188,7 +190,7 @@ int main() {
     // character buffering
     u32 idx = 0;
     char rcv;
-    char buf [32];
+    char buf [BUF_SIZE];
     
     // command processing;
     u32 arg1;
@@ -213,7 +215,12 @@ int main() {
         if ((rcv == ' ') || (rcv == '\t') || (rcv == '\r') || (rcv == '\n')) {
             // whitespace
             if (idx > 0) {
-                buf[idx++] = '\0';
+                // pad rest of the string with null characters
+                // this appears to be necessary to prevent
+                // memory corruption
+                for (; idx<BUF_SIZE; idx++) {
+                    buf[idx] = '\0';
+                }
                 if (nargs == 0) {
                     if (strcmp(buf, "RESET") == 0) {
                         cmd = RESET;
@@ -228,7 +235,7 @@ int main() {
                         return 0;
                     } else if (strcmp(buf, "ID") == 0) {
                         cmd = ID;
-                        xil_printf("%lu\r\n", read_id());
+                        xil_printf("%u\r\n", read_id());
                         nargs = 0;
                     } else if (strcmp(buf, "SIR") == 0) {
                         cmd = SIR;
@@ -267,7 +274,7 @@ int main() {
 	                xil_printf("ERROR: Unknown command\r\n");
                     }
                 } else if (nargs == 1) {
-                    sscanf(buf, "%lu", &arg1);
+                    sscanf(buf, "%u", &arg1);
                     if (cmd == SET_RSTB) {
                         set_rstb(arg1);
                         nargs=0;
@@ -293,12 +300,12 @@ int main() {
                         nargs++;
                     }
                 } else if (nargs == 2) {
-                    sscanf(buf, "%lu", &arg2);
+                    sscanf(buf, "%u", &arg2);
                     if (cmd == SIR) {
                         shift_ir(arg1, arg2);
                         nargs=0;
                     } else if (cmd == SDR) {
-                        xil_printf("%lu\r\n", shift_dr(arg1, arg2));
+                        xil_printf("%u\r\n", shift_dr(arg1, arg2));
                         nargs=0;
                     } else if (cmd == QSDR) {
                         shift_dr(arg1, arg2);
@@ -307,7 +314,7 @@ int main() {
                         nargs++;
                     }
                 } else if (nargs > 2) {
-                    sscanf(buf, "%lu", &argn);
+                    sscanf(buf, "%u", &argn);
                     if (cmd == UPDATE_CHAN) {
                         if (nargs % 2 == 1) {
                             // assign data to order "0"
