@@ -21,7 +21,7 @@ module histogram_data_gen #(
     input wire logic [(n-1):0] in1,
 
     // output data
-    input wire logic [(n-1):0] out
+    output wire logic [(n-1):0] out
 );
     /////////////////////
     // operating modes //
