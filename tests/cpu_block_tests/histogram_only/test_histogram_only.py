@@ -53,7 +53,7 @@ def test_sim(simulator_name, n_data=8, n_count=64):
     # create tester
     t = fault.Tester(dut, dut.clk)
 
-    # initialize with the right equation
+    # initialize inputs
     t.zero_inputs()
     t.poke(dut.data, data_vec[0])
 

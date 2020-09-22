@@ -14,7 +14,7 @@ module histogram_data_gen #(
     // 3'b100: EXCL
     // 3'b101: ALT
     // 3'b110 and up: HOLD
-    input wire logic [1:0] mode,
+    input wire logic [2:0] mode,
 
     // input data
     input wire logic [(n-1):0] in0,
@@ -59,7 +59,7 @@ module histogram_data_gen #(
     always @(posedge clk) begin
         if (mode == RESET) begin
             state <= 0;
-        else if (mode == UNIFORM) begin
+        end else if (mode == UNIFORM) begin
             // produce a uniform distribution
             state <= state + 1;
         end else if (mode == CONSTANT) begin
@@ -77,7 +77,7 @@ module histogram_data_gen #(
             if (((state + 1) < in0_reg) || (in1_reg < (state + 1))) begin
                 state <= state + 1;
             end else begin
-                state <= in1_reg;
+                state <= in1_reg+1;
             end
         end else if (mode == ALT) begin
             // alternate between in0 and in1
