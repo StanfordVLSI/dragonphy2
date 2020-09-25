@@ -40,7 +40,7 @@ def test_1(board_name, emu_clk_freq, fpga_sim_ctrl):
     src_cfg = AnasymodSourceConfig()
 
     # JTAG-related
-#    src_cfg.add_edif_files([os.environ['TAP_CORE_LOC']], fileset='fpga')
+    src_cfg.add_edif_files([os.environ['TAP_CORE_LOC']], fileset='fpga')
     src_cfg.add_verilog_sources([get_file('vlog/fpga_models/jtag/tap_core.sv')], fileset='fpga')
     src_cfg.add_verilog_sources([get_file('vlog/fpga_models/jtag/DW_tap.sv')], fileset='fpga')
     src_cfg.add_verilog_sources([os.environ['DW_TAP']], fileset='sim')
