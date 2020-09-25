@@ -312,6 +312,20 @@ set_qtm_port_drive -type qtm_drive { adbg_intf_i_inbuf_out_meas }
 create_qtm_port -type input { adbg_intf_i_en_TDC_phase_reverse }
 set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_en_TDC_phase_reverse }
 
+# ADC retimer (input to analog core but appears at the bottom of acore_debug_intf)
+
+create_qtm_port -type input { adbg_intf_i_retimer_mux_ctrl_1[15:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_retimer_mux_ctrl_1[15:0] }
+
+create_qtm_port -type input { adbg_intf_i_retimer_mux_ctrl_2[15:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_retimer_mux_ctrl_2[15:0] }
+
+create_qtm_port -type input { adbg_intf_i_retimer_mux_ctrl_1_rep[1:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_retimer_mux_ctrl_1_rep[1:0] }
+
+create_qtm_port -type input { adbg_intf_i_retimer_mux_ctrl_2_rep[1:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i_retimer_mux_ctrl_2_rep[1:0] }
+
 ###################### Timing Arcs ######################
 
 ## PI control signals
@@ -332,26 +346,7 @@ for {set idx 0} {$idx < 36} {incr idx} {
 
 ## Main ADCs
 
-set clk_adc_per [expr {$::env(constr_main_per) * $::env(constr_time_scale)}]
 for {set adc_idx 0} {$adc_idx < 16} {incr adc_idx} {
-    # determine bank and slice
-    set adc_bank [expr {$adc_idx / 4}]
-    set adc_slice [expr {$adc_idx % 4}]
-
-    # determine ADC sequential order
-    set adc_order [expr {$adc_bank + (4*$adc_slice)}]
-    if { $adc_order < 8 } {
-        set adc_edge rise
-        set delay_val [expr {(($adc_order + 0.5)/16.0)*$clk_adc_per}]
-    } else {
-        set adc_edge fall
-        set delay_val [expr {(($adc_order - 7.5)/16.0)*$clk_adc_per}]
-    }
-
-    # print out computed delay
-    puts [format "idx: %0d, bank: %0d, slice: %0d, delay: %0f, edge: %0s" \
-          $adc_idx $adc_bank $adc_slice $delay_val $adc_edge]
-
     # loop over the bits in this ADC
     for {set bit_idx 0} {$bit_idx < 8} {incr bit_idx} {
         # determine the index of this bit in the flattened bus
@@ -359,9 +354,9 @@ for {set adc_idx 0} {$adc_idx < 16} {incr adc_idx} {
 
         # create the delay arcs
         create_qtm_delay_arc -from ext_clk -edge $adc_edge -to "adder_out[$flat_idx]" \
-            -value $delay_val
+            -value [expr {0.05 * $::env(constr_time_scale)}]
         create_qtm_delay_arc -from ext_clk -edge $adc_edge -to "sign_out[$adc_idx]" \
-            -value $delay_val
+            -value [expr {0.05 * $::env(constr_time_scale)}]
     }
 }
 

@@ -93,6 +93,12 @@ interface acore_debug_intf import const_pack::*; (
 
 	    logic en_TDC_phase_reverse;
 
+		logic [Nti-1:0] retimer_mux_ctrl_1;
+		logic [Nti-1:0] retimer_mux_ctrl_2;
+
+		logic [1:0] retimer_mux_ctrl_1_rep;
+		logic [1:0] retimer_mux_ctrl_2_rep;
+
 	modport acore (
 		// inputs to analog core
 		input rstb,
@@ -161,6 +167,12 @@ interface acore_debug_intf import const_pack::*; (
 		input en_del_out_pi,
 
 		input en_TDC_phase_reverse,
+
+		input retimer_mux_ctrl_1,
+		input retimer_mux_ctrl_2,
+
+		input retimer_mux_ctrl_1_rep,
+		input retimer_mux_ctrl_2_rep,
 
         // outputs from analog core
 		output pm_out ,		
@@ -246,6 +258,12 @@ interface acore_debug_intf import const_pack::*; (
         output en_del_out_pi,
 
         output en_TDC_phase_reverse,
+
+		output retimer_mux_ctrl_1,
+		output retimer_mux_ctrl_2,
+
+		output retimer_mux_ctrl_1_rep,
+		output retimer_mux_ctrl_2_rep,
 
         // outputs from analog core
         input pm_out ,     
