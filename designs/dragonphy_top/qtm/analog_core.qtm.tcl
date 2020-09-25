@@ -353,9 +353,9 @@ for {set adc_idx 0} {$adc_idx < 16} {incr adc_idx} {
         set flat_idx [expr {($adc_idx * 8) + $bit_idx}]
 
         # create the delay arcs
-        create_qtm_delay_arc -from ext_clk -edge $adc_edge -to "adder_out[$flat_idx]" \
+        create_qtm_delay_arc -from ext_clk -edge rise -to "adder_out[$flat_idx]" \
             -value [expr {0.05 * $::env(constr_time_scale)}]
-        create_qtm_delay_arc -from ext_clk -edge $adc_edge -to "sign_out[$adc_idx]" \
+        create_qtm_delay_arc -from ext_clk -edge rise -to "sign_out[$adc_idx]" \
             -value [expr {0.05 * $::env(constr_time_scale)}]
     }
 }
