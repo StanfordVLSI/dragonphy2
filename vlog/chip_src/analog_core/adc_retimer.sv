@@ -1,3 +1,11 @@
+/********************************************************************
+filename: adc_retimer.sv
+
+Description:
+Samples the inputs and produces outputs that are registered to the
+the rising edge of clk_retimer.
+********************************************************************/
+
 `default_nettype none
 
 module adc_retimer #(
