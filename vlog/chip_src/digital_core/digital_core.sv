@@ -101,18 +101,14 @@ module digital_core import const_pack::*; (
     assign prbs_gen_rstb    = ddbg_intf_i.prbs_gen_rstb && ext_rstb;
 
 
-    // ADC Output Retimer
+    // ADC Output Reorder
+    // (just does reor
 
-    ti_adc_retimer_v2 retimer_i (
-        .clk_retimer(clk_adc),                // clock for serial to parallel retiming
-
+    ti_adc_reorder reorder_i (
         .in_data(adcout),                     // serial data
         .in_sign(adcout_sign),                // sign of serial data
         .in_data_rep(adcout_rep),
         .in_sign_rep(adcout_sign_rep),
-
-        .mux_ctrl_1(ddbg_intf_i.retimer_mux_ctrl_1),
-        .mux_ctrl_2(ddbg_intf_i.retimer_mux_ctrl_2),
 
         .out_data(adcout_retimed),            // parallel data
         .out_sign(adcout_sign_retimed),
