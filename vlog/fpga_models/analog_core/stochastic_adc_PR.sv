@@ -8,6 +8,7 @@ module stochastic_adc_PR #(
     parameter Nadc = 8
 )(
     input clk_in,
+    input clk_retimer,
     input `pwl_t VinN,
     input `pwl_t VinP,
     input `voltage_t Vcal,
@@ -27,6 +28,8 @@ module stochastic_adc_PR #(
     input [1:0] sel_pm_sign,
     input [1:0] sel_pm_in,
     input en_TDC_phase_reverse,
+    input retimer_mux_ctrl_1,
+    input retimer_mux_ctrl_2,
 
     output clk_adder,
     output reg en_sync_out,

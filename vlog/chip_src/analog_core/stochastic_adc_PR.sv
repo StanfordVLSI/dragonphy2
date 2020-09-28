@@ -8,6 +8,7 @@ module stochastic_adc_PR #(
     parameter Nadc = 8
 )(
     input clk_in,
+    input clk_retimer,
     input `pwl_t VinN,
     input `pwl_t VinP,
     input `voltage_t Vcal,
@@ -27,6 +28,8 @@ module stochastic_adc_PR #(
     input [1:0] sel_pm_sign,
     input [1:0] sel_pm_in,
     input en_TDC_phase_reverse,
+    input retimer_mux_ctrl_1,
+    input retimer_mux_ctrl_2,
 
     output clk_adder,
     output en_sync_out,
@@ -41,6 +44,8 @@ module stochastic_adc_PR #(
     wire [(2**Nctl_v2t)-2:0] thm_ctl_v2t_n;
     wire [(2**Nctl_v2t)-2:0] thm_ctl_v2t_p;
     wire [(2**Nadc)-2:0] ff_out;
+    wire [(Nadc-1):0] adder_out_pre;
+    wire sign_out_pre;
     reg en_TDC_phase_reverse_sampled;
     reg clk_TDC_phase_reverse;
 
@@ -146,11 +151,23 @@ module stochastic_adc_PR #(
     end
 
     wallace_adder iadder (
-        .d_out(adder_out),
+        .d_out(adder_out_pre),
         .d_in(ff_out),
-        .sign_out(sign_out),
+        .sign_out(sign_out_pre),
         .sign_in(sign),
         .clk(clk_adder)
+    );
+
+    adc_retimer #(
+        .Nadc(Nadc)
+    ) iretimer (
+        .clk_retimer(clk_retimer),
+        .in_data(adder_out_pre),
+        .in_sign(sign_out_pre),
+        .out_data(adder_out),
+        .out_sign(sign_out),
+        .mux_ctrl_1(retimer_mux_ctrl_1),
+        .mux_ctrl_2(retimer_mux_ctrl_2)
     );
 
     mux_fixed ipm_mux1_dont_touch (
@@ -176,4 +193,3 @@ module stochastic_adc_PR #(
         .en_pm(en_pm)
     );
 endmodule
-
