@@ -125,6 +125,12 @@ module jtag (
 
     assign adbg_intf_i.en_TDC_phase_reverse = rjtag_intf_i.en_TDC_phase_reverse;
 
+	assign adbg_intf_i.retimer_mux_ctrl_1 = rjtag_intf_i.retimer_mux_ctrl_1;
+	assign adbg_intf_i.retimer_mux_ctrl_2 = rjtag_intf_i.retimer_mux_ctrl_2;
+
+	assign adbg_intf_i.retimer_mux_ctrl_1_rep = rjtag_intf_i.retimer_mux_ctrl_1_rep;
+	assign adbg_intf_i.retimer_mux_ctrl_2_rep = rjtag_intf_i.retimer_mux_ctrl_2_rep;
+
 	//Analog Output
 
 	assign rjtag_intf_i.pm_out = adbg_intf_i.pm_out;
@@ -194,8 +200,6 @@ module jtag (
 	assign ddbg_intf_i.ffe_thresh		= rjtag_intf_i.ffe_thresh;
 	assign ddbg_intf_i.adc_thresh		= rjtag_intf_i.adc_thresh;
 	assign ddbg_intf_i.sel_prbs_mux		= rjtag_intf_i.sel_prbs_mux;
-	assign ddbg_intf_i.retimer_mux_ctrl_1 = rjtag_intf_i.retimer_mux_ctrl_1;
-	assign ddbg_intf_i.retimer_mux_ctrl_2 = rjtag_intf_i.retimer_mux_ctrl_2;
 
     assign ddbg_intf_i.en_cgra_clk = rjtag_intf_i.en_cgra_clk;
 
