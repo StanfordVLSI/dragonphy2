@@ -19,8 +19,6 @@ def list_head(lis, n=25):
         trimmed += ['...']
     return str(trimmed)
 
-
-
 def test_sim(simulator_name, Nadc=8, Nrange=4, Navg=10):
     # set defaults
     if simulator_name is None:
@@ -57,9 +55,6 @@ def test_sim(simulator_name, Nadc=8, Nrange=4, Navg=10):
         [random.randint(-(1<<(Nadc-1)), 0)
          for _ in range(1 << Navg)]
     ]
-
-    # data = [random.randint(-(1<<(Nadc-1)), (1<<(Nadc))-1)
-    #data = [2 for _ in range(1<<Navg)]
 
     # define averaging test
     def run_avg(data, last):
@@ -101,8 +96,7 @@ def test_sim(simulator_name, Nadc=8, Nrange=4, Navg=10):
             last = data_vecs[k+1][0]
         else:
             last = 0
-        avg_out, sum_out = run_avg(data_vecs[k], last)
-        results.append((avg_out, sum_out))
+        results.append(run_avg(data_vecs[k], last))
 
     # run a few extra cycles for better visibility
     t.poke(dut.update, 0)
@@ -122,7 +116,7 @@ def test_sim(simulator_name, Nadc=8, Nrange=4, Navg=10):
         },
         ext_model_file=True,
         disp_type='realtime',
-        dump_waveforms=True,
+        dump_waveforms=False,
         directory=BUILD_DIR
     )
 
