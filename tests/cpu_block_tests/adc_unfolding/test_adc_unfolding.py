@@ -1,5 +1,6 @@
 # general imports
 import shutil
+import pytest
 import random
 from pathlib import Path
 
@@ -22,15 +23,14 @@ DZ=3
 
 def adc_model(data, offset):
     # calculate magnitude / sign
-    mag = [abs(elem) for elem in data]
-    sgn = [1 if elem>=0 else 0 for elem in data]
+    mag = abs(data)
+    sgn = 1 if data>=0 else 0
 
     # add offset
-    mag = [elem+offset for elem in mag]
+    mag += offset
 
     # clamp magnitudes
-    mag = [elem if elem < (1<<(Nadc-1)) else ((1<<(Nadc-1))-1)
-           for elem in mag]
+    mag = mag if mag <= ((1<<Nadc)-1) else ((1<<Nadc)-1)
 
     # return results
     return sgn, mag
@@ -61,7 +61,8 @@ class dut(m.Circuit):
         pfd_offset=m.Out(m.SInt[Nadc])
     )
 
-def test_ext_offset(simulator_name):
+@pytest.mark.parametrize('offset', [0, 10, 42, 127])
+def test_ext_offset(simulator_name, offset):
     # set defaults
     if simulator_name is None:
         if shutil.which('iverilog'):
@@ -74,11 +75,28 @@ def test_ext_offset(simulator_name):
 
     # initialize
     t.zero_inputs()
+    t.poke(dut.en_pfd_cal, 0)
+    t.poke(dut.en_ext_pfd_offset, 1)
+    t.poke(dut.ext_pfd_offset, offset)
+    t.poke(dut.Nbin, Nbin)
+    t.poke(dut.Navg, Navg)
+    t.poke(dut.DZ, DZ)
 
     # run a few cycles
     t.step(10)
     t.poke(dut.rstb, 1)
     t.step(2)
+
+    # send in data
+    data_in = []
+    data_out = []
+    for k in range(-((1<<Nadc)-1), 1<<Nadc):
+        data_in.append(k)
+        sgn, mag = adc_model(k, offset=offset)
+        t.poke(dut.sign_out, sgn)
+        t.poke(dut.din, mag)
+        t.step(2)
+        data_out.append(t.get_value(dut.dout))
 
     # run a few extra cycles for better visibility
     t.step(10)
@@ -105,9 +123,26 @@ def test_ext_offset(simulator_name):
     # convert values #
     ##################
 
+    def to_signed(x, n):
+        if x >= (1<<(n-1)):
+            return x - (1<<n)
+        else:
+            return x
+
+    data_out = [to_signed(elem.value, Nadc)
+                for elem in data_out]
+
     ################
     # check values #
     ################
+
+    for x, y in zip(data_in, data_out):
+        if x <= -(1<<(Nadc-1)):
+            assert y == -(1<<(Nadc-1))
+        elif x >= (1<<(Nadc-1))-1:
+            assert y == (1<<(Nadc-1))-1
+        else:
+            assert x == y
 
     ###################
     # declare success #
