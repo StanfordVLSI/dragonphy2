@@ -2,7 +2,8 @@
 filename: calib_hist_measure.sv
 
 Description: 
-
+Implements a mini-histogram that is used to determine whether the
+estimate of the PFD offset should be moved up or down.
 
 ********************************************************************/
 

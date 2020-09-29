@@ -13,12 +13,6 @@ from dragonphy import get_deps_cpu_sim
 THIS_DIR = Path(__file__).parent.resolve()
 BUILD_DIR = THIS_DIR / 'build'
 
-def list_head(lis, n=25):
-    trimmed = lis[:n]
-    if len(lis) > n:
-        trimmed += ['...']
-    return str(trimmed)
-
 def model(data, Nbin, DZ):
     # thresholds
     th_l2 = -((Nbin*3)+1)-1
@@ -120,7 +114,7 @@ def test_sim(simulator_name, Nadc=8, Nrange=4, Navg=7,
 
         return hist_center, hist_side, hist_comp_out
 
-        # initialize
+    # initialize
     t.zero_inputs()
     t.poke(dut.din_avg, 0)
     t.poke(dut.Nbin, Nbin)
