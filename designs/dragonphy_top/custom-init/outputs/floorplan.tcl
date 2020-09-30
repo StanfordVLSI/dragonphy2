@@ -23,6 +23,8 @@
     set vert_pitch  [dbGet top.fPlan.coreSite.size_y]
     set horiz_pitch [dbGet top.fPlan.coreSite.size_x]
 
+    set sram_FP_adjust [snap_to_grid 350 $horiz_pitch]
+    set bottom_y [snap_to_grid 100 $vert_pitch]
     set output_buffer_width [dbGet [dbGet -p top.insts.name *out_buff_i*].cell.size_x]
     set output_buffer_height [dbGet [dbGet -p top.insts.name *out_buff_i*].cell.size_y]
     
@@ -35,6 +37,9 @@
 
     # Make room in the floorplan for the core power ring
 
+
+    set_db [get_db nets ext_clk_async*] .skip_routing true
+    set_db [get_db nets ext_mdll_clk_mon*] .skip_routing true
     set pwr_net_list  {CVDD CVSS AVDD AVSS DVDD DVSS}; # List of power nets in the core power ring
 
     set M1_min_width   [dbGet [dbGetLayerByZ 1].minWidth]
@@ -45,10 +50,10 @@
 
     # Core bounding box margins
     # Set in Geom-Vars File
-    set core_margin_t $vert_pitch
-    set core_margin_b $vert_pitch 
-    set core_margin_r [expr 5 * $horiz_pitch]
-    set core_margin_l [expr 5 * $horiz_pitch]
+    set core_margin_t 0;#$vert_pitch
+    set core_margin_b 0;#$vert_pitch 
+    set core_margin_r 0;#[expr 5 * $horiz_pitch]
+    set core_margin_l 0;#[expr 5 * $horiz_pitch]
 
 
     #-------------------------------------------------------------------------
@@ -63,14 +68,14 @@
     #floorPlan -r $core_aspect_ratio $core_density_target \
     #             $core_margin_l $core_margin_b $core_margin_r $core_margin_t
 
-    set sram_FP_adjust 350
 
     set FP_width [snap_to_grid [expr 800 + $sram_FP_adjust] $horiz_pitch ]
-    set FP_height [snap_to_grid 800 $vert_pitch ]
+    set FP_height [snap_to_grid 700 $vert_pitch ]
     
 
-    floorPlan -site core -s $FP_width $FP_height \
+    #floorPlan -site core -s $FP_width $FP_height \
                             $core_margin_l $core_margin_b $core_margin_r $core_margin_t
+    floorPlan -site core -s $FP_width $FP_height 0 0 0 0
 
     setFlipping s
 
@@ -87,9 +92,9 @@
     #set origin_acore_y    [expr $sram_height + $sram_to_acore_spacing_y ]
 
     set origin_acore_x    [expr 199.98 + $sram_FP_adjust]
-    set origin_acore_y    399.744
+    set origin_acore_y    [expr 399.744 - $bottom_y]
     
-    set origin_sram_ffe_x [expr 6*$blockage_width  + $core_margin_l]
+    set origin_sram_ffe_x [expr 15*$blockage_width  + $core_margin_l]
     set origin_sram_ffe_y [expr 6*$blockage_height + $core_margin_b]
    
     set origin_sram_ffe_y2 [expr $FP_height - 6*$blockage_height - $core_margin_t -$sram_height ]
@@ -97,34 +102,34 @@
     #set origin_sram_adc_x [expr $origin_sram_ffe_x + $sram_pair_spacing]
     set origin_sram_adc_x [expr $origin_sram_ffe_x]
     set origin_sram_adc_y [expr 6*$blockage_height + $core_margin_b] 
-    set origin_sram_adc_y2 [expr $FP_height - 6*$blockage_height - $core_margin_t -$sram_height ]
+    set origin_sram_adc_y2 [expr $FP_height - 6*$blockage_height - $core_margin_t -$sram_height]
 
     #set origin_async_x [expr 3*$blockage_width  + $core_margin_l]
     #set origin_async_y [expr $origin_sram_ffe_y + $sram_height +  $sram_to_buff_spacing_y]
     
     set origin_async_x [expr 43.56 + $sram_FP_adjust]
-    set origin_async_y 312.192
+    set origin_async_y [expr 312.192 -$bottom_y]
     #set origin_out_x [expr $FP_width - 6*$blockage_width - $output_buffer_width - $core_margin_l]
     #set origin_out_y [expr $origin_sram_adc_y + $sram_height + $sram_to_acore_spacing_y - 4 * $vert_pitch]
     
     set origin_out_x [expr 555.3 + $sram_FP_adjust]
-    set origin_out_y 140.544
+    set origin_out_y [expr 139.968 -$bottom_y]
     #set origin_main_x [expr $origin_acore_x + [snap_to_grid [expr $acore_width/2] $horiz_pitch]]
     #set origin_main_y [expr [snap_to_grid [expr $sram_height / 2.0] $vert_pitch] + $origin_sram_adc_y]
 
     set origin_main_x [expr 373.77 + $sram_FP_adjust]
-    set origin_main_y 313.192
+    set origin_main_y [expr 312.192 -$bottom_y]
     #set origin_mdll_x [expr $origin_out_x - $mdll_width - [snap_to_grid 60 $horiz_pitch]]
     #set origin_mdll_y [expr $origin_acore_y + [snap_to_grid [expr $acore_height/4] $vert_pitch ]  ]   
  
     set origin_mdll_x [expr 462.51 + $sram_FP_adjust]
-    set origin_mdll_y 301.824   
+    set origin_mdll_y [expr 301.824 - $bottom_y]
     
     set origin_mon_x [expr 566.82 + $sram_FP_adjust]
-    set origin_mon_y 184.32
+    set origin_mon_y [expr 184.32 - $bottom_y]
 
     set origin_ref_x [expr 504.09 + $sram_FP_adjust]
-    set origin_ref_y 184.32
+    set origin_ref_y [expr 184.32 - $bottom_y]
 
     #set origin_ref_x [expr $FP_width - 6*$blockage_width - $input_buffer_width - $core_margin_l]
     #set origin_ref_y [expr $origin_out_y + $output_buffer_height + $blockage_height + 10*$vert_pitch]
@@ -281,12 +286,18 @@
     #    [expr $origin_sram_adc_x + 2*$sram_pair_spacing + $blockage_width] \
     #    [expr $origin_sram_adc_y + $sram_height         + $blockage_height]
 
-
+    #Try to reduce congestion at this corner
+    createPlaceBlockage -type soft -density 25 -box \
+        [expr $origin_acore_x - 5*$blockage_width] \
+        [expr $origin_acore_y - 3*$blockage_height] \
+        [expr $origin_acore_x + 3*$blockage_width] \
+        [expr $origin_acore_y + 3* $blockage_height ]
+    
     createPlaceBlockage -box \
         [expr $origin_acore_x - $blockage_width] \
-        [expr $origin_acore_y - 30*$blockage_height] \
+        [expr $origin_acore_y - 1*$blockage_height] \
         [expr $origin_acore_x + $acore_width  + $blockage_width] \
-        [expr $origin_acore_y + $acore_height + $blockage_height]
+        [expr $FP_height]
 
     createPlaceBlockage -box \
         [expr $origin_async_x - $blockage_width] \
@@ -312,7 +323,7 @@
         [expr $origin_main_x + $input_buffer_width  + $blockage_width] \
         [expr $origin_main_y + $input_buffer_height + $blockage_height]
     
-    createPlaceBlockage -box \
+   createPlaceBlockage -box \
         [expr $origin_out_x - $blockage_width] \
         [expr $origin_out_y - $blockage_height] \
         [expr $origin_out_x + $output_buffer_width  + $blockage_width] \
@@ -335,3 +346,4 @@
     #   sram_ADR_BITS10_DAT_BITS144_6 genblk3_1__sram_i
     #   sram_ADR_BITS10_DAT_BITS144_5 genblk3_2__sram_i
     #   sram_ADR_BITS10_DAT_BITS144_4 genblk3_3__sram_i
+    
