@@ -36,7 +36,7 @@ def test_all_pulses():
     for file_name in S4P_DIR.glob('*.s4p'):
         chan = Channel(channel_type='s4p', sampl_rate=10e12, resp_depth=200000,
                        s4p=file_name, zs=50, zl=50)
-        _, pulse = chan.get_pulse_resp(f_sig=16e9, resp_depth=10000, t_delay=0)
+        _, pulse = chan.get_pulse_resp(f_sig=16e9, resp_depth=350, t_delay=0)
         plt.plot(pulse, '-o', label=file_name.stem, markersize=2)
 
     plt.legend(prop={'size': 8})
