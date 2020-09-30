@@ -32,7 +32,11 @@ module adc_unfolding #(
     input wire logic [(Nrange-1):0] Nbin,
     input wire logic [(Nrange-1):0] Navg,
     input wire logic [(Nrange-1):0] DZ,
-	
+
+	input wire logic flip_feedback,
+	input wire logic en_ext_ave,
+	input wire logic signed [(Nadc-1):0] ext_ave,
+
     output reg signed [(Nadc-1):0] dout,
     output reg signed [(Nadc-1):0] dout_avg,
     output reg signed [(Nadc+(2**Nrange)-1):0] dout_sum,
@@ -62,6 +66,7 @@ module adc_unfolding #(
     // histogram //
     ///////////////
 
+    logic signed [(Nadc-1):0] hist_avg_in;
     logic [((2**Nrange)-1):0] hist_center_imm;
     logic [((2**Nrange)-1):0] hist_side_imm;
     logic signed [1:0] hist_comp_out;
@@ -72,15 +77,22 @@ module adc_unfolding #(
     ) ihist (
         .rstb(rstb),
         .din(dout),
-        .din_avg(dout_avg),
+        .din_avg(hist_avg_in),
         .clk(clk),
         .update(update),
         .Nbin(Nbin),
         .DZ(DZ),
+        .flip_feedback(flip_feedback),
         .hist_center(hist_center_imm),
         .hist_side(hist_side_imm),
         .hist_comp_out(hist_comp_out)
     );
+
+    //////////////////////////
+    // set histogram center //
+    //////////////////////////
+
+    assign hist_avg_in = en_ext_ave ? ext_ave : dout_avg;
 
     ///////////////////////////////////////
     // apply feedback to offset estimate //

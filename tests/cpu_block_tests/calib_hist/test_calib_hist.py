@@ -71,6 +71,7 @@ def test_sim(simulator_name, Nadc=8, Nrange=4, Navg=7,
             din_avg=m.In(m.SInt[Nadc]),
             Nbin=m.In(m.Bits[Nrange]),
             DZ=m.In(m.Bits[Nrange]),
+            flip_feedback=m.BitIn,
             hist_center=m.Out(m.Bits[2**Nrange]),
             hist_side=m.Out(m.Bits[2**Nrange]),
             hist_comp_out=m.Out(m.SInt[2])
