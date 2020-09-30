@@ -1,3 +1,12 @@
+/********************************************************************
+filename: avg_pulse_gen.sv
+
+Description:
+Generates a single-cycle pulse once every 2**ndiv clock cycles.
+This is used to mark the beginning of a new averaging period.
+
+********************************************************************/
+
 `default_nettype none
 
 module avg_pulse_gen #(
