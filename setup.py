@@ -36,6 +36,7 @@ requires_list = [
     'pygraphviz',
     'html5lib',
     'lxml',
+    'scikit-rf',
     'BeautifulSoup4',
     'justag==0.0.3.3',
     # general requirements with special versions to prevent
