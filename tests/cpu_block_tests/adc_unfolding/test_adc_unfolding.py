@@ -57,6 +57,10 @@ class dut(m.Circuit):
         Navg=m.In(m.Bits[Nrange]),
         DZ=m.In(m.Bits[Nrange]),
 
+        flip_feedback=m.BitIn,
+        en_ext_ave=m.BitIn,
+        ext_ave=m.In(m.SInt[Nadc]),
+
         dout=m.Out(m.SInt[Nadc]),
         dout_avg=m.Out(m.SInt[Nadc]),
         dout_sum=m.Out(m.SInt[Nadc+(2**Nrange)]),

@@ -20,6 +20,7 @@ module calib_hist_measure #(
     input wire logic signed [(Nadc-1):0] din_avg,
     input wire logic [(Nrange-1):0] Nbin,
     input wire logic [(Nrange-1):0] DZ,
+    input wire logic flip_feedback,
 
     output wire logic [((2**Nrange)-1):0] hist_center,
     output wire logic [((2**Nrange)-1):0] hist_side,
@@ -112,19 +113,25 @@ module calib_hist_measure #(
     // comp_out //
     //////////////
 
+    logic signed [1:0] up;
+    logic signed [1:0] dn;
+
+    assign up = flip_feedback ? -1 : +1;
+    assign dn = flip_feedback ? +1 : -1;
+
     always @(*) begin
         if ((hist_center==0) && (hist_side==0)) begin
             // in this case, no points fell in the center or side bins,
             // so the PFD offset likely needs to be increased
-            hist_comp_out = +1;
+            hist_comp_out = up;
         end else if (hist_diff > DZ_r) begin
             // in this case, more points fell in the center bin, so
             // the PFD offset likely needs to be decreased
-            hist_comp_out = -1;
+            hist_comp_out = dn;
         end else if (hist_diff < DZ_l) begin
             // in this case, more points fell in the side bins, so
             // the PFD offset likely needs to be increased
-            hist_comp_out = +1;
+            hist_comp_out = up;
         end else begin
             // otherwise there is not much difference between the
             // center and side bins, so the PFD offset estimate
