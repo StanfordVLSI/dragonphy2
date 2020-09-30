@@ -18,6 +18,7 @@ steps:
       deactivate
     artifact_paths:
       - "tests/*/*/build/*.eps"
+      - "tests/other_tests/sparams/*.eps"
     timeout_in_minutes: 60
     agents:
       fault2: "true"
