@@ -1,0 +1,5 @@
+PROJECT:
+  dt: 0.1e-6
+  board_name: PYNQ_Z1
+  plugins: ['msdsl']
+  emu_clk_freq: 10e6

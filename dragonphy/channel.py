@@ -1,9 +1,13 @@
+from math import floor
+
 import numpy as np
-import matplotlib.pyplot as plt
 
 from scipy.interpolate import interp1d
 from scipy.special import erfc
-from math import floor
+
+import matplotlib.pyplot as plt
+
+from .sparams import s4p_to_step
 
 def calculate_channel_loss(channel):
     one_zero_pattern = np.tile([-1,1], (10*channel.resp_depth))
@@ -59,23 +63,34 @@ class Filter:
 
 
 class Channel(Filter):
-    def __init__(self, channel_type='step', sampl_rate=1e9, resp_depth=50, **kwargs):
+    def __init__(self, channel_type='s4p', sampl_rate=1e9, resp_depth=50, **kwargs):
         # determine vector of time points
-        t_vec = np.linspace(0, (resp_depth-1)/sampl_rate, resp_depth)
-        if channel_type == 'step':
-            self.chan_func = step_channel
-        elif channel_type == 'exponent':
-            self.chan_func = exponential_channel
-        elif channel_type == 'arctan':
-            self.chan_func = arctan_channel
-        elif channel_type == 'skineffect':
-            self.chan_func = skineffect_channel
-        elif channel_type == 'boesch':
-            self.chan_func = boesch_channel
-        else:
-            raise Exception(f'Unknown channel type: {channel_type}')
 
-        v_vec = self.chan_func(t_vec=t_vec, **kwargs)
+        if channel_type == 's4p':
+            s4p = str(kwargs['s4p'])
+            dt = 1/sampl_rate
+            T = (resp_depth-1)*dt
+            zs = kwargs.get('zs', 50)
+            zl = kwargs.get('zl', 50)
+            t_vec, v_vec = s4p_to_step(s4p, dt=dt, T=T, zs=zs, zl=zl)
+        else:
+            t_vec = np.linspace(0, (resp_depth - 1) / sampl_rate, resp_depth)
+
+            if channel_type == 'step':
+                self.chan_func = step_channel
+            elif channel_type == 'exponent':
+                self.chan_func = exponential_channel
+            elif channel_type == 'arctan':
+                self.chan_func = arctan_channel
+            elif channel_type == 'skineffect':
+                self.chan_func = skineffect_channel
+            elif channel_type == 'boesch':
+                self.chan_func = boesch_channel
+            else:
+                raise Exception(f'Unknown channel type: {channel_type}')
+
+            v_vec = self.chan_func(t_vec=t_vec, **kwargs)
+
         # call the super constructor
         super().__init__(t_vec=t_vec, v_vec=v_vec)
 

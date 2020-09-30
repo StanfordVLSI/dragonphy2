@@ -1,3 +1,4 @@
 dt: 0.1e-6
-n_bits: 8
-t_per: 1.0e-9
+n_bits: 9
+t_per: 250.0e-12
+depth: 3

@@ -1,6 +1,10 @@
 # upgrade pip
 pip install -U pip
 
+# uncomment to install HardFloat
+# wget -O install_hardfloat.sh https://git.io/JJ5YF
+# source install_hardfloat.sh
+
 # install Genesis2
 git clone https://github.com/StanfordVLSI/Genesis2.git
 export GENESIS_HOME=`realpath Genesis2/Genesis2Tools`
@@ -17,15 +21,21 @@ export mLINGUA_DIR=`realpath DaVE/mLingua`
 # install dragonphy
 pip install -e .
 
-# make dependencies for design
-# TODO: should other views be used as well?
-python make.py --view asic
-python make.py --view fpga
-python make.py --view cpu
-
 # install pytest
 pip install pytest pytest-cov
 
-# run tests and upload coverage
-pytest tests -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
+# run tests
+if [[ -z "${FPGA_SERVER}" ]]; then
+    python make.py --view cpu
+    pytest tests/other_tests tests/cpu_block_tests tests/cpu_system_tests \
+        -s -v -r s --cov-report=xml --cov=dragonphy --durations=0
+else
+    python make.py --view fpga
+    xvfb-run pytest tests/fpga_block_tests tests/fpga_system_tests/emu \
+        tests/fpga_system_tests/emu_macro/test_emu_macro.py::test_1 \
+        tests/fpga_system_tests/emu_macro/test_emu_macro.py::test_2 \
+        -s -v -r s --cov-report=xml --cov=dragonphy --durations=0 -x
+fi
+
+# upload coverage
 bash <(curl -s https://codecov.io/bash)

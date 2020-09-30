@@ -12,7 +12,7 @@
 ! herein, including but not limited to any implied warranties of merchantability or fitness for a 
 ! particular purpose.
 !
-! Note 1 – This data is representative of the implementation that was measured only.  
+! Note 1 - This data is representative of the implementation that was measured only.
 ! Backplane channel behavior is highly sensitive to implementation, which includes board 
 ! materials, trace geometry information, connector pin out, layer connection, use of stub removal 
 ! techniques, such as backdrilling or blind/buried vias, etc.
@@ -22,11 +22,11 @@
 ! behavior of the Z-PACK HM-Zd should be reviewed with Tyco Electronics prior to any simulations 
 ! to permit assessment of the validity of the assumption. 
 !
-! Note 3 – The backplanes and line cards were designed independently of each other.  
+! Note 3 - The backplanes and line cards were designed independently of each other.
 ! Furthermore, the SMA line cards were designed for another pinout.  Hence, there is no 
 ! optimization to limit the overall total skew of the system.  
 !
-! This file, "Case4 FM 13SI 20 T D13 L6.s4p", should be used in conjunction with the following files – 
+! This file, "Case4 FM 13SI 20 T D13 L6.s4p", should be used in conjunction with the following files -
 !	Case4 FM 13SI 20 N1 D13 L6.s4p - NEXT Aggressor N1
 !	Case4 FM 13SI 20 N2 D13 L6.s4p - NEXT Aggressor N2
 !	Case4 FM 13SI 20 F D13 L6.s4p - FEXT Aggressor
@@ -47,37 +47,37 @@
 !
 ! The backplane used for this testing was from 
 ! Kaparel Corporation
-! Contact – Mike Peters
+! Contact - Mike Peters
 ! 519.725.0101
-! Email – mpeters@kaparel.com
+! Email - mpeters@kaparel.com
 !
 ! The line cards used for this testing were from 
 ! Tyco Electronics
-! Contact – John D’Ambrosia
-! Email – john.dambrosia@tycoelectronics.com
+! Contact - John D'Ambrosia
+! Email - john.dambrosia@tycoelectronics.com
 !
 ! This data was taken by the University of New Hampshire InterOperability Laboratory (UNH-
-! IOL) during the week of August 30, 2004.  The test setup consisted of the following –
-! 		- Agilent 8720ES with N4418A test set  ---  
+! IOL) during the week of August 30, 2004.  The test setup consisted of the following -
+! 		- Agilent 8720ES with N4418A test set
 !	- Also known as the Agilent N1951A 20GHz Physical Layer Test 
 !	   System (S/N US0020201)
-!	- Calibrations are SOLT (short open load thru)  to 26GHz cal set  into 50ohm
-!	   loads at the end of SMA cables.   
-! 	- No de-embedding of the SMA’s or line cards were attempted / included. 
+!	- Calibrations are SOLT (short open load thru) - to 26GHz cal set - into 50ohm
+!	   loads at the end of SMA cables.
+! 	- No de-embedding of the SMA's or line cards were attempted / included.
 !	- Equipment Settings done in accordance with the latest guidelines from the 
 !	   IEEE 802.3ap Channel Ad Hoc at the time of testing, except where noted - 
 !		- Step Size - 10 MHz
-! 		- IF BW – 300 Hz
+! 		- IF BW - 300 Hz
 !		- Launch Power - -5 dBm
-!		- Averaging – was not supported with equipment / software 
+!		- Averaging was not supported with equipment / software
 !
 !	Port 1 -----> |      	| -----> Port 2
 !		        |  DUT	|
 !	Port 3 -----> |		| -----> Port 4
 !		
 ! For further information regarding this testing, please contact
-! UNH – IOL
-! Contact – Bob Noseworthy
+! UNH - IOL
+! Contact - Bob Noseworthy
 ! 603-862-4342 {Office}
 ! 603-862-0205 {10GEC Lab}
 ! 10 Gigabit Ethernet Consortium Manager
@@ -85,14 +85,14 @@
 ! 
 ! For further information regarding the Z-PACK HM-Zd connector, please contact:
 ! Tyco Electronics
-! Contact – Bob Hnatuck
+! Contact - Bob Hnatuck
 ! 717-592-4168
-! Email – rhnatuck@tycoelectronics.com
+! Email - rhnatuck@tycoelectronics.com
 !
 ! Tyco Electronics would like to express its gratitude to the following individuals for making the 
-! availability of this data possible –
+! availability of this data possible -
 ! UNH-IOL- Bob Noseworthy and Jeff Lapak
-! Kaparel Corporation – Jacques Lourde and Robert Jardon
+! Kaparel Corporation - Jacques Lourde and Robert Jardon
 !
 # MHZ S DB R 50.00
 !
