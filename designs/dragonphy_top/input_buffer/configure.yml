@@ -10,5 +10,5 @@ commands:
 outputs:
   - input_buffer.lef
   - input_buffer.gds
-  - input_buffer.lvs.v
+  - input_buffer.spi
   - input_buffer.version
