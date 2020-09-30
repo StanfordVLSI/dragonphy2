@@ -5,7 +5,6 @@ steps:
       source /cad/modules/tcl/init/bash
       module load base xcelium
       export DW_TAP=/cad/synopsys/syn/L-2016.03-SP5-5/dw/sim_ver/DW_tap.v
-      export BUILD_VIEW=cpu
       printenv
 
       # create virtual environment
@@ -18,7 +17,8 @@ steps:
       # deactivate virtual environment
       deactivate
     artifact_paths:
-      - "tests/new_tests/*/build/*.eps"
+      - "tests/*/*/build/*.eps"
+      - "tests/other_tests/sparams/*.eps"
     timeout_in_minutes: 60
     agents:
       fault2: "true"
@@ -28,7 +28,6 @@ steps:
       # modules loaded aim to match those used by Garnet
       source /cad/modules/tcl/init/bash
       module load base xcelium lc pts syn/latest genus innovus/19.10.000 icadv/12.30.712 calibre/2019.1
-      export BUILD_VIEW=asic
       export DRAGONPHY_PROCESS=FREEPDK45
       export FREEPDK45=/cad/freepdk/FreePDK45
       printenv
@@ -43,7 +42,7 @@ steps:
       # deactivate virtual environment
       deactivate
     artifact_paths:
-      - "tests/new_tests/*/build/*.eps"
+      - "tests/*/*/build/*.eps"
       - "build/*/*-synopsys-dc-synthesis/logs/dc.log"
       - "build/*/*-synopsys-dc-synthesis/outputs/design.v"
       - "build/*/*-synopsys-dc-synthesis/reports/*.mapped.qor.rpt"
@@ -57,18 +56,41 @@ steps:
       source /etc/environment
       export FPGA_SERVER=1
       export DW_TAP=/tools/synopsys/syn/L-2016.03-SP5-5/dw/sim_ver/DW_tap.v
-      export BUILD_VIEW=fpga
+      export TAP_CORE_LOC=/tools/synopsys/syn/L-2016.03-SP5-5/dw/syn_ver/tap_core.edf
       printenv
 
       # create virtual environment
       python3.7 -m venv venv
       source venv/bin/activate
 
+      # scale down the size of the FFE and MLSD to fit on the regression FPGA
+      sed -i 's/\&ffe_length [[:digit:]]\+/\&ffe_length 4/g' config/system.yml
+      sed -i 's/\&estimate_depth [[:digit:]]\+/\&estimate_depth 4/g' config/system.yml
+
+      # scale down the channel response length to fit on the regression FPGA
+      sed -i 's/num_terms: [[:digit:]]\+/num_terms: 5/g' config/fpga/chan.yml
+
       # run regression script
       source regress.sh
 
       # deactivate virtual environment
       deactivate 
+    artifact_paths:
+      - "tests/fpga_system_tests/*/build/*/prj/prj.runs/*/*.log"
+      - "tests/fpga_system_tests/*/build/*/prj/prj.runs/*/*.bit"
+      - "tests/fpga_system_tests/*/build/*/prj/prj.runs/*/*.ltx"
+      - "tests/fpga_system_tests/*/build/*/prj/prj.runs/*/*.xsa"
+      - "tests/fpga_system_tests/*/build/*/prj/prj.runs/*/ps7_init.tcl"
+      - "tests/fpga_system_tests/*/build/*/prj/prj.runs/*/*.hwdef"
+      - "tests/fpga_system_tests/*/build/*/prj/prj.runs/*/*.sysdef"
+      - "tests/fpga_system_tests/*/build/*/prj/prj.sdk/*/*/*.elf"
+      - "tests/fpga_system_tests/*/build/*/prj/prj.sim/*/behav/xsim/*.log"
+      - "tests/fpga_system_tests/*/build/*/prj/prj.sim/*/behav/xsim/*.sh"
+      - "tests/fpga_system_tests/*/prj.yaml"
+      - "tests/fpga_system_tests/*/source.yaml"
+      - "build/all/jtag/reg_list.json"
+      - "build/cpu_models/jtag/jtag_reg_pack.sv"
+      - "build/tb/jtag_drv_pack.sv"
     timeout_in_minutes: 60
     agents:
         fpga_verif: "true"

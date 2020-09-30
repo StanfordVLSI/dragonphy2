@@ -167,22 +167,6 @@ set_dont_touch_network [get_pins idcore/out_buff_i/bufferend_signals]
 set_dont_touch_network [get_pins idcore/out_buff_i/clock_out_*]
 set_dont_touch_network [get_pins idcore/out_buff_i/trigg_out_*]
 
-###############
-# Case analysis
-###############
-
-# Need to specify nominal control codes for the retimer; otherwise
-# there will be timing violations (the point of the retimer is to 
-# account for differences in timing from nominal)
-
-set ctrl_1 "0000111111110000"
-
-for {{set idx 0}} {{$idx < 16}} {{incr idx}} {{
-    set_case_analysis \\
-        [string index $ctrl_1 [expr {{15 - $idx}}]] \\
-        "idcore/jtag_i/ddbg_intf_i_retimer_mux_ctrl_1[$idx]"
-}}
-
 #################
 # Net constraints
 #################

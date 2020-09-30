@@ -55,8 +55,11 @@ __pycache__
 *.str
 *.diag
 *.svg
+*.pickle
 
 .Xil
+*.debug
+*.layout
 fpga_prj
 
 build_*
@@ -65,6 +68,10 @@ xrun.*
 waves.*
 wave.*
 .simvision*
+DVEfiles
 
 *_gpack.sv
 build/
+
+HardFloat-1/
+install_hardfloat.sh

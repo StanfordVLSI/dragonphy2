@@ -1,9 +1,17 @@
 from pathlib import Path
-from msdsl import MixedSignalModel, VerilogGenerator, to_sint, clamp_op
-from msdsl.expr.expr import array
+import numpy as np
+
+from msdsl import MixedSignalModel, VerilogGenerator, to_sint, clamp_op, to_uint
+from msdsl.expr.extras import if_
+from msdsl.expr.format import SIntFormat
+
+from dragonphy import get_dragonphy_real_type
 
 class RXAdcCore:
     def __init__(self, filename=None, **system_values):
+        # set a fixed random seed for repeatability
+        np.random.seed(3)
+
         module_name = Path(filename).stem
         build_dir   = Path(filename).parent
 
@@ -11,20 +19,24 @@ class RXAdcCore:
         assert (all([req_val in system_values for req_val in self.required_values()])), \
             f'Cannot build {module_name}, Missing parameter in config file'
 
-        m = MixedSignalModel(module_name, dt=system_values['dt'], build_dir=build_dir)
+        m = MixedSignalModel(module_name, dt=system_values['dt'], build_dir=build_dir,
+                             real_type=get_dragonphy_real_type())
+
+        # Random number generator seed (default generated with random.org)
+        m.add_digital_input('noise_seed', width=32)
+
         # main I/O: input, output, and clock
         m.add_analog_input('in_')
-        m.add_digital_output('out', width=system_values['n'], signed=True)
+        m.add_digital_output('out_sgn')
+        m.add_digital_output('out_mag', width=system_values['n'])
         m.add_digital_input('clk_val')
-        # timestep control: DT request and response
-        m.add_analog_output('dt_req')
-        m.add_analog_input('emu_dt')
+
         # emulator clock and reset
         m.add_digital_input('emu_clk')
         m.add_digital_input('emu_rst')
-        # additional input: maximum timestep
-        # TODO: clean this up
-        m.add_analog_input('dt_req_max')
+
+        # Noise controls
+        m.add_analog_input('noise_rms')
 
         # determine when sampling should happen
         m.add_digital_state('clk_val_prev')
@@ -37,22 +49,29 @@ class RXAdcCore:
         m.add_digital_state('pos_edge_prev', init=0)
         m.set_next_cycle(m.pos_edge_prev, m.pos_edge, clk=m.emu_clk, rst=m.emu_rst)
 
-        # sample channel value at the right time
-        vp, vn, n = system_values['vp'], system_values['vn'], system_values['n']
-        expr = ((m.in_ - vn) / (vp - vn) * ((2 ** n) - 1)) - (2 ** (n - 1))
-        expr = clamp_op(expr, -(2 ** (n - 1)), (2 ** (n - 1)) - 1)
-        expr = to_sint(expr, width=n)
-        m.set_next_cycle(m.out, expr, clk=m.emu_clk, rst=m.emu_rst, ce=m.pos_edge_prev)
+        # add noise
+        sample_noise = m.set_gaussian_noise('sample_noise', std=m.noise_rms, clk=m.emu_clk,
+                                            rst=m.emu_rst, lfsr_init=m.noise_seed)
+        in_plus_noise = m.bind_name('in_plus_noise', m.in_ + sample_noise)
 
-        # stall if needed
-        dt_req_array = array(
-            [m.dt_req_max, 0.0],
-            m.pos_edge_prev,
-            real_range_hint=m.emu_dt.format_.range_,
-            width=m.emu_dt.format_.width,
-            exponent=m.emu_dt.format_.exponent
-        )
-        m.set_this_cycle(m.dt_req, dt_req_array)
+        # determine out_sgn (note that the definition is opposite of the typical
+        # meaning; "0" means negative)
+        out_sgn = if_(in_plus_noise < 0, 0, 1)
+        m.set_next_cycle(m.out_sgn, out_sgn, clk=m.emu_clk, rst=m.emu_rst, ce=m.pos_edge_prev)
+
+        # determine out_mag
+        vref, n = system_values['vref'], system_values['n']
+        abs_val = if_(in_plus_noise < 0, -1.0*in_plus_noise, in_plus_noise)
+        code_real_unclamped = (abs_val / vref) * ((2**(n-1))-1)
+        code_real = clamp_op(code_real_unclamped, 0, (2**(n-1))-1)
+        code_sint = to_sint(code_real, width=n+1)
+
+        # TODO: clean this up -- since real ranges are not intervals, we need to tell MSDSL
+        # that the range of the signed integer is smaller
+        code_sint.format_ = SIntFormat(width=n+1, min_val=0, max_val=(2**(n-1))-1)
+
+        code_uint = to_uint(code_sint, width=n)
+        m.set_next_cycle(m.out_mag, code_uint, clk=m.emu_clk, rst=m.emu_rst, ce=m.pos_edge_prev)
 
         # generate the model
         m.compile_to_file(VerilogGenerator())
@@ -61,4 +80,4 @@ class RXAdcCore:
 
     @staticmethod
     def required_values():
-        return ['dt', 'vp', 'vn', 'n']
+        return ['dt', 'vref', 'n']

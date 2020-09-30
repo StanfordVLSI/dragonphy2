@@ -1,7 +1,6 @@
-import numpy as np
 from pathlib import Path
 
-from dragonphy import Channel, Wiener, Quantizer, Packager
+from dragonphy import Channel, Packager
 
 class AdaptFir:
     def __init__(self,  filename=None, **system_values):
@@ -10,51 +9,19 @@ class AdaptFir:
         ffe_config      = system_values['generic']['ffe']
         constant_config = system_values['generic']
         mlsd_config     = system_values['generic']['mlsd']
-        comp_config      = system_values['generic']['comp']
+        comp_config     = system_values['generic']['comp']
+
         # create channel model
+        chan_resp_depth = 512
+        chan_samp_step = 1e-9/(chan_resp_depth-1)
         kwargs = dict(
-            channel_type='arctan',
-            tau=0.25e-9,
-            t_delay=4e-9,
-            sampl_rate=10e9,
-            resp_depth=500
+            channel_type='exponent',
+            tau=100e-12,
+            t_delay=10*chan_samp_step,
+            sampl_rate=1/chan_samp_step,
+            resp_depth=chan_resp_depth
         )
         chan = Channel(**kwargs)
-
-        # create a channel model delayed such that the optimal
-        # cursor position is an integer
-        # TODO: clean this up
-        kwargs_d = kwargs.copy()
-        kwargs_d['t_delay'] += 0.5e-9
-        chan_d = Channel(**kwargs_d)
-
-        # compute response of channel to codes
-        iterations = 200000
-        ideal_codes = np.random.randint(2, size=iterations) * 2 - 1
-        chan_out = chan_d.compute_output(ideal_codes)
-
-        # Adapt to the channel
-        cursor_pos = 5
-        adapt = Wiener(
-            step_size=ffe_config['adaptation']['args']['mu'],
-            num_taps=ffe_config['parameters']['length'],
-            cursor_pos=cursor_pos
-        )
-        for i in range(iterations - cursor_pos):
-            adapt.find_weights_pulse(ideal_codes[i - cursor_pos], chan_out[i])
-        weights = adapt.weights
-
-        # Uncomment this line for debugging purposes to
-        # use weights corresponding to a perfect channel
-        # weights = np.array([1.0, 0, 0])
-
-        # Normalize weights
-        weights = weights * (100.0 / np.sum(np.abs(weights)))
-
-        # Quantize the weights
-        # TODO: why isn't "quantized_weights" used?
-        qw = Quantizer(width=ffe_config['parameters']['weight_precision'], signed=True)
-        quantized_weights = qw.quantize_2s_comp(weights)
 
         # create constants package
         Packager(
@@ -81,29 +48,6 @@ class AdaptFir:
         Packager(
             package_name='cmp_gpack',
             parameters=comp_config['parameters'],
-            dir=build_dir
-        ).create_package()
-
-        # Write impulse response to package
-        step_dt = 0.1e-9
-        _, v_step = chan.get_step_resp(f_sig=1 / step_dt, resp_depth=500)
-        Packager(
-            package_name='step_resp_pack',
-            parameters={
-                'step_len': len(v_step),
-                'step_dt': step_dt,
-                'v_step': v_step
-            },
-            dir=build_dir
-        ).create_package()
-
-        # Write weights to package
-        # TODO: why is "weights" used here instead of "quantized_weights"?
-        Packager(
-            package_name='weights_pack',
-            parameters={
-                'read_weights': [int(elem) for elem in weights]
-            },
             dir=build_dir
         ).create_package()
 

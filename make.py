@@ -1,40 +1,42 @@
 from argparse import ArgumentParser
 
-from dragonphy import BuildGraph, Directory
-
-#commetn
+from dragonphy import BuildGraph
 
 def create_fpga_graph():
     graph = BuildGraph('fpga')
 
-    # Default Input Parameters
+    # Configs
+    graph.add_config('system', folders=['config'])
+    graph.add_config('jtag_config', folders=['config'])
     graph.add_config('chan', folders=['config', 'fpga'])
+    graph.add_config('analog_slice_cfg', folders=['config', 'fpga'])
     graph.add_config('osc_model', folders=['config', 'fpga'])
     graph.add_config('rx_adc', folders=['config', 'fpga'])
     graph.add_config('tx', folders=['config', 'fpga'])
     graph.add_config('clk_delay', folders=['config', 'fpga'])
-    graph.add_config('test_loopback_config', folders=['config'])
-    graph.add_config('jtag_config', folders=['config'])
 
+    # Dependencies
     graph.add_input('acore_intf', ext='md', folders=['md'])
     graph.add_input('cdr_intf', ext='md', folders=['md'])
     graph.add_input('sram_multi_intf', ext='md', folders=['md'])
     graph.add_input('sm_ffe_intf', ext='md', folders=['md'])
-
     graph.add_input('dcore_intf', ext='md', folders=['md'])
     graph.add_input('prbs_intf', ext='md', folders=['md'])
 
-
-    # Add msdsl scripts to build list
-    graph.add_python('adapt_fir', 'adapt_fir', 'AdaptFir', view='fpga_models',
-                     folders=['dragonphy'], configs={'test_loopback_config'})
+    # Scripts
+    graph.add_python('adapt_fir', 'adapt_fir', 'AdaptFir', view='chip_src',
+                     folders=['dragonphy'], configs={'system'})
     graph.add_python('jtag', 'jtag', 'JTAG', view='all',
-                     folders=['dragonphy'], 
+                     folders=['dragonphy'],
                      configs={'jtag_config'},
-                     sources={'acore_intf', 'cdr_intf', 'sram_multi_intf','sm_ffe_intf', 'dcore_intf', 'prbs_intf'})
+                     sources={'acore_intf', 'cdr_intf', 'sram_multi_intf',
+                              'sm_ffe_intf','dcore_intf', 'prbs_intf'})
     graph.add_python('chan_core', 'chan_core', 'ChannelCore', view='fpga_models',
                      folders=['dragonphy', 'fpga_models'], sources={'adapt_fir'},
                      configs={'chan'})
+    graph.add_python('analog_slice', 'analog_slice', 'AnalogSlice', view='fpga_models',
+                     folders=['dragonphy', 'fpga_models'], sources={'adapt_fir'},
+                     configs={'analog_slice_cfg'})
     graph.add_python('osc_model_core', 'osc_model_core', 'OscModelCore', view='fpga_models',
                      folders=['dragonphy', 'fpga_models'], configs={'osc_model'})
     graph.add_python('rx_adc_core', 'rx_adc_core', 'RXAdcCore', view='fpga_models',
@@ -46,18 +48,15 @@ def create_fpga_graph():
 
     return graph
 
+
 def create_asic_graph():
     graph = BuildGraph('asic')
 
-    # Default Input Parameters
-    graph.add_config('chan', folders=['config', 'fpga'])
-    graph.add_config('osc_model', folders=['config', 'fpga'])
-    graph.add_config('rx_adc', folders=['config', 'fpga'])
-    graph.add_config('tx', folders=['config', 'fpga'])
-    graph.add_config('clk_delay', folders=['config', 'fpga'])
+    # Configs
     graph.add_config('system', folders=['config'])
     graph.add_config('jtag_config', folders=['config'])
 
+    # Dependencies
     graph.add_input('acore_intf', ext='md', folders=['md'])
     graph.add_input('cdr_intf', ext='md', folders=['md'])
     graph.add_input('sram_multi_intf', ext='md', folders=['md'])
@@ -65,30 +64,26 @@ def create_asic_graph():
     graph.add_input('prbs_intf', ext='md', folders=['md'])
     graph.add_input('sm_ffe_intf', ext='md', folders=['md'])
 
-
-
-    # Add msdsl scripts to build list
-    graph.add_python('adapt_fir', 'adapt_fir', 'AdaptFir', view='new_chip_src',
+    # Scripts
+    graph.add_python('adapt_fir', 'adapt_fir', 'AdaptFir', view='chip_src',
                      folders=['dragonphy'], configs={'system'})
     graph.add_python('jtag', 'jtag', 'JTAG', view='all',
                      folders=['dragonphy'], 
                      configs={'jtag_config'},
-                     sources={'acore_intf', 'cdr_intf', 'sram_multi_intf', 'sm_ffe_intf','dcore_intf', 'prbs_intf'})
+                     sources={'acore_intf', 'cdr_intf', 'sram_multi_intf',
+                              'sm_ffe_intf','dcore_intf', 'prbs_intf'})
 
     return graph
+
 
 def create_cpu_graph():
     graph = BuildGraph('chip_src')
 
-    # Default Input Parameters
-    graph.add_config('chan', folders=['config', 'fpga'])
-    graph.add_config('osc_model', folders=['config', 'fpga'])
-    graph.add_config('rx_adc', folders=['config', 'fpga'])
-    graph.add_config('tx', folders=['config', 'fpga'])
-    graph.add_config('clk_delay', folders=['config', 'fpga'])
-    graph.add_config('test_loopback_config', folders=['config'])
+    # Configs
+    graph.add_config('system', folders=['config'])
     graph.add_config('jtag_config', folders=['config'])
 
+    # Dependencies
     graph.add_input('acore_intf', ext='md', folders=['md'])
     graph.add_input('cdr_intf', ext='md', folders=['md'])
     graph.add_input('sram_multi_intf', ext='md', folders=['md'])
@@ -96,27 +91,17 @@ def create_cpu_graph():
     graph.add_input('prbs_intf', ext='md', folders=['md'])
     graph.add_input('sm_ffe_intf', ext='md', folders=['md'])
 
-
-    # Add msdsl scripts to build list
+    # Scripts
     graph.add_python('adapt_fir', 'adapt_fir', 'AdaptFir', view='chip_src',
-                     folders=['dragonphy'], configs={'test_loopback_config'})
+                     folders=['dragonphy'], configs={'system'})
     graph.add_python('jtag', 'jtag', 'JTAG', view='all',
                      folders=['dragonphy'], 
                      configs={'jtag_config'},
-                     sources={'acore_intf', 'cdr_intf', 'sram_multi_intf', 'sm_ffe_intf','dcore_intf', 'prbs_intf'})
-    graph.add_python('chan_core', 'chan_core', 'ChannelCore', view='chip_src',
-                     folders=['dragonphy', 'fpga_models'], sources={'adapt_fir'},
-                     configs={'chan'})
-    graph.add_python('osc_model_core', 'osc_model_core', 'OscModelCore', view='chip_src',
-                     folders=['dragonphy', 'fpga_models'], configs={'osc_model'})
-    graph.add_python('rx_adc_core', 'rx_adc_core', 'RXAdcCore', view='chip_src',
-                     folders=['dragonphy', 'fpga_models'], configs={'rx_adc'})
-    graph.add_python('tx_core', 'tx_core', 'TXCore', view='chip_src',
-                     folders=['dragonphy', 'fpga_models'], configs={'tx'})
-    graph.add_python('clk_delay_core', 'clk_delay_core', 'ClkDelayCore', view='chip_src',
-                     folders=['dragonphy', 'fpga_models'], configs={'clk_delay'})
+                     sources={'acore_intf', 'cdr_intf', 'sram_multi_intf',
+                              'sm_ffe_intf','dcore_intf', 'prbs_intf'})
 
     return graph
+
 
 def main():
     parser = ArgumentParser()

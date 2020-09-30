@@ -1,16 +1,48 @@
 from pathlib import Path
 import yaml
 
+DEF_DT_WIDTH = 25
+
 class AnasymodProjectConfig:
-    def __init__(self):
+    def __init__(self, fpga_sim_ctrl='UART_ZYNQ'):
+        # validate input
+        assert fpga_sim_ctrl in {'UART_ZYNQ', 'VIVADO_VIO'}, 'Invalid setting.'
+
+        # initialize the config dictionary
         self.config = {
             'PROJECT': {
                 'dt': 50e-9,
                 'board_name': 'ZC702',
                 'plugins': ['msdsl'],
-                'emu_clk_freq': 20e6
+                'emu_clk_freq': 5e6,
+                'cpu_debug_mode': 0,
+                'cpu_debug_hierarchies': [],
+                'flatten_hierarchy': 'rebuilt',
+                'vivado_stack': 2000,
+                'dt_width': DEF_DT_WIDTH
+            },
+            'FPGA_TARGET': {
+                'fpga': {
+                    'fpga_sim_ctrl': fpga_sim_ctrl
+                }
             }
         }
+
+    def set_cpu_debug_mode(self, value):
+        self.config['PROJECT']['cpu_debug_mode'] = value
+
+    def set_vivado_stack(self, value):
+        self.config['PROJECT']['vivado_stack'] = value
+
+    def set_flatten_hierarchy(self, value):
+        assert value in {'none', 'full', 'rebuilt'}, 'Invalid setting.'
+        self.config['PROJECT']['flatten_hierarchy'] = value
+
+    def set_dt_width(self, value):
+        self.config['PROJECT']['dt_width'] = value
+
+    def add_debug_probe(self, depth, path):
+        self.config['PROJECT']['cpu_debug_hierarchies'].append([depth, path])
 
     def set_board_name(self, value):
         self.config['PROJECT']['board_name'] = value
@@ -32,40 +64,55 @@ class AnasymodSourceConfig:
     def __init__(self):
         self.sources = {}
 
-    def add_verilog_sources(self, file_list, fileset=None):
-        if 'verilog_sources' not in self.sources:
-            self.sources['verilog_sources'] = {}
+    def add_generic_sources(self, kind, file_list, fileset=None):
+        if kind not in self.sources:
+            self.sources[kind] = {}
         for file_ in file_list:
+            # determine a unique name for this file
             key = Path(file_).stem
-            if key in self.sources['verilog_sources']:
+            suffix = Path(file_).suffix
+            if (suffix is not None) and (len(suffix) > 1) and (suffix[0] == '.'):
+                key = f'{key}_{suffix[1:]}'
+            if fileset is not None:
+                key = f'{key}_{fileset}'
+            # create entry for this file
+            if key in self.sources[kind]:
                 raise Exception(f'Source "{key}" already defined.')
             else:
-                self.sources['verilog_sources'][key] = {}
-            self.sources['verilog_sources'][key]['files'] = str(file_)
+                self.sources[kind][key] = {}
+            self.sources[kind][key]['files'] = str(file_)
             if fileset is not None:
-                self.sources['verilog_sources'][key]['fileset'] = fileset
+                self.sources[kind][key]['fileset'] = fileset
+
+    def add_edif_files(self, file_list, fileset=None):
+        self.add_generic_sources('edif_files', file_list, fileset)
+
+    def add_verilog_sources(self, file_list, fileset=None):
+        self.add_generic_sources('verilog_sources', file_list, fileset)
 
     def add_verilog_headers(self, header_list, fileset=None):
-        if 'verilog_headers' not in self.sources:
-            self.sources['verilog_headers'] = {}
-        for file_ in header_list:
-            key = Path(file_).stem
-            if key in self.sources['verilog_headers']:
-                raise Exception(f'Header "{key}" already defined.')
-            else:
-                self.sources['verilog_headers'][key] = {}
-            self.sources['verilog_headers'][key]['files'] = str(file_)
-            if fileset is not None:
-                self.sources['verilog_headers'][key]['fileset'] = fileset
+        self.add_generic_sources('verilog_headers', header_list, fileset)
+
+    def add_firmware_files(self, file_list, fileset=None):
+        self.add_generic_sources('firmware_files', file_list, fileset)
 
     def add_defines(self, defines, fileset=None):
         if 'defines' not in self.sources:
             self.sources['defines'] = {}
-        for k, v in defines.items():
-            self.sources['defines'][k]['name'] = k
-            self.sources['defines'][k]['value'] = v
+        for mname, mval in defines.items():
+            # determine a unique name for this definition
+            key = mname
             if fileset is not None:
-                self.sources['defines'][k]['fileset'] = fileset
+                key = f'{key}_{fileset}'
+            # create entry for this definition
+            if key in self.sources['defines']:
+                raise Exception(f'Definition "{key}" already specified.')
+            else:
+                self.sources['defines'][key] = {}
+            self.sources['defines'][key]['name'] = mname
+            self.sources['defines'][key]['value'] = mval
+            if fileset is not None:
+                self.sources['defines'][key]['fileset'] = fileset
 
     def write_to_file(self, fname):
         with open(fname, 'w') as f:
