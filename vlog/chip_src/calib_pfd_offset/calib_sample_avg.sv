@@ -7,7 +7,7 @@ held constant while the average is being updated, and change only
 when enabled by the "update" signal.
 
 Assumptions:
-The "update" signal pulses high once every Navg cycles.
+The "update" signal pulses high once every 2**Navg cycles.
 
 ********************************************************************/
 
@@ -26,62 +26,62 @@ module calib_sample_avg #(
     output reg signed [Nadc+2**Nrange-1:0] sum_out
 );
 
-//////////////////////
-// internal signals //
-//////////////////////
+    //////////////////////
+    // internal signals //
+    //////////////////////
 
-logic signed [(Nadc+(2**Nrange)-1):0] sum_pre;
-logic signed [(Nadc-1):0] avg_out_pre;
-logic signed [(Nadc+(2**Nrange)-1):0] sum_add_din;
-logic signed [(Nadc+(2**Nrange)-1):0] sum;
+    logic signed [(Nadc+(2**Nrange)-1):0] sum_pre;
+    logic signed [(Nadc-1):0] avg_out_pre;
+    logic signed [(Nadc+(2**Nrange)-1):0] sum_add_din;
+    logic signed [(Nadc+(2**Nrange)-1):0] sum;
 
-/////////////////
-// assignments //
-/////////////////
+    /////////////////
+    // assignments //
+    /////////////////
 
-assign sum_add_din = sum + din;
-assign sum_pre = update ? din : sum_add_din ;
-assign avg_out_pre = sum >>> Navg;
+    assign sum_add_din = sum + din;
+    assign sum_pre = update ? din : sum_add_din;
+    assign avg_out_pre = sum >>> Navg;
 
-/////////
-// sum //
-/////////
+    /////////
+    // sum //
+    /////////
 
-always @(posedge clk or negedge rstb) begin
-    if (!rstb) begin
-        sum <= 0;
-    end else begin
-        sum <= sum_pre;
+    always @(posedge clk or negedge rstb) begin
+        if (!rstb) begin
+            sum <= 0;
+        end else begin
+            sum <= sum_pre;
+        end
     end
-end
 
-/////////////
-// sum_out //
-/////////////
+    /////////////
+    // sum_out //
+    /////////////
 
-always @(posedge clk) begin
-    if (!rstb) begin
-        sum_out <= '0;
-    end else if (update) begin
-        sum_out <= sum;
-    end else begin
-        sum_out <= sum_out;
+    always @(posedge clk) begin
+        if (!rstb) begin
+            sum_out <= '0;
+        end else if (update) begin
+            sum_out <= sum;
+        end else begin
+            sum_out <= sum_out;
+        end
     end
-end
 
-/////////////
-// avg_out //
-/////////////
+    /////////////
+    // avg_out //
+    /////////////
 
-always @(posedge clk or negedge rstb) begin
-    if (!rstb) begin
-        avg_out <= '0;
-    end else if (update) begin
-        avg_out <= avg_out_pre;
-    end else begin
-        avg_out <= avg_out;
+    always @(posedge clk or negedge rstb) begin
+        if (!rstb) begin
+            avg_out <= '0;
+        end else if (update) begin
+            avg_out <= avg_out_pre;
+        end else begin
+            avg_out <= avg_out;
+        end
     end
-end
 
 endmodule
 

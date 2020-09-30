@@ -154,7 +154,8 @@ def test_ext_offset(simulator_name, offset):
 
     print('Success!')
 
-def test_int_offset(simulator_name, offset=16):
+@pytest.mark.parametrize('offset,init', [(16, 0), (16, 32), (16, 16)])
+def test_int_offset(simulator_name, offset, init):
     # set defaults
     if simulator_name is None:
         if shutil.which('iverilog'):
@@ -167,9 +168,9 @@ def test_int_offset(simulator_name, offset=16):
 
     # initialize
     t.zero_inputs()
-    t.poke(dut.en_pfd_cal, 1)
+    t.poke(dut.en_pfd_cal, 0)
     t.poke(dut.en_ext_pfd_offset, 0)
-    t.poke(dut.ext_pfd_offset, 0)
+    t.poke(dut.ext_pfd_offset, init)
     t.poke(dut.Nbin, Nbin)
     t.poke(dut.Navg, Navg)
     t.poke(dut.DZ, DZ)
@@ -179,12 +180,19 @@ def test_int_offset(simulator_name, offset=16):
     t.poke(dut.rstb, 1)
     t.step(2)
 
+    # run one update cycle
+    t.poke(dut.update, 1)
+    t.step(2)
+    t.poke(dut.update, 0)
+    t.step(2)
+
     # send in data
     n_data = 25*(1<<Navg)
     data_in = [int(round(100*sin(2*pi*n/123.456)))
                for n in range(n_data)]
     data_out = []
 
+    t.poke(dut.en_pfd_cal, 1)
     for k in range(n_data):
         # manage the update pulse
         if k%(1<<Navg) == 0:
