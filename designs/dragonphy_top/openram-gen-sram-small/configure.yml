@@ -1,0 +1,54 @@
+# Adapted from Garnet
+
+name: openram-gen-sram-small
+
+commands:
+  - |
+    ### Option 1 (slow): Run OpenRAM
+    ## generate config file for OpemRAM
+    #python gen_config.py
+    ## run OpenRAM
+    #python $OPENRAM_HOME/openram.py myconfig
+    ## fix metal names in LEF file
+    #cd temp
+    #sed -i 's/LAYER\s+m1/LAYER metal1/g' *.lef
+    #sed -i 's/LAYER\s+m2/LAYER metal2/g' *.lef
+    #sed -i 's/LAYER\s+m3/LAYER metal3/g' *.lef
+    #sed -i 's/LAYER\s+m4/LAYER metal4/g' *.lef
+    #cd ..
+
+    ### Option 2 (fast): Download pre-compiled SRAM
+    # Download tarball from GitHub
+    wget https://github.com/StanfordVLSI/dragonphy2/releases/download/v0.0.3/sram_64_256_freepdk45.tar.gz
+    # Untar
+    tar xzvf sram_64_256_freepdk45.tar.gz
+    # Rename folder to match output of OpenRAM
+    mv sram_64_256_freepdk45 temp
+
+    # Link the outputs needed for mflowgen
+    mkdir -p outputs
+    cd outputs
+    ln -s ../temp/*.lib sram_small_tt.lib
+    ln -s ../temp/*.lef sram_small.lef
+    ln -s ../temp/*.gds sram_small.gds
+    ln -s ../temp/*.sp sram_small.spi
+    cd ..
+
+    # run script to generate a *.db file from the *.lib model
+    mkdir -p build
+    cd build
+    dc_shell-xg-t -f ../generate_db.tcl
+    cd ..
+
+parameters:
+  sram_word_size: 64
+  sram_num_words: 256
+  sram_tech_name: freepdk45
+  sram_output_path: temp
+
+outputs:
+  - sram_small_tt.lib
+  - sram_small.lef
+  - sram_small.gds
+  - sram_small.spi
+  - sram_small_tt.db

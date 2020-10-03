@@ -1,0 +1,20 @@
+name: mc-gen-sram-small
+
+commands:
+  - bash gen_srams.sh
+
+outputs:
+  - sram_small.v
+  - sram_small_pwr.v
+  - sram_small.lef
+  - sram_small_tt.lib
+  - sram_small_tt.db
+  - sram_small.gds
+  - sram_small.spi
+
+parameters:
+  sram_word_size: 64
+  sram_num_words: 256
+  sram_mux_size: 4  # TODO: check this
+  sram_corner: "tt0p8v25c"
+  sram_partial_write: True
