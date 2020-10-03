@@ -8,9 +8,9 @@
 
 `default_nettype none
 
-module sram #(
-	parameter integer ADR_BITS=10,
-	parameter integer DAT_BITS=128
+module sram_small #(
+	parameter integer ADR_BITS=8,
+	parameter integer DAT_BITS=64
 ) (
 	input wire logic CLK,
 	input wire logic CEB,
