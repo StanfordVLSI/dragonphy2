@@ -17,6 +17,7 @@ module jtag (
 	prbs_debug_intf.jtag pdbg_intf_i,
 	wme_debug_intf.jtag wdbg_intf_i,
     mdll_r1_debug_intf.jtag mdbg_intf_i,
+    hist_debug_intf.jtag hdbg_intf_i,
 	jtag_intf.target jtag_intf_i
 );
 	raw_jtag_ifc_unq1 rjtag_intf_i(.Clk(clk), .Reset(rstb));
@@ -246,21 +247,20 @@ module jtag (
 	assign rjtag_intf_i.freq_est    = cdbg_intf_i.freq_est;
 	assign rjtag_intf_i.ramp_est    = cdbg_intf_i.ramp_est;
 
-
-
     // PRBS Checker Input
     assign pdbg_intf_i.prbs_cke = rjtag_intf_i.prbs_cke;
     assign pdbg_intf_i.prbs_eqn = rjtag_intf_i.prbs_eqn;
     assign pdbg_intf_i.prbs_chan_sel = rjtag_intf_i.prbs_chan_sel;
     assign pdbg_intf_i.prbs_inv_chicken = rjtag_intf_i.prbs_inv_chicken;
     assign pdbg_intf_i.prbs_checker_mode = rjtag_intf_i.prbs_checker_mode;
+
     // PRBS Checker Output
     assign rjtag_intf_i.prbs_err_bits_upper = pdbg_intf_i.prbs_err_bits_upper;
     assign rjtag_intf_i.prbs_err_bits_lower = pdbg_intf_i.prbs_err_bits_lower;
     assign rjtag_intf_i.prbs_total_bits_upper = pdbg_intf_i.prbs_total_bits_upper;
     assign rjtag_intf_i.prbs_total_bits_lower = pdbg_intf_i.prbs_total_bits_lower;
 
-    // PRBS Generator Input (for BIST)
+    // PRBS Generator Input (for PRBS checker BIST)
     assign pdbg_intf_i.prbs_gen_cke = rjtag_intf_i.prbs_gen_cke;
     assign pdbg_intf_i.prbs_gen_init = rjtag_intf_i.prbs_gen_init;
     assign pdbg_intf_i.prbs_gen_eqn = rjtag_intf_i.prbs_gen_eqn;
@@ -276,6 +276,24 @@ module jtag (
     assign wdbg_intf_i.wme_mlsd_exec = rjtag_intf_i.wme_mlsd_exec;
     assign rjtag_intf_i.wme_ffe_read  = wdbg_intf_i.wme_ffe_read;
     assign rjtag_intf_i.wme_mlsd_read = wdbg_intf_i.wme_mlsd_read;
+
+    // Histogram inputs
+    assign hdbg_intf_i.hist_mode = rjtag_intf_i.hist_mode;
+    assign hdbg_intf_i.hist_sram_ceb = rjtag_intf_i.hist_sram_ceb;
+    assign hdbg_intf_i.hist_addr = rjtag_intf_i.hist_addr;
+    assign hdbg_intf_i.hist_source = rjtag_intf_i.hist_source;
+    assign hdbg_intf_i.hist_src_idx = rjtag_intf_i.hist_src_idx;
+
+    // Histogram outputs
+    assign rjtag_intf_i.hist_count_upper = hdbg_intf_i.hist_count_upper;
+    assign rjtag_intf_i.hist_count_lower = hdbg_intf_i.hist_count_lower;
+    assign rjtag_intf_i.hist_total_upper = hdbg_intf_i.hist_total_upper;
+    assign rjtag_intf_i.hist_total_lower = hdbg_intf_i.hist_total_lower;
+
+    // Data generator (for histogram BIST)
+    assign hdbg_intf_i.data_gen_mode = rjtag_intf_i.data_gen_mode;
+    assign hdbg_intf_i.data_gen_in_0 = rjtag_intf_i.data_gen_in_0;
+    assign hdbg_intf_i.data_gen_in_1 = rjtag_intf_i.data_gen_in_1;
 
 	//JTAG Interface - Output Buffer Enable is not passed through *
 	assign rjtag_intf_i.tck    = jtag_intf_i.phy_tck;
