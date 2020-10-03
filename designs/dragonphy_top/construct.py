@@ -59,8 +59,10 @@ def construct():
 
     if DRAGONPHY_PROCESS == 'FREEPDK45':
         gen_sram = Step(this_dir + '/openram-gen-sram')
+        gen_sram_small = Step(this_dir + '/openram-gen-sram-small')
     elif DRAGONPHY_PROCESS == 'TSMC16':
         gen_sram = Step(this_dir + '/mc-gen-sram')
+        gen_sram_small = Step(this_dir + '/mc-gen-sram-small')
     else:
         raise Exception(f'Unknown process: {DRAGONPHY_PROCESS}')
 
@@ -116,7 +118,8 @@ def construct():
         'input_buffer_lib.db',
         'output_buffer_lib.db',
         'mdll_r1_top_lib.db',
-        'sram_tt.db'
+        'sram_tt.db',
+        'sram_small_tt.db'
     ]
     dc.extend_inputs(dbs)
     pt_signoff.extend_inputs(dbs)
@@ -128,7 +131,8 @@ def construct():
         'mdll_r1_top.lib',
         'input_buffer.lib',
         'output_buffer.lib',
-        'sram_tt.lib'
+        'sram_tt.lib',
+        'sram_small_tt.lib'
     ]
 
     lefs = [
@@ -136,7 +140,8 @@ def construct():
         'input_buffer.lef',
         'output_buffer.lef',
         'mdll_r1_top.lef',
-        'sram.lef'
+        'sram.lef',
+        'sram_small.lef'
     ]
 
     lib_lef_steps = \
@@ -150,7 +155,8 @@ def construct():
         'input_buffer.gds',
         'output_buffer.gds',
         'mdll_r1_top.gds',
-        'sram.gds'
+        'sram.gds',
+        'sram_small.gds'
     ]
     gdsmerge.extend_inputs(gds_list)
 
@@ -161,7 +167,8 @@ def construct():
         'input_buffer.spi',
         'output_buffer.lvs.v',
         'mdll_r1_top.lvs.v',
-        'sram.spi'
+        'sram.spi',
+        'sram_small.spi'
     ]
     lvs.extend_inputs(spi_list)
 
@@ -172,6 +179,7 @@ def construct():
     g.add_step( info                 )
     g.add_step( rtl                  )
     g.add_step( gen_sram             )
+    g.add_step( gen_sram_small       )
     g.add_step( constraints          )
     g.add_step( dc                   )
     g.add_step( iflow                )
@@ -228,7 +236,7 @@ def construct():
     # Connect up blocks like analog_core, input_buffer, etc.
     # The QTM step is also included here because it provides
     # *.lib and *.db files for some of the blocks
-    for block in blocks + [gen_sram, qtm]:
+    for block in blocks + [gen_sram, gen_sram_small, qtm]:
         g.connect_by_name(block, dc)
         g.connect_by_name(block, iflow)
         g.connect_by_name(block, init)
