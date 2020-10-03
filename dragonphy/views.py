@@ -155,10 +155,14 @@ def get_deps_asic(cell_name=None, impl_file=None, process='tsmc16'):
     # Process-dependent stubs
     if process == 'freepdk-45nm':
         override['sram'] = 'chip_src_freepdk45'
+        override['sram_small'] = 'chip_src_freepdk45'
         skip.add('sram_144_1024_freepdk45')
+        skip.add('sram_64_256_freepdk45')
     elif process == 'tsmc16':
         override['sram'] = 'chip_src_tsmc16'
+        override['sram_small'] = 'chip_src_tsmc16'
         skip.add('TS1N16FFCLLSBLVTC1024X144M4SW')
+        skip.add('TS1N16FFCLLSBLVTC256X64M4SW')
     else:
         raise Exception(f'Unknown process: {process}')
 
