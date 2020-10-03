@@ -3,6 +3,7 @@ from pathlib import Path
 import os
 import msdsl, svreal
 from svinst import get_defs
+from svinst.defchk import ModDef
 
 from .files import get_dir, get_mlingua_dir
 
@@ -51,22 +52,27 @@ def find_preferred_impl(cell_name, view_order, override):
     raise Exception('Build failed due to a missing cell definition.')
 
 def find_def(cell_name, impl_file, includes, defines):
-    defs = get_defs(impl_file, includes=includes, defines=defines)
-    matches = [def_ for def_ in defs if def_.name == cell_name]
-    if len(matches) == 0:
-        print(f'Found no matches for cell_name={cell_name}:')
-        print(f'using impl_file={impl_file}')
-        print(f'using includes={includes}')
-        print(f'using defines={defines}')
-        raise Exception('Build failed due to a missing module definition.')
-    elif len(matches) > 1:
-        print(f'Found multiple matches for cell_name={cell_name}:')
-        print(f'using impl_file={impl_file}')
-        print(f'using includes={includes}')
-        print(f'using defines={defines}')
-        raise Exception('Build failed due to an unexpected module redefinition.')
+    defs = get_defs(impl_file, includes=includes, defines=defines, tool='slang', ignore_errors=True,
+                    suppress_output=True)
+    if len(defs) == 0:
+        return ModDef(Path(impl_file).stem)
     else:
-        return matches[0]
+        return defs[0]
+    # matches = [def_ for def_ in defs if def_.name == cell_name]
+    # if len(matches) == 0:
+    #     print(f'Found no matches for cell_name={cell_name}:')
+    #     print(f'using impl_file={impl_file}')
+    #     print(f'using includes={includes}')
+    #     print(f'using defines={defines}')
+    #     raise Exception('Build failed due to a missing module definition.')
+    # elif len(matches) > 1:
+    #     print(f'Found multiple matches for cell_name={cell_name}:')
+    #     print(f'using impl_file={impl_file}')
+    #     print(f'using includes={includes}')
+    #     print(f'using defines={defines}')
+    #     raise Exception('Build failed due to an unexpected module redefinition.')
+    # else:
+    #     return matches[0]
 
 def get_deps(cell_name=None, view_order=None, override=None,
              skip=None, includes=None, defines=None, impl_file=None,
