@@ -10,5 +10,6 @@ commands:
 outputs:
   - mdll_r1_top.lef
   - mdll_r1_top.gds
+  - mdll_r1_top_macro.cdl
   - mdll_r1_top.lvs.v
   - mdll_r1_top.version
