@@ -39,6 +39,7 @@ module digital_core import const_pack::*; (
     dsp_debug_intf dsp_dbg_intf_i();
     prbs_debug_intf pdbg_intf_i ();
     wme_debug_intf wdbg_intf_i ();
+    hist_debug_intf hdbg_intf_i ();
 
     
     // internal signals
@@ -101,22 +102,20 @@ module digital_core import const_pack::*; (
     assign prbs_gen_rstb    = ddbg_intf_i.prbs_gen_rstb && ext_rstb;
 
 
-    // ADC Output Retimer
+    // ADC Output Reordering
+    // used to do retiming as well, but now that is handled in the analog core
 
-    ti_adc_retimer_v2 retimer_i (
-        .clk_retimer(clk_adc),                // clock for serial to parallel retiming
-
-        .in_data(adcout),                     // serial data
-        .in_sign(adcout_sign),                // sign of serial data
+    ti_adc_reorder reorder_i (
+        // inputs
+        .in_data(adcout),
+        .in_sign(adcout_sign),
         .in_data_rep(adcout_rep),
         .in_sign_rep(adcout_sign_rep),
 
-        .mux_ctrl_1(ddbg_intf_i.retimer_mux_ctrl_1),
-        .mux_ctrl_2(ddbg_intf_i.retimer_mux_ctrl_2),
-
-        .out_data(adcout_retimed),            // parallel data
+        // outputs
+        .out_data(adcout_retimed),
         .out_sign(adcout_sign_retimed),
-        .out_data_rep(adcout_retimed_rep),    // parallel data
+        .out_data_rep(adcout_retimed_rep),
         .out_sign_rep(adcout_sign_retimed_rep) 
     );
 
@@ -421,6 +420,60 @@ module digital_core import const_pack::*; (
         .total_bits(prbs_total_bits)
     );
 
+    // Histogram data generator for BIST
+
+    logic [(Nadc-1):0] data_gen_out;
+
+    histogram_data_gen #(
+        .n(Nadc)
+    ) data_gen_inst (
+        .clk(clk_adc),
+        .mode(hdbg_intf_i.data_gen_mode),
+        .in0(hdbg_intf_i.data_gen_in_0),
+        .in1(hdbg_intf_i.data_gen_in_1),
+        .out(data_gen_out)
+    );
+
+    // Histogram
+    // TODO: is there an MLSD output that should be included?
+
+    logic [(Nadc-1):0] hist_data_in;
+
+    logic [63:0] hist_count;
+    assign hdbg_intf_i.hist_count_upper = hist_count[63:32];
+    assign hdbg_intf_i.hist_count_lower = hist_count[31:0];
+
+    logic [63:0] hist_total;
+    assign hdbg_intf_i.hist_total_upper = hist_total[63:32];
+    assign hdbg_intf_i.hist_total_lower = hist_total[31:0];
+
+    histogram_mux #(
+        .Nti(Nti),
+        .Nti_rep(Nti_rep),
+        .Nadc(Nadc)
+    ) hist_mux_inst (
+        .clk(clk_adc),
+        .source(hdbg_intf_i.hist_source),
+        .index(hdbg_intf_i.hist_src_idx),
+        .adc_data(adcout_unfolded),
+        .ffe_data(trunc_est_bits),
+        .bist_data(data_gen_out),
+        .out(hist_data_in)
+    );
+
+    histogram #(
+        .n_data(Nadc),
+        .n_count(64)
+    ) histogram_inst (
+        .clk(clk_adc),
+        .sram_ceb(hdbg_intf_i.hist_sram_ceb),
+        .mode(hdbg_intf_i.hist_mode),
+        .data(hist_data_in),
+        .addr(hdbg_intf_i.hist_addr),
+        .count(hist_count),
+        .total(hist_total)
+    );
+
     // Output buffer
 
     // wire out PI measurement signals separately 
@@ -488,6 +541,7 @@ module digital_core import const_pack::*; (
         .pdbg_intf_i(pdbg_intf_i),
         .wdbg_intf_i(wdbg_intf_i),
         .mdbg_intf_i(mdbg_intf_i),
+        .hdbg_intf_i(hdbg_intf_i),
         .jtag_intf_i(jtag_intf_i)
     );
 

@@ -18,7 +18,8 @@ steps:
       deactivate
     artifact_paths:
       - "tests/*/*/build/*.eps"
-    timeout_in_minutes: 60
+      - "tests/other_tests/sparams/*.eps"
+    timeout_in_minutes: 90  # we're currently at ~55 min so 60 min was cutting it close
     agents:
       fault2: "true"
   - label: "test_mflowgen"

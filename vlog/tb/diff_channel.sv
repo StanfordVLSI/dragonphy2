@@ -4,6 +4,7 @@
 
 module diff_channel #(
 	parameter channel_type = "simple",
+	parameter real etol = 0.001,  // error tolerance of PWL approximation
 	parameter real tau = -1
 ) (
 	input pwl in_p,
@@ -15,12 +16,14 @@ module diff_channel #(
 	generate
 	if (channel_type == "simple") begin
 		channel_simple #(
+            .etol(etol),
 		    .tau(tau)
 		) channel_p (
 			.in(in_p),
 			.out(out_p)
 		);
 		channel_simple #(
+            .etol(etol),
 		    .tau(tau)
 		) channel_n (
 			.in(in_n),

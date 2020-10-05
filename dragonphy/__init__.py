@@ -1,4 +1,6 @@
 # Some Quality Of Life Libraries
+from .real_type      import get_dragonphy_real_type, add_placeholder_inputs
+from .sparams        import s4p_to_impulse, s4p_to_step
 from .subprocess_run import subprocess_run
 from .enob           import enob
 from .remap          import remap

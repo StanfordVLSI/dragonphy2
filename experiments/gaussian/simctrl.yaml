@@ -1,0 +1,48 @@
+digital_ctrl_inputs:
+  cdf_rst:
+    abspath: 'tb_i.cdf_rst'
+    width: 1
+    init_value: 0
+digital_ctrl_outputs:
+  cdf_m6:
+    abspath: 'tb_i.cdf_m6'
+    width: 32
+  cdf_m5:
+    abspath: 'tb_i.cdf_m5'
+    width: 32
+  cdf_m4:
+    abspath: 'tb_i.cdf_m4'
+    width: 32
+  cdf_m3:
+    abspath: 'tb_i.cdf_m3'
+    width: 32
+  cdf_m2:
+    abspath: 'tb_i.cdf_m2'
+    width: 32
+  cdf_m1:
+    abspath: 'tb_i.cdf_m1'
+    width: 32
+  cdf_0:
+    abspath: 'tb_i.cdf_0'
+    width: 32
+  cdf_p1:
+    abspath: 'tb_i.cdf_p1'
+    width: 32
+  cdf_p2:
+    abspath: 'tb_i.cdf_p2'
+    width: 32
+  cdf_p3:
+    abspath: 'tb_i.cdf_p3'
+    width: 32
+  cdf_p4:
+    abspath: 'tb_i.cdf_p4'
+    width: 32
+  cdf_p5:
+    abspath: 'tb_i.cdf_p5'
+    width: 32
+  cdf_p6:
+    abspath: 'tb_i.cdf_p6'
+    width: 32
+  cdf_tot:
+    abspath: 'tb_i.cdf_tot'
+    width: 32

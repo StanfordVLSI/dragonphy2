@@ -44,6 +44,9 @@ module phase_interpolator #(
     (* dont_touch = "true" *) logic emu_rst;
     (* dont_touch = "true" *) `MAKE_REAL(jitter_rms, 15e-12);
 
+    // random seed
+    (* dont_touch = "true" *) logic [31:0] jitter_seed;
+
     // declare signal for max timestep
     // TODO: make compatible with FLOAT_REAL
     (* dont_touch = "true" *) `DECL_DT(dt_req_max);
@@ -66,6 +69,7 @@ module phase_interpolator #(
         .emu_dt(emu_dt),
         
         // jitter control
+        .jitter_seed(jitter_seed),
         .jitter_rms(jitter_rms),
 
         // emulator clock and reset

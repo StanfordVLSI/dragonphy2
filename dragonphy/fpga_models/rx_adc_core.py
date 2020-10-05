@@ -1,9 +1,11 @@
 from pathlib import Path
 import numpy as np
+
 from msdsl import MixedSignalModel, VerilogGenerator, to_sint, clamp_op, to_uint
-from msdsl.expr.expr import array
 from msdsl.expr.extras import if_
 from msdsl.expr.format import SIntFormat
+
+from dragonphy import get_dragonphy_real_type
 
 class RXAdcCore:
     def __init__(self, filename=None, **system_values):
@@ -17,10 +19,11 @@ class RXAdcCore:
         assert (all([req_val in system_values for req_val in self.required_values()])), \
             f'Cannot build {module_name}, Missing parameter in config file'
 
-        m = MixedSignalModel(module_name, dt=system_values['dt'], build_dir=build_dir)
+        m = MixedSignalModel(module_name, dt=system_values['dt'], build_dir=build_dir,
+                             real_type=get_dragonphy_real_type())
 
         # Random number generator seed (default generated with random.org)
-        m.add_digital_param('noise_seed', width=32, default=8518)
+        m.add_digital_input('noise_seed', width=32)
 
         # main I/O: input, output, and clock
         m.add_analog_input('in_')

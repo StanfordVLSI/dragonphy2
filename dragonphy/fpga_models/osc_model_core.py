@@ -5,6 +5,8 @@ from msdsl import MixedSignalModel, VerilogGenerator
 from msdsl.expr.expr import array
 from msdsl.expr.extras import if_
 
+from dragonphy import get_dragonphy_real_type
+
 class OscModelCore:
     def __init__(self,  filename=None, **system_values):
         # set a fixed random seed for repeatability
@@ -17,7 +19,8 @@ class OscModelCore:
         assert (all([req_val in system_values for req_val in self.required_values()])), \
             f'Cannot build {module_name}, Missing parameter in config file'
 
-        m = MixedSignalModel(module_name, dt=system_values['dt'], build_dir=build_dir)
+        m = MixedSignalModel(module_name, dt=system_values['dt'], build_dir=build_dir,
+                             real_type=get_dragonphy_real_type())
         m.add_real_param('t_del', 0)
         m.add_digital_input('emu_rst')
         m.add_digital_input('emu_clk')

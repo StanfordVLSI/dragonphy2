@@ -61,7 +61,7 @@ module phase_interpolator #(
         delay_s = ((1.0*ctl)/(2.0**(Nbit)))*(250.0e-12);
 
         // add jitter
-        delay_s += (`JITTER_RMS)*($dist_normal(seed, 0, 1000)/1000.0);
+        delay_s += (`JITTER_RMS)*($dist_normal(seed, 0, 10000000)/10000000.0);
 
         // clamp non-negative
         if (delay_s < 0) begin
