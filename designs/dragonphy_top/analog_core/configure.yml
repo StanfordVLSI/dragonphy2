@@ -10,5 +10,5 @@ commands:
 outputs:
   - analog_core.lef
   - analog_core.gds
-  - analog_core.lvs.v
+  - analog_core.spi
   - analog_core.version

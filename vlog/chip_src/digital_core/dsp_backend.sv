@@ -25,13 +25,13 @@ module dsp_backend (
 	localparam integer ffe_pipeline_depth         = 3;
 	localparam integer ffe_code_pipeline_depth    = ffe_code_numPastBuffers + ffe_code_numFutureBuffers + 1;
 	localparam integer cmp_pipeline_depth         = mlsd_bit_numPastBuffers + mlsd_bit_numFutureBuffers + 1;
-	localparam integer code_pipeline_depth        = ffe_code_pipeline_depth + ffe_pipeline_depth + cmp_pipeline_depth + 4;
+	localparam integer code_pipeline_depth        = ffe_code_pipeline_depth + ffe_pipeline_depth + cmp_pipeline_depth + 3;
 	localparam integer mlsd_code_pipeline_depth   = mlsd_code_numPastBuffers + mlsd_code_numFutureBuffers + 1;
 
 	localparam integer ffe_code_start             = 0;
 	localparam integer mlsd_code_start 			  = ffe_pipeline_depth + ffe_code_pipeline_depth + (cmp_pipeline_depth-mlsd_code_pipeline_depth);
 
-    localparam integer pb_buffer_depth            = 5;
+    localparam integer pb_buffer_depth            = 3;
 	//Connecting Wires
 	wire logic [constant_gpack::code_precision-1:0] ucodes_buffer  [constant_gpack::channel_width-1:0][code_pipeline_depth-1:0];
 
@@ -189,7 +189,6 @@ module dsp_backend (
     logic signed [mlsd_gpack::code_precision-1:0] est_seq_0 [2**mlsd_gpack::bit_length-1:0][constant_gpack::channel_width-1:0][mlsd_gpack::length-1:0];
     logic signed [mlsd_gpack::code_precision-1:0] est_seq_1 [2**mlsd_gpack::bit_length-1:0][constant_gpack::channel_width-1:0][mlsd_gpack::length-1:0];
     logic signed [mlsd_gpack::code_precision-1:0] est_seq_2 [2**mlsd_gpack::bit_length-1:0][constant_gpack::channel_width-1:0][mlsd_gpack::length-1:0];
-    logic signed [mlsd_gpack::code_precision-1:0] est_seq_3 [2**mlsd_gpack::bit_length-1:0][constant_gpack::channel_width-1:0][mlsd_gpack::length-1:0];
 
 	logic signed [mlsd_gpack::code_precision-1:0] precalc_seq_vals [2**mlsd_gpack::bit_length-1:0][constant_gpack::channel_width-1:0][mlsd_gpack::length-1:0];
 
@@ -224,7 +223,6 @@ module dsp_backend (
         est_seq_0 <= est_seq;
         est_seq_1 <= est_seq_0 ;
         est_seq_2 <= est_seq_1 ;
-        est_seq_3 <= est_seq_2 ;
     end
 
 
@@ -260,7 +258,7 @@ module dsp_backend (
 		.cbit(mlsd_gpack::est_center)
 	) comb_mlsd_dec_i (
 		.flat_codes  (flat_codes_mlsd),
-		.est_seq     (est_seq_3),
+		.est_seq     (est_seq_2),
 		.shift_index (mlsd_shift),
 		.predict_bits(predict_bits)
 	);

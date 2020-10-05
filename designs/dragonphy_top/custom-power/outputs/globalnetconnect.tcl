@@ -20,10 +20,8 @@ globalNetConnect DVSS -type pgpin -pin DVSS -inst {imdll} -override
 
 globalNetConnect DVDD -type pgpin -pin DVDD -inst {iacore} -override
 globalNetConnect DVSS -type pgpin -pin DVSS -inst {iacore} -override
-
 globalNetConnect AVDD -type pgpin -pin AVDD -inst {iacore} -override
 globalNetConnect AVSS -type pgpin -pin AVSS -inst {iacore} -override
-
 globalNetConnect CVDD -type pgpin -pin CVDD -inst {iacore} -override
 globalNetConnect CVSS -type pgpin -pin CVSS -inst {iacore} -override
 
