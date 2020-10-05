@@ -1,6 +1,8 @@
 from pathlib import Path
 import yaml
 
+DEF_DT_WIDTH = 25
+
 class AnasymodProjectConfig:
     def __init__(self, fpga_sim_ctrl='UART_ZYNQ'):
         # validate input
@@ -16,7 +18,8 @@ class AnasymodProjectConfig:
                 'cpu_debug_mode': 0,
                 'cpu_debug_hierarchies': [],
                 'flatten_hierarchy': 'rebuilt',
-                'dt_width': 25
+                'vivado_stack': 2000,
+                'dt_width': DEF_DT_WIDTH
             },
             'FPGA_TARGET': {
                 'fpga': {
@@ -27,6 +30,9 @@ class AnasymodProjectConfig:
 
     def set_cpu_debug_mode(self, value):
         self.config['PROJECT']['cpu_debug_mode'] = value
+
+    def set_vivado_stack(self, value):
+        self.config['PROJECT']['vivado_stack'] = value
 
     def set_flatten_hierarchy(self, value):
         assert value in {'none', 'full', 'rebuilt'}, 'Invalid setting.'

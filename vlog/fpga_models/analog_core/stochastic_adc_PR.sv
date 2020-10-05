@@ -8,6 +8,7 @@ module stochastic_adc_PR #(
     parameter Nadc = 8
 )(
     input clk_in,
+    input clk_retimer,
     input `pwl_t VinN,
     input `pwl_t VinP,
     input `voltage_t Vcal,
@@ -27,6 +28,8 @@ module stochastic_adc_PR #(
     input [1:0] sel_pm_sign,
     input [1:0] sel_pm_in,
     input en_TDC_phase_reverse,
+    input retimer_mux_ctrl_1,
+    input retimer_mux_ctrl_2,
 
     output clk_adder,
     output reg en_sync_out,
@@ -43,6 +46,12 @@ module stochastic_adc_PR #(
     (* dont_touch = "true" *) logic emu_rst;
     (* dont_touch = "true" *) logic emu_clk;
     (* dont_touch = "true" *) `MAKE_REAL(noise_rms, 250e-3);
+
+    /////////////////
+    // random seed //
+    /////////////////
+
+    (* dont_touch = "true" *) logic [31:0] noise_seed;
 
     ///////////////////////////
     // clk_in edge detection //
@@ -119,6 +128,7 @@ module stochastic_adc_PR #(
         .clk_val(clk_adder),
 
         // noise control
+        .noise_seed(noise_seed),
         .noise_rms(noise_rms),
 
         // emulator clock and reset

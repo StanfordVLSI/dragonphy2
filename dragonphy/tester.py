@@ -24,9 +24,12 @@ class DragonTester:
 
 		# adjust defines
 		defines['DAVE_TIMEUNIT'] = '1fs'
-		defines['NCVLOG'] = None
+		if simulator == 'vcs':
+			defines['VCS'] = None
+		else:
+			defines['NCVLOG'] = None
 		defines['SIMULATION'] = None
-		if dump_waveforms:
+		if (simulator == 'ncsim') and dump_waveforms:
 			defines['DUMP_WAVEFORMS'] = True
 
 		# save kwargs
@@ -39,7 +42,10 @@ class DragonTester:
 		kwargs['inc_dirs'] = inc_dirs
 		kwargs['defines'] = defines
 		kwargs['num_cycles'] = num_cycles
-		kwargs['dump_waveforms'] = False  # this is handled specially, see below...
+		if (simulator == 'ncsim') and dump_waveforms:
+			kwargs['dump_waveforms'] = False  # this is handled specially, see below...
+		else:
+			kwargs['dump_waveforms'] = dump_waveforms
 		self.kwargs = kwargs
 
 		# save dump_waveforms argument -- this is treated as a special case because the
@@ -78,7 +84,7 @@ class DragonTester:
 			if self.clean:
 				flags += ['-clean']
 			if self.seed is not None:
-				flags += ['-seed', self.seed]
+				flags += ['-seed', str(self.seed)]
 			if self.unbuffered:
 				flags += ['-unbuffered']
 			if self.dump_waveforms:
@@ -86,6 +92,10 @@ class DragonTester:
 			# need "-sv" flag because not all files
 			# in DaVE have a ".sv" extension
 			flags += ['-sv']
+		elif self.kwargs['simulator'] == 'vcs':
+			flags += ['-lca']
+			if self.seed is not None:
+				flags += [f'+ntb_random_seed={self.seed}']
 
 		# run the simulation
 		tester.compile_and_run(**self.kwargs, flags=flags)

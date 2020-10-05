@@ -14,9 +14,11 @@ module stochastic_adc_PR #(
     parameter Nctl_TDC = 5,
     parameter Ndiv = 2,
     parameter Nctl_dcdl_fine = 2,
-    parameter Nadc = 8
+    parameter Nadc = 8,
+    parameter real vref = 0.3
 )(
     input clk_in,
+    input clk_retimer,
     input `pwl_t VinN,
     input `pwl_t VinP,
     input `voltage_t Vcal,
@@ -36,6 +38,8 @@ module stochastic_adc_PR #(
     input [1:0] sel_pm_sign,
     input [1:0] sel_pm_in,
     input en_TDC_phase_reverse,
+    input retimer_mux_ctrl_1,
+    input retimer_mux_ctrl_2,
 
     output clk_adder,
     output reg en_sync_out,
@@ -111,7 +115,7 @@ module stochastic_adc_PR #(
     //////////////////
 
     // sampled input voltage
-    real samp_p, samp_n, samp;
+    real samp_p, samp_n, samp, out_mag_real;
 
     // output sign and magnitude
     logic out_sgn;
@@ -122,21 +126,29 @@ module stochastic_adc_PR #(
         samp_p = pm.eval(VinP, `get_time);
         samp_n = pm.eval(VinN, `get_time);
 
-        // determine output sign and take
-        // absolute value of input voltage
-        if (samp_p >= samp_n) begin
-            out_sgn = 1;
-            samp = samp_p - samp_n;
-        end else begin
-            out_sgn = 0;
-            samp = samp_n - samp_p;
-        end
+        // compute differential input voltage
+        samp = samp_p - samp_n;
 
         // add noise
-        samp += (`NOISE_RMS)*($dist_normal(seed, 0, 1000)/1000.0);
+        samp = samp + ((`NOISE_RMS)*($dist_normal(seed, 0, 10000000)/10000000.0));
+
+        // determine output sign and take
+        // absolute value of input voltage
+        if (samp >= 0.0) begin
+            out_sgn = 1;
+        end else begin
+            out_sgn = 0;
+            samp = -1.0*samp;
+        end
 
         // determine output magnitude
-        out_mag = ((1.0*samp) / (0.3)) * ((2.0**(Nadc-1.0))-1.0);
+        out_mag_real = ((1.0*samp) / vref) * ((2.0**(Nadc-1.0))-1.0);
+        `ifndef ADC_ROUNDING
+            out_mag_real = $floor(out_mag_real);
+        `endif
+
+        // convert output magnitude to an integer
+        out_mag = out_mag_real;
 
         // clamp output magnitude
         if (out_mag < 0) begin

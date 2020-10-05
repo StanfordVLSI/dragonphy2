@@ -12,9 +12,9 @@ with open('README.md', 'r') as fh:
 
 requires_list = [
     # anasymod ecosystem
-    'svreal==0.2.4',
-    'msdsl==0.3.1',
-    'anasymod==0.3.2',
+    'svreal==0.2.6',
+    'msdsl==0.3.4',
+    'anasymod==0.3.5.dev6',
     # system-verilog parser
     'svinst==0.1.5',
     # magma ecosystem dependencies
@@ -36,6 +36,7 @@ requires_list = [
     'pygraphviz',
     'html5lib',
     'lxml',
+    'scikit-rf',
     'BeautifulSoup4',
     'justag==0.0.3.3',
     # general requirements with special versions to prevent

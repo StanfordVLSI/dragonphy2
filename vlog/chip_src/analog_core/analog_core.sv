@@ -105,6 +105,7 @@ module analog_core import const_pack::*; #(
                 .VinP(VinP_slice[k/Nout]),
                 .VinN(VinN_slice[k/Nout]),
                 .clk_in(clk_interp_slice[k/Nout]),
+                .clk_retimer(clk_adc),
                 .Vcal(Vcal),
                 .clk_async(clk_async),
                 .en_sync_in(en_sync_in[k]),
@@ -122,6 +123,8 @@ module analog_core import const_pack::*; #(
                 .ctl_dcdl_early(adbg_intf_i.ctl_dcdl_early[k]),
                 .ctl_dcdl(adbg_intf_i.ctl_dcdl_TDC[k]),
                 .en_TDC_phase_reverse(adbg_intf_i.en_TDC_phase_reverse),
+                .retimer_mux_ctrl_1(adbg_intf_i.retimer_mux_ctrl_1[(k/Nout)+((k%Nout)*Nout)]),
+                .retimer_mux_ctrl_2(adbg_intf_i.retimer_mux_ctrl_2[(k/Nout)+((k%Nout)*Nout)]),
 
                 //outputs
                 .en_sync_out(en_sync_out[k]),
@@ -189,6 +192,7 @@ module analog_core import const_pack::*; #(
         .VinP(rx_inp_test),
         .VinN(rx_inn_test),
         .clk_in(clk_in_pi),
+        .clk_retimer(clk_adc),
         .Vcal(Vcal),
         .clk_async(clk_async),
 
@@ -207,6 +211,8 @@ module analog_core import const_pack::*; #(
         .ctl_dcdl_early(adbg_intf_i.ctl_dcdl_early_rep[0]),
         .ctl_dcdl(adbg_intf_i.ctl_dcdl_TDC_rep[0]),
         .en_TDC_phase_reverse(adbg_intf_i.en_TDC_phase_reverse),
+        .retimer_mux_ctrl_1(adbg_intf_i.retimer_mux_ctrl_1_rep[0]),
+        .retimer_mux_ctrl_2(adbg_intf_i.retimer_mux_ctrl_2_rep[0]),
 
         // outputs
         .en_sync_out(),
@@ -222,6 +228,7 @@ module analog_core import const_pack::*; #(
 		.VinP(rx_inp_test),
     	.VinN(rx_inn_test),
     	.clk_in(clk_in_pi),
+    	.clk_retimer(clk_adc),
     	.Vcal(Vcal),
 	    .clk_async(clk_async),
     	
@@ -240,6 +247,8 @@ module analog_core import const_pack::*; #(
 	    .ctl_dcdl_early(adbg_intf_i.ctl_dcdl_early_rep[1]),
 	    .ctl_dcdl(adbg_intf_i.ctl_dcdl_TDC_rep[1]),
 		.en_TDC_phase_reverse(adbg_intf_i.en_TDC_phase_reverse),
+        .retimer_mux_ctrl_1(adbg_intf_i.retimer_mux_ctrl_1_rep[1]),
+        .retimer_mux_ctrl_2(adbg_intf_i.retimer_mux_ctrl_2_rep[1]),
 
 	    // outputs
 	    .en_sync_out(),
