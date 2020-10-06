@@ -286,6 +286,7 @@ def construct():
     g.connect_by_name( postcts_hold,   route          )
     g.connect_by_name( route,          postroute      )
     g.connect_by_name( postroute,      signoff        )
+    g.connect_by_name( signoff,        gdsmerge       )
     g.connect_by_name( signoff,        drc            )
     g.connect_by_name( signoff,        lvs            )
     g.connect_by_name( gdsmerge,       drc            )

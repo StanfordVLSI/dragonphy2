@@ -198,6 +198,44 @@ foreach x [get_object_name $adbg_clk_pins] {{
     set_max_transition {0.025*time_scale} -clock_path [get_clocks clk_mon_net_$x]
 }}
 
+#######################################################################
+# TODO: The following commented-out lines were used to set the maximum
+# transition for various clock signals in the design.  They may have
+# caused issues with unnecessary buffer insertion, so they are
+# currently disabled.  However, we should review the synthesis and PnR
+# results to see if some of these commands should be re-enabled.
+#######################################################################
+
+# # Set transition time for clk_async
+# create_clock -name clk_async_buf -period {1.0*time_scale} [get_pin ibuf_async/clk]
+# set_max_transition {0.1*time_scale} -clock_path [get_clock clk_async_buf]
+#
+# # Set transition time for the 8 GHz output of the main buffer
+# # Note that the period of this clock is declared as 1 GHz due to
+# # limitations in QTMs models mentioned earlier, but the transition
+# # constraint is 10% of an 8 GHz clock (rather than a 1 GHz clock)
+# set_max_transition {0.0125*time_scale} -clock_path [get_clock clk_main_buf]
+#
+# # Set transition time for MDLL reference
+# create_clock -name clk_mdll_refp -period {8.0*time_scale} [get_pin ibuf_mdll_ref/clk]
+# set_max_transition {0.03*time_scale} -clock_path [get_clock clk_mdll_refp]
+# create_clock -name clk_mdll_refn -period {8.0*time_scale} [get_pin ibuf_mdll_ref/clk_b]
+# set_max_transition {0.03*time_scale} -clock_path [get_clock clk_mdll_refn]
+#
+# # Set transition time for MDLL monitor
+# create_clock -name clk_mdll_monp -period {1.0*time_scale} [get_pin ibuf_mdll_mon/clk]
+# set_max_transition {0.1*time_scale} -clock_path [get_clock clk_mdll_monp]
+# create_clock -name clk_mdll_monn -period {1.0*time_scale} [get_pin ibuf_mdll_mon/clk_b]
+# set_max_transition {0.1*time_scale} -clock_path [get_clock clk_mdll_monn]
+#
+# # Set transition time for the MDLL output
+# create_clock -name clk_mdll_out -period {0.25*time_scale} [get_pin imdll/clk_0]
+# set_max_transition {0.03*time_scale} -clock_path [get_clock clk_mdll_out]
+#
+# # Set transition time for the clock going to the CGRA
+# create_clock -name clk_cgra_out -period {1.0*time_scale} [get_pin idcore/clk_cgra]
+# set_max_transition {0.1*time_scale} -clock_path [get_clock clk_cgra_out]
+
 echo [all_clocks]
 '''
 
