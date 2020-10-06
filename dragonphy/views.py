@@ -139,13 +139,9 @@ def get_deps(cell_name=None, view_order=None, override=None,
     return deps
 
 def get_deps_asic(cell_name=None, impl_file=None, process='tsmc16'):
-    # Set of views to override with a specific view
-    override = {
-        'analog_core': 'chip_stubs'
-    }
-
     # Set of views to skip (since a *.db will be provided)
     skip = {
+        'analog_core',
         'input_buffer',
         'output_buffer',
         'mdll_r1_top',
@@ -153,6 +149,7 @@ def get_deps_asic(cell_name=None, impl_file=None, process='tsmc16'):
     }
 
     # Process-dependent stubs
+    override = {}
     if process == 'freepdk-45nm':
         override['sram'] = 'chip_src_freepdk45'
         override['sram_small'] = 'chip_src_freepdk45'

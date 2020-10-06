@@ -128,7 +128,7 @@ set_false_path -through [get_pins ibuf_*/*]
 #############
 
 # TODO do any signals in the debug interface need special treatment?
-set_false_path -through [get_pins iacore/adbg_intf_i_*]
+set_false_path -through [get_pins iacore/adbg_intf_i.*]
 
 ######
 # MDLL

@@ -36,9 +36,6 @@ elaborate {e['design_name']}
 
 # Apply naming rules
 change_names -rules verilog -hierarchy
-
-# Fix the name of "analog_core"
-rename_design analog_core* analog_core
 '''
 
 # write output text
