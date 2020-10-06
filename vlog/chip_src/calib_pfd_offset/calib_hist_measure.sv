@@ -2,105 +2,143 @@
 filename: calib_hist_measure.sv
 
 Description: 
-ADC calibration block. To be synthesized.
-Assumptions:
-
-Todo:
+Implements a mini-histogram that is used to determine whether the
+estimate of the PFD offset should be moved up or down.
 
 ********************************************************************/
 
 `default_nettype none
 
-module calib_hist_measure import const_pack::*; (
+module calib_hist_measure #(
+    parameter integer Nadc=8,
+    parameter integer Nrange=4
+) (
     input wire logic rstb,
     input wire logic clk,
-    input wire logic update,    // synced to clk
-    input wire logic signed [Nadc-1:0] din,
-    input wire logic signed [Nadc-1:0] din_avg,
-    
-    input wire logic [Nrange-1:0] Nbin,
-    input wire logic [Nrange-1:0] DZ,
-    output reg  [2**Nrange-1:0] hist_center,
-    output reg  [2**Nrange-1:0] hist_side,
+    input wire logic update,
+    input wire logic signed [(Nadc-1):0] din,
+    input wire logic signed [(Nadc-1):0] din_avg,
+    input wire logic [(Nrange-1):0] Nbin,
+    input wire logic [(Nrange-1):0] DZ,
+    input wire logic flip_feedback,
+
+    output wire logic [((2**Nrange)-1):0] hist_center,
+    output wire logic [((2**Nrange)-1):0] hist_side,
     output reg signed [1:0] hist_comp_out
 );
 
+    ////////////////
+    // thresholds //
+    ////////////////
 
-// wires, registers
-reg [2**Nrange-1:0] cnt_center;
-reg [2**Nrange-1:0] cnt_left;
-reg [2**Nrange-1:0] cnt_right;
+    logic signed [(Nadc-1):0] th_l2;
+    logic signed [(Nadc-1):0] th_l1;
+    logic signed [(Nadc-1):0] th_r1;
+    logic signed [(Nadc-1):0] th_r2;
 
-reg signed [2**Nrange-1:0] hist_diff;
+    assign th_l2 = din_avg - ((Nbin*3)+1) - 1;
+    assign th_l1 = din_avg - Nbin - 1;
+    assign th_r1 = din_avg + Nbin + 1;
+    assign th_r2 = din_avg + ((Nbin*3)+1) + 1;
 
-wire signed [Nadc-1:0] th_l1;
-wire signed [Nadc-1:0] th_l2;
-wire signed [Nadc-1:0] th_r1;
-wire signed [Nadc-1:0] th_r2;
-wire signed [Nrange:0] DZ_l;
-wire signed [Nrange:0] DZ_r;
-wire [2**Nrange-1:0] cnt_center_pre1, cnt_center_pre;
-wire [2**Nrange-1:0] cnt_left_pre1, cnt_left_pre;
-wire [2**Nrange-1:0] cnt_right_pre1, cnt_right_pre;
-reg signed [1:0] hist_comp_out_pre;
+    ////////////////
+    // comparison //
+    ////////////////
 
-//initial begin 
-//cnt_center=0;
-//cnt_left=0;
-//cnt_right=0;
-//hist_center=0;
-//hist_side=0;
-//hist_diff=0;
-//end
+    logic is_left;
+    logic is_center;
+    logic is_right;
 
-assign th_l1 = din_avg - Nbin - 1;
-assign th_l2 = din_avg - (Nbin*3+1) - 1;
-assign th_r1 = din_avg + Nbin + 1;
-assign th_r2 = din_avg + (Nbin*3+1) +1;
-assign DZ_l  = -1*2**DZ;
-assign DZ_r  = 2**DZ;
+    assign is_left = (th_l2 < din) && (din <= th_l1);
+    assign is_center = (th_l1 < din) && (din < th_r1);
+    assign is_right = (th_r1 <= din) && (din < th_r2);
 
+    //////////////
+    // counting //
+    //////////////
 
-assign cnt_center_pre = ((th_l1 < din) && (din < th_r1))  ? cnt_center + 1 : cnt_center;
-assign cnt_left_pre   = ((th_l2 < din) && (din < th_l1+1))? cnt_left + 1 : cnt_left;
-assign cnt_right_pre  = ((th_r1-1 < din) && (din < th_r2))? cnt_right + 1 : cnt_right;
-assign cnt_center_pre1 = update ? '0 : cnt_center_pre;
-assign cnt_left_pre1 = update ? '0 : cnt_left_pre;
-assign cnt_right_pre1 = update ? '0 : cnt_right_pre;
+    logic [((2**Nrange)-1):0] cnt_left;
+    logic [((2**Nrange)-1):0] cnt_center;
+    logic [((2**Nrange)-1):0] cnt_right;
 
-always_comb begin
-    if (!rstb) begin
-		hist_center =0;
-		hist_side =0;
-		hist_diff =0;
+    logic [((2**Nrange)-1):0] cnt_left_pre;
+    logic [((2**Nrange)-1):0] cnt_center_pre;
+    logic [((2**Nrange)-1):0] cnt_right_pre;
+
+    assign cnt_left_pre   = update ? is_left   : (cnt_left   + is_left);
+    assign cnt_center_pre = update ? is_center : (cnt_center + is_center);
+    assign cnt_right_pre  = update ? is_right  : (cnt_right  + is_right);
+
+    always @(posedge clk or negedge rstb) begin
+        if (!rstb) begin
+            cnt_left <= 0;
+            cnt_center <= 0;
+            cnt_right <= 0;
+        end else begin
+            cnt_left <= cnt_left_pre;
+            cnt_center <= cnt_center_pre;
+            cnt_right <= cnt_right_pre;
+        end
     end
-    else begin
-		hist_center = cnt_center;
-		hist_side = (cnt_left+cnt_right) >> 1;
-		hist_diff = (hist_center - hist_side);
+
+    /////////////////////////
+    // average side counts //
+    /////////////////////////
+
+    logic [(2**Nrange):0] side_sum;  // note the extra bit
+
+    assign side_sum = cnt_left + cnt_right;
+    assign hist_side = side_sum >> 1;
+
+    /////////////////////
+    // side vs. center //
+    /////////////////////
+
+    logic signed [(2**Nrange):0] hist_diff; // note the extra bit
+
+    assign hist_center = cnt_center;
+    assign hist_diff = hist_center - hist_side;
+
+    ///////////////
+    // dead zone //
+    ///////////////
+
+    logic signed [(2**Nrange):0] DZ_l;
+    logic signed [(2**Nrange):0] DZ_r;
+
+    assign DZ_l = -(1<<DZ);
+    assign DZ_r = +(1<<DZ);
+
+    //////////////
+    // comp_out //
+    //////////////
+
+    logic signed [1:0] up;
+    logic signed [1:0] dn;
+
+    assign up = flip_feedback ? -1 : +1;
+    assign dn = flip_feedback ? +1 : -1;
+
+    always @(*) begin
+        if ((hist_center==0) && (hist_side==0)) begin
+            // in this case, no points fell in the center or side bins,
+            // so the PFD offset likely needs to be increased
+            hist_comp_out = up;
+        end else if (hist_diff > DZ_r) begin
+            // in this case, more points fell in the center bin, so
+            // the PFD offset likely needs to be decreased
+            hist_comp_out = dn;
+        end else if (hist_diff < DZ_l) begin
+            // in this case, more points fell in the side bins, so
+            // the PFD offset likely needs to be increased
+            hist_comp_out = up;
+        end else begin
+            // otherwise there is not much difference between the
+            // center and side bins, so the PFD offset estimate
+            // is held constant
+            hist_comp_out = 0;
+        end
     end
-	if (hist_center == 0 && hist_side ==0) hist_comp_out_pre =1;
-	else if (hist_diff > DZ_r) hist_comp_out_pre =-1;
-	else if (hist_diff < DZ_l) hist_comp_out_pre =1;
-	else  hist_comp_out_pre =0;
-end
-
-
-always @(posedge clk, negedge rstb) 
-    if (!rstb) begin
-		cnt_center <= '0;
-		cnt_left <= '0;
-		cnt_right <= '0;
-    end
-    else begin
-		cnt_center <= cnt_center_pre1;
-		cnt_left <= cnt_left_pre1;
-		cnt_right <= cnt_right_pre1;
-	end
-
-
-always @(posedge clk) 
-    hist_comp_out <= hist_comp_out_pre;
 
 endmodule
 
