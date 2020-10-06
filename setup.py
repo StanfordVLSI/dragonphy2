@@ -14,17 +14,17 @@ requires_list = [
     # anasymod ecosystem
     'svreal==0.2.6',
     'msdsl==0.3.4',
-    'anasymod==0.3.5.dev6',
+    'anasymod==0.3.5',
     # system-verilog parser
     'svinst==0.1.5',
     # magma ecosystem dependencies
-    'fault==3.0.11',
-    'magma-lang==2.0.32',
-    'coreir==2.0.63',
-    'mantle==2.0.7',
-    'hwtypes==1.3.6',
-    'ast_tools==0.0.14',
-    'kratos==0.0.27',
+    'fault==3.0.36',
+    'magma-lang==2.1.17',
+    'coreir==2.0.120',
+    'mantle==2.0.10',
+    'hwtypes==1.4.3',
+    'ast_tools==0.0.30',
+    'kratos==0.0.31.1',
     # general requirements
     'pyserial',
     'pexpect',
