@@ -73,7 +73,6 @@ def construct():
 
     dc = Step(this_dir + '/synopsys-dc-synthesis')
     qtm = Step(this_dir + '/qtm')
-
     # Block-level designs (only work in TSMC16)
     blocks = []
     if DRAGONPHY_PROCESS == 'TSMC16':
@@ -84,13 +83,16 @@ def construct():
             Step( this_dir + '/mdll_r1' )
         ]
 
+    init = Step(this_dir + '/cadence-innovus-init')
+    cts  = Step(this_dir + '/cadence-innovus-cts')
+    lvs  = Step(this_dir + '/mentor-calibre-lvs')
     # Default steps
     info           = Step( 'info',                           default=True )
     iflow          = Step( 'cadence-innovus-flowsetup',      default=True )
-    init           = Step( 'cadence-innovus-init',           default=True )
+    #init           = Step( 'cadence-innovus-init',           default=True )
     power          = Step( 'cadence-innovus-power',          default=True )
     place          = Step( 'cadence-innovus-place',          default=True )
-    cts            = Step( 'cadence-innovus-cts',            default=True )
+    #cts            = Step( 'cadence-innovus-cts',            default=True )
     postcts_hold   = Step( 'cadence-innovus-postcts_hold',   default=True )
     route          = Step( 'cadence-innovus-route',          default=True )
     postroute      = Step( 'cadence-innovus-postroute',      default=True )
@@ -99,7 +101,7 @@ def construct():
     genlibdb       = Step( 'synopsys-ptpx-genlibdb',         default=True )
     gdsmerge       = Step( 'mentor-calibre-gdsmerge',        default=True )
     drc            = Step( 'mentor-calibre-drc',             default=True )
-    lvs            = Step( 'mentor-calibre-lvs',             default=True )
+    #lvs            = Step( 'mentor-calibre-lvs',             default=True )
     debugcalibre   = Step( 'cadence-innovus-debug-calibre',  default=True )
 
     # Add extra input edges to innovus steps that need custom tweaks
@@ -160,8 +162,9 @@ def construct():
 
     # Need Spice or Verilog netlists files for black boxes for LVS
     spi_list = [
-        'analog_core.lvs.v',
-        'input_buffer.lvs.v',
+        'analog_core.spi',
+        'mdll_r1_top_macro.cdl',
+        'input_buffer.spi',
         'output_buffer.lvs.v',
         'mdll_r1_top.lvs.v',
         'sram.spi',

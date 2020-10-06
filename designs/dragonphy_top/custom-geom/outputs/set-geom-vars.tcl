@@ -27,6 +27,7 @@ set blockage_height [expr 2*$cell_height]
 
 
 
+set sram_FP_adjust 250
 #set center_x [expr $FP_width/2]
 
 # acore
