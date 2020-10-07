@@ -6,12 +6,13 @@ module flat_buffer #(
 ) (
 	in,
 
-	input wire logic clk,
-	input wire logic rstb,
+	clk,
+	rstb,
 
-	flat_out 
+	buffer	
 );
-
+	input wire logic clk;
+	input wire logic rstb;
 
 generate
 	if(is_signed==1) begin

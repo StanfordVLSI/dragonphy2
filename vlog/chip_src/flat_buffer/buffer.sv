@@ -6,12 +6,15 @@ module buffer #(
 ) (
 	in,
 
-	input wire logic clk,
-	input wire logic rstb,
+	clk,
+	rstb,
 
 	buffer	
 );
 
+
+	input wire logic clk;
+	input wire logic rstb;
 
 generate
 	if(is_signed==1) begin
