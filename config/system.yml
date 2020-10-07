@@ -12,22 +12,6 @@ parameter_list:
   - &channel_shift_precision 4
   - &ffe_shift_precision 5
 
-
-generate:
-  channel:
-    class: "PulseChannel"
-    type: "dielectric1"
-    file_name: "impulse_response.txt"
-    parameters:
-      baud_rate: 1
-      sampling_pos: 0
-      channel_depth: 125
-      tau: 0.0087
-      sample_rate: 100
-      baud_rate: 1
-      cursor_pos: *mlsd_est_cursor_pos
-
-
 generic:
   parameters:
     channel_width: *channel_width
