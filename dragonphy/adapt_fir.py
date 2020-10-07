@@ -16,10 +16,10 @@ class AdaptFir:
         # Need to set the maximum bitwidth for the detector config
 
         chan_bitwidth = detector_config['parameters']['est_channel_precision']
-        code_bitwidth = detector_config['parameters']['est_code_precision']
+        err_bitwidth = detector_config['parameters']['est_error_precision']
 
-        if code_bitwidth > chan_bitwidth:
-            detector_config['parameters']['max_bitwidth'] = code_bitwidth
+        if err_bitwidth > chan_bitwidth:
+            detector_config['parameters']['max_bitwidth'] = err_bitwidth
         else:
             detector_config['parameters']['max_bitwidth'] = chan_bitwidth
 
