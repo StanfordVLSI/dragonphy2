@@ -9,7 +9,6 @@ module dsp_backend (
 
 	dsp_debug_intf.dsp dsp_dbg_intf_i
 );
-	localparam integer ffe_code_centerBuffer      = 0;
 	localparam integer ffe_code_numPastBuffers     = dsp_pack::ffe_code_numPb; //$ceil((ffe_gpack::length-1)*1.0/(constant_gpack::channel_width));
 	localparam integer ffe_code_numFutureBuffers   = 0;
 
@@ -112,8 +111,7 @@ module dsp_backend (
 		.shiftBitwidth(ffe_gpack::shift_precision),
 		.ffeDepth(ffe_gpack::length),
 		.numChannels(constant_gpack::channel_width),
-		.numBuffers    (ffe_code_pipeline_depth),
-		.centerBuffer  (ffe_code_centerBuffer)
+		.numBuffers    (ffe_code_pipeline_depth)
 	) cffe_i (
 		.weights       (weights),
 		.flat_codes    (flat_codes_ffe),
