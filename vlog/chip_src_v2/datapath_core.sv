@@ -9,8 +9,6 @@ module datapath_core #(
     input logic clk,
     input logic rstb,
 
-    output logic 
-
     dsp_debug_intf.dsp dsp_dbg_intf_i //Stand in for Debug Interface
 );
     integer ii, jj;
