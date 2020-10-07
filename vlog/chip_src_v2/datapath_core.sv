@@ -65,7 +65,7 @@ module datapath_core #(
     logic signed [constant_gpack::code_precision-1:0] flat_adc_codes [constant_gpack::channel_width*ffe_code_pipeline_depth-1:0];
     flatten_buffer_slice #(
         .numChannels(constant_gpack::channel_width),
-        .bitwidth   (mlsd_gpack::code_precision),
+        .bitwidth   (constant_gpack::code_precision),
         .buff_depth (code_pipeline_depth),
         .slice_depth(ffe_code_pipeline_depth),
         .start      (ffe_code_start)
