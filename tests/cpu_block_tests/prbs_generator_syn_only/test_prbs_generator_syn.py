@@ -75,5 +75,6 @@ def test_sim(simulator_name):
         ext_model_file=True,
         disp_type='realtime',
         dump_waveforms=True,
-        directory=BUILD_DIR
+        directory=BUILD_DIR,
+        num_cycles=1e12
     )
