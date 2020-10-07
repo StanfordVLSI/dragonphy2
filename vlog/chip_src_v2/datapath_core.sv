@@ -145,7 +145,7 @@ module datapath_core #(
     channel_filter #(
         .width(constant_gpack::channel_width),
         .depth(channel_gpack::est_channel_depth),
-        .shift_bitwidth(channel_gpack::shift_precision)
+        .shift_bitwidth(channel_gpack::shift_precision),
         .est_channel_bitwidth(channel_gpack::est_channel_precision),
         .est_code_bitwidth(channel_gpack::est_code_precision)
     ) chan_filt_i (
