@@ -124,7 +124,8 @@ def test_ext_offset(simulator_name, offset):
         ext_model_file=True,
         disp_type='realtime',
         dump_waveforms=False,
-        directory=BUILD_DIR
+        directory=BUILD_DIR,
+        num_cycles=1e12
     )
 
     ##################
@@ -232,7 +233,8 @@ def test_int_offset(simulator_name, offset, init):
         ext_model_file=True,
         disp_type='realtime',
         dump_waveforms=False,
-        directory=BUILD_DIR
+        directory=BUILD_DIR,
+        num_cycles=1e12
     )
 
     ##################
