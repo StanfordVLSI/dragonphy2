@@ -127,7 +127,8 @@ def test_sim(simulator_name, n_prbs, n_channels=16, n_trials=256):
         ext_model_file=True,
         disp_type='realtime',
         dump_waveforms=False,
-        directory=BUILD_DIR
+        directory=BUILD_DIR,
+        num_cycles=1e12
     )
 
     print(f'err_bits_case_1: {err_bits_case_1.value}')
