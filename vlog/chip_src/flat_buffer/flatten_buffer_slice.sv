@@ -3,27 +3,18 @@ module flatten_buffer_slice #(
 	parameter integer bitwidth 	  = 8,
 	parameter integer buff_depth  = 5,
 	parameter integer slice_depth = 3,
-	parameter integer start		  = 0,
-	parameter integer is_signed   = 0
+	parameter integer start		  = 0
 ) (
 	buffer,
 	flat_slice
 );
 
 
-generate
-	if(is_signed==1) begin
-		input wire logic signed [bitwidth-1:0] buffer [numChannels-1:0][depth-1:0];
-		output 	   logic signed [bitwidth-1:0] flat_slice [numChannels*slice_depth-1:0];
+	input wire logic [bitwidth-1:0] buffer [numChannels-1:0][depth-1:0];
+	output 	   logic [bitwidth-1:0] flat_slice [numChannels*slice_depth-1:0];
 
-		logic signed [bitwidth-1:0] buffer_slice [numChannels-1:0][slice_depth-1:0];
-	end else begin
-		input wire logic [bitwidth-1:0] buffer [numChannels-1:0][depth-1:0];
-		output 	   logic [bitwidth-1:0] flat_slice [numChannels*slice_depth-1:0];
+	logic [bitwidth-1:0] buffer_slice [numChannels-1:0][slice_depth-1:0];
 
-		logic [bitwidth-1:0] buffer_slice [numChannels-1:0][slice_depth-1:0];
-	end
-endgenerate
 
 genvar gi, gj;
 generate

@@ -34,11 +34,10 @@ module datapath_core #(
 
 
     //ADC Codes Pipeline
-    buffer #(
+    signed_buffer #(
         .numChannels (constant_gpack::channel_width),
         .bitwidth    (constant_gpack::code_precision),
-        .depth       (code_pipeline_depth),
-        .is_signed(1)
+        .depth       (code_pipeline_depth)
     ) adc_code_buff_i (
         .in      (adc_codes),
         .clk     (clk),
@@ -52,8 +51,7 @@ module datapath_core #(
     buffer #(
         .numChannels (constant_gpack::channel_width),
         .bitwidth    (1),
-        .depth       (bits_pipeline_depth),
-        .is_signed(0)
+        .depth       (bits_pipeline_depth)
     ) sliced_bits_buff_i (
         .in      (sliced_bits),
         .clk     (clk),
@@ -63,7 +61,7 @@ module datapath_core #(
 
     //FFE
     logic signed [constant_gpack::code_precision-1:0] flat_adc_codes [constant_gpack::channel_width*ffe_code_pipeline_depth-1:0];
-    flatten_buffer_slice #(
+    signed_flatten_buffer_slice #(
         .numChannels(constant_gpack::channel_width),
         .bitwidth   (constant_gpack::code_precision),
         .buff_depth (code_pipeline_depth),
@@ -93,11 +91,10 @@ module datapath_core #(
     //FFE pipeline
     logic signed [ffe_gpack::output_precision-1:0] estimated_bits_buffer [constant_gpack::channel_width-1:0][ffe_pipeline_depth-1:0];
     
-    buffer #(
+    signed_buffer #(
         .numChannels(constant_gpack::channel_width),
         .bitwidth   (ffe_gpack::output_precision),
-        .depth      (ffe_pipeline_depth),
-        .is_signed(1)
+        .depth      (ffe_pipeline_depth)
     ) ffe_reg_i (
         .in (estimated_bits),
         .clk(clk),
@@ -158,11 +155,10 @@ module datapath_core #(
     //Channel pipeline
     logic signed [channel_gpack::est_code_precision-1:0] estimated_codes_buffer [constant_gpack::channel_width-1:0][channel_pipeline_depth-1:0];
     
-    buffer #(
+    signed_buffer #(
         .numChannels(constant_gpack::channel_width),
         .bitwidth   (channel_gpack::est_code_precision),
-        .depth      (channel_pipeline_depth),
-        .is_signed(1)
+        .depth      (channel_pipeline_depth)
     ) chan_reg_i (
         .in (estimated_codes),
         .clk(clk),
@@ -181,11 +177,10 @@ module datapath_core #(
 
     //Error pipeline
     logic signed [error_gpack::est_error_precision-1:0] est_error_buffer [constant_gpack::channel_width-1:0][error_pipeline_depth-1:0];
-    buffer #(
+    signed_buffer #(
         .numChannels(constant_gpack::channel_width),
         .bitwidth   (error_gpack::est_error_precision),
-        .depth      (error_pipeline_depth),
-        .is_signed(1)
+        .depth      (error_pipeline_depth)
     ) error_reg_i (
         .in (est_error),
         .clk(clk),
@@ -197,7 +192,7 @@ module datapath_core #(
     logic signed [error_gpack::est_error_precision-1:0] sd_flat_errors [constant_gpack::channel_width*sliding_detector_input_pipeline_depth-1:0];
     logic sd_flat_sliced_bits [constant_gpack::channel_width*sliding_detector_input_pipeline_depth-1:0];
 
-    flatten_buffer_slice #(
+    signed_flatten_buffer_slice #(
         .numChannels(constant_gpack::channel_width),
         .bitwidth   (error_gpack::est_error_precision),
         .buff_depth (error_pipeline_depth),
@@ -237,11 +232,10 @@ module datapath_core #(
 
     //Detector pipeline
     logic [1:0] argmin_mmse_buffer [constant_gpack::channel_width-1:0][sliding_detector_output_pipeline_depth-1:0];
-    buffer #(
+    signed_buffer #(
         .numChannels(constant_gpack::channel_width),
         .bitwidth   (2),
-        .depth      (sliding_detector_output_pipeline_depth),
-        .is_signed(1)
+        .depth      (sliding_detector_output_pipeline_depth)
     ) argmin_reg_i (
         .in (argmin_mmse),
         .clk(clk),
