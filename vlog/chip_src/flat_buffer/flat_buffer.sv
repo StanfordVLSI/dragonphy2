@@ -1,8 +1,7 @@
 module flat_buffer #(
 	parameter integer numChannels = 16,
 	parameter integer bitwidth 	  = 8,
-	parameter integer depth       = 5,
-	parameter integer is_signed   = 0
+	parameter integer depth       = 5
 ) (
 	input  logic [bitwidth-1:0] in [numChannels-1:0],
 	input  logic clk,

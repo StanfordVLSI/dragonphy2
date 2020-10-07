@@ -3,8 +3,7 @@ module flatten_buffer_slice #(
 	parameter integer bitwidth 	  = 8,
 	parameter integer buff_depth  = 5,
 	parameter integer slice_depth = 3,
-	parameter integer start		  = 0,
-	parameter integer is_signed   = 0
+	parameter integer start		  = 0
 ) (
 	buffer,
 	flat_slice
