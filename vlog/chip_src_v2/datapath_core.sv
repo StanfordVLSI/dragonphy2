@@ -225,7 +225,7 @@ module datapath_core #(
         .seq_length(detector_gpack::seq_length),
         .width(constant_gpack::channel_width),
         .est_error_bitwidth(detector_gpack::est_error_precision),
-        .est_channel_bitwidth(detector_gpack::est_channel_bitwidth),
+        .est_channel_bitwidth(detector_gpack::est_channel_precision),
         .sliding_detector_depth(sliding_detector_input_pipeline_depth)
     ) sld_dtct_i (
         .errstream(sd_flat_errors),
