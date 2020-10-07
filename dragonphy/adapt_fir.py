@@ -6,10 +6,12 @@ class AdaptFir:
     def __init__(self,  filename=None, **system_values):
         build_dir = Path(filename).parent
 
-        ffe_config      = system_values['generic']['ffe']
-        constant_config = system_values['generic']
-        mlsd_config     = system_values['generic']['mlsd']
-        comp_config     = system_values['generic']['comp']
+        ffe_config          = system_values['generic']['ffe']
+        constant_config     = system_values['generic']
+        comp_config         = system_values['generic']['comp']
+        chan_config         = system_values['generic']['channel']
+        error_config        = system_values['generic']['error']
+        detector_config     = system_values['generic']['detector']
 
         # create channel model
         chan_resp_depth = 512
@@ -37,17 +39,32 @@ class AdaptFir:
             dir=build_dir
         ).create_package()
 
-        # Create MLSD package
-        Packager(
-            package_name='mlsd_gpack',
-            parameters=mlsd_config['parameters'],
-            dir=build_dir
-        ).create_package()
-
         # Create Comp package
         Packager(
             package_name='cmp_gpack',
             parameters=comp_config['parameters'],
+            dir=build_dir
+        ).create_package()
+
+        # Create Channel package
+        Packager(
+            package_name='channel_gpack',
+            parameters=chan_config['parameters'],
+            dir=build_dir
+        ).create_package()
+
+
+        # Create Error package
+        Packager(
+            package_name='error_gpack',
+            parameters=error_config['parameters'],
+            dir=build_dir
+        ).create_package()
+
+        # Create Detector package
+        Packager(
+            package_name='detector_gpack',
+            parameters=detector_config['parameters'],
             dir=build_dir
         ).create_package()
 

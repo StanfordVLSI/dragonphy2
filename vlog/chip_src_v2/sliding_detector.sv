@@ -17,10 +17,10 @@ module sliding_detector #(
     generate
         if(est_error_bitwidth > est_channel_bitwidth) begin
             logic signed [est_error_bitwidth*2+4-1:0] sqr_error [1:0][width-1:0][seq_length:0];
-            logic  [est_error_bitwidth*2+4+1:0] mse_err [3:0][width-1:0];
+            logic  [est_error_bitwidth*2+4+$clog2(seq_length)-1:0] mse_err [3:0][width-1:0];
         end else begin
             logic signed [est_channel_bitwidth*2+4-1:0] sqr_error [1:0][width-1:0][seq_length:0];
-            logic  [est_channel_bitwidth*2+4+1:0] mse_err [3:0][width-1:0];
+            logic  [est_channel_bitwidth*2+4+$clog2(seq_length)-1:0] mse_err [3:0][width-1:0];
         end
     endgenerate
 
