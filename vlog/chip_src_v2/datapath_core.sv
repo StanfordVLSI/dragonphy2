@@ -1,8 +1,8 @@
 module datapath_core #(
     parameter integer ffe_pipeline_depth=0,
     parameter integer channel_pipeline_depth=0,
-    parameter integer error_pipeline_depth=0,
-    parameter integer sliding_detector_pipeline_depth=0
+    parameter integer additional_error_pipeline_depth=0,
+    parameter integer sliding_detector_output_pipeline_depth=0
 ) (
     logic signed [constant_gpack::code_precision-1:0] adc_codes [constant_gpack::channel_width-1:0],
 
@@ -12,12 +12,10 @@ module datapath_core #(
     dsp_debug_intf.dsp dsp_dbg_intf_i //Stand in for Debug Interface
 );
     integer ii, jj;
+    genvar gi;
 
-    localparam integer ffe_pipeline_depth = 0;
     localparam integer sliding_detector_input_pipeline_depth = 2;
-    localparam integer error_pipeline_depth = sliding_detector_input_pipeline_depth;
-    localparam integer channel_pipeline_depth = 0;
-    localparam integer sliding_detector_output_pipeline_depth = 0;
+    localparam integer error_pipeline_depth = sliding_detector_input_pipeline_depth+additional_error_pipeline_depth;
 
     localparam integer ffe_code_pipeline_depth = 2;
     localparam integer ffe_code_start          = 0;
@@ -25,11 +23,11 @@ module datapath_core #(
     localparam integer channel_bits_pipeline_depth = 3;
     localparam integer channel_bits_start      = 0;
 
+    localparam integer bits_pipeline_depth = channel_bits_pipeline_depth + channel_pipeline_depth + error_pipeline_depth + sliding_detector_input_pipeline_depth;
+    localparam integer code_pipeline_depth = ffe_code_pipeline_depth + ffe_pipeline_depth + channel_bits_pipeline_depth + channel_pipeline_depth + sliding_detector_input_pipeline_depth;
+
     localparam integer sliding_detector_error_start = error_pipeline_depth - sliding_detector_input_pipeline_depth;
     localparam integer sliding_detector_bit_start   = bits_pipeline_depth - sliding_detector_input_pipeline_depth;
-
-    localparam integer bits_pipeline_depth = channel_bits_pipeline_depth + channel_pipeline_depth + error_pipeline_depth + sliding_detector_input_pipeline_depth;
-    localparam integer code_pipeline_depth = ffe_code_pipeline_depth + ffe_pipeline_depth + channel_bits_pipeline_depth + channel_pipeline_depth + sliding_detector__input_pipeline_depth;
 
     logic signed [constant_gpack::code_precision-1:0] adc_codes_buffer    [constant_gpack::channel_width-1:0][code_pipeline_depth-1:0];
     logic                                             sliced_bits_buffer  [constant_gpack::channel_width-1:0][bits_pipeline_depth-1:0];
@@ -106,9 +104,11 @@ module datapath_core #(
         .rstb(rstb),
         .buffer(estimated_bits_buffer)
     );
+
+    logic signed [ffe_gpack::output_precision-1:0] buffered_estimated_bit [constant_gpack::channel_width-1:0];
     generate
         for(gi=0; gi<constant_gpack::channel_width; gi=gi+1) begin
-            assign estimated_bits_q[gi] = estimated_bits_buffer[gi][ffe_pipeline_depth-1];
+            assign buffered_estimated_bit[gi] = estimated_bits_buffer[gi][ffe_pipeline_depth-1];
         end
     endgenerate
 
@@ -120,7 +120,7 @@ module datapath_core #(
         .thresholdBitwidth (cmp_gpack::thresh_precision),
         .confidenceBitwidth(cmp_gpack::conf_precision)
     ) ccmp_i (
-        .codes(estimated_bits),
+        .codes(buffered_estimated_bit),
         .thresh(thresh),
         .clk       (clk),
         .rstb      (rstb),
@@ -242,7 +242,7 @@ module datapath_core #(
         .bitwidth   (2),
         .depth      (sliding_detector_output_pipeline_depth),
         .is_signed(1)
-    ) error_reg_i (
+    ) argmin_reg_i (
         .in (argmin_mmse),
         .clk(clk),
         .rstb(rstb),
