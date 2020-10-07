@@ -1,32 +1,17 @@
 module flat_buffer #(
 	parameter integer numChannels = 16,
 	parameter integer bitwidth 	  = 8,
-	parameter integer depth       = 5,
-	parameter integer is_signed   = 0
+	parameter integer depth       = 5
 ) (
-	in,
-
-	clk,
-	rstb,
-
-	buffer	
+	input  logic [bitwidth-1:0] in [numChannels-1:0],
+	input  logic clk,
+	input  logic rstb,
+	output 	   logic [bitwidth-1:0] flat_out [numChannels*depth-1:0]
 );
-	input wire logic clk;
-	input wire logic rstb;
 
-generate
-	if(is_signed==1) begin
-		input wire logic signed [bitwidth-1:0] in [numChannels-1:0];
-		output 	   logic signed  [bitwidth-1:0] flat_out [numChannels*depth-1:0];
 
-		logic signed [bitwidth-1:0] internal_pipeline [numChannels-1:0][depth-1:0];
-	end else begin
-		input wire logic [bitwidth-1:0] in [numChannels-1:0];
-		output 	   logic [bitwidth-1:0] flat_out [numChannels*depth-1:0];
+	logic  [bitwidth-1:0] internal_pipeline [numChannels-1:0][depth-1:0];
 
-		logic  [bitwidth-1:0] internal_pipeline [numChannels-1:0][depth-1:0];
-	end
-endgenerate
 
 
 
