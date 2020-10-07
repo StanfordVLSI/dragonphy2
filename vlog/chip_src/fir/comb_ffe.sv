@@ -5,8 +5,7 @@ module comb_ffe #(
 	parameter integer shiftBitwidth=5,
 	parameter integer ffeDepth=5,
 	parameter integer numChannels=16,
-	parameter integer numBuffers=3,
-	parameter integer centerBuffer=1
+	parameter integer numBuffers=2
 ) (
 	input wire logic signed [weightBitwidth-1:0] weights [ffeDepth-1:0][numChannels-1:0],
 	input wire logic signed [codeBitwidth-1:0] flat_codes [numBuffers*numChannels-1:0],
@@ -16,7 +15,6 @@ module comb_ffe #(
 	output logic signed [resultBitwidth-1:0] estimated_bits [numChannels-1:0]
 );
 
-localparam cursor_pos_offset = centerBuffer*numChannels;
 localparam productBitwidth   = codeBitwidth + weightBitwidth;
 localparam sumBitwidth	 = $clog2(ffeDepth) + productBitwidth;
 
@@ -36,11 +34,11 @@ generate
 				//The Flat Buffer is ranged from 0 (oldest) to numChannels*ffeDepth (newest)
 				//The weights need to be used in reverse order for the first weight (0) to touch the newest code (cp_offset + ffeDepth)
 				mux_weights[ii][gi] = disable_product[ii][gi] ? 0 : weights[ffeDepth - ii - 1][gi];
-				mux_codes[ii][gi]    = disable_product[ii][gi] ? 0 : flat_codes[cursor_pos_offset + ii + gi];
+				mux_codes[ii][gi]   = disable_product[ii][gi] ? 0 : flat_codes[ii + gi];
 				//Seperate product and summation for later potential optimizations ;)
 				//product[ii][gi] = weights[ffeDepth - ii - 1][gi]*flat_codes[cursor_pos_offset + ii + gi];
-				product[ii][gi]   = mux_weights[ii][gi] * mux_codes[ii][gi];
-				result[gi] =      result[gi] + product[ii][gi];
+				product[ii][gi]   	= mux_weights[ii][gi] * mux_codes[ii][gi];
+				result[gi] 			= result[gi] + product[ii][gi];
 			end
 			estimated_bits[gi] = (result[gi] >>> shift_index[gi]);
 		end

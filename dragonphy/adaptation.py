@@ -7,8 +7,8 @@ class Wiener():
         self.step_size      		= step_size
         self.num_taps       		= num_taps
         self.filter_in      		= np.zeros(num_taps)
-        self.weights        		= np.random.randn(num_taps)
-        self.weights[1]         	= 1
+        self.weights        		= np.zeros(num_taps) #np.random.randn(num_taps)
+        self.weights[cursor_pos]    = 1
         self.error          		= np.inf
         self.total_error    		= []
         self.debug          		= debug
@@ -51,7 +51,7 @@ class Wiener():
             print(f'Error: {self.error}')
             print(f'W[n]: {self.weights}')
 
-        next_weights = self.weights + self.step_size*np.multiply(self.error,self.filter_in)
+        next_weights = self.weights + self.step_size/error_norm*np.multiply(self.error,self.filter_in)
         self.weights = next_weights
         if self.debug:
             print(f'W[n+1]: {next_weights}')
@@ -65,7 +65,7 @@ class Wiener():
         self.total_error.append(self.error)
 
         ue_prod = np.multiply(self.filter_in, self.error)
-        normal_coeff = 1.0 #/(1e-5 + np.dot(curr_samples, curr_samples))
+        normal_coeff = 1.0#/(1e-5 + np.dot(self.filter_in, self.filter_in))
         next_weights = self.weights + normal_coeff*self.step_size*ue_prod
         self.weights = next_weights
         return next_weights
