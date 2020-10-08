@@ -26,7 +26,7 @@ generate
     end
 endgenerate
 
-flatten_buffer #(
+signed_flatten_buffer #(
     .numChannels(numChannels),
     .bitwidth   (bitwidth),
     .depth      (slice_depth)
