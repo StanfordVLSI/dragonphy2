@@ -31,12 +31,33 @@ module datapath_core #(
 
     logic signed [constant_gpack::code_precision-1:0] adc_codes_buffer    [constant_gpack::channel_width-1:0][code_pipeline_depth-1:0];
     logic                                             sliced_bits_buffer  [constant_gpack::channel_width-1:0][bits_pipeline_depth-1:0];
-
-    weights
-    ffe_shift
-    channel
-    channel_shift
     
+
+    logic signed [ffe_gpack::weight_precision-1:0] weights [constant_gpack::channel_width-1:0][ffe_gpack::length-1:0];
+    logic [ffe_gpack::shift_precision-1:0] ffe_shift [constant_gpack::channel_width-1:0];
+    logic signed [cmp_gpack::thresh_precision-1:0] thresh  [constant_gpack::channel_width-1:0];
+    logic signed [channel_gpack::est_estimate_precision-1:0] channel_est [constant_gpack::channel_width-1:0][channel_gpack::est_channel_depth-1:0];
+    logic [channel_gpack::shift_precision-1:0] channel_shift [constant_gpack::channel_width-1:0];
+    logic [constant_gpack::channel_width-1:0] disable_product [ffe_gpack::length-1:0];
+
+    always_comb begin
+        integer ii, jj;
+        for(ii=0; ii<constant_gpack::channel_width; ii=ii+1) begin
+                thresh[ii]     <= dsp_dbg_intf_i.thresh[ii];
+                ffe_shift[ii]  <= dsp_dbg_intf_i.ffe_shift[ii];
+                channel_shift[ii] <= dsp_dbg_intf_i.channel_shift[ii];
+
+                for(jj=0; jj<channel_gpack::est_channel_depth; jj=jj+1) begin
+                    channel_est[ii][jj] <= dsp_dbg_intf_i.channel_est[ii][jj];
+                end
+
+                for(jj=0; jj<ffe_gpack::length; jj=jj+1) begin
+                    weights[jj][ii] <= dsp_dbg_intf_i.weights[ii][jj];
+                    disable_product[jj][ii] <= dsp_dbg_intf_i.disable_product[jj][ii]; //Packed to Unpacked Conversion I think requires this
+                end
+            end
+    end
+
 
     //ADC Codes Pipeline
     signed_buffer #(
@@ -152,7 +173,7 @@ module datapath_core #(
         .est_code_bitwidth(channel_gpack::est_code_precision)
     ) chan_filt_i (
         .bitstream(flat_sliced_bits[(channel_gpack::est_channel_depth-1)+constant_gpack::channel_width-1:0]),
-        .channel(channel),
+        .channel(channel_est),
         .shift(channel_shift),
         .est_code(estimated_codess)
     );
@@ -231,7 +252,7 @@ module datapath_core #(
     ) sld_dtct_i (
         .errstream(sd_flat_errors),
         .bitstream(sd_flat_sliced_bits),
-        .channel(channel[detector_gpack::seq_length-1:0]),
+        .channel(channel_est[detector_gpack::seq_length-1:0]),
         .sqr_inj_error(),
         .mmse_err_pos(argmin_mmse)
     );
