@@ -11,7 +11,7 @@ module signed_flatten_buffer_slice #(
 
 
 
-    input wire logic signed [bitwidth-1:0] buffer [numChannels-1:0][depth-1:0];
+    input wire logic signed [bitwidth-1:0] buffer [numChannels-1:0][buff_depth-1:0];
     output     logic signed [bitwidth-1:0] flat_slice [numChannels*slice_depth-1:0];
 
     logic signed [bitwidth-1:0] buffer_slice [numChannels-1:0][slice_depth-1:0];
@@ -29,8 +29,7 @@ endgenerate
 flatten_buffer #(
     .numChannels(numChannels),
     .bitwidth   (bitwidth),
-    .depth      (slice_depth),
-    .is_signed   (is_signed)
+    .depth      (slice_depth)
 ) flat_buff_i (
     .buffer     (buffer_slice),
     .flat_buffer(flat_slice)

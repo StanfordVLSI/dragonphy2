@@ -32,6 +32,11 @@ module datapath_core #(
     logic signed [constant_gpack::code_precision-1:0] adc_codes_buffer    [constant_gpack::channel_width-1:0][code_pipeline_depth-1:0];
     logic                                             sliced_bits_buffer  [constant_gpack::channel_width-1:0][bits_pipeline_depth-1:0];
 
+    weights
+    ffe_shift
+    channel
+    channel_shift
+    
 
     //ADC Codes Pipeline
     signed_buffer #(
@@ -220,8 +225,8 @@ module datapath_core #(
         .seq_length(detector_gpack::seq_length),
         .width(constant_gpack::channel_width),
         .est_error_bitwidth(detector_gpack::est_error_precision),
-        .est_channel_bitwidth(detector_gpack::est_channel_bitwidth),
-        .max_bitwidth(detector_gpack::max_bitwidth)
+        .est_channel_bitwidth(detector_gpack::est_channel_precision),
+        .max_bitwidth(detector_gpack::max_bitwidth),
         .sliding_detector_depth(sliding_detector_input_pipeline_depth)
     ) sld_dtct_i (
         .errstream(sd_flat_errors),
