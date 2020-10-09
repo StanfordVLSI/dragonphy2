@@ -248,6 +248,7 @@ module datapath_core #(
     sliding_detector #(
         .seq_length(detector_gpack::seq_length),
         .width(constant_gpack::channel_width),
+        .depth(channel_gpack::est_channel_depth),
         .est_error_bitwidth(detector_gpack::est_error_precision),
         .est_channel_bitwidth(detector_gpack::est_channel_precision),
         .max_bitwidth(detector_gpack::max_bitwidth),

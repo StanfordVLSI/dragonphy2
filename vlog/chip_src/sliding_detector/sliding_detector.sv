@@ -1,6 +1,7 @@
 module sliding_detector #(
     parameter integer seq_length=3,
     parameter integer width=16,
+    parameter integer depth=30,
     parameter integer est_error_bitwidth=8,
     parameter integer est_channel_bitwidth=8,
     parameter integer max_bitwidth=8,
