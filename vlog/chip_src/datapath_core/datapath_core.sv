@@ -200,7 +200,7 @@ module datapath_core #(
 
     always_comb begin
         for(ii=0; ii<constant_gpack::channel_width; ii=ii+1) begin
-            est_error[ii] = estimated_codes[ii][channel_pipeline_depth-1] - adc_codes[ii][code_pipeline_depth-1];
+            est_error[ii] = estimated_codes[ii][channel_pipeline_depth-1] - adc_codes_buffer[ii][code_pipeline_depth-1];
         end
     end
 
