@@ -6,7 +6,6 @@
     `define WEIGHT_TXT
 `endif
 
-
 class File #(
     parameter integer bitwidth=8,
     parameter integer depth   =10,
@@ -57,15 +56,15 @@ module test ();
     ) broadcast_weights;
 
     File #(
-        channel_gpack::est_channel_precision, 
-        channel_gpack::est_channel_depth,
-        `CHANNEL_TXT
+        .bitwidth(channel_gpack::est_channel_precision), 
+        .depth(channel_gpack::est_channel_depth),
+        .file_name(`CHANNEL_TXT)
     ) file_channel;
 
     File #(
-        ffe_gpack::weight_precision,
-        ffe_gpack::length,
-        `WEIGHT_TXT
+        .bitwidth(ffe_gpack::weight_precision),
+        .depth(ffe_gpack::length),
+        .file_name(`WEIGHT_TXT)
     ) file_weights;
 
     logic signed [constant_gpack::code_precision-1:0] adc_codes [constant_gpack::channel_width-1:0];
@@ -104,17 +103,25 @@ module test ();
         end
     endgenerate
 
+    initial begin
+        $shm_open("waves.shm"); $shm_probe("ASMC");
+    end
+
+
     integer ii, jj;
     initial begin
         rstb = 0;
         start = 0;
-
+        $display(`CHANNEL_TXT);
+        $display(`WEIGHT_TXT);
         file_channel.load_array(channel_est);
         file_weights.load_array(ffe_weights);
 
         broadcast_channel.all(channel_est, dsp_dbg_intf_i.channel_est);
         broadcast_weights.all(ffe_weights, dsp_dbg_intf_i.weights);
-
+        repeat(5) @(posedge clk);
+        $finish;
     end
+
 endmodule : test
 

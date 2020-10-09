@@ -11,12 +11,14 @@ def qwrap(s):
 
 defines = {
     'WEIGHT_TXT': qwrap(THIS_DIR / 'weight.txt'),
-    'CHANNEl_TXT': qwrap(THIS_DIR / 'channel.txt')
+    'CHANNEL_TXT': qwrap(THIS_DIR / 'channel.txt')
 }
 
 DragonTester(
     ext_srcs=deps,
-    define=defines,
+    defines=defines,
+    dump_waveforms=True,
+    num_cycles=100,
     directory=BUILD_DIR
 ).run()
 
