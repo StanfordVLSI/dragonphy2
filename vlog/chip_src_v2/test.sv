@@ -38,7 +38,7 @@ module test ();
     integer ii, jj;
     initial begin
         rstb = 0;
-        en   = 0;
+        start = 0;
 
         File #(
             channel_gpack::est_channel_precision, 
