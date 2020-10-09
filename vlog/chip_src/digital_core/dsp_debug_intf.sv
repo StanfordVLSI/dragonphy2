@@ -7,7 +7,6 @@ interface dsp_debug_intf import const_pack::*; ();
     logic [channel_gpack::shift_precision-1:0] channel_shift [constant_gpack::channel_width-1:0];
     logic [constant_gpack::channel_width-1:0] disable_product [ffe_gpack::length-1:0];
 
-
     modport dsp (
         input weights,
         input ffe_shift,
