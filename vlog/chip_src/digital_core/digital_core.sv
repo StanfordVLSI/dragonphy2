@@ -107,11 +107,13 @@ module digital_core import const_pack::*; (
     logic en_pfd_cal_ext_ave;
     logic en_int_dump_start;
     logic int_dump_start;
+    logic cdr_en_clamp;
 
     assign pfd_cal_flip_feedback = ddbg_intf_i.misc_ctrl_bits[0];
     assign en_pfd_cal_ext_ave    = ddbg_intf_i.misc_ctrl_bits[1];
     assign en_int_dump_start     = ddbg_intf_i.misc_ctrl_bits[2];
     assign int_dump_start        = ddbg_intf_i.misc_ctrl_bits[3];
+    assign cdr_en_clamp          = ddbg_intf_i.misc_ctrl_bits[4];
 
     // the dump_start signal can be set internally or externally
 
@@ -243,10 +245,11 @@ module digital_core import const_pack::*; (
         .din(mm_cdr_input),
         .clk(clk_adc),
         .ext_rstb(cdr_rstb),
-        .ramp_clock    (ramp_clock),
+        .ramp_clock(ramp_clock),
         .freq_lvl_cross(freq_lvl_cross),
         .pi_ctl(pi_ctl_cdr),
         .wait_on_reset_b(ctl_valid),
+        .en_clamp(cdr_en_clamp),
         .cdbg_intf_i(cdbg_intf_i)
     );
 
