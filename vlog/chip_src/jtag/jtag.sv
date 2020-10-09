@@ -204,9 +204,9 @@ module jtag (
 
     assign ddbg_intf_i.en_cgra_clk = rjtag_intf_i.en_cgra_clk;
 
-    assign ddbg_intf_i.pfd_cal_flip_feedback = rjtag_intf_i.pfd_cal_flip_feedback;
-    assign ddbg_intf_i.en_pfd_cal_ext_ave = rjtag_intf_i.en_pfd_cal_ext_ave;
     assign ddbg_intf_i.pfd_cal_ext_ave = rjtag_intf_i.pfd_cal_ext_ave;
+
+    assign ddbg_intf_i.misc_ctrl_bits = rjtag_intf_i.misc_ctrl_bits;
 
 	//Digital Output
 	assign rjtag_intf_i.adcout_avg=ddbg_intf_i.adcout_avg;

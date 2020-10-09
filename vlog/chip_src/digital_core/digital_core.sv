@@ -101,6 +101,22 @@ module digital_core import const_pack::*; (
     assign prbs_rstb        = ddbg_intf_i.prbs_rstb && ext_rstb;
     assign prbs_gen_rstb    = ddbg_intf_i.prbs_gen_rstb && ext_rstb;
 
+    // wire out miscellaneous control bits
+
+    logic pfd_cal_flip_feedback;
+    logic en_pfd_cal_ext_ave;
+    logic en_int_dump_start;
+    logic int_dump_start;
+
+    assign pfd_cal_flip_feedback = ddbg_intf_i.misc_ctrl_bits[0];
+    assign en_pfd_cal_ext_ave    = ddbg_intf_i.misc_ctrl_bits[1];
+    assign en_int_dump_start     = ddbg_intf_i.misc_ctrl_bits[2];
+    assign int_dump_start        = ddbg_intf_i.misc_ctrl_bits[3];
+
+    // the dump_start signal can be set internally or externally
+
+    logic dump_start;
+    assign dump_start = en_int_dump_start ? int_dump_start : ext_dump_start;
 
     // ADC Output Reordering
     // used to do retiming as well, but now that is handled in the analog core
@@ -158,8 +174,8 @@ module digital_core import const_pack::*; (
                 .Nbin(ddbg_intf_i.Nbin_adc),
                 .Navg(ddbg_intf_i.Navg_adc),
                 .DZ(ddbg_intf_i.DZ_hist_adc),
-                .flip_feedback(ddbg_intf_i.pfd_cal_flip_feedback),
-                .en_ext_ave(ddbg_intf_i.en_pfd_cal_ext_ave),
+                .flip_feedback(pfd_cal_flip_feedback),
+                .en_ext_ave(en_pfd_cal_ext_ave),
                 .ext_ave(ddbg_intf_i.pfd_cal_ext_ave),
                 .dout_avg(ddbg_intf_i.adcout_avg[k]),
                 .dout_sum(ddbg_intf_i.adcout_sum[k]),
@@ -296,7 +312,7 @@ module digital_core import const_pack::*; (
         
         .in_bytes(adcout_unfolded),
 
-        .in_start_write(ext_dump_start),
+        .in_start_write(dump_start),
 
         .in_addr(sm1_dbg_intf_i.in_addr),
 
@@ -312,7 +328,7 @@ module digital_core import const_pack::*; (
         
         .in_bytes(trunc_est_bits),
 
-        .in_start_write(ext_dump_start),
+        .in_start_write(dump_start),
 
         .in_addr(sm2_dbg_intf_i.in_addr),
 
