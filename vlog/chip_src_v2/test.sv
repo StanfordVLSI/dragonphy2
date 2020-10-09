@@ -1,10 +1,12 @@
-module test ();
-    wire logic clk, rstb;
-    wire logic signed [constant_gpack::code_precision-1:0] adc_codes [constant_gpack::channel_width-1:0];
-    wire logic signed [channel_gpack::est_channel_precision-1:0] channel_est [channel_gpack::est_channel_depth-1:0];
+module test (
+    input logic signed [ffe_gpack::weight_precision-1:0] ffe_weights [ffe_gpack::fee_depth-1:0],
+    input logic signed [channel_gpack::est_channel_precision-1:0] channel_est [channel_gpack::est_channel_depth-1:0],
+    input logic signed [constant_gpack::code_precision-1:0] adc_codes [constant_gpack::[channel_width-1:0]
 
-    weight_clock #(.period(1ns)) clk_gen (.clk(clk));
+    input logic clk,
+    input logic rstb
 
+);
     dsp_debug_intf dsp_dbg_intf_i();
     datapath_core #(
         .ffe_pipeline_depth(1), 
@@ -37,6 +39,12 @@ module test ();
             assign dsp_dbg_intf_i.weights[gi][0] = 1;
         end
     endgenerate
+
+    initial begin
+        rstb = 1;
+        rstb = 0;
+
+    end
 endmodule : test
 
 
