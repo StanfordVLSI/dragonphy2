@@ -38,7 +38,7 @@ module datapath_core #(
     logic signed [cmp_gpack::thresh_precision-1:0] thresh  [constant_gpack::channel_width-1:0];
     logic signed [channel_gpack::est_channel_precision-1:0] channel_est [constant_gpack::channel_width-1:0][channel_gpack::est_channel_depth-1:0];
     logic [channel_gpack::shift_precision-1:0] channel_shift [constant_gpack::channel_width-1:0];
-    logic [constant_gpack::channel_width-1:0] disable_product [ffe_gpack::length-1:0];
+    logic  disable_product [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0];
 
     always_comb begin
         integer ii, jj;
@@ -97,6 +97,9 @@ module datapath_core #(
         .buffer    (adc_codes_buffer),
         .flat_slice(flat_adc_codes)
     );
+
+
+    logic signed [ffe_gpack::output_precision-1:0] estimated_bits [ffe_pipeline_depth-1:0];
 
     comb_ffe #(
         .codeBitwidth(ffe_gpack::input_precision),
@@ -252,14 +255,14 @@ module datapath_core #(
     ) sld_dtct_i (
         .errstream(sd_flat_errors),
         .bitstream(sd_flat_sliced_bits),
-        .channel(channel_est[detector_gpack::seq_length-1:0]),
+        .channel(channel_est),
         .sqr_inj_error(),
         .mmse_err_pos(argmin_mmse)
     );
 
     //Detector pipeline
     logic [1:0] argmin_mmse_buffer [constant_gpack::channel_width-1:0][sliding_detector_output_pipeline_depth-1:0];
-    signed_buffer #(
+    buffer #(
         .numChannels(constant_gpack::channel_width),
         .bitwidth   (2),
         .depth      (sliding_detector_output_pipeline_depth)

@@ -8,7 +8,7 @@ module channel_filter #(
     input logic bitstream [(depth-1)+width-1:0],
     
     input logic signed [est_channel_bitwidth-1:0] channel [width-1:0][depth-1:0],
-    input logic [shift_bitwidth-1:0] shift,
+    input logic [shift_bitwidth-1:0] shift[width-1:0],
     output logic signed [est_code_bitwidth-1:0] est_code [width-1:0]
 );
 
