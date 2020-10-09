@@ -1,12 +1,13 @@
-module test (
-    input logic signed [ffe_gpack::weight_precision-1:0] ffe_weights [ffe_gpack::length-1:0],
-    input logic signed [channel_gpack::est_channel_precision-1:0] channel_est [channel_gpack::est_channel_depth-1:0],
-    input logic signed [constant_gpack::code_precision-1:0] adc_codes [constant_gpack::channel_width-1:0],
+module test ();
+    logic signed [constant_gpack::code_precision-1:0] adc_codes [constant_gpack::channel_width-1:0];
+    logic signed [channel_gpack::est_channel_precision-1:0] channel_est [channel_gpack::est_channel_depth-1:0];
+    logic signed [ffe_gpack::weight_precision-1:0] ffe_weights [ffe_gpack::length-1:0];
 
-    input logic clk,
-    input logic rstb
+    logic clk, rstb, start;
 
-);
+
+    weight_clock #(.period(1ns)) clk_gen (.clk(clk), .en(start));
+
     dsp_debug_intf dsp_dbg_intf_i();
     datapath_core #(
         .ffe_pipeline_depth(1), 
@@ -27,18 +28,74 @@ module test (
             assign dsp_dbg_intf_i.ffe_shift[gi] = 0;
             assign dsp_dbg_intf_i.thresh[gi] = 0;
 
-            assign dsp_dbg_intf_i.channel_est[gi][0] = 1;
-            for(gj = 1; gj < channel_gpack::est_channel_depth; gj = gj + 1) begin
-                assign dsp_dbg_intf_i.channel_est[gi][gj] = channel_est[gj];
-            end
             assign dsp_dbg_intf_i.channel_shift[gi] = 0;
             for(gj = 0; gj < ffe_gpack::length; gj = gj + 1 ) begin
                 assign dsp_dbg_intf_i.disable_product[gj][gi] = 0;
-                assign dsp_dbg_intf_i.weights[gi][gj] = ffe_weights[gj];
             end
         end
     endgenerate
+
+    integer ii, jj;
+    initial begin
+        rstb = 0;
+        en   = 0;
+
+        File #(
+            channel_gpack::est_channel_precision, 
+            channel_gpack::est_channel_depth
+        )::load_array("channel.txt", channel_est);
+
+        File #(
+            ffe_gpack::weight_precision,  
+            ffe_gpack::length
+        )::load_array("ffe.txt", ffe_weights);
+
+        Broadcast #(
+            channel_gpack::est_channel_precision,
+            constant_gpack::channel_width, 
+            channel_gpack::est_channel_depth
+        )::all(channel_est, dsp_dbg_intf_i.channel_est);
+
+        Broadcast #(
+            ffe_gpack::weight_precision, 
+            constant_gpack::channel_width, 
+            ffe_gpack::length
+        )::all(ffe_weights, dsp_dbg_intf_i.weights);
+
+    end
 endmodule : test
 
+class File #(
+    parameter integer bitwidth=8,
+    parameter integer depth   =10,
+    parameter type T = logic signed
+);
+    static task load_array(input string file_name, output T [bitwidth-1:0] values [depth-1:0]);
+        integer ii, fid;
+        fid = $fopen(file_name, "r");
 
+        for(ii=0; ii < depth; ii=ii+1) begin
+            $fscanf(fid, "%d", values[ii]);
+        end
 
+        $fclose(fid);
+    endtask : load_array
+endclass : File
+
+class Broadcast #(
+    parameter integer bitwidth=8,
+    parameter integer width   =16,
+    parameter integer depth   =10,
+    parameter type T = logic signed
+    );
+
+    static task all(input T [bitwidth-1:0] broadcast_values [depth-1:0], output T [bitwidth-1:0] broadcast_target [width-1:0][depth-1:0] );
+        integer ii, jj;
+        $display($typename(broadcast_values));
+        for(ii=0; ii < width; ii=ii+1) begin
+            for(jj =0; jj < depth; jj=jj+1) begin
+                broadcast_target[ii][jj] = broadcast_values[jj];
+            end
+        end
+    endtask : all
+endclass : Broadcast
