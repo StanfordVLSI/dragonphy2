@@ -19,7 +19,7 @@ module channel_filter #(
             for(jj=0; jj<depth; jj=jj+1) begin
                 est_code[ii] = est_code[ii] + (bitstream[ii+jj] ? channel[ii][depth-jj-1] : -channel[ii][depth-jj-1]);
             end
-            est_code[ii] = est_code[ii] >> shift;
+            est_code[ii] = est_code[ii] >> shift[ii];
         end
     end
 
