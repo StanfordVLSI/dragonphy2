@@ -4,7 +4,7 @@ module datapath_core #(
     parameter integer additional_error_pipeline_depth=0,
     parameter integer sliding_detector_output_pipeline_depth=0
 ) (
-    logic signed [constant_gpack::code_precision-1:0] adc_codes [constant_gpack::channel_width-1:0],
+    input logic signed [constant_gpack::code_precision-1:0] adc_codes [constant_gpack::channel_width-1:0],
 
     input logic clk,
     input logic rstb,

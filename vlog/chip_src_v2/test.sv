@@ -1,7 +1,7 @@
 module test (
-    input logic signed [ffe_gpack::weight_precision-1:0] ffe_weights [ffe_gpack::fee_depth-1:0],
+    input logic signed [ffe_gpack::weight_precision-1:0] ffe_weights [ffe_gpack::length-1:0],
     input logic signed [channel_gpack::est_channel_precision-1:0] channel_est [channel_gpack::est_channel_depth-1:0],
-    input logic signed [constant_gpack::code_precision-1:0] adc_codes [constant_gpack::[channel_width-1:0]
+    input logic signed [constant_gpack::code_precision-1:0] adc_codes [constant_gpack::channel_width-1:0],
 
     input logic clk,
     input logic rstb
@@ -29,22 +29,15 @@ module test (
 
             assign dsp_dbg_intf_i.channel_est[gi][0] = 1;
             for(gj = 1; gj < channel_gpack::est_channel_depth; gj = gj + 1) begin
-                assign dsp_dbg_intf_i.channel_est[gi][gj] = 0;
+                assign dsp_dbg_intf_i.channel_est[gi][gj] = channel_est[gj];
             end
             assign dsp_dbg_intf_i.channel_shift[gi] = 0;
             for(gj = 0; gj < ffe_gpack::length; gj = gj + 1 ) begin
                 assign dsp_dbg_intf_i.disable_product[gj][gi] = 0;
-                assign dsp_dbg_intf_i.weights[gi][gj] = 0;
+                assign dsp_dbg_intf_i.weights[gi][gj] = ffe_weights[gj];
             end
-            assign dsp_dbg_intf_i.weights[gi][0] = 1;
         end
     endgenerate
-
-    initial begin
-        rstb = 1;
-        rstb = 0;
-
-    end
 endmodule : test
 
 
