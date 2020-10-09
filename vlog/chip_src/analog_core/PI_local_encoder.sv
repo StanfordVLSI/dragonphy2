@@ -85,15 +85,26 @@ endgenerate
 assign sel_mux_2nd_even = ph_num_even[3:2];
 assign sel_mux_2nd_odd = ph_num_odd[3:2];
 
-always_comb begin  
- for (int i=1; i<Nunit;i++) begin			// thm to bin (it is not a regular thm)
-   if (arb_out[i-1]&~arb_out[i]) begin
-     int_Qperi = unsigned'(i);
-     break;
-   end
-   else int_Qperi = Nunit-1;
- end
-end
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+
+// new logic to fix X-optimism issue
+// formally verified in experiments/pi_local_encoder
+// ref: https://github.com/StanfordVLSI/dragonphy2/issues/63
+
+logic [$clog2(Nunit)-1:0] int_Qperi_arr [Nunit];
+generate
+  for (genvar i=1; i<Nunit; i=i+1) begin
+    assign int_Qperi_arr[i-1] = (arb_out[i-1]&~arb_out[i]) ? i : int_Qperi_arr[i];
+  end
+endgenerate
+
+// handle endpoints
+assign int_Qperi_arr[Nunit-1] = Nunit-1;
+assign int_Qperi = int_Qperi_arr[0];
+
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 
 assign Qperi_lsb = ~Qperi[0];
 assign max_sel_mux = (Qperi-Qperi_lsb);			// maximum code for sel_mux
