@@ -2,9 +2,9 @@ class File #(
     parameter integer bitwidth=8,
     parameter integer depth   =10,
     parameter string file_name = "channel.txt",
-    parameter type T = logic signed
+    parameter type T = logic signed [bitwidth-1:0]
 );
-    static task load_array(output T [bitwidth-1:0] values [depth-1:0]);
+    static task load_array(output T values [depth-1:0]);
         integer ii, fid;
         fid = $fopen(file_name, "r");
 
@@ -20,10 +20,10 @@ class Broadcast #(
     parameter integer bitwidth=8,
     parameter integer width   =16,
     parameter integer depth   =10,
-    parameter type T = logic signed
+    parameter type T = logic signed [bitwidth-1:0]
     );
 
-    static task all(input T [bitwidth-1:0] broadcast_values [depth-1:0], output T [bitwidth-1:0] broadcast_target [width-1:0][depth-1:0] );
+    static task all(input T broadcast_values [depth-1:0], output T broadcast_target [width-1:0][depth-1:0] );
         integer ii, jj;
         $display($typename(broadcast_values));
         for(ii=0; ii < width; ii=ii+1) begin
@@ -50,13 +50,13 @@ module test ();
     File #(
             channel_gpack::est_channel_precision, 
             channel_gpack::est_channel_depth,
-            "channel.txt"
+            "./channel.txt"
     ) file_channel;
 
     File #(
         ffe_gpack::weight_precision,
         ffe_gpack::length,
-        "ffe.txt"
+        "./ffe.txt"
     ) file_weights;
 
     logic signed [constant_gpack::code_precision-1:0] adc_codes [constant_gpack::channel_width-1:0];
