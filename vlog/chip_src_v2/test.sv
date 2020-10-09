@@ -1,9 +1,10 @@
 class File #(
     parameter integer bitwidth=8,
     parameter integer depth   =10,
+    parameter string file_name = "channel.txt",
     parameter type T = logic signed
 );
-    static task load_array(input string file_name, output T [bitwidth-1:0] values [depth-1:0]);
+    static task load_array(output T [bitwidth-1:0] values [depth-1:0]);
         integer ii, fid;
         fid = $fopen(file_name, "r");
 
@@ -34,6 +35,30 @@ class Broadcast #(
 endclass : Broadcast
 
 module test ();
+    Broadcast #(
+            channel_gpack::est_channel_precision,
+            constant_gpack::channel_width, 
+            channel_gpack::est_channel_depth
+    ) broadcast_channel;
+
+    Broadcast #(
+            ffe_gpack::weight_precision, 
+            constant_gpack::channel_width, 
+            ffe_gpack::length
+    ) broadcast_weights;
+
+    File #(
+            channel_gpack::est_channel_precision, 
+            channel_gpack::est_channel_depth,
+            "channel.txt"
+    ) file_channel;
+
+    File #(
+        ffe_gpack::weight_precision,
+        ffe_gpack::length,
+        "ffe.txt"
+    ) file_weights;
+
     logic signed [constant_gpack::code_precision-1:0] adc_codes [constant_gpack::channel_width-1:0];
     logic signed [channel_gpack::est_channel_precision-1:0] channel_est [channel_gpack::est_channel_depth-1:0];
     logic signed [ffe_gpack::weight_precision-1:0] ffe_weights [ffe_gpack::length-1:0];
@@ -75,27 +100,11 @@ module test ();
         rstb = 0;
         start = 0;
 
-        File #(
-            channel_gpack::est_channel_precision, 
-            channel_gpack::est_channel_depth
-        )::load_array("channel.txt", channel_est);
+        file_channel.load_array(channel_est);
+        file_weights.load_array(ffe_weights);
 
-        File #(
-            ffe_gpack::weight_precision,  
-            ffe_gpack::length
-        )::load_array("ffe.txt", ffe_weights);
-
-        Broadcast #(
-            channel_gpack::est_channel_precision,
-            constant_gpack::channel_width, 
-            channel_gpack::est_channel_depth
-        )::all(channel_est, dsp_dbg_intf_i.channel_est);
-
-        Broadcast #(
-            ffe_gpack::weight_precision, 
-            constant_gpack::channel_width, 
-            ffe_gpack::length
-        )::all(ffe_weights, dsp_dbg_intf_i.weights);
+        broadcast_channel.all(channel_est, dsp_dbg_intf_i.channel_est);
+        broadcast_weights.all(ffe_weights, dsp_dbg_intf_i.weights);
 
     end
 endmodule : test
