@@ -8,7 +8,7 @@ module sliding_detector #(
 ) (
     input logic signed [est_error_bitwidth-1:0]  errstream [width*sliding_detector_depth-1:0],
     input logic                                   bitstream [width*sliding_detector_depth-1:0],
-    input logic signed [est_channel_bitwidth-1:0] channel [seq_length-1:0],
+    input logic signed [est_channel_bitwidth-1:0] channel [width-1:0],
 
     output logic signed [est_error_bitwidth*2+2-1:0] sqr_inj_error [3:0][width-1:0][seq_length-1:0],
     output logic [1:0] mmse_err_pos [width-1:0]
