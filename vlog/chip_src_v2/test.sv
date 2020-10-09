@@ -1,3 +1,12 @@
+`ifndef CHANNEL_TXT
+    `define CHANNEL_TXT
+`endif
+
+`ifndef WEIGHT_TXT
+    `define WEIGHT_TXT
+`endif
+
+
 class File #(
     parameter integer bitwidth=8,
     parameter integer depth   =10,
@@ -36,27 +45,27 @@ endclass : Broadcast
 
 module test ();
     Broadcast #(
-            channel_gpack::est_channel_precision,
-            constant_gpack::channel_width, 
-            channel_gpack::est_channel_depth
+        channel_gpack::est_channel_precision,
+        constant_gpack::channel_width, 
+        channel_gpack::est_channel_depth
     ) broadcast_channel;
 
     Broadcast #(
-            ffe_gpack::weight_precision, 
-            constant_gpack::channel_width, 
-            ffe_gpack::length
+        ffe_gpack::weight_precision, 
+        constant_gpack::channel_width, 
+        ffe_gpack::length
     ) broadcast_weights;
 
     File #(
-            channel_gpack::est_channel_precision, 
-            channel_gpack::est_channel_depth,
-            "./channel.txt"
+        channel_gpack::est_channel_precision, 
+        channel_gpack::est_channel_depth,
+        `CHANNEL_TXT
     ) file_channel;
 
     File #(
         ffe_gpack::weight_precision,
         ffe_gpack::length,
-        "./ffe.txt"
+        `WEIGHT_TXT
     ) file_weights;
 
     logic signed [constant_gpack::code_precision-1:0] adc_codes [constant_gpack::channel_width-1:0];
