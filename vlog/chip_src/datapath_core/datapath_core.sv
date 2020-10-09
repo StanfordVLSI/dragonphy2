@@ -180,7 +180,7 @@ module datapath_core #(
         .shift(channel_shift),
         .est_code(estimated_codes)
     );
-a
+
     //Channel pipeline
     logic signed [channel_gpack::est_code_precision-1:0] estimated_codes_buffer [constant_gpack::channel_width-1:0][channel_pipeline_depth-1:0];
     
