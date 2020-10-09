@@ -245,6 +245,7 @@ module jtag (
 	assign cdbg_intf_i.sel_inp_mux  = rjtag_intf_i.sel_inp_mux;
 	assign cdbg_intf_i.sample_state = rjtag_intf_i.sample_state;
 	assign cdbg_intf_i.invert = rjtag_intf_i.invert;
+    assign cdbg_intf_i.cdr_clamp_amt = rjtag_intf_i.cdr_clamp_amt;
 
 	//CDR Output
 	assign rjtag_intf_i.phase_est   = cdbg_intf_i.phase_est;
