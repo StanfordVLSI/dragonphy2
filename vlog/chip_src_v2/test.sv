@@ -63,39 +63,41 @@ module test ();
         )::all(ffe_weights, dsp_dbg_intf_i.weights);
 
     end
-endmodule : test
 
-class File #(
+    class File #(
     parameter integer bitwidth=8,
-    parameter integer depth   =10,
-    parameter type T = logic signed
-);
-    static task load_array(input string file_name, output T [bitwidth-1:0] values [depth-1:0]);
-        integer ii, fid;
-        fid = $fopen(file_name, "r");
-
-        for(ii=0; ii < depth; ii=ii+1) begin
-            $fscanf(fid, "%d", values[ii]);
-        end
-
-        $fclose(fid);
-    endtask : load_array
-endclass : File
-
-class Broadcast #(
-    parameter integer bitwidth=8,
-    parameter integer width   =16,
     parameter integer depth   =10,
     parameter type T = logic signed
     );
+        static task load_array(input string file_name, output T [bitwidth-1:0] values [depth-1:0]);
+            integer ii, fid;
+            fid = $fopen(file_name, "r");
 
-    static task all(input T [bitwidth-1:0] broadcast_values [depth-1:0], output T [bitwidth-1:0] broadcast_target [width-1:0][depth-1:0] );
-        integer ii, jj;
-        $display($typename(broadcast_values));
-        for(ii=0; ii < width; ii=ii+1) begin
-            for(jj =0; jj < depth; jj=jj+1) begin
-                broadcast_target[ii][jj] = broadcast_values[jj];
+            for(ii=0; ii < depth; ii=ii+1) begin
+                $fscanf(fid, "%d", values[ii]);
             end
-        end
-    endtask : all
-endclass : Broadcast
+
+            $fclose(fid);
+        endtask : load_array
+    endclass : File
+
+    class Broadcast #(
+        parameter integer bitwidth=8,
+        parameter integer width   =16,
+        parameter integer depth   =10,
+        parameter type T = logic signed
+        );
+
+        static task all(input T [bitwidth-1:0] broadcast_values [depth-1:0], output T [bitwidth-1:0] broadcast_target [width-1:0][depth-1:0] );
+            integer ii, jj;
+            $display($typename(broadcast_values));
+            for(ii=0; ii < width; ii=ii+1) begin
+                for(jj =0; jj < depth; jj=jj+1) begin
+                    broadcast_target[ii][jj] = broadcast_values[jj];
+                end
+            end
+        endtask : all
+    endclass : Broadcast
+    
+endmodule : test
+
