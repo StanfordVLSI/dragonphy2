@@ -89,7 +89,8 @@ assign sel_mux_2nd_odd = ph_num_odd[3:2];
 ////////////////////////////////////////////////////////////////
 
 // new logic to fix X-optimism issue
-// formally verified in experiments/pi_local_encoder
+// formally verified to be logically equivalent to the
+// previous implementation in experiments/pi_local_encoder
 // ref: https://github.com/StanfordVLSI/dragonphy2/issues/63
 
 logic [$clog2(Nunit)-1:0] int_Qperi_arr [Nunit];
