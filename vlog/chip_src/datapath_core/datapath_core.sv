@@ -99,7 +99,7 @@ module datapath_core #(
     );
 
 
-    logic signed [ffe_gpack::output_precision-1:0] estimated_bits [ffe_pipeline_depth-1:0];
+    logic signed [ffe_gpack::output_precision-1:0] estimated_bits [constant_gpack::channel_width-1:0];
 
     comb_ffe #(
         .codeBitwidth(ffe_gpack::input_precision),
@@ -178,9 +178,9 @@ module datapath_core #(
         .bitstream(flat_sliced_bits[(channel_gpack::est_channel_depth-1)+constant_gpack::channel_width-1:0]),
         .channel(channel_est),
         .shift(channel_shift),
-        .est_code(estimated_codess)
+        .est_code(estimated_codes)
     );
-
+a
     //Channel pipeline
     logic signed [channel_gpack::est_code_precision-1:0] estimated_codes_buffer [constant_gpack::channel_width-1:0][channel_pipeline_depth-1:0];
     
