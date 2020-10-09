@@ -329,6 +329,21 @@ set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.retimer_mux_ctrl_1_rep[
 create_qtm_port -type input { adbg_intf_i.retimer_mux_ctrl_2_rep[1:0] }
 set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.retimer_mux_ctrl_2_rep[1:0] }
 
+
+create_qtm_port -type input { adbg_intf_i.sel_PFD_in[31:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sel_PFD_in[31:0] }
+
+create_qtm_port -type input { adbg_intf_i.sign_PFD_clk_in[15:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sign_PFD_clk_in[15:0] }
+
+create_qtm_port -type input { adbg_intf_i.sel_PFD_in_rep[3:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sel_PFD_in_rep[3:0] }
+
+create_qtm_port -type input { adbg_intf_i.sign_PFD_clk_in_rep[1:0] }
+set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sign_PFD_clk_in_rep[1:0] }
+
+
+
 ###################### Timing Arcs ######################
 
 ## PI control signals

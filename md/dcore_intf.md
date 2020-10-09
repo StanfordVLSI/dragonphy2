@@ -53,3 +53,6 @@
 | pfd_cal_flip_feedback      |         |                        |                  | Test         | out      |   0       |
 | en_pfd_cal_ext_ave         |         |                        |                  | Test         | out      |   0       |
 | pfd_cal_ext_ave            | yes     | Nadc-1:0               |                  | Test         | out      |   0       |
+
+
+
