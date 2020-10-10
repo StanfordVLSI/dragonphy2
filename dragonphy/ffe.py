@@ -23,7 +23,7 @@ class FFEHelper:
         return np.random.randint(2, size=self.iterations)*2 - 1
 
     def __random_codes(self):
-        return self.channel(self.ideal_codes)
+        return self.channel.compute_output(self.ideal_codes, f_sig=16e9)
 
     def randomize_codes(self):
         self.ideal_codes = __random_codes();

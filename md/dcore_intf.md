@@ -3,7 +3,7 @@
 | ext_pi_ctl_offset          |         | Npi-1:0                | Nout-1:0         | Test         | out      | 0&135&270&405|
 | en_ext_pfd_offset          |         |                        |                  | Test         | out      | 'b1       |
 | bypass_pi_ctl              |         | Npi-1:0                | Nout-1:0         | Test         | out      | 0         |
-| en_bypass_pi_ctl           |         |                        |                  | Test         | out      | 0         |
+| en_bypass_pi_ctl           |         | Npi-1:0                |                  | Test         | out      | 0         |
 | ext_pfd_offset             |         | Nadc-1:0               | Nti-1:0          | Test         | out      | 'd47      |
 | en_ext_pfd_offset_rep      |         |                        |                  | Test         | out      | 'b1       |
 | ext_pfd_offset_rep         |         | Nadc-1:0               | Nti_rep-1:0      | Test         | out      | 'd27      |
@@ -50,3 +50,6 @@
 | adc_thresh                 |   yes   | 7:0                    | Nti-1:0          | Test         | out      |   0       |
 | sel_prbs_mux               |         | 1:0                    |                  | Test         | out      |   0       |
 | en_cgra_clk                |         |                        |                  | Test         | out      |   0       |
+| pfd_cal_flip_feedback      |         |                        |                  | Test         | out      |   0       |
+| en_pfd_cal_ext_ave         |         |                        |                  | Test         | out      |   0       |
+| pfd_cal_ext_ave            | yes     | Nadc-1:0               |                  | Test         | out      |   0       |

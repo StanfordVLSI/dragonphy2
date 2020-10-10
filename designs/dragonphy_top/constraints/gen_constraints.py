@@ -45,30 +45,30 @@ set_clock_uncertainty -hold 0.03 clk_retimer
 # https://www2.lauterbach.com/pdf/arm_app_jtag.pdf
 
 # TCK clock signal: 20 MHz max
-create_clock -name clk_jtag -period 50.0 [get_ports jtag_intf_i_phy_tck]
+create_clock -name clk_jtag -period 50.0 [get_ports jtag_intf_i.phy_tck]
 set_clock_uncertainty -setup 0.03 clk_jtag
 set_clock_uncertainty -hold 0.03 clk_jtag
 
 # TCK constraints
-set_input_transition 0.5 [get_port jtag_intf_i_phy_tck]
+set_input_transition 0.5 [get_port jtag_intf_i.phy_tck]
 
 # timing constraints for TDI (changes 0 to 5 ns from falling edge of JTAG clock)
-set_input_transition 0.5 [get_port jtag_intf_i_phy_tdi]
-set_input_delay -clock clk_jtag -max 0.5 -clock_fall [get_port jtag_intf_i_phy_tdi]
-set_input_delay -clock clk_jtag -min 0.0 -clock_fall [get_port jtag_intf_i_phy_tdi]
+set_input_transition 0.5 [get_port jtag_intf_i.phy_tdi]
+set_input_delay -clock clk_jtag -max 0.5 -clock_fall [get_port jtag_intf_i.phy_tdi]
+set_input_delay -clock clk_jtag -min 0.0 -clock_fall [get_port jtag_intf_i.phy_tdi]
 
 # timing constraints for TMS (changes 0 to 5 ns from falling edge of JTAG clock)
-set_input_transition 0.5 [get_port jtag_intf_i_phy_tms]
-set_input_delay -clock clk_jtag -max 5.0 -clock_fall [get_port jtag_intf_i_phy_tms]
-set_input_delay -clock clk_jtag -min 0.0 -clock_fall [get_port jtag_intf_i_phy_tms]
+set_input_transition 0.5 [get_port jtag_intf_i.phy_tms]
+set_input_delay -clock clk_jtag -max 5.0 -clock_fall [get_port jtag_intf_i.phy_tms]
+set_input_delay -clock clk_jtag -min 0.0 -clock_fall [get_port jtag_intf_i.phy_tms]
 
 # timing constraints for TDO (setup time 12.5 ns, hold time 0.0)
 # TDO changes on the falling edge of TCK but is sampled on the rising edge
-set_output_delay -clock clk_jtag -max 12.5 [get_port jtag_intf_i_phy_tdo]
-set_output_delay -clock clk_jtag -min 0.0 [get_port jtag_intf_i_phy_tdo]
+set_output_delay -clock clk_jtag -max 12.5 [get_port jtag_intf_i.phy_tdo]
+set_output_delay -clock clk_jtag -min 0.0 [get_port jtag_intf_i.phy_tdo]
 
 # TRST_N is asynchronous
-set_input_transition 0.5 [get_port jtag_intf_i_phy_trst_n]
+set_input_transition 0.5 [get_port jtag_intf_i.phy_trst_n]
 
 ############################
 # Asynchronous clock domains
@@ -120,15 +120,30 @@ set_false_path -through [get_ports $ext_false_path_only]
 # Top-level buffers
 ###################
 
-# IOS for buffers are all false paths
+# IOs are all false paths
 set_false_path -through [get_pins ibuf_*/*]
+
+# Clock IOs should not have buffers added
+set_dont_touch_network [get_pins ibuf_*/in*]
+set_dont_touch_network [get_pins ibuf_*/clk*]
 
 #############
 # Analog core
 #############
 
-# TODO do any signals in the debug interface need special treatment?
-set_false_path -through [get_pins iacore/adbg_intf_i_*]
+# Debugging signals are all false paths
+set_false_path -through [get_pins iacore/adbg_intf_i.*]
+
+# Clock outputs in the debug interface should not have buffers added
+set adbg_clk_pins [get_pins {{ \\
+    iacore/*del_out_pi* \\
+    iacore/*pi_out_meas* \\
+    iacore/*del_out_rep* \\
+    iacore/*inbuf_out_meas* \\
+    iacore/*pfd_inp_meas* \\
+    iacore/*pfd_inn_meas* \\
+}}]
+set_dont_touch_network $adbg_clk_pins
 
 ######
 # MDLL
@@ -137,12 +152,20 @@ set_false_path -through [get_pins iacore/adbg_intf_i_*]
 # IOs for MDLL are all false paths
 set_false_path -through [get_pins -of_objects imdll]
 
+# Clock IOs should not have buffers added
+set_dont_touch_network [get_pins imdll/clk_*]
+
 ################
 # Output buffer
 ################
 
 # IOs for output buffer are all false paths
 set_false_path -through [get_pins -of_objects idcore/out_buff_i]
+
+# Clock IOs should not have buffers added
+set_dont_touch_network [get_pins idcore/out_buff_i/bufferend_signals]
+set_dont_touch_network [get_pins idcore/out_buff_i/clock_out_*]
+set_dont_touch_network [get_pins idcore/out_buff_i/trigg_out_*]
 
 #################
 # Net constraints
@@ -170,48 +193,48 @@ set_max_transition {0.1*time_scale} -clock_path [get_clock clk_jtag]
 # transition time is 10% of a 4 GHz period.  Note that we have to
 # create a clock before the transition constraint is applied
 # (appears to be related to the fact that these are internal nets)
-set mon_nets [get_pins {{ \\
-    iacore/*del_out_pi* \\
-    iacore/*pi_out_meas* \\
-    iacore/*del_out_rep* \\
-    iacore/*inbuf_out_meas* \\
-    iacore/*pfd_inp_meas* \\
-    iacore/*pfd_inn_meas* \\
-}}]
-foreach x [get_object_name $mon_nets] {{
+foreach x [get_object_name $adbg_clk_pins] {{
     create_clock -name clk_mon_net_$x -period {0.25*time_scale} [get_pins $x]
     set_max_transition {0.025*time_scale} -clock_path [get_clocks clk_mon_net_$x]
 }}
 
-# Set transition time for clk_async
-create_clock -name clk_async_buf -period {1.0*time_scale} [get_pin ibuf_async/clk]
-set_max_transition {0.1*time_scale} -clock_path [get_clock clk_async_buf]
+#######################################################################
+# TODO: The following commented-out lines were used to set the maximum
+# transition for various clock signals in the design.  They may have
+# caused issues with unnecessary buffer insertion, so they are
+# currently disabled.  However, we should review the synthesis and PnR
+# results to see if some of these commands should be re-enabled.
+#######################################################################
 
-# Set transition time for the 8 GHz output of the main buffer
-# Note that the period of this clock is declared as 1 GHz due to 
-# limitations in QTMs models mentioned earlier, but the transition
-# constraint is 10% of an 8 GHz clock (rather than a 1 GHz clock)
-set_max_transition {0.0125*time_scale} -clock_path [get_clock clk_main_buf]
-
-# Set transition time for MDLL reference
-create_clock -name clk_mdll_refp -period {8.0*time_scale} [get_pin ibuf_mdll_ref/clk]
-set_max_transition {0.03*time_scale} -clock_path [get_clock clk_mdll_refp]
-create_clock -name clk_mdll_refn -period {8.0*time_scale} [get_pin ibuf_mdll_ref/clk_b]
-set_max_transition {0.03*time_scale} -clock_path [get_clock clk_mdll_refn]
-
-# Set transition time for MDLL monitor
-create_clock -name clk_mdll_monp -period {1.0*time_scale} [get_pin ibuf_mdll_mon/clk]
-set_max_transition {0.1*time_scale} -clock_path [get_clock clk_mdll_monp]
-create_clock -name clk_mdll_monn -period {1.0*time_scale} [get_pin ibuf_mdll_mon/clk_b]
-set_max_transition {0.1*time_scale} -clock_path [get_clock clk_mdll_monn]
-
-# Set transition time for the MDLL output
-create_clock -name clk_mdll_out -period {0.25*time_scale} [get_pin imdll/clk_0]
-set_max_transition {0.03*time_scale} -clock_path [get_clock clk_mdll_out]
-
-# Set transition time for the clock going to the CGRA
-create_clock -name clk_cgra_out -period {1.0*time_scale} [get_pin idcore/clk_cgra]
-set_max_transition {0.1*time_scale} -clock_path [get_clock clk_cgra_out]
+# # Set transition time for clk_async
+# create_clock -name clk_async_buf -period {1.0*time_scale} [get_pin ibuf_async/clk]
+# set_max_transition {0.1*time_scale} -clock_path [get_clock clk_async_buf]
+#
+# # Set transition time for the 8 GHz output of the main buffer
+# # Note that the period of this clock is declared as 1 GHz due to
+# # limitations in QTMs models mentioned earlier, but the transition
+# # constraint is 10% of an 8 GHz clock (rather than a 1 GHz clock)
+# set_max_transition {0.0125*time_scale} -clock_path [get_clock clk_main_buf]
+#
+# # Set transition time for MDLL reference
+# create_clock -name clk_mdll_refp -period {8.0*time_scale} [get_pin ibuf_mdll_ref/clk]
+# set_max_transition {0.03*time_scale} -clock_path [get_clock clk_mdll_refp]
+# create_clock -name clk_mdll_refn -period {8.0*time_scale} [get_pin ibuf_mdll_ref/clk_b]
+# set_max_transition {0.03*time_scale} -clock_path [get_clock clk_mdll_refn]
+#
+# # Set transition time for MDLL monitor
+# create_clock -name clk_mdll_monp -period {1.0*time_scale} [get_pin ibuf_mdll_mon/clk]
+# set_max_transition {0.1*time_scale} -clock_path [get_clock clk_mdll_monp]
+# create_clock -name clk_mdll_monn -period {1.0*time_scale} [get_pin ibuf_mdll_mon/clk_b]
+# set_max_transition {0.1*time_scale} -clock_path [get_clock clk_mdll_monn]
+#
+# # Set transition time for the MDLL output
+# create_clock -name clk_mdll_out -period {0.25*time_scale} [get_pin imdll/clk_0]
+# set_max_transition {0.03*time_scale} -clock_path [get_clock clk_mdll_out]
+#
+# # Set transition time for the clock going to the CGRA
+# create_clock -name clk_cgra_out -period {1.0*time_scale} [get_pin idcore/clk_cgra]
+# set_max_transition {0.1*time_scale} -clock_path [get_clock clk_cgra_out]
 
 echo [all_clocks]
 '''
