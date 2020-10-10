@@ -119,7 +119,17 @@ module test ();
 
         broadcast_channel.all(channel_est, dsp_dbg_intf_i.channel_est);
         broadcast_weights.all(ffe_weights, dsp_dbg_intf_i.weights);
-        repeat(5) @(posedge clk);
+
+        for(ii = 0; ii < constant_gpack::channel_width; ii = ii + 1) begin
+            @(posedge clk) adc_codes[ii] = 0;
+        end
+
+        repeat @(10) begin
+            for(ii = 0; ii < constant_gpack::channel_width; ii = ii + 1) begin
+                @(posedge clk) adc_codes[ii] = $random() % constant_gpack::code_precision;
+            end
+        end
+
         $finish;
     end
 
