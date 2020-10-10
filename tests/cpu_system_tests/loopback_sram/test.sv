@@ -90,7 +90,7 @@ module test;
 	clock #(
 		.freq(ext_clk_freq),
 		.duty(0.5),
-		.td(0)
+		.td(30e-12)
 	) iEXTCLK (
 		.ckout(ext_clkp),
 		.ckoutb(ext_clkn)
