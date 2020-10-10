@@ -39,12 +39,13 @@ module digital_core import const_pack::*; (
     dsp_debug_intf dsp_dbg_intf_i();
     prbs_debug_intf pdbg_intf_i ();
     wme_debug_intf wdbg_intf_i ();
+    hist_debug_intf hdbg_intf_i ();
 
     
     // internal signals
 
     wire logic rstb;
-    wire logic clk_avg;
+    wire logic adc_unfolding_update;
     wire logic [Nadc-1:0] adcout_retimed [Nti-1:0];
     wire logic [Nti-1:0] adcout_sign_retimed;
     wire logic [Nadc-1:0] adcout_retimed_rep [Nti_rep-1:0];
@@ -120,33 +121,30 @@ module digital_core import const_pack::*; (
 
     // PFD Offset Calibration
 
-    // This generates a JTAG-controlled clock divider - divisible by 1 to 2^5
+    // The averaging pulse occurs once every 2**Ndiv_clk_avg pulses.  With the
+    // default setting of Nrange=4, the averaging period can vary from 1 cycle
+    // to 32,768 cycles.  Ndiv_clk_avg defaults to "10", or 1,024 cycles.
 
-    // TODO: Rather than generating a clock signal here (clk_avg), we should generate a
-    // clock enable signal that is passed into adc_unfolding, because that block
-    // converts clk_avg back into a clock enable signal anyway.  Since the current setup
-    // leads to hold violations when implementing the design for an FPGA, freq_divider
-    // is ifdef'd out for emulation.
-
-    `ifndef VIVADO
-        freq_divider #(.N(4)) average_clk_gen (
-            .cki(clk_adc),
-            .cko(clk_avg),
-            .ndiv(ddbg_intf_i.Ndiv_clk_avg),
-            .rstb(rstb)
-        );
-    `else
-        assign clk_avg = 1'b0;
-    `endif
+    avg_pulse_gen #(
+        .N(Nrange)
+    ) unfolding_pulse_inst (
+        .clk(clk_adc),
+        .rstb(rstb),
+        .ndiv(ddbg_intf_i.Ndiv_clk_avg),
+        .out(adc_unfolding_update)
+    );
 
     genvar k;
     generate
         for (k=0; k<Nti; k=k+1) begin : unfold_and_calibrate_PFD_by_slice
-            adc_unfolding PFD_CALIB (
+            adc_unfolding #(
+                .Nadc(Nadc),
+                .Nrange(Nrange)
+            ) PFD_CALIB (
                 // Inputs
-                .clk_retimer(clk_adc),
+                .clk(clk_adc),
                 .rstb(rstb),
-                .clk_avg(clk_avg),
+                .update(adc_unfolding_update),
                 .din(adcout_retimed[k]),
                 .sign_out(adcout_sign_retimed[k]),
 
@@ -160,6 +158,9 @@ module digital_core import const_pack::*; (
                 .Nbin(ddbg_intf_i.Nbin_adc),
                 .Navg(ddbg_intf_i.Navg_adc),
                 .DZ(ddbg_intf_i.DZ_hist_adc),
+                .flip_feedback(ddbg_intf_i.pfd_cal_flip_feedback),
+                .en_ext_ave(ddbg_intf_i.en_pfd_cal_ext_ave),
+                .ext_ave(ddbg_intf_i.pfd_cal_ext_ave),
                 .dout_avg(ddbg_intf_i.adcout_avg[k]),
                 .dout_sum(ddbg_intf_i.adcout_sum[k]),
                 .hist_center(ddbg_intf_i.adcout_hist_center[k]),
@@ -169,11 +170,14 @@ module digital_core import const_pack::*; (
         end
 
         for (k=0; k<2; k=k+1) begin : replica_unfold_and_calib
-            adc_unfolding PFD_CALIB_REP (
+            adc_unfolding #(
+                .Nadc(Nadc),
+                .Nrange(Nrange)
+            ) PFD_CALIB_REP (
                 // Inputs
-                .clk_retimer(clk_adc),
+                .clk(clk_adc),
                 .rstb(rstb),
-                .clk_avg(clk_avg),
+                .update(adc_unfolding_update),
                 .din(adcout_retimed_rep[k]),
                 .sign_out(adcout_sign_retimed_rep[k]),
 
@@ -419,6 +423,60 @@ module digital_core import const_pack::*; (
         .total_bits(prbs_total_bits)
     );
 
+    // Histogram data generator for BIST
+
+    logic [(Nadc-1):0] data_gen_out;
+
+    histogram_data_gen #(
+        .n(Nadc)
+    ) data_gen_inst (
+        .clk(clk_adc),
+        .mode(hdbg_intf_i.data_gen_mode),
+        .in0(hdbg_intf_i.data_gen_in_0),
+        .in1(hdbg_intf_i.data_gen_in_1),
+        .out(data_gen_out)
+    );
+
+    // Histogram
+    // TODO: is there an MLSD output that should be included?
+
+    logic [(Nadc-1):0] hist_data_in;
+
+    logic [63:0] hist_count;
+    assign hdbg_intf_i.hist_count_upper = hist_count[63:32];
+    assign hdbg_intf_i.hist_count_lower = hist_count[31:0];
+
+    logic [63:0] hist_total;
+    assign hdbg_intf_i.hist_total_upper = hist_total[63:32];
+    assign hdbg_intf_i.hist_total_lower = hist_total[31:0];
+
+    histogram_mux #(
+        .Nti(Nti),
+        .Nti_rep(Nti_rep),
+        .Nadc(Nadc)
+    ) hist_mux_inst (
+        .clk(clk_adc),
+        .source(hdbg_intf_i.hist_source),
+        .index(hdbg_intf_i.hist_src_idx),
+        .adc_data(adcout_unfolded),
+        .ffe_data(trunc_est_bits),
+        .bist_data(data_gen_out),
+        .out(hist_data_in)
+    );
+
+    histogram #(
+        .n_data(Nadc),
+        .n_count(64)
+    ) histogram_inst (
+        .clk(clk_adc),
+        .sram_ceb(hdbg_intf_i.hist_sram_ceb),
+        .mode(hdbg_intf_i.hist_mode),
+        .data(hist_data_in),
+        .addr(hdbg_intf_i.hist_addr),
+        .count(hist_count),
+        .total(hist_total)
+    );
+
     // Output buffer
 
     // wire out PI measurement signals separately 
@@ -486,6 +544,7 @@ module digital_core import const_pack::*; (
         .pdbg_intf_i(pdbg_intf_i),
         .wdbg_intf_i(wdbg_intf_i),
         .mdbg_intf_i(mdbg_intf_i),
+        .hdbg_intf_i(hdbg_intf_i),
         .jtag_intf_i(jtag_intf_i)
     );
 

@@ -57,6 +57,9 @@ interface dcore_debug_intf import const_pack::*; (
 		logic signed [ffe_gpack::output_precision-1:0] ffe_thresh [constant_gpack::channel_width-1:0];
 		logic [1:0] sel_prbs_mux;
         logic en_cgra_clk;
+        logic pfd_cal_flip_feedback;
+        logic en_pfd_cal_ext_ave;
+        logic signed [Nadc-1:0] pfd_cal_ext_ave;
 
     modport dcore ( 	
 		input en_ext_pi_ctl_cdr,
@@ -101,6 +104,9 @@ interface dcore_debug_intf import const_pack::*; (
 		input ffe_thresh,
 		input sel_prbs_mux,
         input en_cgra_clk,
+        input pfd_cal_flip_feedback,
+        input en_pfd_cal_ext_ave,
+        input pfd_cal_ext_ave,
 
 		output adcout_avg ,
 		output adcout_sum,
@@ -156,6 +162,9 @@ interface dcore_debug_intf import const_pack::*; (
 		output ffe_thresh,
 		output sel_prbs_mux,
         output en_cgra_clk,
+        output pfd_cal_flip_feedback,
+        output en_pfd_cal_ext_ave,
+        output pfd_cal_ext_ave,
 
 		input adcout_avg ,
 		input adcout_sum,

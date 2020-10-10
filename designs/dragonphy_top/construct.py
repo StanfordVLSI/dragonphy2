@@ -59,8 +59,10 @@ def construct():
 
     if DRAGONPHY_PROCESS == 'FREEPDK45':
         gen_sram = Step(this_dir + '/openram-gen-sram')
+        gen_sram_small = Step(this_dir + '/openram-gen-sram-small')
     elif DRAGONPHY_PROCESS == 'TSMC16':
         gen_sram = Step(this_dir + '/mc-gen-sram')
+        gen_sram_small = Step(this_dir + '/mc-gen-sram-small')
     else:
         raise Exception(f'Unknown process: {DRAGONPHY_PROCESS}')
 
@@ -71,7 +73,6 @@ def construct():
 
     dc = Step(this_dir + '/synopsys-dc-synthesis')
     qtm = Step(this_dir + '/qtm')
-
     # Block-level designs (only work in TSMC16)
     blocks = []
     if DRAGONPHY_PROCESS == 'TSMC16':
@@ -82,13 +83,16 @@ def construct():
             Step( this_dir + '/mdll_r1' )
         ]
 
+    init = Step(this_dir + '/cadence-innovus-init')
+    cts  = Step(this_dir + '/cadence-innovus-cts')
+    lvs  = Step(this_dir + '/mentor-calibre-lvs')
     # Default steps
     info           = Step( 'info',                           default=True )
     iflow          = Step( 'cadence-innovus-flowsetup',      default=True )
-    init           = Step( 'cadence-innovus-init',           default=True )
+    #init           = Step( 'cadence-innovus-init',           default=True )
     power          = Step( 'cadence-innovus-power',          default=True )
     place          = Step( 'cadence-innovus-place',          default=True )
-    cts            = Step( 'cadence-innovus-cts',            default=True )
+    #cts            = Step( 'cadence-innovus-cts',            default=True )
     postcts_hold   = Step( 'cadence-innovus-postcts_hold',   default=True )
     route          = Step( 'cadence-innovus-route',          default=True )
     postroute      = Step( 'cadence-innovus-postroute',      default=True )
@@ -97,7 +101,7 @@ def construct():
     genlibdb       = Step( 'synopsys-ptpx-genlibdb',         default=True )
     gdsmerge       = Step( 'mentor-calibre-gdsmerge',        default=True )
     drc            = Step( 'mentor-calibre-drc',             default=True )
-    lvs            = Step( 'mentor-calibre-lvs',             default=True )
+    #lvs            = Step( 'mentor-calibre-lvs',             default=True )
     debugcalibre   = Step( 'cadence-innovus-debug-calibre',  default=True )
 
     # Add extra input edges to innovus steps that need custom tweaks
@@ -114,7 +118,8 @@ def construct():
         'input_buffer_lib.db',
         'output_buffer_lib.db',
         'mdll_r1_top_lib.db',
-        'sram_tt.db'
+        'sram_tt.db',
+        'sram_small_tt.db'
     ]
     dc.extend_inputs(dbs)
     pt_signoff.extend_inputs(dbs)
@@ -126,7 +131,8 @@ def construct():
         'mdll_r1_top.lib',
         'input_buffer.lib',
         'output_buffer.lib',
-        'sram_tt.lib'
+        'sram_tt.lib',
+        'sram_small_tt.lib'
     ]
 
     lefs = [
@@ -134,7 +140,8 @@ def construct():
         'input_buffer.lef',
         'output_buffer.lef',
         'mdll_r1_top.lef',
-        'sram.lef'
+        'sram.lef',
+        'sram_small.lef'
     ]
 
     lib_lef_steps = \
@@ -148,17 +155,20 @@ def construct():
         'input_buffer.gds',
         'output_buffer.gds',
         'mdll_r1_top.gds',
-        'sram.gds'
+        'sram.gds',
+        'sram_small.gds'
     ]
     gdsmerge.extend_inputs(gds_list)
 
     # Need Spice or Verilog netlists files for black boxes for LVS
     spi_list = [
-        'analog_core.lvs.v',
-        'input_buffer.lvs.v',
+        'analog_core.spi',
+        'mdll_r1_top_macro.cdl',
+        'input_buffer.spi',
         'output_buffer.lvs.v',
         'mdll_r1_top.lvs.v',
-        'sram.spi'
+        'sram.spi',
+        'sram_small.spi'
     ]
     lvs.extend_inputs(spi_list)
 
@@ -169,6 +179,7 @@ def construct():
     g.add_step( info                 )
     g.add_step( rtl                  )
     g.add_step( gen_sram             )
+    g.add_step( gen_sram_small       )
     g.add_step( constraints          )
     g.add_step( dc                   )
     g.add_step( iflow                )
@@ -225,7 +236,7 @@ def construct():
     # Connect up blocks like analog_core, input_buffer, etc.
     # The QTM step is also included here because it provides
     # *.lib and *.db files for some of the blocks
-    for block in blocks + [gen_sram, qtm]:
+    for block in blocks + [gen_sram, gen_sram_small, qtm]:
         g.connect_by_name(block, dc)
         g.connect_by_name(block, iflow)
         g.connect_by_name(block, init)
