@@ -111,7 +111,8 @@ module dsp_backend (
 		.shiftBitwidth(ffe_gpack::shift_precision),
 		.ffeDepth(ffe_gpack::length),
 		.numChannels(constant_gpack::channel_width),
-		.numBuffers    (ffe_code_pipeline_depth)
+		.numBuffers    (ffe_code_pipeline_depth),
+        .t0_buff (1)
 	) cffe_i (
 		.weights       (weights),
 		.flat_codes    (flat_codes_ffe),
