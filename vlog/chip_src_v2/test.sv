@@ -130,7 +130,7 @@ module test ();
         repeat (10) begin
             @(posedge clk);
             for(ii = 0; ii < constant_gpack::channel_width; ii = ii + 1) begin
-                adc_codes[ii] = $signed($urandom() % {constant_gpack::code_precision{1'b1}});
+                adc_codes[ii] = $signed(($urandom() % 2) ? +1 : -1);
             end
         end
 
