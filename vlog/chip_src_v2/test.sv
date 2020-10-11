@@ -124,7 +124,7 @@ module test ();
             @(posedge clk) adc_codes[ii] = 0;
         end
 
-        repeat @(10) begin
+        repeat (10) begin
             for(ii = 0; ii < constant_gpack::channel_width; ii = ii + 1) begin
                 @(posedge clk) adc_codes[ii] = $random() % constant_gpack::code_precision;
             end
