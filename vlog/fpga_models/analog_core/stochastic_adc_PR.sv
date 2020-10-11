@@ -21,12 +21,7 @@ module stochastic_adc_PR #(
     input [Nctl_dcdl_fine-1:0] ctl_dcdl_late,
     input [Nctl_dcdl_fine-1:0] ctl_dcdl_early,
     input alws_on,
-    //input clk_async,
-    //input sel_clk_TDC,
     input [Nctl_TDC-1:0] ctl_dcdl,
-    //input en_pm,
-    //input [1:0] sel_pm_sign,
-    //input [1:0] sel_pm_in,
     input en_TDC_phase_reverse,
     input retimer_mux_ctrl_1,
     input retimer_mux_ctrl_2,
@@ -38,7 +33,6 @@ module stochastic_adc_PR #(
     output del_out,
     output reg sign_out,
     output reg [Nadc-1:0] adder_out,
-    //output [19:0] pm_out,
     output arb_out_dmm
 );
     //////////////////
@@ -140,7 +134,6 @@ module stochastic_adc_PR #(
 
     // unused outputs
     assign del_out = 0;
-    assign pm_out = 0;
     assign arb_out_dmm = 0;
 endmodule
 

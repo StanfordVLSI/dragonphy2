@@ -58,10 +58,10 @@
 | retimer_mux_ctrl_2         |         | Nti-1:0                |              | Test         | out      | 'b1111000000000000 |
 | retimer_mux_ctrl_1_rep     |         | Nti_rep-1:0            |              | Test         | out      | 'b11               |
 | retimer_mux_ctrl_2_rep     |         | Nti_rep-1:0            |              | Test         | out      | 'b11               |
-| sel_PFD_in                 |         | 1:0 		            | Nti-1:0      | Test         | out      | 0 	              |
-| sign_PFD_clk_in            |         | Nti-1:0	            | 		       | Test         | out      | 0 	              |
-| sel_PFD_in_rep             |         | 1:0 		            | 1:0	       | Test         | out      | 0 	              |
-| sign_PFD_clk_in_rep        |         | 1:0 		            | 		       | Test         | out      | 0 	              |
+| sel_PFD_in                 |         | 1:0                    | Nti-1:0      | Test         | out      | 0                  |
+| sign_PFD_clk_in            |         | Nti-1:0                |              | Test         | out      | 0                  |
+| sel_PFD_in_rep             |         | 1:0	                | 1:0          | Test         | out      | 0                  |
+| sign_PFD_clk_in_rep        |         | 1:0	                |              | Test         | out      | 0                  |
 
 
 
