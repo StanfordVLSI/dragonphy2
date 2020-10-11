@@ -19,9 +19,9 @@ module channel_filter #(
         for(ii=0; ii<width; ii=ii+1) begin
             est_code[ii] = 0;
             for(jj=0; jj<depth; jj=jj+1) begin
-                est_code[ii] = est_code[ii] + (bitstream[idx-ii+jj] ? channel[ii][jj] : -channel[ii][jj]);
+                est_code[ii] = est_code[ii] + (bitstream[ii+idx-jj] ? channel[ii][jj] : -channel[ii][jj]);
             end
-            est_code[ii] = est_code[ii] >> shift[ii];
+            est_code[ii] = est_code[ii] >>> shift[ii];
         end
     end
 
