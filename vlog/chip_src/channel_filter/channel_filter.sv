@@ -12,12 +12,14 @@ module channel_filter #(
     output logic signed [est_code_bitwidth-1:0] est_code [width-1:0]
 );
 
+    localparam idx = depth - 1;
+
     integer ii, jj;
     always_comb begin
         for(ii=0; ii<width; ii=ii+1) begin
             est_code[ii] = 0;
             for(jj=0; jj<depth; jj=jj+1) begin
-                est_code[ii] = est_code[ii] + (bitstream[ii+jj] ? channel[ii][depth-jj-1] : -channel[ii][depth-jj-1]);
+                est_code[ii] = est_code[ii] + (bitstream[idx-ii+jj] ? channel[ii][jj] : -channel[ii][jj]);
             end
             est_code[ii] = est_code[ii] >> shift[ii];
         end
