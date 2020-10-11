@@ -121,12 +121,16 @@ module test ();
         broadcast_weights.all(ffe_weights, dsp_dbg_intf_i.weights);
 
         for(ii = 0; ii < constant_gpack::channel_width; ii = ii + 1) begin
-            @(posedge clk) adc_codes[ii] = 0;
+            adc_codes[ii] = 0;
         end
-
+        #0
+        start = 1;
+        @(posedge clk) rstb = 1; 
+         
         repeat (10) begin
+            @(posedge clk);
             for(ii = 0; ii < constant_gpack::channel_width; ii = ii + 1) begin
-                @(posedge clk) adc_codes[ii] = $random() % constant_gpack::code_precision;
+                adc_codes[ii] = $signed($urandom() % {constant_gpack::code_precision{1'b1}});
             end
         end
 
