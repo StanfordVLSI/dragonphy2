@@ -154,7 +154,10 @@ module datapath_core #(
         .bit_out   (sliced_bits)
     );
 
-    logic flat_sliced_bits [constant_gpack::channel_width*channel_bits_pipeline_depth-1:0];
+    localparam total_channel_bit_depth = constant_gpack::channel_width*channel_bits_pipeline_depth;
+    localparam actual_channel_bit_depth = constant_gpack::channel_width + channel_gpack::est_channel_depth - 1;
+
+    logic flat_sliced_bits [total_channel_bit_depth-1:0];
     flatten_buffer_slice #(
         .numChannels(constant_gpack::channel_width),
         .bitwidth   (1),
@@ -176,7 +179,7 @@ module datapath_core #(
         .est_channel_bitwidth(channel_gpack::est_channel_precision),
         .est_code_bitwidth(channel_gpack::est_code_precision)
     ) chan_filt_i (
-        .bitstream(flat_sliced_bits[(channel_gpack::est_channel_depth-1)+constant_gpack::channel_width-1:0]),
+        .bitstream(flat_sliced_bits[total_channel_bit_depth-1:total_channel_bit_depth-actual_channel_bit_depth -1]),
         .channel(channel_est),
         .shift(channel_shift),
         .est_code(estimated_codes)
