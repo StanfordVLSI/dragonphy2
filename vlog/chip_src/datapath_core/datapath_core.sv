@@ -201,10 +201,17 @@ module datapath_core #(
 
     //Create Error by subtracting codes from channel filter
     logic signed [error_gpack::est_error_precision-1:0] est_error [constant_gpack::channel_width-1:0];
+    logic signed [constant_gpack::code_precision-1:0]   end_buffer_adc_codes[constant_gpack::channel_width-1:0];
+    logic signed [constant_gpack::code_precision-1:0]   end_buffer_est_codes[constant_gpack::channel_width-1:0];
+
+
+
 
     always_comb begin
         for(ii=0; ii<constant_gpack::channel_width; ii=ii+1) begin
-            est_error[ii] = estimated_codes[ii][channel_pipeline_depth-1] - adc_codes_buffer[ii][code_pipeline_depth-1];
+            end_buffer_adc_codes[ii] = adc_codes_buffer[ii][code_pipeline_depth-1];
+            end_buffer_est_codes[ii] = estimated_codes[ii][channel_pipeline_depth-1];
+            est_error[ii] = end_buffer_est_codes[ii] - end_buffer_adc_codes[ii];
         end
     end
 
