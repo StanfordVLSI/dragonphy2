@@ -28,7 +28,6 @@ class Filter:
             resp_depth = int(floor(self.t_vec[-1]*f_sig)) + 1
         # compute times at which step reponse should be evaluated
         t_step = np.linspace(0, (resp_depth-1)/f_sig, resp_depth) - t_delay
-
         # compute interpolated step response
         v_step = self.interp(t_step)
 
