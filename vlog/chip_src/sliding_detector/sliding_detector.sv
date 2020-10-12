@@ -68,6 +68,7 @@ module sliding_detector #(
         //Sum up the squared err-errstreams
         for(kk=0; kk<4; kk=kk+1) begin
             for(ii=0; ii<width; ii=ii+1) begin
+                mse_err[kk][ii] = 0;
                 for(jj=0; jj<seq_length; jj=jj+1) begin
                     mse_err[kk][ii] = mse_err[kk][ii] + sqr_inj_error[kk][ii][jj];
                 end
