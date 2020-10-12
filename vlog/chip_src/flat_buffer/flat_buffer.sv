@@ -6,11 +6,11 @@ module flat_buffer #(
 	input  logic [bitwidth-1:0] in [numChannels-1:0],
 	input  logic clk,
 	input  logic rstb,
-	output 	   logic [bitwidth-1:0] flat_out [numChannels*depth-1:0]
+	output 	   logic [bitwidth-1:0] flat_out [numChannels*(depth+1)-1:0]
 );
 
 
-	logic  [bitwidth-1:0] internal_pipeline [numChannels-1:0][depth-1:0];
+	logic  [bitwidth-1:0] internal_pipeline [numChannels-1:0][depth:0];
 
 
 
