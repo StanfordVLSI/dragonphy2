@@ -76,11 +76,9 @@ module sliding_detector #(
         end
         //Rank the sum square errors and return the position of the smallest error
         for(ii=0; ii<width; ii=ii+1) begin
-            mmse_err[ii] = mse_err[0][ii];
             mmse_err_pos[ii] = 0;
             for(jj=1; jj<4; jj=jj+1) begin
-                mmse_err[ii] = (mmse_err[ii] > mse_err[jj][ii]) ? mse_err[jj][ii] : mmse_err[ii];
-                mmse_err_pos[ii] = (mmse_err[ii] > mse_err[jj][ii]) ? jj : mmse_err_pos[ii];
+                mmse_err_pos[ii] = (mse_err[mmse_err_pos[ii]][ii] > mse_err[jj][ii]) ? jj : mmse_err_pos[ii];
             end 
         end
     end
