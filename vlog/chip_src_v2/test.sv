@@ -128,9 +128,10 @@ module test ();
         @(posedge clk) rstb = 1; 
          
         repeat (50) begin
-            @(posedge clk);
+            @(posedge clk) begin
             for(ii = 0; ii < constant_gpack::channel_width; ii = ii + 1) begin
                 adc_codes[ii] = $signed(($urandom() % 2) ? +1 : -1);
+            end
             end
         end
 
