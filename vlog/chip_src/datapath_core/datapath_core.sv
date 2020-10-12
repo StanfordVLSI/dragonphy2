@@ -113,7 +113,7 @@ module datapath_core #(
         .ffeDepth(ffe_gpack::length),
         .numChannels(constant_gpack::channel_width),
         .numBuffers    (ffe_code_pipeline_depth+1),
-        .t0_buff       (1)
+        .t0_buff       (ffe_code_pipeline_depth)
     ) cffe_i (
         .weights       (weights),
         .flat_codes    (flat_adc_codes),
@@ -267,7 +267,8 @@ module datapath_core #(
         .est_error_bitwidth(detector_gpack::est_error_precision),
         .est_channel_bitwidth(detector_gpack::est_channel_precision),
         .max_bitwidth(detector_gpack::max_bitwidth),
-        .sliding_detector_depth(sliding_detector_input_pipeline_depth+1)
+        .sliding_detector_depth(sliding_detector_input_pipeline_depth+1),
+        .t0_buff               (sliding_detector_input_pipeline_depth)
     ) sld_dtct_i (
         .errstream(sd_flat_errors),
         .bitstream(sd_flat_sliced_bits),
