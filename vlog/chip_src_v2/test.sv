@@ -111,10 +111,12 @@ module test ();
 
     always_ff @(posedge clk or negedge rstb) begin
         if(~rstb) begin
-            adc_codes[ii] <= 0;
+            for(ii = 0; ii < constant_gpack::channel_width; ii = ii + 1) begin
+                adc_codes[ii] <= 0;
+            end
         end else begin
             for(ii = 0; ii < constant_gpack::channel_width; ii = ii + 1) begin
-                adc_codes[ii] = $signed(($urandom() % 2) ? +1 : -1);
+                adc_codes[ii] <= $signed(($urandom() % 2) ? +1 : -1);
             end
         end
     end
