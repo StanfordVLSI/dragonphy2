@@ -107,8 +107,18 @@ module test ();
         $shm_open("waves.shm"); $shm_probe("ASMC");
     end
 
-
     integer ii, jj;
+
+    always_ff @(posedge clk or negedge rstb) begin 
+        if(~rstb) begin
+            adc_codes[ii] <= 0;
+        end else begin
+            for(ii = 0; ii < constant_gpack::channel_width; ii = ii + 1) begin
+                adc_codes[ii] = $signed(($urandom() % 2) ? +1 : -1);
+            end
+        end
+    end
+
     initial begin
         rstb = 0;
         start = 0;
@@ -127,13 +137,8 @@ module test ();
         start = 1;
         @(posedge clk) rstb = 1; 
          
-        repeat (50) begin
-            @(posedge clk) begin
-            for(ii = 0; ii < constant_gpack::channel_width; ii = ii + 1) begin
-                adc_codes[ii] = $signed(($urandom() % 2) ? +1 : -1);
-            end
-            end
-        end
+        repeat (50) @(posedge clk)
+
 
         $finish;
     end
