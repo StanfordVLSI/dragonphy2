@@ -67,7 +67,7 @@ module datapath_core #(
     signed_buffer #(
         .numChannels (constant_gpack::channel_width),
         .bitwidth    (constant_gpack::code_precision),
-        .depth       (code_pipeline_depth+1)
+        .depth       (code_pipeline_depth)
     ) adc_code_buff_i (
         .in      (adc_codes),
         .clk     (clk),
@@ -81,7 +81,7 @@ module datapath_core #(
     buffer #(
         .numChannels (constant_gpack::channel_width),
         .bitwidth    (1),
-        .depth       (bits_pipeline_depth+1)
+        .depth       (bits_pipeline_depth)
     ) sliced_bits_buff_i (
         .in      (sliced_bits),
         .clk     (clk),
