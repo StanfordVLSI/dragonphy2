@@ -109,7 +109,7 @@ module test ();
 
     integer ii, jj;
 
-    always_ff @(posedge clk or negedge rstb) begin 
+    always_ff @(posedge clk or negedge rstb) begin
         if(~rstb) begin
             adc_codes[ii] <= 0;
         end else begin
@@ -129,11 +129,6 @@ module test ();
 
         broadcast_channel.all(channel_est, dsp_dbg_intf_i.channel_est);
         broadcast_weights.all(ffe_weights, dsp_dbg_intf_i.weights);
-
-        for(ii = 0; ii < constant_gpack::channel_width; ii = ii + 1) begin
-            adc_codes[ii] = 0;
-        end
-        #0
         start = 1;
         @(posedge clk) rstb = 1; 
          
