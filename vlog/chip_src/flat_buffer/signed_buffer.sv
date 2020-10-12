@@ -25,7 +25,7 @@ generate
             end else begin
                 if(depth > 0) begin
                     for(ii=0; ii<depth; ii=ii+1) begin
-                        buffer[gi][depth-ii] = buffer[gi][depth-1-ii];
+                        buffer[gi][depth-ii] <= buffer[gi][depth-1-ii];
                     end
                 end
             end
