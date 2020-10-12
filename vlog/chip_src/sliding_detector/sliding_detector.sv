@@ -40,13 +40,13 @@ module sliding_detector #(
         //Inject an IEV at the relevant position and then square the result
         for(ii=0; ii<width; ii=ii+1) begin
             for(jj=0; jj<seq_length+1; jj=jj+1) begin
-                sqr_error[0][ii][jj] = (errstream[ii+jj] + error[ii][jj])**2;
-                sqr_error[1][ii][jj] = (errstream[ii+jj] + error[ii+1][jj] + error[ii][jj+1])**2;
+                sqr_error[0][ii][jj] = (errstream[idx+ii+jj] + error[ii][jj])**2;
+                sqr_error[1][ii][jj] = (errstream[idx+ii+jj] + error[ii+1][jj] + error[ii][jj+1])**2;
             end
-            sqr_error[0][ii][jj] = (errstream[ii+jj] + error[ii][jj])**2;
+            sqr_error[0][ii][jj] = (errstream[idx+ii+jj] + error[ii][jj])**2;
 
             for(jj=0; jj<seq_length; jj=jj+1) begin
-                sqr_inj_error[0][ii][jj] = errstream[ii+jj]**2;
+                sqr_inj_error[0][ii][jj] = errstream[idx+ii+jj]**2;
                 sqr_inj_error[1][ii][jj] = sqr_error[0][ii][jj+1];
                 sqr_inj_error[2][ii][jj] = sqr_error[0][ii+1][jj];
                 sqr_inj_error[3][ii][jj] = sqr_error[1][ii][jj];
