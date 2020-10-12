@@ -27,8 +27,8 @@ module datapath_core #(
 
     localparam integer chan_plus_ffe_depth = ffe_pipeline_depth + channel_pipeline_depth;
 
-    localparam integer code_pipeline_depth = (chan_plus_ffe_depth > ffe_code_pipeline_depth) ? chan_plus_ffe_depth - ffe_code_pipeline_depth : ffe_code_pipeline_depth;
-    localparam integer error_code_pipeline_depth = (chan_plus_ffe_depth > ffe_code_pipeline_depth) ? code_pipeline_depth : chan_plus_ffe_depth;
+    localparam integer code_pipeline_depth = (chan_plus_ffe_depth > ffe_code_pipeline_depth) ? chan_plus_ffe_depth : ffe_code_pipeline_depth;
+    localparam integer error_code_pipeline_depth = chan_plus_ffe_depth;
 
     localparam integer sliding_detector_error_start = error_pipeline_depth - sliding_detector_input_pipeline_depth;
     localparam integer sliding_detector_bit_start   = bits_pipeline_depth - sliding_detector_input_pipeline_depth;
@@ -207,9 +207,6 @@ module datapath_core #(
     logic signed [error_gpack::est_error_precision-1:0] est_error [constant_gpack::channel_width-1:0];
     logic signed [constant_gpack::code_precision-1:0]   end_buffer_adc_codes[constant_gpack::channel_width-1:0];
     logic signed [channel_gpack::est_code_precision-1:0]   end_buffer_est_codes[constant_gpack::channel_width-1:0];
-
-
-
 
     always_comb begin
         for(ii=0; ii<constant_gpack::channel_width; ii=ii+1) begin
