@@ -26,11 +26,11 @@ module datapath_core #(
     localparam integer bits_pipeline_depth = channel_bits_pipeline_depth + channel_pipeline_depth + error_pipeline_depth + sliding_detector_input_pipeline_depth;
 
     if(ffe_pipeline_depth + channel_pipeline_depth > ffe_code_pipeline_depth) begin
-        defparam code_pipeline_depth = ffe_pipeline_depth + channel_pipeline_depth - ffe_code_pipeline_depth;
-        defparam error_code_pipeline_depth = code_pipeline_depth;
+        localparam integer code_pipeline_depth = ffe_pipeline_depth + channel_pipeline_depth - ffe_code_pipeline_depth;
+        localparam integer error_code_pipeline_depth = code_pipeline_depth;
     end else begin
-        defparam code_pipeline_depth = ffe_code_pipeline_depth;
-        defparam error_code_pipeline_depth = ffe_pipeline_depth + channel_pipeline_depth;
+        localparam integer code_pipeline_depth = ffe_code_pipeline_depth;
+        localparam integer error_code_pipeline_depth = ffe_pipeline_depth + channel_pipeline_depth;
     end
 
     localparam integer sliding_detector_error_start = error_pipeline_depth - sliding_detector_input_pipeline_depth;
