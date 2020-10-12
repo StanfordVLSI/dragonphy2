@@ -78,10 +78,10 @@ module test ();
 
     dsp_debug_intf dsp_dbg_intf_i();
     datapath_core #(
-        .ffe_pipeline_depth(1), 
-        .channel_pipeline_depth(1), 
+        .ffe_pipeline_depth(0), 
+        .channel_pipeline_depth(0), 
         .additional_error_pipeline_depth(0), 
-        .sliding_detector_output_pipeline_depth(1)
+        .sliding_detector_output_pipeline_depth(0)
     ) dp_core_i (
         .adc_codes(adc_codes),
         .clk(clk),
@@ -127,7 +127,7 @@ module test ();
         start = 1;
         @(posedge clk) rstb = 1; 
          
-        repeat (10) begin
+        repeat (50) begin
             @(posedge clk);
             for(ii = 0; ii < constant_gpack::channel_width; ii = ii + 1) begin
                 adc_codes[ii] = $signed(($urandom() % 2) ? +1 : -1);
