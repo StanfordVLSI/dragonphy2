@@ -29,7 +29,7 @@ module datapath_core #(
         if(ffe_pipeline_depth + channel_pipeline_depth > ffe_code_pipeline_depth) begin
             localparam integer code_pipeline_depth = ffe_pipeline_depth + channel_pipeline_depth - ffe_code_pipeline_depth;
             localparam integer error_code_pipeline_depth = code_pipeline_depth;
-        else begin
+        end else begin
             localparam integer code_pipeline_depth = ffe_code_pipeline_depth;
             localparam integer error_code_pipeline_depth = ffe_pipeline_depth + channel_pipeline_depth;
         end
