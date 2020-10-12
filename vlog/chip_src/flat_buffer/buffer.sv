@@ -23,12 +23,11 @@ generate
 				 	buffer[gi][ii] = 0;
 				 end
 			end else begin
-				if(depth > 1) begin
-					for(ii=1; ii<depth; ii=ii+1) begin
+				if(depth > 0) begin
+					for(ii=0; ii<depth; ii=ii+1) begin
 						buffer[gi][depth-ii] = buffer[gi][depth-1-ii];
 					end
 				end
-				buffer[gi][1] = in[gi];
 			end
 		end
 		always_comb begin
