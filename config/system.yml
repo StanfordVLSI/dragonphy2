@@ -5,27 +5,12 @@ parameter_list:
   - &ffe_length 10
   - &ffe_weight_precision 10
   - &estimate_depth 30
-  - &estimate_precision 8
+  - &est_channel_precision 8
+  - &est_code_precision 8
+  - &est_error_precision 8
   - &sequence_length 3
-  - &decision_shift_precision 4
+  - &channel_shift_precision 4
   - &ffe_shift_precision 5
-  - &mlsd_bit_length 1
-  - &mlsd_est_cursor_pos 0
-
-generate:
-  channel:
-    class: "PulseChannel"
-    type: "dielectric1"
-    file_name: "impulse_response.txt"
-    parameters:
-      baud_rate: 1
-      sampling_pos: 0
-      channel_depth: 125
-      tau: 0.0087
-      sample_rate: 100
-      baud_rate: 1
-      cursor_pos: *mlsd_est_cursor_pos
-
 
 generic:
   parameters:
@@ -54,14 +39,24 @@ generic:
       thresh_precision : *output_precision
     threshold:
       value: 0
-  mlsd:
+  channel:
     parameters:
       width: *channel_width
-      length: *sequence_length
-      code_precision : *code_precision
-      estimate_precision: *estimate_precision
-      estimate_depth: *estimate_depth
-      shift_precision: *decision_shift_precision
-      bit_length: *mlsd_bit_length
-      est_center: *mlsd_est_cursor_pos
+      est_channel_depth: *estimate_depth
+      est_channel_precision: *est_channel_precision
+      est_code_precision: *est_code_precision
+      shift_precision: *channel_shift_precision
+  error:
+    parameters:
+      width: *channel_width
+      est_error_precision: *est_error_precision
+  detector:
+    parameters:
+      width: *channel_width
+      seq_length: *sequence_length
+      est_error_precision : *est_error_precision
+      est_channel_precision: *est_channel_precision
+      max_bitwidth: 0
+
+
 
