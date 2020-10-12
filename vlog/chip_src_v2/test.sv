@@ -132,7 +132,7 @@ module test ();
         start = 1;
         @(posedge clk) rstb = 1; 
          
-        repeat (50) @(posedge clk)
+        repeat (50) @(posedge clk);
 
 
         $finish;
