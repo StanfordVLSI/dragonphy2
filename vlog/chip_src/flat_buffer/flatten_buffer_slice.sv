@@ -10,15 +10,15 @@ module flatten_buffer_slice #(
 );
 
 
-	input wire logic [bitwidth-1:0] buffer [numChannels-1:0][buff_depth-1:0];
-	output 	   logic [bitwidth-1:0] flat_slice [numChannels*slice_depth-1:0];
+	input wire logic [bitwidth-1:0] buffer [numChannels-1:0][buff_depth:0];
+	output 	   logic [bitwidth-1:0] flat_slice [numChannels*(slice_depth+1)-1:0];
 
-	logic [bitwidth-1:0] buffer_slice [numChannels-1:0][slice_depth-1:0];
+	logic [bitwidth-1:0] buffer_slice [numChannels-1:0][slice_depth:0];
 
 
 genvar gi, gj;
 generate
-	for(gi=0; gi < slice_depth; gi=gi+1) begin
+	for(gi=0; gi < slice_depth+1; gi=gi+1) begin
 		for(gj=0; gj<numChannels; gj=gj+1) begin
 			assign buffer_slice[gj][gi] = buffer[gj][gi + start]; 
 		end

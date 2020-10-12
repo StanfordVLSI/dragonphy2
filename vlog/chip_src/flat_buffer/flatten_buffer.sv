@@ -8,15 +8,15 @@ module flatten_buffer #(
 );
 
 
-		input wire logic [bitwidth-1:0] buffer [numChannels-1:0][depth-1:0];
-		output logic [bitwidth-1:0] flat_buffer [numChannels*depth-1:0];
+		input wire logic [bitwidth-1:0] buffer [numChannels-1:0][depth:0];
+		output logic [bitwidth-1:0] flat_buffer [numChannels*(depth+1)-1:0];
 
 
 genvar gi, gj;
 generate 
 	for(gj=0; gj<numChannels; gj=gj+1) begin
-		for(gi=0; gi<depth; gi=gi+1) begin
-			assign flat_buffer[(depth - gi - 1)*numChannels + gj] = buffer[gj][gi];
+		for(gi=0; gi<depth+1; gi=gi+1) begin
+			assign flat_buffer[(depth - gi)*numChannels + gj] = buffer[gj][gi];
 		end
 	end
 endgenerate
