@@ -1,10 +1,10 @@
-module PI_delay_unit ( arb_out, buf_out, chain_out, arb_in, chain_in, inc_del, en_arb, en_mixer );
+module PI_delay_unit ( arb_out, buf_out, chain_out, arb_in, chain_in, inc_del, en_arb, en_mixer, en_unit );
  
-input  arb_in, chain_in, inc_del, en_arb, en_mixer;
+input  arb_in, chain_in, inc_del, en_arb, en_mixer, en_unit;
 output buf_out, chain_out;
 output reg arb_out;
 
-del_PI idel_PI (.in(chain_in), .out(chain_out));
+del_PI idel_PI (.in(chain_in), .out(chain_out), .en(en_unit));
 
 assign in0_gated = chain_out & en_arb;
 assign in1_gated = arb_in & en_arb;
