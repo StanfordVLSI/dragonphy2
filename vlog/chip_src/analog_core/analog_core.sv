@@ -1,4 +1,6 @@
 `include "iotype.sv"
+//`include "/aha/sjkim85/github_repo/dragonphy2/inc/asic/iotype.sv"
+
 
 module analog_core import const_pack::*; #(
 ) (
@@ -107,7 +109,6 @@ module analog_core import const_pack::*; #(
                 .clk_in(clk_interp_slice[k/Nout]),
                 .clk_retimer(clk_adc),
                 .Vcal(Vcal),
-                .clk_async(clk_async),
                 .en_sync_in(en_sync_in[k]),
                 .rstb(adbg_intf_i.rstb),
                 .en_slice(adbg_intf_i.en_slice[k]),
@@ -115,24 +116,21 @@ module analog_core import const_pack::*; #(
                 .ctl_v2t_p(adbg_intf_i.ctl_v2tp[k]),
                 .init(adbg_intf_i.init[k]),
                 .alws_on(adbg_intf_i.ALWS_ON[k]),
-                .sel_pm_sign(adbg_intf_i.sel_pm_sign[k]),
-                .sel_pm_in(adbg_intf_i.sel_pm_in[k]),
-                .sel_clk_TDC(adbg_intf_i.sel_clk_TDC[k]),
-                .en_pm(adbg_intf_i.en_pm[k]),
                 .ctl_dcdl_late(adbg_intf_i.ctl_dcdl_late[k]),
                 .ctl_dcdl_early(adbg_intf_i.ctl_dcdl_early[k]),
                 .ctl_dcdl(adbg_intf_i.ctl_dcdl_TDC[k]),
                 .en_TDC_phase_reverse(adbg_intf_i.en_TDC_phase_reverse),
                 .retimer_mux_ctrl_1(adbg_intf_i.retimer_mux_ctrl_1[(k/Nout)+((k%Nout)*Nout)]),
                 .retimer_mux_ctrl_2(adbg_intf_i.retimer_mux_ctrl_2[(k/Nout)+((k%Nout)*Nout)]),
-
+				.sel_PFD_in(adbg_intf_i.sel_PFD_in[k]),
+				.sign_PFD_clk_in(adbg_intf_i.sign_PFD_clk_in[k]),
+				
                 //outputs
                 .en_sync_out(en_sync_out[k]),
                 .adder_out(adder_out[k]),
                 .sign_out(sign_out[k]),
                 .clk_adder(clk_div[k]),
-                .del_out(adbg_intf_i.del_out[k]),
-                .pm_out(adbg_intf_i.pm_out[k])
+                .del_out(adbg_intf_i.del_out[k])
             );
             if (k != 0) begin
                 assign en_sync_in[k] = en_sync_out[k-1];
@@ -143,7 +141,8 @@ module analog_core import const_pack::*; #(
     endgenerate
  
     logic [3:0] inv_del_out_pi;
-    // 4ch. PI
+    logic [Nunit_pi-1:0] en_unit_pi [Nout-1:0]; 
+	// 4ch. PI
     generate
         for (genvar k=0; k<Nout; k=k+1) begin: iPI
             phase_interpolator iPI(
@@ -161,6 +160,7 @@ module analog_core import const_pack::*; #(
                 .en_ext_Qperi(adbg_intf_i.en_ext_Qperi[k]),
                 .en_pm(adbg_intf_i.en_pm_pi[k]),
                 .en_cal(adbg_intf_i.en_cal_pi[k]),
+                .en_unit(en_unit_pi[k]),
                 .ext_Qperi(adbg_intf_i.ext_Qperi[k]),
                 .sel_pm_sign(adbg_intf_i.sel_pm_sign_pi[k]),
                 .inc_del(adbg_intf_i.del_inc[k]),
@@ -179,10 +179,9 @@ module analog_core import const_pack::*; #(
                 .pm_out(adbg_intf_i.pm_out_pi[k]),
                 .max_sel_mux(adbg_intf_i.max_sel_mux[k])
             );
-            assign adbg_intf_i.pi_out_meas[k] = (adbg_intf_i.sel_meas_pi[k] ?
-                                                 clk_interp_slice[k] :
-                                                 clk_interp_sw[k]) & adbg_intf_i.en_meas_pi[k];
-        end
+            assign adbg_intf_i.pi_out_meas[k] = (adbg_intf_i.sel_meas_pi[k] ? clk_interp_slice[k] : clk_interp_sw[k]) & adbg_intf_i.en_meas_pi[k];
+        	assign en_unit_pi[k] = ~adbg_intf_i.enb_unit_pi[k];
+		end
     endgenerate
 
     // replica ADCs
@@ -194,8 +193,6 @@ module analog_core import const_pack::*; #(
         .clk_in(clk_in_pi),
         .clk_retimer(clk_adc),
         .Vcal(Vcal),
-        .clk_async(clk_async),
-
         .en_sync_in(adbg_intf_i.en_v2t),
         .rstb(adbg_intf_i.rstb),
         .en_slice(adbg_intf_i.en_slice_rep[0]),
@@ -203,24 +200,21 @@ module analog_core import const_pack::*; #(
         .ctl_v2t_n(adbg_intf_i.ctl_v2tp_rep[0]),
         .init(adbg_intf_i.init_rep[0]),
         .alws_on(adbg_intf_i.ALWS_ON_rep[0]),
-        .sel_pm_sign(adbg_intf_i.sel_pm_sign_rep[0]),
-        .sel_pm_in(adbg_intf_i.sel_pm_in_rep[0]),
-        .sel_clk_TDC(adbg_intf_i.sel_clk_TDC_rep[0]),
-        .en_pm(adbg_intf_i.en_pm_rep[0]),
         .ctl_dcdl_late(adbg_intf_i.ctl_dcdl_late_rep[0]),
         .ctl_dcdl_early(adbg_intf_i.ctl_dcdl_early_rep[0]),
         .ctl_dcdl(adbg_intf_i.ctl_dcdl_TDC_rep[0]),
         .en_TDC_phase_reverse(adbg_intf_i.en_TDC_phase_reverse),
         .retimer_mux_ctrl_1(adbg_intf_i.retimer_mux_ctrl_1_rep[0]),
         .retimer_mux_ctrl_2(adbg_intf_i.retimer_mux_ctrl_2_rep[0]),
+		.sel_PFD_in(adbg_intf_i.sel_PFD_in_rep[0]),
+		.sign_PFD_clk_in(adbg_intf_i.sign_PFD_clk_in_rep[0]),
 
         // outputs
         .en_sync_out(),
         .adder_out(adder_out_rep[0]),
         .sign_out(sign_out_rep[0]),
         .clk_adder(clk_div_rep[0]),
-        .del_out(adbg_intf_i.del_out_rep[0]),
-        .pm_out(adbg_intf_i.pm_out_rep[0])
+        .del_out(adbg_intf_i.del_out_rep[0])
     );
 
     stochastic_adc_PR iADCrep1 (
@@ -230,8 +224,6 @@ module analog_core import const_pack::*; #(
     	.clk_in(clk_in_pi),
     	.clk_retimer(clk_adc),
     	.Vcal(Vcal),
-	    .clk_async(clk_async),
-    	
 		.en_sync_in(adbg_intf_i.en_v2t),
     	.rstb(adbg_intf_i.rstb),
     	.en_slice(adbg_intf_i.en_slice_rep[1]),
@@ -239,24 +231,21 @@ module analog_core import const_pack::*; #(
     	.ctl_v2t_n(adbg_intf_i.ctl_v2tp_rep[1]),
 	    .init(adbg_intf_i.init_rep[1]),
 	    .alws_on(adbg_intf_i.ALWS_ON_rep[1]),
-	    .sel_pm_sign(adbg_intf_i.sel_pm_sign_rep[1]),
-    	.sel_pm_in(adbg_intf_i.sel_pm_in_rep[1]),
-	    .sel_clk_TDC(adbg_intf_i.sel_clk_TDC_rep[1]),
-	    .en_pm(adbg_intf_i.en_pm_rep[1]),
 	    .ctl_dcdl_late(adbg_intf_i.ctl_dcdl_late_rep[1]),
 	    .ctl_dcdl_early(adbg_intf_i.ctl_dcdl_early_rep[1]),
 	    .ctl_dcdl(adbg_intf_i.ctl_dcdl_TDC_rep[1]),
 		.en_TDC_phase_reverse(adbg_intf_i.en_TDC_phase_reverse),
         .retimer_mux_ctrl_1(adbg_intf_i.retimer_mux_ctrl_1_rep[1]),
         .retimer_mux_ctrl_2(adbg_intf_i.retimer_mux_ctrl_2_rep[1]),
+		.sel_PFD_in(adbg_intf_i.sel_PFD_in_rep[1]),
+		.sign_PFD_clk_in(adbg_intf_i.sign_PFD_clk_in_rep[1]),
 
 	    // outputs
 	    .en_sync_out(),
 	    .adder_out(adder_out_rep[1]),
 	    .sign_out(sign_out_rep[1]),
 	    .clk_adder(clk_div_rep[1]),
-	    .del_out(adbg_intf_i.del_out_rep[1]),
-	    .pm_out(adbg_intf_i.pm_out_rep[1])
+	    .del_out(adbg_intf_i.del_out_rep[1])
     );
 
     // bias generator

@@ -1,4 +1,5 @@
 `include "iotype.sv"
+//`include "/aha/sjkim85/github_repo/dragonphy2/inc/asic/iotype.sv"
 
 module stochastic_adc_PR #(
     parameter Nctl_v2t = 5,
@@ -21,22 +22,18 @@ module stochastic_adc_PR #(
     input [Nctl_dcdl_fine-1:0]  ctl_dcdl_late,
     input [Nctl_dcdl_fine-1:0]  ctl_dcdl_early,
     input alws_on,
-    input clk_async,
-    input sel_clk_TDC,
     input [Nctl_TDC-1:0] ctl_dcdl,
-    input en_pm,
-    input [1:0] sel_pm_sign,
-    input [1:0] sel_pm_in,
     input en_TDC_phase_reverse,
     input retimer_mux_ctrl_1,
     input retimer_mux_ctrl_2,
-
+	input [1:0] sel_PFD_in,
+	input sign_PFD_clk_in,
+		
     output clk_adder,
     output en_sync_out,
     output del_out,
     output sign_out,
     output [Nadc-1:0] adder_out,
-    output [19:0] pm_out,
     output arb_out_dmm
 ); 
 
@@ -118,24 +115,23 @@ module stochastic_adc_PR #(
         .Tout(pfd_out),
         .sign(sign),
         .rstb(rstb),
-        .TinN(v2t_out_n),
-        .TinP(v2t_out_p),
+        .TinN(PFD_TinN),
+        .TinP(PFD_TinP),
         .arb_out_dmm(arb_out_dmm)
     );
 
-    assign clk_TDC = sel_clk_TDC ? clk_async : clk_adder;
 
     dcdl_coarse idcdl_coarse (
         .thm(thm_ctl_dcdl),
-        .out(clk_TDC_d),
-        .in(clk_TDC)
+        .out(clk_TDC),
+        .in(clk_adder)
     );
 
     TDC_delay_chain_PR idchain (
         .Tin(pfd_out),
         .del_out(del_out),
         .ff_out(ff_out),
-        .clk(clk_TDC_d),
+        .clk(clk_TDC),
         .en_phase_reverse(en_TDC_phase_reverse),
         .clk_phase_reverse(clk_TDC_phase_reverse)
     );
@@ -170,26 +166,8 @@ module stochastic_adc_PR #(
         .mux_ctrl_2(retimer_mux_ctrl_2)
     );
 
-    mux_fixed ipm_mux1_dont_touch (
-        .in0(clk_v2t),
-        .in1(v2t_out_p),
-        .sel(sel_pm_in[1]),
-        .out(ph_ref)
-    );
+x_or ix_or_PFD_clk_in (.in1(clk_adder), .in2(sign_PFD_clk_in), .out(PFD_clk_in));
+mux_fixed imux_PFD_TinP_dont_touch (.in0(v2t_out_p), .in1(PFD_clk_in), .sel(sel_PFD_in[0]), .out(PFD_TinP)); 
+mux_fixed imux_PFD_TinN_dont_touch (.in0(v2t_out_n), .in1(PFD_clk_in), .sel(sel_PFD_in[1]), .out(PFD_TinN)); 
 
-    mux_fixed ipm_mux0_dont_touch (
-        .in0(clk_in),
-        .in1(v2t_out_n),
-        .sel(sel_pm_in[0]),
-        .out(ph_in)
-    );
-
-    phase_monitor iPM (
-        .sel_sign(sel_pm_sign),
-        .ph_in(ph_in),
-        .ph_ref(ph_ref),
-        .pm_out(pm_out),
-        .clk_async(clk_async),
-        .en_pm(en_pm)
-    );
 endmodule

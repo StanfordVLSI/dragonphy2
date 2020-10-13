@@ -521,8 +521,8 @@ module digital_core import const_pack::*; (
     assign buffered_signals[6]  = adbg_intf_i.del_out_rep[0];
     assign buffered_signals[7]  = adbg_intf_i.del_out_rep[1];
     assign buffered_signals[8]  = adbg_intf_i.inbuf_out_meas;
-    assign buffered_signals[9]  = adbg_intf_i.pfd_inp_meas;
-    assign buffered_signals[10] = adbg_intf_i.pfd_inn_meas;
+    assign buffered_signals[9]  = 0;
+    assign buffered_signals[10] = 0;
     assign buffered_signals[11] = ctl_valid;
     assign buffered_signals[12] = clk_async;
     assign buffered_signals[13] = mdll_clk;

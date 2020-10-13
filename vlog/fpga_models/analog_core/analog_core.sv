@@ -214,16 +214,10 @@ module analog_core import const_pack::*; #(
     // assign outputs in analog interface (mostly set to zero)
 
     generate
-        for (i=0; i<Nti; i=i+1) begin
-            assign adbg_intf_i.pm_out[i] = 0;
-        end
         for (i=0; i<Nout; i=i+1) begin
             assign adbg_intf_i.pm_out_pi[i] = 0;
             assign adbg_intf_i.Qperi[i] = '1;
             assign adbg_intf_i.max_sel_mux[i] = '1;
-        end
-        for (i=0; i<2; i=i+1) begin
-            assign adbg_intf_i.pm_out_rep[i] = 0;
         end
     endgenerate
 
@@ -233,6 +227,4 @@ module analog_core import const_pack::*; #(
     assign adbg_intf_i.pi_out_meas = 0;
     assign adbg_intf_i.del_out_rep = 0;
     assign adbg_intf_i.inbuf_out_meas = 0;
-    assign adbg_intf_i.pfd_inp_meas = 0;
-    assign adbg_intf_i.pfd_inn_meas = 0;
 endmodule
