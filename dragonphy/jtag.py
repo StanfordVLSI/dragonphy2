@@ -13,6 +13,7 @@ class JTAG:
 
         justag_inputs = []
         justag_inputs += [str(id_code)]
+        justag_inputs += [str(4)]
         justag_inputs += list(get_dir('md').glob('*.md'))
         justag_inputs += [get_file('vlog/pack/const_pack.sv')]
         print(justag_inputs)
@@ -79,7 +80,8 @@ class JTAG:
         args = []
         args += [f'justag']
         args += list(inputs)
-        subprocess.call(args, cwd=cwd)
+        retcode = subprocess.call(args, cwd=cwd)
+        assert retcode==0, 'Error when calling justag.'
 
     @staticmethod
     def genesis(top, *inputs, cwd=None):
@@ -89,7 +91,8 @@ class JTAG:
         args += ['-generate']
         args += ['-top', top]
         args += ['-input'] + list(inputs)
-        subprocess.call(args, cwd=cwd)
+        retcode = subprocess.call(args, cwd=cwd)
+        assert retcode==0, 'Error when calling genesis.'
 
     @staticmethod
     def required_values():
