@@ -18,10 +18,10 @@ module sliding_detector #(
 );
 
     localparam idx = t0_buff * width;
-    localparam integer max_bitwidth = `MAX(est_error_bitwidth, est_channel_bitwidth);
+    localparam integer max_bitwidth = `MAX(est_error_bitwidth, est_channel_bitwidth+1);
 
 
-    logic signed [est_channel_bitwidth-1:0] error [width:0][seq_length:0];
+    logic signed [est_channel_bitwidth:0] error [width:0][seq_length:0];
     logic        [max_bitwidth*2+4-1:0] sqr_single_error [width:0][seq_length:0];
     logic        [max_bitwidth*2+4-1:0] sqr_double_error [width-1:0][seq_length-1:0];
 
@@ -35,11 +35,11 @@ module sliding_detector #(
         //Select the correct polarity of the injected inverse-error-vector
         for(ii=1; ii<width+1; ii=ii+1) begin
             for(jj=0; jj<seq_length+1; jj=jj+1) begin
-                error[ii][jj] = bitstream[idx+ii-1] ? -channel[ii-1][jj] : channel[ii-1][jj];
+                error[ii][jj] = bitstream[idx+ii-1] ? -2*channel[ii-1][jj] : 2*channel[ii-1][jj];
             end
         end
         for(jj=0; jj<seq_length+1; jj=jj+1) begin
-            error[0][jj] = bitstream[idx-1] ? -channel[width-1][jj] : channel[width-1][jj];
+            error[0][jj] = bitstream[idx-1] ? -2*channel[width-1][jj] : 2*channel[width-1][jj];
         end
 
         //Inject an IEV at the relevant position and then square the result
