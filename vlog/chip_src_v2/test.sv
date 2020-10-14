@@ -70,6 +70,7 @@ module test ();
     logic signed [constant_gpack::code_precision-1:0] adc_codes [constant_gpack::channel_width-1:0];
     logic signed [channel_gpack::est_channel_precision-1:0] channel_est [channel_gpack::est_channel_depth-1:0];
     logic signed [ffe_gpack::weight_precision-1:0] ffe_weights [ffe_gpack::length-1:0];
+    logic bits [constant_gpack::channel_width-1:0];
 
     logic clk, rstb, start;
 
@@ -112,14 +113,59 @@ module test ();
     always_ff @(posedge clk or negedge rstb) begin
         if(~rstb) begin
             for(ii = 0; ii < constant_gpack::channel_width; ii = ii + 1) begin
-                adc_codes[ii] <= $signed(($urandom() % 2) ? +127 : -127);
+                bits[ii] <= $signed(($urandom() % 2) ? 1: 0);
             end
         end else begin
             for(ii = 0; ii < constant_gpack::channel_width; ii = ii + 1) begin
-                adc_codes[ii] <= $signed(($urandom() % 2) ? +127 : -127);
+                bits[ii] <= $signed(($urandom() % 2) ? 1 : 0);
             end
         end
     end
+
+
+    localparam total_channel_bit_depth = constant_gpack::channel_width*(3);
+    localparam actual_channel_bit_depth = constant_gpack::channel_width + channel_gpack::est_channel_depth - 2;
+
+    //Bits Pipeline
+    buffer #(
+        .numChannels (constant_gpack::channel_width),
+        .bitwidth    (1),
+        .depth       (2)
+    ) bits_buff_i (
+        .in      (bits),
+        .clk     (clk),
+        .rstb    (1),
+        .buffer  (bits_buffer)
+    );
+
+    logic flat_bits [total_channel_bit_depth-1:0];
+    flatten_buffer_slice #(
+        .numChannels(constant_gpack::channel_width),
+        .bitwidth   (1),
+        .buff_depth (2),
+        .slice_depth(2),
+        .start      (0)
+    ) ch_fb_i (
+        .buffer    (bits_buffer),
+        .flat_slice(flat_bits)
+    );
+
+
+    //Channel Filter
+    logic signed [channel_gpack::est_code_precision-1:0] estimated_codes [constant_gpack::channel_width-1:0];
+    channel_filter #(
+        .width(constant_gpack::channel_width),
+        .depth(channel_gpack::est_channel_depth),
+        .shift_bitwidth(channel_gpack::shift_precision),
+        .est_channel_bitwidth(channel_gpack::est_channel_precision),
+        .est_code_bitwidth(channel_gpack::est_code_precision)
+    ) chan_filt_i (
+        .bitstream(flat_bits[total_channel_bit_depth-1:total_channel_bit_depth-1 - actual_channel_bit_depth]),
+        .channel(channel_est),
+        .shift(0),
+        .est_code(adc_codes)
+    );
+
 
     initial begin
         rstb = 0;
