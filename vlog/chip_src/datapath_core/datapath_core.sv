@@ -161,6 +161,8 @@ module datapath_core #(
     );
 
     //Bits Pipeline
+    logic   cmp_out_buffer  [constant_gpack::channel_width-1:0][1:0];
+
     buffer #(
         .numChannels (constant_gpack::channel_width),
         .bitwidth    (1),
