@@ -32,11 +32,11 @@ module sliding_detector #(
         //Select the correct polarity of the injected inverse-error-vector
         for(ii=1; ii<width+1; ii=ii+1) begin
             for(jj=0; jj<seq_length+1; jj=jj+1) begin
-                error[ii][jj] = bitstream[idx+ii-1] ? channel[ii-1][jj] : -channel[ii-1][jj];
+                error[ii][jj] = bitstream[idx+ii-1] ? -channel[ii-1][jj] : channel[ii-1][jj];
             end
         end
         for(jj=0; jj<seq_length+1; jj=jj+1) begin
-            error[0][jj] = bitstream[idx-1] ? channel[width-1][jj] : -channel[width-1][jj];
+            error[0][jj] = bitstream[idx-1] ? -channel[width-1][jj] : channel[width-1][jj];
         end
 
         //Inject an IEV at the relevant position and then square the result
