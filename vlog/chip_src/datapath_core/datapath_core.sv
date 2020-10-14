@@ -173,15 +173,13 @@ module datapath_core #(
     );
 
     logic flat_cmp_out_bits [constant_gpack::channel_width*2-1:0];
-    flatten_buffer_slice #(
+    flatten_buffer #(
         .numChannels(constant_gpack::channel_width),
         .bitwidth   (1),
-        .buff_depth (1),
-        .slice_depth(1),
-        .start      (0)
+        .depth (1)
     ) cmp_out_fb_i (
         .buffer    (cmp_out_buffer),
-        .flat_slice(flat_cmp_out_bits)
+        .flat_buffer(flat_cmp_out_bits)
     );
 
     bit_aligner #(
