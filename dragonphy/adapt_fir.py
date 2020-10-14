@@ -13,15 +13,6 @@ class AdaptFir:
         error_config        = system_values['generic']['error']
         detector_config     = system_values['generic']['detector']
 
-        # Need to set the maximum bitwidth for the detector config
-
-        chan_bitwidth = detector_config['parameters']['est_channel_precision']
-        err_bitwidth = detector_config['parameters']['est_error_precision']
-
-        if err_bitwidth > chan_bitwidth:
-            detector_config['parameters']['max_bitwidth'] = err_bitwidth
-        else:
-            detector_config['parameters']['max_bitwidth'] = chan_bitwidth
 
         # create channel model
         chan_resp_depth = 512
