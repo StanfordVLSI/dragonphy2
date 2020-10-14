@@ -55,7 +55,7 @@ module sliding_detector #(
 
         for(ii=0; ii<width; ii=ii+1) begin
             sqr_inj_error[0][ii][0] = errstream[idx+ii]**2;
-            sqr_inj_error[1][ii][0] = 0;
+            sqr_inj_error[1][ii][0] = errstream[idx+ii]**2;
             sqr_inj_error[2][ii][0] = sqr_single_error[ii][0];
             sqr_inj_error[3][ii][0] = sqr_double_error[ii][0];
             for(jj=1; jj<seq_length; jj=jj+1) begin
