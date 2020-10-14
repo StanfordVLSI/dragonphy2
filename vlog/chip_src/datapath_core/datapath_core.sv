@@ -30,7 +30,7 @@ module datapath_core #(
     localparam integer bits_pipeline_depth          = `MAX(channel_bits_pipeline_depth, sliding_detector_input_pipeline_depth)
                                                     + channel_pipeline_depth
                                                     + error_output_pipeline_depth;
-    localparam integer code_pipeline_depth          = `MAX(error_code_pipeline_depth, ffe_code_pipeline_depth);
+    localparam integer code_pipeline_depth          = 1 + `MAX(error_code_pipeline_depth, ffe_code_pipeline_depth);
 
     localparam integer sliding_detector_error_start = error_pipeline_depth - sliding_detector_input_pipeline_depth;
     localparam integer sliding_detector_bit_start   = channel_pipeline_depth + error_output_pipeline_depth;
@@ -157,7 +157,40 @@ module datapath_core #(
         .thresh(thresh),
         .clk       (clk),
         .rstb      (rstb),
-        .bit_out   (sliced_bits)
+        .bit_out   (cmp_out)
+    );
+
+    //Bits Pipeline
+    buffer #(
+        .numChannels (constant_gpack::channel_width),
+        .bitwidth    (1),
+        .depth       (1)
+    ) cmp_out_buff_i (
+        .in      (cmp_out),
+        .clk     (clk),
+        .rstb    (rstb),
+        .buffer  (cmp_out_buffer)
+    );
+
+    logic flat_cmp_out_bits [constant_gpack::channel_width*2-1:0];
+    flatten_buffer_slice #(
+        .numChannels(constant_gpack::channel_width),
+        .bitwidth   (1),
+        .buff_depth (1),
+        .slice_depth(1),
+        .start      (0)
+    ) cmp_out_fb_i (
+        .buffer    (cmp_out_buffer),
+        .flat_slice(flat_cmp_out_bits)
+    );
+
+    bit_aligner #(
+        .width (constant_gpack::channel_width),
+        .depth(2)
+    ) b_algn_i (
+        .bit_segment(flat_cmp_out_bits),
+        .align_pos(dsp_dbg_intf_i.align_pos),
+        .aligned_bits(sliced_bits)
     );
 
     localparam total_channel_bit_depth = constant_gpack::channel_width*(1+channel_bits_pipeline_depth);
@@ -193,7 +226,6 @@ module datapath_core #(
 
     //Channel pipeline
     logic signed [channel_gpack::est_code_precision-1:0] estimated_codes_buffer [constant_gpack::channel_width-1:0][channel_pipeline_depth:0];
-    
     signed_buffer #(
         .numChannels(constant_gpack::channel_width),
         .bitwidth   (channel_gpack::est_code_precision),

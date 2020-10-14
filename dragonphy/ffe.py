@@ -2,7 +2,7 @@ from dragonphy import *
 import numpy as np
 import matplotlib.pyplot as plt
 class FFEHelper:
-    def __init__(self, config, chan, cursor_pos=2, iterations=10000):
+    def __init__(self, config, chan, cursor_pos=2, iterations=200000):
         self.config = config
         self.channel = chan
         self.qc = Quantizer(width=self.config["parameters"]["input_precision"], signed=True)
@@ -31,10 +31,10 @@ class FFEHelper:
 
     def calculate_ffe_coefficients(self):
         ffe_length = self.config['parameters']['length']
-        ffe_adapt_mu = 0.1#self.config['adaptation']['args']['mu']
+        ffe_adapt_mu = 0.05#self.config['adaptation']['args']['mu']
         adapt = Wiener(step_size = ffe_adapt_mu, num_taps = ffe_length, cursor_pos=self.cursor_pos)
-        for i in range(self.iterations-self.cursor_pos):
-            adapt.find_weights_pulse(self.ideal_codes[i], self.channel_output[i])
+        for i in range(self.cursor_pos, self.iterations):
+            adapt.find_weights_pulse(self.ideal_codes[i-self.cursor_pos], self.channel_output[i], blind=True)
         return self.qw.quantize_2s_comp(adapt.weights)
 
     def generate_ffe(self, weights):
