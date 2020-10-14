@@ -16,7 +16,7 @@ module datapath_core #(
     integer ii, jj;
     genvar gi;
 
-    localparam integer sliding_detector_input_pipeline_depth = 2;
+    localparam integer sliding_detector_input_pipeline_depth = 1;
     localparam integer error_pipeline_depth = sliding_detector_input_pipeline_depth+error_output_pipeline_depth;
 
 
@@ -265,8 +265,7 @@ module datapath_core #(
         .depth(channel_gpack::est_channel_depth),
         .est_error_bitwidth(detector_gpack::est_error_precision),
         .est_channel_bitwidth(detector_gpack::est_channel_precision),
-        .sliding_detector_depth(sliding_detector_input_pipeline_depth+1),
-        .t0_buff               (1)
+        .sliding_detector_depth(sliding_detector_input_pipeline_depth+1)
     ) sld_dtct_i (
         .errstream(sd_flat_errors),
         .bitstream(sd_flat_sliced_bits),
