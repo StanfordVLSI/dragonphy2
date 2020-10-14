@@ -69,6 +69,7 @@ waves.*
 wave.*
 .simvision*
 DVEfiles
+jgproject
 
 *_gpack.sv
 build/
