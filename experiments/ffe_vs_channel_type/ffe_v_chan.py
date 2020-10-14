@@ -16,7 +16,10 @@ for file_name in S4P_DIR.glob('*.s4p'):
 
     chan = Channel(channel_type='s4p', sampl_rate=10e12, resp_depth=200000,
                    s4p=file_name, zs=50, zl=50)
+    #chan = Channel(channel_type='exponent', sampl_rate=10e12, resp_depth=200000, tau=1e-9)
     time, pulse = chan.get_pulse_resp(f_sig=16e9, resp_depth=350, t_delay=-t_max+125e-12)
+    #time, pulse = chan.get_pulse_resp(f_sig=16e9, resp_depth=350, t_delay=-2e-9 + 62.5e-12)
+
 
     im_idx = np.argmax(pulse)
     print(im_idx)
