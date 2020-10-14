@@ -5,7 +5,7 @@ create_qtm_model phase_interpolator
 
 set_qtm_global_parameter -param setup -value 0.0
 set_qtm_global_parameter -param hold -value 0.0
-set_qtm_global_parameter -param clk_to_-value 0.0
+set_qtm_global_parameter -param clk_to_output -value 0.0
 
 set_qtm_technology -library $::env(qtm_tech_lib)
 
