@@ -12,15 +12,15 @@ module sliding_detector #(
     input logic                                   bitstream [width*sliding_detector_depth-1:0],
     input logic signed [est_channel_bitwidth-1:0] channel [width-1:0][depth-1:0],
 
-    output logic signed [est_error_bitwidth*2+2-1:0] sqr_inj_error [3:0][width-1:0][seq_length-1:0],
+    output logic [est_error_bitwidth*2+2-1:0] sqr_inj_error [3:0][width-1:0][seq_length-1:0],
     output logic [1:0] mmse_err_pos [width-1:0]
 );
 
     localparam idx = t0_buff * width;
 
     logic signed [est_channel_bitwidth-1:0] error [width:0][seq_length:0];
-    logic signed [max_bitwidth*2+4-1:0] sqr_single_error [width:0][seq_length:0];
-    logic signed [max_bitwidth*2+4-1:0] sqr_double_error [width-1:0][seq_length-1:0];
+    logic        [max_bitwidth*2+4-1:0] sqr_single_error [width:0][seq_length:0];
+    logic        [max_bitwidth*2+4-1:0] sqr_double_error [width-1:0][seq_length-1:0];
 
     logic        [max_bitwidth*2+4+$clog2(seq_length)-1:0] mse_err [3:0][width-1:0];
 
