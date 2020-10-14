@@ -8,7 +8,7 @@ class Wiener():
         self.num_taps       		= num_taps
         self.filter_in      		= np.zeros(num_taps)
         self.weights        		= np.zeros(num_taps) #np.random.randn(num_taps)
-        self.weights[cursor_pos]    = 1
+        self.weights[0]    = 1
         self.error          		= np.inf
         self.total_error    		= []
         self.debug          		= debug
@@ -58,14 +58,18 @@ class Wiener():
 
         return next_weights
     
-    def find_weights_pulse(self, ideal_in, curr_filter_in):
+    def find_weights_pulse(self, ideal_in, curr_filter_in, blind=True):
         self.filter_in  = np.insert(self.filter_in[0:-1], 0, curr_filter_in)
         est_input  = np.dot(self.weights, self.filter_in)
-        self.error = ideal_in - est_input
+        if blind:
+            est_data  = 2.0*(est_input>0) - 1
+        else:
+            est_data = ideal_in
+        self.error = est_data - est_input
         self.total_error.append(self.error)
 
         ue_prod = np.multiply(self.filter_in, self.error)
-        normal_coeff = 1.0#/(1e-5 + np.dot(self.filter_in, self.filter_in))
+        normal_coeff = 1.0/(1e-5 + np.dot(self.filter_in, self.filter_in))
         next_weights = self.weights + normal_coeff*self.step_size*ue_prod
         self.weights = next_weights
         return next_weights

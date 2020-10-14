@@ -173,6 +173,7 @@ module test ();
         start = 0;
         $display(`CHANNEL_TXT);
         $display(`WEIGHT_TXT);
+        
         file_channel.load_array(channel_est);
         file_weights.load_array(ffe_weights);
 
