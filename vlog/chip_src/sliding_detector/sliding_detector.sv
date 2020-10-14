@@ -1,10 +1,11 @@
+`define MAX(arg1, arg2) ((arg1 > arg2) ? arg1 : arg2)
+
 module sliding_detector #(
     parameter integer seq_length=3,
     parameter integer width=16,
     parameter integer depth=30,
     parameter integer est_error_bitwidth=8,
     parameter integer est_channel_bitwidth=8,
-    parameter integer max_bitwidth=8,
     parameter integer sliding_detector_depth=2,
     parameter integer t0_buff=1
 ) (
@@ -17,6 +18,8 @@ module sliding_detector #(
 );
 
     localparam idx = t0_buff * width;
+    localparam integer max_bitwidth = `MAX(est_error_bitwidth, est_channel_bitwidth);
+
 
     logic signed [est_channel_bitwidth-1:0] error [width:0][seq_length:0];
     logic        [max_bitwidth*2+4-1:0] sqr_single_error [width:0][seq_length:0];

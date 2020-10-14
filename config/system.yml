@@ -56,7 +56,6 @@ generic:
       seq_length: *sequence_length
       est_error_precision : *est_error_precision
       est_channel_precision: *est_channel_precision
-      max_bitwidth: 0
 
 
 
