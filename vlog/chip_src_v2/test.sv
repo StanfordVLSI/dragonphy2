@@ -80,7 +80,7 @@ module test ();
     datapath_core #(
         .ffe_pipeline_depth(4), 
         .channel_pipeline_depth(4), 
-        .additional_error_pipeline_depth(0), 
+        .error_output_pipeline_depth(4), 
         .sliding_detector_output_pipeline_depth(0)
     ) dp_core_i (
         .adc_codes(adc_codes),
@@ -112,7 +112,7 @@ module test ();
     always_ff @(posedge clk or negedge rstb) begin
         if(~rstb) begin
             for(ii = 0; ii < constant_gpack::channel_width; ii = ii + 1) begin
-                adc_codes[ii] <= 0;
+                adc_codes[ii] <= $signed(($urandom() % 2) ? +1 : -1);
             end
         end else begin
             for(ii = 0; ii < constant_gpack::channel_width; ii = ii + 1) begin
@@ -132,7 +132,8 @@ module test ();
         broadcast_channel.all(channel_est, dsp_dbg_intf_i.channel_est);
         broadcast_weights.all(ffe_weights, dsp_dbg_intf_i.weights);
         start = 1;
-        @(posedge clk) rstb = 1; 
+        repeat (5) @(posedge clk);
+        rstb = 1; 
          
         repeat (50) @(posedge clk);
 
