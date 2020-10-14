@@ -31,7 +31,11 @@ generate
             end
         end
         always_comb begin
-            buffer[gi][0] = in[gi];
+            if(~rstb) begin
+                buffer[gi][0] = 0;
+            end else begin
+                buffer[gi][0] = in[gi];
+            end
         end
     end
 endgenerate
