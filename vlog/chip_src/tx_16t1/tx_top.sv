@@ -196,7 +196,7 @@ qr_4t1_mux_top qr_mux_4t1_0 (
 
 // Data - negative
 hr_16t4_mux_top hr_mux_16t4_1 (
-    .clk_hr(clk_halfrate), // This is a divided (by 2) clock from quarter-rate 4 to 1 mux
+    .clk_hr(residue_clk_halfrate), // This is a divided (by 2) clock from quarter-rate 4 to 1 mux
     .din(~din), // Inverting the data input for differential output
     .dout(qr_data_n),
     .clk_b2(residue_clk_prbsgen)  // This clk_halfrate 
