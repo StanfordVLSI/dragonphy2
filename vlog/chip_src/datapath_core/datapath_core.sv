@@ -27,8 +27,7 @@ module datapath_core #(
     localparam integer channel_bits_pipeline_depth = 2;
     localparam integer channel_bits_start      = 0;
 
-    localparam integer bits_pipeline_depth          = `MAX(channel_bits_pipeline_depth, sliding_detector_input_pipeline_depth) 
-                                                    + channel_pipeline_depth 
+    localparam integer bits_pipeline_depth          = `MAX(`MAX(channel_bits_pipeline_depth, sliding_detector_input_pipeline_depth), channel_pipeline_depth)
                                                     + error_output_pipeline_depth;
     localparam integer code_pipeline_depth          = `MAX(error_code_pipeline_depth, ffe_code_pipeline_depth);
 
