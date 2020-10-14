@@ -79,9 +79,9 @@ module test ();
 
     dsp_debug_intf dsp_dbg_intf_i();
     datapath_core #(
-        .ffe_pipeline_depth(4), 
-        .channel_pipeline_depth(4), 
-        .error_output_pipeline_depth(4), 
+        .ffe_pipeline_depth(10), 
+        .channel_pipeline_depth(10), 
+        .error_output_pipeline_depth(10), 
         .sliding_detector_output_pipeline_depth(0)
     ) dp_core_i (
         .adc_codes(adc_codes),
