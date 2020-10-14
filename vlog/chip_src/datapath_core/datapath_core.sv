@@ -1,7 +1,9 @@
+`define MAX(arg1, arg2) (arg1 > arg2) ? arg1 : arg2;
+
 module datapath_core #(
     parameter integer ffe_pipeline_depth=0,
     parameter integer channel_pipeline_depth=0,
-    parameter integer additional_error_pipeline_depth=0,
+    parameter integer error_output_pipeline_depth=0,
     parameter integer sliding_detector_output_pipeline_depth=0
 ) (
     input logic signed [constant_gpack::code_precision-1:0] adc_codes [constant_gpack::channel_width-1:0],
@@ -15,21 +17,22 @@ module datapath_core #(
     genvar gi;
 
     localparam integer sliding_detector_input_pipeline_depth = 2;
-    localparam integer error_pipeline_depth = sliding_detector_input_pipeline_depth+additional_error_pipeline_depth;
+    localparam integer error_pipeline_depth = sliding_detector_input_pipeline_depth+error_output_pipeline_depth;
 
+
+    localparam integer error_code_pipeline_depth = ffe_pipeline_depth + channel_pipeline_depth;
     localparam integer ffe_code_pipeline_depth = 1;
     localparam integer ffe_code_start          = 0;
 
     localparam integer channel_bits_pipeline_depth = 2;
     localparam integer channel_bits_start      = 0;
 
-    localparam integer bits_pipeline_depth = channel_bits_pipeline_depth + channel_pipeline_depth + error_pipeline_depth + sliding_detector_input_pipeline_depth;
-    localparam integer error_code_pipeline_depth = ffe_pipeline_depth + channel_pipeline_depth;
-
-    localparam integer code_pipeline_depth = (error_code_pipeline_depth > ffe_code_pipeline_depth) ? error_code_pipeline_depth : ffe_code_pipeline_depth;
+    localparam integer bits_pipeline_depth          = `MAX(`MAX(channel_bits_pipeline_depth, sliding_detector_input_pipeline_depth), channel_pipeline_depth + 1)
+                                                    + error_output_pipeline_depth;
+    localparam integer code_pipeline_depth          = `MAX(error_code_pipeline_depth, ffe_code_pipeline_depth);
 
     localparam integer sliding_detector_error_start = error_pipeline_depth - sliding_detector_input_pipeline_depth;
-    localparam integer sliding_detector_bit_start   = bits_pipeline_depth - sliding_detector_input_pipeline_depth;
+    localparam integer sliding_detector_bit_start   = bits_pipeline_depth  - sliding_detector_input_pipeline_depth;
 
     logic signed [constant_gpack::code_precision-1:0] adc_codes_buffer    [constant_gpack::channel_width-1:0][code_pipeline_depth:0];
     logic                                             sliced_bits_buffer  [constant_gpack::channel_width-1:0][bits_pipeline_depth:0];
