@@ -125,7 +125,8 @@ module test ();
 
     localparam total_channel_bit_depth = constant_gpack::channel_width*(3);
     localparam actual_channel_bit_depth = constant_gpack::channel_width + channel_gpack::est_channel_depth - 2;
-
+    
+    logic bits_buffer [constant_gpack::channel_width-1:0][2:0];
     //Bits Pipeline
     buffer #(
         .numChannels (constant_gpack::channel_width),
@@ -162,7 +163,7 @@ module test ();
     ) chan_filt_i (
         .bitstream(flat_bits[total_channel_bit_depth-1:total_channel_bit_depth-1 - actual_channel_bit_depth]),
         .channel(dsp_dbg_intf_i.channel_est),
-        .shift(0),
+        .shift(dsp_dbg_intf_i.channel_shift),
         .est_code(adc_codes)
     );
 
