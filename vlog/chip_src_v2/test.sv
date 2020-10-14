@@ -161,7 +161,7 @@ module test ();
         .est_code_bitwidth(channel_gpack::est_code_precision)
     ) chan_filt_i (
         .bitstream(flat_bits[total_channel_bit_depth-1:total_channel_bit_depth-1 - actual_channel_bit_depth]),
-        .channel(channel_est),
+        .channel(dsp_dbg_intf_i.channel_est),
         .shift(0),
         .est_code(adc_codes)
     );
