@@ -7,7 +7,7 @@ parameter_list:
   - &estimate_depth 30
   - &est_channel_precision 8
   - &est_code_precision 8
-  - &est_error_precision 8
+  - &est_error_precision 9
   - &sequence_length 3
   - &channel_shift_precision 4
   - &ffe_shift_precision 5
