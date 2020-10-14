@@ -24,6 +24,8 @@ module sliding_detector #(
     logic signed [est_channel_bitwidth:0] error [width:0][seq_length:0];
     logic        [max_bitwidth*2+4-1:0] sqr_single_error [width:0][seq_length:0];
     logic        [max_bitwidth*2+4-1:0] sqr_double_error [width-1:0][seq_length-1:0];
+    logic signed       [max_bitwidth*2+4-1:0] double_error [width-1:0][seq_length-1:0];
+
 
     logic        [max_bitwidth*2+4+$clog2(seq_length)-1:0] mse_err [3:0][width-1:0];
 
@@ -51,8 +53,10 @@ module sliding_detector #(
 
         for(ii=0; ii<width; ii=ii+1) begin
             sqr_double_error[ii][0] = (errstream[idx+ii] + error[ii][0])**2;
+            double_error = errstream[idx+ii] + error[ii][0];
             for(jj=1; jj<seq_length; jj=jj+1) begin
                 sqr_double_error[ii][jj] = (errstream[idx+ii+jj] + error[ii+1][jj-1] + error[ii][jj])**2;
+                double_error = errstream[idx+ii+jj] + error[ii+1][jj-1] + error[ii][jj];
             end
         end
 
