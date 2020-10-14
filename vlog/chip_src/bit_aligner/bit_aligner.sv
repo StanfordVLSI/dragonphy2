@@ -2,9 +2,9 @@ module bit_aligner #(
 	parameter integer width=16,
 	parameter integer depth=2
 ) (
-	logc  bit_segment [width*depth-1:0],
-	logic [$clog2(width*(depth-1))-1:0] align_pos,
-	logic aligned_bits [width-1:0]
+	input logic bit_segment [width*depth-1:0],
+	input logic [$clog2(width*(depth-1))-1:0] align_pos,
+	output logic aligned_bits [width-1:0]
 
 );
 	initial assert(depth>1);
