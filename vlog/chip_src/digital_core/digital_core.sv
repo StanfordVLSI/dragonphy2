@@ -101,6 +101,24 @@ module digital_core import const_pack::*; (
     assign prbs_rstb        = ddbg_intf_i.prbs_rstb && ext_rstb;
     assign prbs_gen_rstb    = ddbg_intf_i.prbs_gen_rstb && ext_rstb;
 
+    // wire out miscellaneous control bits
+
+    logic pfd_cal_flip_feedback;
+    logic en_pfd_cal_ext_ave;
+    logic en_int_dump_start;
+    logic int_dump_start;
+    logic cdr_en_clamp;
+
+    assign pfd_cal_flip_feedback = ddbg_intf_i.misc_ctrl_bits[0];
+    assign en_pfd_cal_ext_ave    = ddbg_intf_i.misc_ctrl_bits[1];
+    assign en_int_dump_start     = ddbg_intf_i.misc_ctrl_bits[2];
+    assign int_dump_start        = ddbg_intf_i.misc_ctrl_bits[3];
+    assign cdr_en_clamp          = ddbg_intf_i.misc_ctrl_bits[4];
+
+    // the dump_start signal can be set internally or externally
+
+    logic dump_start;
+    assign dump_start = en_int_dump_start ? int_dump_start : ext_dump_start;
 
     // ADC Output Reordering
     // used to do retiming as well, but now that is handled in the analog core
@@ -158,8 +176,8 @@ module digital_core import const_pack::*; (
                 .Nbin(ddbg_intf_i.Nbin_adc),
                 .Navg(ddbg_intf_i.Navg_adc),
                 .DZ(ddbg_intf_i.DZ_hist_adc),
-                .flip_feedback(ddbg_intf_i.pfd_cal_flip_feedback),
-                .en_ext_ave(ddbg_intf_i.en_pfd_cal_ext_ave),
+                .flip_feedback(pfd_cal_flip_feedback),
+                .en_ext_ave(en_pfd_cal_ext_ave),
                 .ext_ave(ddbg_intf_i.pfd_cal_ext_ave),
                 .dout_avg(ddbg_intf_i.adcout_avg[k]),
                 .dout_sum(ddbg_intf_i.adcout_sum[k]),
@@ -227,10 +245,11 @@ module digital_core import const_pack::*; (
         .din(mm_cdr_input),
         .clk(clk_adc),
         .ext_rstb(cdr_rstb),
-        .ramp_clock    (ramp_clock),
+        .ramp_clock(ramp_clock),
         .freq_lvl_cross(freq_lvl_cross),
         .pi_ctl(pi_ctl_cdr),
         .wait_on_reset_b(ctl_valid),
+        .en_clamp(cdr_en_clamp),
         .cdbg_intf_i(cdbg_intf_i)
     );
 
@@ -296,7 +315,7 @@ module digital_core import const_pack::*; (
         
         .in_bytes(adcout_unfolded),
 
-        .in_start_write(ext_dump_start),
+        .in_start_write(dump_start),
 
         .in_addr(sm1_dbg_intf_i.in_addr),
 
@@ -312,7 +331,7 @@ module digital_core import const_pack::*; (
         
         .in_bytes(trunc_est_bits),
 
-        .in_start_write(ext_dump_start),
+        .in_start_write(dump_start),
 
         .in_addr(sm2_dbg_intf_i.in_addr),
 
@@ -502,8 +521,8 @@ module digital_core import const_pack::*; (
     assign buffered_signals[6]  = adbg_intf_i.del_out_rep[0];
     assign buffered_signals[7]  = adbg_intf_i.del_out_rep[1];
     assign buffered_signals[8]  = adbg_intf_i.inbuf_out_meas;
-    assign buffered_signals[9]  = adbg_intf_i.pfd_inp_meas;
-    assign buffered_signals[10] = adbg_intf_i.pfd_inn_meas;
+    assign buffered_signals[9]  = 0;
+    assign buffered_signals[10] = 0;
     assign buffered_signals[11] = ctl_valid;
     assign buffered_signals[12] = clk_async;
     assign buffered_signals[13] = mdll_clk;

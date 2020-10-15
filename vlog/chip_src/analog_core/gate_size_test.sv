@@ -38,7 +38,7 @@ inv_v2t_5_fixed iV2T_buffer_p_inv2 (.in(mid_p_1), .out(v2t_out));
 //[critical gates for phase_interpolator]
 //(PI_delay_chain)-----------------------------------------------------------------------------------------------------
 inv iinv_in_test(.in(chain_in), .out(chain_in_b));
-inv_PI_1_fixed iinv_PI_1_test(.in(chain_in_b), .out(mid));
+n_and_PI_1_fixed in_and_PI_1_test(.in1(chain_in_b), .in2(one), .out(mid));
 inv_PI_2_fixed iinv_PI_2_test(.in(mid), .out(chain_out_1));
 mux_fixed imux_1_load_dont_touch (.in0(chain_out_1), .in1(zero), .out(), .sel(zero) );
 mux_fixed imux_2_load_dont_touch (.in0(chain_out_1), .in1(zero), .out(), .sel(zero) );
@@ -54,7 +54,8 @@ mux4_fixed imux4_1_test_dont_touch (.in({zero_3b, buff_out}), .out(mux4_out_1), 
 //-----------------------------------------------------------------------------------------------------
 
 //[critical gates for arbiter]
-n_and_arb_fixed inand_1_test (.in1(chain_in), .in2(one), .out(nand_out));
+inv iinv_in_test3(.in(chain_in), .out(chain_in_b3));
+n_and_arb_fixed in_and_1_test (.in1(chain_in_b3), .in2(one), .out(nand_out));
 inv_arb_fixed iinv_arb_test (.in(nand_out), .out(nand_out_b));
 mux_fixed imux_5_load_dont_touch (.in0(nand_out_2_b), .in1(zero), .out(), .sel(zero) );
 

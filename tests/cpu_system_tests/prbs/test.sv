@@ -84,7 +84,7 @@ module test;
 	clock #(
 		.freq(full_rate/2), // This depends on the frequency divider in the ACORE's input buffer
 		.duty(0.5),
-		.td(0)
+		.td(30e-12)
 	) iEXTCLK (
 		.ckout(ext_clkp),
 		.ckoutb(ext_clkn)
@@ -169,7 +169,7 @@ module test;
         tmp_prbs_eqn = 0;
         tmp_prbs_eqn[ 1] = 1'b1;
         tmp_prbs_eqn[20] = 1'b1;
-        `FORCE_JTAG(prbs_eqn, tmp_prbs_eqn);
+		`FORCE_JTAG(prbs_eqn, tmp_prbs_eqn);
         #(10ns);
 
         // Release the PRBS checker from reset

@@ -23,6 +23,7 @@ module phase_interpolator #(
     input [Nctl_dcdl-1:0] ctl_dcdl_slice,
     input [Nctl_dcdl-1:0] ctl_dcdl_clk_encoder,
     input [Nunit-1:0]  inc_del,
+    input [Nunit-1:0]  en_unit,
     input [$clog2(Nunit)-1:0] ext_Qperi,
     input [1:0] sel_pm_sign,
     input en_pm,
