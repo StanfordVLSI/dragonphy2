@@ -96,18 +96,6 @@ set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.init[31:0] }
 create_qtm_port -type input { adbg_intf_i.ALWS_ON[15:0] }
 set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.ALWS_ON[15:0] }
 
-#create_qtm_port -type input { adbg_intf_i.sel_pm_sign[31:0] }
-#set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sel_pm_sign[31:0] }
-
-#create_qtm_port -type input { adbg_intf_i.sel_pm_in[31:0] }
-#set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sel_pm_in[31:0] }
-
-#create_qtm_port -type input { adbg_intf_i.sel_clk_TDC[15:0] }
-#set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sel_clk_TDC[15:0] }
-
-#create_qtm_port -type input { adbg_intf_i.en_pm[15:0] }
-#set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_pm[15:0] }
-
 create_qtm_port -type input { adbg_intf_i.ctl_dcdl_late[31:0] }
 set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.ctl_dcdl_late[31:0] }
 
@@ -187,18 +175,6 @@ set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.init_rep[3:0] }
 create_qtm_port -type input { adbg_intf_i.ALWS_ON_rep[1:0] }
 set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.ALWS_ON_rep[1:0] }
 
-#create_qtm_port -type input { adbg_intf_i.sel_pm_sign_rep[3:0] }
-#set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sel_pm_sign_rep[3:0] }
-
-#create_qtm_port -type input { adbg_intf_i.sel_pm_in_rep[3:0] }
-#set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sel_pm_in_rep[3:0] }
-
-#create_qtm_port -type input { adbg_intf_i.sel_clk_TDC_rep[1:0] }
-#set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sel_clk_TDC_rep[1:0] }
-
-#create_qtm_port -type input { adbg_intf_i.en_pm_rep[1:0] }
-#set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_pm_rep[1:0] }
-
 create_qtm_port -type input { adbg_intf_i.ctl_dcdl_late_rep[3:0] }
 set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.ctl_dcdl_late_rep[3:0] }
 
@@ -209,18 +185,6 @@ create_qtm_port -type input { adbg_intf_i.ctl_dcdl_TDC_rep[9:0] }
 set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.ctl_dcdl_TDC_rep[9:0] }
 
 # ADCtest (only for ADCrep1)
-
-#create_qtm_port -type input { adbg_intf_i.sel_pfd_in }
-#set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sel_pfd_in }
-
-#create_qtm_port -type input { adbg_intf_i.sel_pfd_in_meas }
-#set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sel_pfd_in_meas }
-
-#create_qtm_port -type input { adbg_intf_i.en_pfd_inp_meas }
-#set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_pfd_inp_meas }
-
-#create_qtm_port -type input { adbg_intf_i.en_pfd_inn_meas }
-#set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_pfd_inn_meas }
 
 create_qtm_port -type input { adbg_intf_i.sel_del_out }
 set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sel_del_out }
@@ -265,9 +229,6 @@ set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.en_del_out_pi }
 
 # ADC
 
-#create_qtm_port -type output { adbg_intf_i.pm_out[319:0] }
-#set_qtm_port_drive -type qtm_drive { adbg_intf_i.pm_out[319:0] }
-
 create_qtm_port -type output { adbg_intf_i.del_out[15:0] }
 set_qtm_port_drive -type qtm_drive { adbg_intf_i.del_out[15:0] }
 
@@ -293,17 +254,8 @@ set_qtm_port_drive -type qtm_drive { adbg_intf_i.pi_out_meas[3:0] }
 
 # ADCrep
 
-#create_qtm_port -type output { adbg_intf_i.pm_out_rep[39:0] }
-#set_qtm_port_drive -type qtm_drive { adbg_intf_i.pm_out_rep[39:0] }
-
 create_qtm_port -type output { adbg_intf_i.del_out_rep[1:0] }
 set_qtm_port_drive -type qtm_drive { adbg_intf_i.del_out_rep[1:0] }
-
-#create_qtm_port -type output { adbg_intf_i.pfd_inp_meas }
-#set_qtm_port_drive -type qtm_drive { adbg_intf_i.pfd_inp_meas }
-
-#create_qtm_port -type output { adbg_intf_i.pfd_inn_meas }
-#set_qtm_port_drive -type qtm_drive { adbg_intf_i.pfd_inn_meas }
 
 # input clock buffer
 
@@ -378,12 +330,6 @@ for {set adc_idx 0} {$adc_idx < 16} {incr adc_idx} {
     }
 }
 
-# adbg_intf_i.pm_out[319:0]
-#for {set idx 0} {$idx < 320} {incr idx} {
-#    create_qtm_delay_arc -from ext_clk -edge rise -to "adbg_intf_i.pm_out[$idx]" \
-#        -value [expr {0.02 * $::env(constr_time_scale)}]
-#}
-
 ## Replica ADCs
 
 # adder_out_rep[15:0]
@@ -397,12 +343,6 @@ for {set idx 0} {$idx < 2} {incr idx} {
     create_qtm_delay_arc -from ext_clk -edge rise -to "sign_out_rep[$idx]" \
         -value [expr {0.05 * $::env(constr_time_scale)}]
 }
-
-# adbg_intf_i.pm_out_rep[39:0]
-#for {set idx 0} {$idx < 40} {incr idx} {
-#    create_qtm_delay_arc -from ext_clk -edge rise -to "adbg_intf_i.pm_out_rep[$idx]" \
-#        -value [expr {0.02 * $::env(constr_time_scale)}]
-#}
 
 ## miscellaneous outputs
 
