@@ -2,9 +2,11 @@
 
 `define FORCE_JTAG(name, value) force top_i.idcore.jtag_i.rjtag_intf_i.``name`` = ``value``
 
-`ifndef TI_ADC_TXT
-    `define TI_ADC_TXT
+`ifndef SRAM_OUT_TXT
+    `define SRAM_OUT_TXT "sram_out.txt"
 `endif
+
+`define WAIT(x) #((1.0*x)/freq*1s)
 
 `ifndef EXT_PFD_OFFSET
     `define EXT_PFD_OFFSET 16
@@ -15,7 +17,8 @@
 `endif
 
 `ifndef INTERVAL_LENGTH
-    `define INTERVAL_LENGTH 10e-9
+    //`define INTERVAL_LENGTH 10e-9
+    `define INTERVAL_LENGTH (Nwrite*1e-9/`N_INTERVAL)
 `endif
 
 module test;
@@ -25,11 +28,26 @@ module test;
     import const_pack::Nadc;
     import const_pack::Nout;
     import const_pack::Npi;
+    import const_pack::N_mem_addr;
+    import const_pack::N_mem_tiles;
+
+    localparam real freq = 4e9; // TODO should this be full_rate?
+
+    // write more data than SRAM can hold to make sure we capture just the beginning
+    localparam integer Nwrite = (2**(N_mem_addr+$clog2(N_mem_tiles)))*1.1;
+    localparam integer Nread = 1024;
+
+    localparam [31:0] dump_off = 4'b0100;
+    localparam [31:0] dump_on  = 4'b1100;
 
 	// clock inputs
 
 	logic ext_clkp;
 	logic ext_clkn;
+
+    // SRAM
+
+    logic [N_mem_addr+$clog2(N_mem_tiles)-1:0] addr;
 
 	// reset
 
@@ -56,6 +74,9 @@ module test;
 		// clock inputs
 		.ext_clkp(ext_clkp),
 		.ext_clkn(ext_clkn),
+
+        // sram
+        .ext_dump_start(1'b0),
 
         // reset
         .ext_rstb(rstb),
@@ -111,15 +132,10 @@ module test;
 	// Save signals for post-processing
 
 	logic should_record;
+	logic recording_clk;
     logic signed [Nadc-1:0] adcout_unfolded [Nti-1:0];
-   
-	 ti_adc_recorder #(
-        .filename(`TI_ADC_TXT)
-    ) ti_adc_recorder_i (
-		.in(top_i.idcore.adcout_unfolded[15:0]),
-		.clk(top_i.clk_adc),
-		.en(should_record)
-	);
+    logic out_record;
+    logic clk_r;
 
     tx_output_recorder tx_output_recorder_i (
         .in(tx_data),
@@ -127,10 +143,44 @@ module test;
         .en(should_record)
     );
 
+    sram_recorder #(
+        .filename(`SRAM_OUT_TXT)
+    ) sram_out_recorder (
+        .in(top_i.idcore.sm1_dbg_intf_i.out_data),
+        .clk(clk_r),
+        .en(out_record)
+    );
+
+	integer tmp;
+    
+	always @(posedge top_i.idcore.clk_adc) begin
+        // compute the unfolded ADC outputs
+        for (int k=0; k<Nti; k=k+1) begin
+            // compute output
+             tmp = top_i.idcore.adcout_sign_retimed[k] ?
+                  top_i.idcore.adcout_retimed[k] - (`EXT_PFD_OFFSET) :
+                  (`EXT_PFD_OFFSET) - top_i.idcore.adcout_retimed[k];
+			
+			// clamp
+            if (tmp > 127) begin
+                tmp = 127;
+            end
+            if (tmp < -128) begin
+                tmp = -128;
+            end
+            // assign to output vector
+            adcout_unfolded[k] = tmp;
+        end
+        // pulse the recording clock
+        recording_clk = 1'b1;
+        #(1ps);
+        recording_clk = 1'b0;
+        #(1ps);
+    end
+
 	// Main test
 
 	logic [Nadc-1:0] tmp_ext_pfd_offset [Nti-1:0];
-    logic [Npi-1:0] tmp_bypass_pi_ctl [Nout-1:0];
 
 	initial begin
         `ifdef DUMP_WAVEFORMS
@@ -140,6 +190,9 @@ module test;
 
         // initialize control signals
 		should_record = 1'b0;
+		recording_clk = 1'b0;
+        out_record = 1'b0;
+
         rstb = 1'b0;
         #(1ns);
 
@@ -173,12 +226,10 @@ module test;
 
         // apply the stimulus
         $display("Setting up the PI control codes...");
-        tmp_bypass_pi_ctl[0] = 0;
-        tmp_bypass_pi_ctl[1] = 67;
-        tmp_bypass_pi_ctl[2] = 133;
-        tmp_bypass_pi_ctl[3] = 200;
-        `FORCE_JTAG(bypass_pi_ctl, tmp_bypass_pi_ctl);
-        `FORCE_JTAG(en_bypass_pi_ctl, 1);
+        force top_i.idcore.int_pi_ctl_cdr[0] = 0;
+        force top_i.idcore.int_pi_ctl_cdr[1] = 67;
+        force top_i.idcore.int_pi_ctl_cdr[2] = 133;
+        force top_i.idcore.int_pi_ctl_cdr[3] = 200;
         #(5ns);
 
         // toggle the en_v2t signal to re-initialize the V2T ordering
@@ -191,13 +242,38 @@ module test;
 		$display("Initial delay of 50 ns...");
 		#(100ns);
 
-		// Then record for awhile
+		// Trigger dump and record input for awhile
 		should_record = 1'b1;
+		`FORCE_JTAG(misc_ctrl_bits, dump_on);
 		for (int k=0; k<(`N_INTERVAL); k=k+1) begin
 		    $display("Test is %0.1f%% complete.", (100.0*k)/(1.0*(`N_INTERVAL)));
 		    #((`INTERVAL_LENGTH)*1s);
+            if (k == 0) `FORCE_JTAG(misc_ctrl_bits, dump_off);
 		end
+
+        // Read from SRAM
+        out_record = 1'b1;
+        addr = 0;
+        force top_i.idcore.sm1_dbg_intf_i.in_addr = addr;
+        `WAIT(0.6);
+        // clock in the first memory address
+        addr = 1;
+        // read out the memory contents
+        $display("Nread is %d\n", Nread);
+        for (int j=1; j<Nread; j=j+1) begin
+            addr = j;
+            pulse_clk_r;
+        end
+        `WAIT(1.0);
 
 		$finish;
 	end
+    
+    task pulse_clk_r;
+        clk_r = 1'b1;
+        `WAIT(16 * 0.5);
+        clk_r = 1'b0;
+        `WAIT(16 * 0.5);
+    endtask
+
 endmodule

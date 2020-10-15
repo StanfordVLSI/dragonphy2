@@ -63,10 +63,6 @@ module jtag (
 	assign adbg_intf_i.ctl_v2tp = rjtag_intf_i.ctl_v2tp;
 	assign adbg_intf_i.init = rjtag_intf_i.init;
 	assign adbg_intf_i.ALWS_ON = rjtag_intf_i.ALWS_ON;
-	assign adbg_intf_i.sel_pm_sign =rjtag_intf_i.sel_pm_sign;
-	assign adbg_intf_i.sel_pm_in =rjtag_intf_i.sel_pm_in;
-	assign adbg_intf_i.sel_clk_TDC =rjtag_intf_i.sel_clk_TDC;
-	assign adbg_intf_i.en_pm =rjtag_intf_i.en_pm;
 	assign adbg_intf_i.ctl_dcdl_late=rjtag_intf_i.ctl_dcdl_late;
 	assign adbg_intf_i.ctl_dcdl_early=rjtag_intf_i.ctl_dcdl_early;
 	assign adbg_intf_i.ctl_dcdl_TDC = rjtag_intf_i.ctl_dcdl_TDC;
@@ -80,6 +76,7 @@ module jtag (
 	assign adbg_intf_i.en_ext_Qperi = rjtag_intf_i.en_ext_Qperi;
 	assign adbg_intf_i.sel_pm_sign_pi= rjtag_intf_i.sel_pm_sign_pi;
 	assign adbg_intf_i.del_inc= rjtag_intf_i.del_inc;
+	assign adbg_intf_i.enb_unit_pi= rjtag_intf_i.enb_unit_pi;
 	assign adbg_intf_i.ctl_dcdl_slice= rjtag_intf_i.ctl_dcdl_slice;
 	assign adbg_intf_i.ctl_dcdl_sw= rjtag_intf_i.ctl_dcdl_sw;
 	assign adbg_intf_i.ctl_dcdl_clk_encoder= rjtag_intf_i.ctl_dcdl_clk_encoder;
@@ -93,18 +90,10 @@ module jtag (
 	assign adbg_intf_i.ctl_v2tp_rep = rjtag_intf_i.ctl_v2tp_rep;
 	assign adbg_intf_i.init_rep = rjtag_intf_i.init_rep;
 	assign adbg_intf_i.ALWS_ON_rep = rjtag_intf_i.ALWS_ON_rep;
-	assign adbg_intf_i.sel_pm_sign_rep =rjtag_intf_i.sel_pm_sign_rep;
-	assign adbg_intf_i.sel_pm_in_rep =rjtag_intf_i.sel_pm_in_rep;
-	assign adbg_intf_i.sel_clk_TDC_rep =rjtag_intf_i.sel_clk_TDC_rep;
-	assign adbg_intf_i.en_pm_rep =rjtag_intf_i.en_pm_rep;
 	assign adbg_intf_i.ctl_dcdl_late_rep=rjtag_intf_i.ctl_dcdl_late_rep;
 	assign adbg_intf_i.ctl_dcdl_early_rep=rjtag_intf_i.ctl_dcdl_early_rep;
 	assign adbg_intf_i.ctl_dcdl_TDC_rep = rjtag_intf_i.ctl_dcdl_TDC_rep;
 
-	assign adbg_intf_i.sel_pfd_in       = rjtag_intf_i.sel_pfd_in;
-	assign adbg_intf_i.sel_pfd_in_meas  = rjtag_intf_i. sel_pfd_in_meas;
-	assign adbg_intf_i.en_pfd_inp_meas  = rjtag_intf_i.en_pfd_inp_meas;
-	assign adbg_intf_i.en_pfd_inn_meas  = rjtag_intf_i.en_pfd_inn_meas;
 	assign adbg_intf_i.sel_del_out      = rjtag_intf_i.sel_del_out;
 
 	assign disable_ibuf_async = rjtag_intf_i.disable_ibuf_async;
@@ -128,20 +117,20 @@ module jtag (
 
 	assign adbg_intf_i.retimer_mux_ctrl_1 = rjtag_intf_i.retimer_mux_ctrl_1;
 	assign adbg_intf_i.retimer_mux_ctrl_2 = rjtag_intf_i.retimer_mux_ctrl_2;
-
 	assign adbg_intf_i.retimer_mux_ctrl_1_rep = rjtag_intf_i.retimer_mux_ctrl_1_rep;
 	assign adbg_intf_i.retimer_mux_ctrl_2_rep = rjtag_intf_i.retimer_mux_ctrl_2_rep;
 
-	//Analog Output
-
-	assign rjtag_intf_i.pm_out = adbg_intf_i.pm_out;
+	assign adbg_intf_i.sel_PFD_in = rjtag_intf_i.sel_PFD_in;
+	assign adbg_intf_i.sign_PFD_clk_in = rjtag_intf_i.sign_PFD_clk_in;
+	assign adbg_intf_i.sel_PFD_in_rep = rjtag_intf_i.sel_PFD_in_rep;
+	assign adbg_intf_i.sign_PFD_clk_in_rep = rjtag_intf_i.sign_PFD_clk_in_rep;
 	
+
+	//Analog Output
 	assign rjtag_intf_i.pm_out_pi = adbg_intf_i.pm_out_pi;
 	assign rjtag_intf_i.cal_out_pi = adbg_intf_i.cal_out_pi;
 	assign rjtag_intf_i.Qperi 		= adbg_intf_i.Qperi;
 	assign rjtag_intf_i.max_sel_mux= adbg_intf_i.max_sel_mux;
-
-	assign rjtag_intf_i.pm_out_rep = adbg_intf_i.pm_out_rep;
 
 	//Digital Input
 	assign ddbg_intf_i.ext_pi_ctl_offset = rjtag_intf_i.ext_pi_ctl_offset;
@@ -204,9 +193,9 @@ module jtag (
 
     assign ddbg_intf_i.en_cgra_clk = rjtag_intf_i.en_cgra_clk;
 
-    assign ddbg_intf_i.pfd_cal_flip_feedback = rjtag_intf_i.pfd_cal_flip_feedback;
-    assign ddbg_intf_i.en_pfd_cal_ext_ave = rjtag_intf_i.en_pfd_cal_ext_ave;
     assign ddbg_intf_i.pfd_cal_ext_ave = rjtag_intf_i.pfd_cal_ext_ave;
+
+    assign ddbg_intf_i.misc_ctrl_bits = rjtag_intf_i.misc_ctrl_bits;
 
 	//Digital Output
 	assign rjtag_intf_i.adcout_avg=ddbg_intf_i.adcout_avg;
@@ -245,6 +234,7 @@ module jtag (
 	assign cdbg_intf_i.sel_inp_mux  = rjtag_intf_i.sel_inp_mux;
 	assign cdbg_intf_i.sample_state = rjtag_intf_i.sample_state;
 	assign cdbg_intf_i.invert = rjtag_intf_i.invert;
+    assign cdbg_intf_i.cdr_clamp_amt = rjtag_intf_i.cdr_clamp_amt;
 
 	//CDR Output
 	assign rjtag_intf_i.phase_est   = cdbg_intf_i.phase_est;

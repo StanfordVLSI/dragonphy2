@@ -6,10 +6,6 @@
 | ctl_v2tp                   |         | Nv2t-1:0               | Nti-1:0      | Test         | out      | 7                  |
 | init                       |         | $clog2(Nout)-1:0       | Nti-1:0      | Test         | out      | 0                  |
 | ALWS_ON                    |         | Nti-1:0                |              | Test         | out      | 0                  |
-| sel_pm_sign                |         | 1:0                    | Nti-1:0      | Test         | out      | 0                  |
-| sel_pm_in                  |         | 1:0                    | Nti-1:0      | Test         | out      | 0                  |
-| sel_clk_TDC                |         | Nti-1:0                |              | Test         | out      | 0                  |
-| en_pm                      |         | Nti-1:0                |              | Test         | out      | 0                  |
 | ctl_dcdl_late              |         | 1:0                    | Nti-1:0      | Test         | out      | 0                  |
 | ctl_dcdl_early             |         | 1:0                    | Nti-1:0      | Test         | out      | 0                  |
 | ctl_dcdl_TDC               |         | 4:0                    | Nti-1:0      | Test         | out      | 0                  |
@@ -22,6 +18,7 @@
 | ext_Qperi                  |         | $clog2(Nunit_pi)-1:0   | Nout-1:0     | Test         | out      | 17                 |
 | sel_pm_sign_pi             |         | 1:0                    | Nout-1:0     | Test         | out      | 0                  |
 | del_inc                    |         | Nunit_pi-1:0           | Nout-1:0     | Test         | out      | 0                  |
+| enb_unit_pi                |         | Nunit_pi-1:0           | Nout-1:0     | Test         | out      | 0                  |
 | ctl_dcdl_slice             |         | 1:0                    | Nout-1:0     | Test         | out      | 0                  |
 | ctl_dcdl_sw                |         | 1:0                    | Nout-1:0     | Test         | out      | 0                  |
 | ctl_dcdl_clk_encoder       |         | 1:0                    | Nout-1:0     | Test         | out      | 0                  |
@@ -34,17 +31,9 @@
 | ctl_v2tp_rep               |         | Nv2t-1:0               | 1:0          | Test         | out      | 6                  |
 | init_rep                   |         | $clog2(Nout)-1:0       | 1:0          | Test         | out      | 0                  |
 | ALWS_ON_rep                |         | 1:0                    |              | Test         | out      | 0                  |
-| sel_pm_sign_rep            |         | 1:0                    | 1:0          | Test         | out      | 0                  |
-| sel_pm_in_rep              |         | 1:0                    | 1:0          | Test         | out      | 0                  |
-| sel_clk_TDC_rep            |         | 1:0                    |              | Test         | out      | 0                  |
-| en_pm_rep                  |         | 1:0                    |              | Test         | out      | 0                  |
 | ctl_dcdl_late_rep          |         | 1:0                    | 1:0          | Test         | out      | 0                  |
 | ctl_dcdl_early_rep         |         | 1:0                    | 1:0          | Test         | out      | 0                  |
 | ctl_dcdl_TDC_rep           |         | 4:0                    | 1:0          | Test         | out      | 0                  |
-| sel_pfd_in                 |         |                        |              | Test         | out      | 0                  |
-| sel_pfd_in_meas            |         |                        |              | Test         | out      | 0                  |
-| en_pfd_inp_meas            |         |                        |              | Test         | out      | 0                  |
-| en_pfd_inn_meas            |         |                        |              | Test         | out      | 0                  |
 | sel_del_out                |         |                        |              | Test         | out      | 0                  |
 | disable_ibuf_async         |         |                        |              | Test         | out      | 1                  |
 | disable_ibuf_main          |         |                        |              | Test         | out      | 0                  |
@@ -61,13 +50,19 @@
 | sel_del_out_pi             |         |                        |              | Test         | out      | 0                  |
 | en_del_out_pi              |         |                        |              | Test         | out      | 0                  |
 | en_TDC_phase_reverse       |         |                        |              | Test         | out      | 0                  |
-| pm_out                     |         | 19:0                   | Nti-1:0      | System       | in       |                    |
 | pm_out_pi                  |         | 19:0                   | Nout-1:0     | System       | in       |                    |
 | cal_out_pi                 |         | Nout-1:0               |              | System       | in       |                    |
 | Qperi                      |         | $clog2(Nunit_pi)-1:0   | Nout-1:0     | System       | in       |                    |
 | max_sel_mux 				 |         | $clog2(Nunit_pi)-1:0   | Nout-1:0     | System       | in       |                    |
-| pm_out_rep                 |         | 19:0                   | 1:0          | System       | in       |                    |
 | retimer_mux_ctrl_1         |         | Nti-1:0                |              | Test         | out      | 'b0000111111110000 |
 | retimer_mux_ctrl_2         |         | Nti-1:0                |              | Test         | out      | 'b1111000000000000 |
 | retimer_mux_ctrl_1_rep     |         | Nti_rep-1:0            |              | Test         | out      | 'b11               |
 | retimer_mux_ctrl_2_rep     |         | Nti_rep-1:0            |              | Test         | out      | 'b11               |
+| sel_PFD_in                 |         | 1:0                    | Nti-1:0      | Test         | out      | 0                  |
+| sign_PFD_clk_in            |         | Nti-1:0                |              | Test         | out      | 0                  |
+| sel_PFD_in_rep             |         | 1:0	                | 1:0          | Test         | out      | 0                  |
+| sign_PFD_clk_in_rep        |         | 1:0	                |              | Test         | out      | 0                  |
+
+
+
+
