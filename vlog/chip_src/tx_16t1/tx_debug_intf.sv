@@ -22,20 +22,7 @@ interface tx_debug_intf import const_pack::*; (
         logic [Nout-1:0] en_clk_sw;							// from JTAG (all 1) x
         logic [Nout-1:0] en_meas_pi;						// from JTAG (all 0) x
         logic [Nout-1:0] sel_meas_pi;						// from JTAG (all 0) x
-		//ADCrep
-		// logic [1:0] en_slice_rep; 							// from JTAG (all 0) x
-   		// logic [Nv2t-1:0] ctl_v2tn_rep [1:0];				// from JTAG (all 16) x
-    	// logic [Nv2t-1:0] ctl_v2tp_rep [1:0];				// from JTAG (all 16) x
-    	// logic [$clog2(Nout)-1:0] init_rep[1:0]; 			// from JTAG (all 0) x
-    	// logic [1:0] ALWS_ON_rep;							// from JTAG (all 0) x
-    	// logic [1:0] ctl_dcdl_late_rep[1:0];					// from JTAG (all 0) x
-    	// logic [1:0] ctl_dcdl_early_rep[1:0];				// from JTAG (all 0) x	
-    	// logic [4:0] ctl_dcdl_TDC_rep[1:0];					// from JTAG (all 0) x
-		// Input Buffers
 
-		//ADCtest(only for ADCrep1)
-		// logic sel_del_out;									// from JTAG (0)x
-		
 		//input clock buffer
 		logic en_inbuf;										// xfrom JTAG (1)
 		logic sel_clk_source;										// xfrom JTAG (1)
@@ -43,9 +30,6 @@ interface tx_debug_intf import const_pack::*; (
 		logic bypass_inbuf_div2;							// xfrom JTAG (1)
 		logic [2:0] inbuf_ndiv;								// xfrom JTAG (0)
 		logic en_inbuf_meas;								// xfrom JTAG (0)
-		//biasgen
-		// logic [3:0] en_biasgen;								// xfrom JTAG (all 1)x
-		// logic [3:0] ctl_biasgen [3:0];						//x from JTAG (all 7)x
 
 		//ACORE input divider output selection
 		logic sel_del_out_pi; //x
@@ -61,38 +45,14 @@ interface tx_debug_intf import const_pack::*; (
 		logic [$clog2(Nunit_pi)-1:0] Qperi[Nout-1:0]; 		// to JTAG
  		logic [$clog2(Nunit_pi)-1:0] max_sel_mux[Nout-1:0];	// to DCORE and JTAG
        	logic [Nout-1:0] pi_out_meas;						// to output buffer
-       	//ADCrep
-       	// logic [1:0] del_out_rep;							// ([1] --> to output buffer [0] --> NC/open)
 		
 		// Input clock signal measurement
 		logic inbuf_out_meas;								// to output buffer									
 		
-	    // logic en_TDC_phase_reverse;
-		
-		// logic [Nti-1:0] retimer_mux_ctrl_1;
-		// logic [Nti-1:0] retimer_mux_ctrl_2;
-		// logic [1:0] retimer_mux_ctrl_1_rep;
-		// logic [1:0] retimer_mux_ctrl_2_rep;
-
-		// logic [1:0] sel_PFD_in [Nti-1:0];	
-		// logic [Nti-1:0] sign_PFD_clk_in;
-		// logic [1:0] sel_PFD_in_rep [1:0];	
-		// logic [1:0] sign_PFD_clk_in_rep;
 		
 		
 
 	modport tx (
-		// inputs to tx_top
-		// input rst,
-						
-
-   		// input ctl_v2tn ,
-    	// input ctl_v2tp ,
-    	// input init,  
-    	// input ALWS_ON,
-    	// input ctl_dcdl_late,
-    	// input ctl_dcdl_early,
-    	// input ctl_dcdl_TDC,
 		
 		input en_gf,
         input en_arb_pi,
@@ -112,15 +72,6 @@ interface tx_debug_intf import const_pack::*; (
         input en_meas_pi,
         input sel_meas_pi,
 
-		// input en_slice_rep, 
-   		// input ctl_v2tn_rep ,
-    	// input ctl_v2tp_rep ,
-    	// input init_rep,  
-    	// input ALWS_ON_rep,
-    	// input ctl_dcdl_late_rep,
-    	// input ctl_dcdl_early_rep,
-    	// input ctl_dcdl_TDC_rep,
-
 		//Input of the phase interpolator
 		input en_inbuf,
 		input sel_clk_source,
@@ -129,14 +80,9 @@ interface tx_debug_intf import const_pack::*; (
 		input inbuf_ndiv,
         input en_inbuf_meas,
 		
-		// input en_biasgen,
-		// input ctl_biasgen,
-
-		input sel_del_out,
-	
+		// input sel_del_out,
 		input sel_del_out_pi,
 		input en_del_out_pi,
-
 
         // outputs from analog core
        	output del_out,
@@ -146,22 +92,11 @@ interface tx_debug_intf import const_pack::*; (
         output Qperi,
     	output max_sel_mux,
         output pi_out_meas,
-       	output del_out_rep,
+       	// output del_out_rep,
 		output inbuf_out_meas
 	);
 
     modport dcore (
-        // inputs to tx_top
-        // output rstb,
-        // output en_v2t,                       
-        // output en_slice, 
-        // output ctl_v2tn ,
-        // output ctl_v2tp ,
-        // output init,  
-        // output ALWS_ON,
-        // output ctl_dcdl_late,
-        // output ctl_dcdl_early,
-        // output ctl_dcdl_TDC,
         
         output en_gf,
         output en_arb_pi,
@@ -180,15 +115,6 @@ interface tx_debug_intf import const_pack::*; (
         output en_clk_sw,
         output en_meas_pi,
         output sel_meas_pi,
-
-        // output en_slice_rep, 
-        // output ctl_v2tn_rep ,
-        // output ctl_v2tp_rep ,
-        // output init_rep,  
-        // output ALWS_ON_rep,
-        // output ctl_dcdl_late_rep,
-        // output ctl_dcdl_early_rep,
-        // output ctl_dcdl_TDC_rep,
         
 
         output en_inbuf,
@@ -198,25 +124,10 @@ interface tx_debug_intf import const_pack::*; (
         output inbuf_ndiv,
         output en_inbuf_meas,
         
-        // output en_biasgen,
-        // output ctl_biasgen,
-
-        output sel_del_out,
+        // output sel_del_out,
     
         output sel_del_out_pi,
         output en_del_out_pi,
-
-        // output en_TDC_phase_reverse,
-
-		// output retimer_mux_ctrl_1,
-		// output retimer_mux_ctrl_2,
-		// output retimer_mux_ctrl_1_rep,
-		// output retimer_mux_ctrl_2_rep,
-		
-		// output sel_PFD_in,
-		// output sign_PFD_clk_in,
-		// output sel_PFD_in_rep,
-		// output sign_PFD_clk_in_rep,
 
         // outputs from analog core
         input del_out,
@@ -226,7 +137,7 @@ interface tx_debug_intf import const_pack::*; (
         input Qperi,
         input max_sel_mux,
         input pi_out_meas,
-        input del_out_rep,
+        // input del_out_rep,
         input inbuf_out_meas
     );
 endinterface
