@@ -62,7 +62,7 @@ module tx_top import const_pack::*; #(
     // output wire tx.del_out_pi,
 
     // output reg tx.inbuf_out_meas,
-    output reg clk_prbsgen,  // Output clock for 16-bit prbs generator
+    output wire clk_prbsgen,  // Output clock for 16-bit prbs generator
     output reg dout_p, // Data output
     output reg dout_n,
     tx_debug_intf.tx tx
