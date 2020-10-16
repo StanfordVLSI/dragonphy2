@@ -3,14 +3,13 @@
 module dlatch_n (
     input wire clk,
     input wire din,
+    input wire rst,
+    input wire cke,
     output reg dout
 );
 
-always @ (clk or din)
-begin
-    #0.15; // remove #0.15 before synthesis
+always @ (clk or din) begin
     if (!clk)
     dout = din;
 end
-
 endmodule
