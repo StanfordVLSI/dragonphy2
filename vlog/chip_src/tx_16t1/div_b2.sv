@@ -2,6 +2,8 @@
 
 module div_b2 (
     input wire clkin,
+    input wire rst,
+    input wire cke,
     output reg clkout
 );
 
@@ -10,8 +12,14 @@ initial begin
 end
 
 always@(posedge clkin) begin
-    #0.3;
+    if (rst) begin
+        clkout <= 0;  // Reset
+    end else if (cke) begin
+        clkout <= clkout; // Clock gated
+    end else begin
     clkout = ~clkout;
-end
-
+    end
 endmodule
+
+
+// Add the rst and cke 
