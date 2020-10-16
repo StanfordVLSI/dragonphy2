@@ -3,8 +3,6 @@
 module dlatch_n (
     input wire clk,
     input wire din,
-    input wire rst,
-    input wire cke,
     output reg dout
 );
 
