@@ -3,6 +3,7 @@
 module hr_16t4_mux_top (  // The output data rate should be input clock frequency times two.
     input wire clk_hr,     // Half rate clock input
     input wire [15:0] din,  // Sixteen-bit input data
+    input wire rst,
     output wire [3:0] dout, // Four-bit output data
     output wire clk_b2 // Divided clk output to drive prbs_gen
 );
@@ -20,6 +21,6 @@ generate  // Instantiate 4 hr_4t1_mux_top to form 16:4 mux
 endgenerate
 
 // Clock divider, divide-by-two
-div_b2 clk_div (.clkin(clk_hr), .clkout(clk_b2));
+div_b2 clk_div (.clkin(clk_hr), .rst(rst), .clkout(clk_b2));
 
 endmodule

@@ -6,6 +6,7 @@ module qr_4t1_mux_top (
     input wire clk_I,
     input wire clk_IB, // Four phase clock input from PI+MDLL
     input wire [3:0] din,
+    input wire rst,
     output reg ck_b2,
     output reg data
 );
@@ -40,7 +41,7 @@ ff_c dff_IB2 (.D(D1DIB), .CP(clk_QB), .Q(D2MIB));
 
 // 4 to 1 mux 
 //wire [1:0] sel;
-div_b2 div (.clkin(clk_IB), .clkout(ck_b2));
+div_b2 div (.clkin(clk_IB), .rst(rst), .clkout(ck_b2));
 // Combinational logic to generate the selection window from clk Q-QB-I-IB
 // assign sel =  
 
