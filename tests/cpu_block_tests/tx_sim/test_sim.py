@@ -8,7 +8,7 @@ def test_sim():
     deps = get_deps_cpu_sim(impl_file=THIS_DIR / 'test.sv')
     print(deps)
 
-    # DragonTester(
-    #     ext_srcs=deps,
-    #     directory=BUILD_DIR,
-    # ).run()
+    DragonTester(
+        ext_srcs=deps,
+        directory=BUILD_DIR,
+    ).run()
