@@ -6,11 +6,8 @@ module dlatch_n (
     output reg dout
 );
 
-always @ (clk or din)
-begin
-    #0.15; // remove #0.15 before synthesis
+always @ (clk or din) begin
     if (!clk)
     dout = din;
 end
-
 endmodule
