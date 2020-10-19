@@ -26,6 +26,7 @@ module error_tracker #(
 	logic write_overflow;
 	logic store_finished;
 	logic enabled;
+	logic WEB;
 
 	logic [143:0] next_data_frames [3:0];
 	logic [143:0] data_frames [3:0];
@@ -67,9 +68,10 @@ module error_tracker #(
 	assign enabled = (enable == 1'b1);
 
 	//Input Data Frame is always the data_frame attached to the current store count
-	assign input_data_frame <= data_frames[store_count];
+	assign input_data_frame = data_frames[store_count];
 
-	always_ff @(posedge clk or negedge rstb) begin : proc_
+	always_ff @(posedge clk or negedge rstb) begin 
+		integer ii;
 		if(~rstb) begin
 			store_count <= 0;
 			state 		<= READY;
