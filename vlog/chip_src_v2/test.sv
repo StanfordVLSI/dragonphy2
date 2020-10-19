@@ -295,8 +295,7 @@ module test ();
         broadcast_weights.all(ffe_weights, dsp_dbg_intf_i.weights);
         start = 1;
         repeat (5) @(posedge clk);
-        rstb = 1;
-        trigger = 1;
+        rstb = 1; 
          
         repeat (50) @(posedge clk);
 
