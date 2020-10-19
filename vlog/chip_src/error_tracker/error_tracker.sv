@@ -24,7 +24,6 @@ module error_tracker #(
 	logic [addrwidth-1:0] write_addr;
 	logic [addrwidth-1:0] addr;
 	logic [1:0] store_count;
-	logic write_overflow;
 	logic store_finished;
 	logic enabled;
 	logic WEB;
@@ -77,6 +76,7 @@ module error_tracker #(
 			store_count <= 0;
 			state 		<= READY;
 			write_addr  <= 0;
+			WEB 		<= 1'b1;
 		end else begin
 			case (state)
 				READY : begin
