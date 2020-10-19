@@ -49,6 +49,7 @@ interface dcore_debug_intf import const_pack::*; (
     	logic cdr_rstb;
     	logic prbs_rstb;
     	logic prbs_gen_rstb;
+    	logic tx_data_rstb;
    		logic [ffe_gpack::shift_precision-1:0] ffe_shift [constant_gpack::channel_width-1:0];
     	logic signed [cmp_gpack::thresh_precision-1:0] cmp_thresh  [constant_gpack::channel_width-1:0];
     	logic [mlsd_gpack::shift_precision-1:0] mlsd_shift [constant_gpack::channel_width-1:0];
@@ -69,6 +70,8 @@ interface dcore_debug_intf import const_pack::*; (
 		logic [(Npi-1):0] tx_pi_ctl [(Nout-1):0];
         logic [(Nout-1):0] tx_en_bypass_pi_ctl;
         logic [(Npi-1):0] tx_bypass_pi_ctl [(Nout-1):0];
+        logic tx_rst;
+        logic tx_ctl_valid;
 
     modport dcore ( 	
 		input en_ext_pi_ctl_cdr,
@@ -103,6 +106,7 @@ interface dcore_debug_intf import const_pack::*; (
 		input cdr_rstb,
 		input prbs_rstb,
 	    input prbs_gen_rstb,
+        input tx_data_rstb,
 		input ffe_shift,
 		input cmp_thresh,
 		input mlsd_shift,
@@ -123,6 +127,8 @@ interface dcore_debug_intf import const_pack::*; (
 		input tx_pi_ctl,
         input tx_en_bypass_pi_ctl,
         input tx_bypass_pi_ctl,
+        input tx_rst,
+        input tx_ctl_valid,
 
 		output adcout_avg ,
 		output adcout_sum,
@@ -168,6 +174,7 @@ interface dcore_debug_intf import const_pack::*; (
 		output cdr_rstb,
 		output prbs_rstb,
 		output prbs_gen_rstb,
+		output tx_data_rstb,
 		output ffe_shift,
 		output cmp_thresh,
 		output mlsd_shift,
@@ -188,6 +195,8 @@ interface dcore_debug_intf import const_pack::*; (
 		output tx_pi_ctl,
         output tx_en_bypass_pi_ctl,
         output tx_bypass_pi_ctl,
+        output tx_rst,
+        output tx_ctl_valid,
 
 		input adcout_avg ,
 		input adcout_sum,

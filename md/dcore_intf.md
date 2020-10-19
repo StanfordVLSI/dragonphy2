@@ -34,6 +34,7 @@
 | cdr_rstb                   |         |                        |                  | Test         | out      |   1       |
 | prbs_rstb                  |         |                        |                  | System       | out      |   0       |
 | prbs_gen_rstb              |         |                        |                  | System       | out      |   0       |
+| tx_data_rstb               |         |                        |                  | Test         | out      |   0       |
 | sel_outbuff				 | 		   | 3:0					|				   | Test		  | out 	 |   0		 |
 | sel_trigbuff				 | 		   | 3:0					|				   | Test		  | out 	 |   0		 |
 | en_outbuff				 | 		   |     					|				   | Test		  | out 	 |   0		 |
@@ -60,3 +61,5 @@
 | tx_pi_ctl                  |         | Npi-1:0                | Nout-1:0         | Test         | out      | 0&135&270&405|
 | tx_en_bypass_pi_ctl        |         | Npi-1:0                |                  | Test         | out      | 0         |
 | tx_bypass_pi_ctl           |         | Npi-1:0                | Nout-1:0         | Test         | out      | 0         |
+| tx_rst                     |         |                        |                  | Test         | out      |   1       |
+| tx_ctl_valid               |         |                        |                  | Test         | out      |   0       |

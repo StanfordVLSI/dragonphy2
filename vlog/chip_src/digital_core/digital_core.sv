@@ -49,6 +49,7 @@ module digital_core import const_pack::*; (
     prbs_debug_intf pdbg_intf_i ();
     wme_debug_intf wdbg_intf_i ();
     hist_debug_intf hdbg_intf_i ();
+    tx_data_intf odbg_intf_i ();
     
     // internal signals
 
@@ -63,6 +64,7 @@ module digital_core import const_pack::*; (
     wire logic cdr_rstb;
     wire logic prbs_rstb;
     wire logic prbs_gen_rstb;
+    wire logic tx_data_rstb;
     wire logic signed [Nadc-1:0] adcout_unfolded [Nti+Nti_rep-1:0];
 
     wire logic signed [ffe_gpack::output_precision-1:0] estimated_bits [constant_gpack::channel_width-1:0];
@@ -102,12 +104,14 @@ module digital_core import const_pack::*; (
 //    end
 
     // derived reset signals
+    // these combine external reset with JTAG reset
 
-    assign rstb             = ddbg_intf_i.int_rstb  && ext_rstb; //combine external reset with JTAG reset\
+    assign rstb             = ddbg_intf_i.int_rstb  && ext_rstb;
     assign sram_rstb        = ddbg_intf_i.sram_rstb && ext_rstb;
     assign cdr_rstb         = ddbg_intf_i.cdr_rstb  && ext_rstb;
     assign prbs_rstb        = ddbg_intf_i.prbs_rstb && ext_rstb;
     assign prbs_gen_rstb    = ddbg_intf_i.prbs_gen_rstb && ext_rstb;
+    assign tx_data_rstb     = ddbg_intf_i.tx_data_rstb && ext_rstb;
 
     // the dump_start signal can be set internally or externally
 
@@ -583,6 +587,7 @@ module digital_core import const_pack::*; (
         .mdbg_intf_i(mdbg_intf_i),
         .hdbg_intf_i(hdbg_intf_i),
         .tdbg_intf_i(tdbg_intf_i),
+        .odbg_intf_i(odbg_intf_i),
         .jtag_intf_i(jtag_intf_i)
     );
 
@@ -599,12 +604,15 @@ module digital_core import const_pack::*; (
 
     assign clk_cgra = (clk_adc & en_cgra_clk_latch);
 
-    // transmitted data
-    // TODO: update these
+    // transmitter control signals
 
-    assign tx_rst = 0;
+    assign tx_rst = ddbg_intf_i.tx_rst;
+    assign tx_ctl_valid = ddbg_intf_i.tx_ctl_valid;
+
+    // TX data generator
+    // TODO: implement this
+
     assign tx_data = 0;
-    assign tx_ctl_valid = 0;
 
 endmodule
 
