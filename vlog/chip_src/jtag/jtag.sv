@@ -19,6 +19,7 @@ module jtag (
     mdll_r1_debug_intf.jtag mdbg_intf_i,
     hist_debug_intf.jtag hdbg_intf_i,
     tx_debug_intf.dcore tdbg_intf_i,
+    tx_data_intf.jtag odbg_intf_i,
 	jtag_intf.target jtag_intf_i
 );
 	raw_jtag_ifc_unq1 rjtag_intf_i(.Clk(clk), .Reset(rstb));
@@ -166,6 +167,7 @@ module jtag (
 	assign ddbg_intf_i.cdr_rstb 	 = rjtag_intf_i.cdr_rstb;
     assign ddbg_intf_i.prbs_rstb 	 = rjtag_intf_i.prbs_rstb;
     assign ddbg_intf_i.prbs_gen_rstb = rjtag_intf_i.prbs_gen_rstb;
+    assign ddbg_intf_i.tx_data_rstb  = rjtag_intf_i.tx_data_rstb;
 
     // work-around for Vivado: disable product is set to an unpacked dimension of "10"
     // in the JTAG markdown file for dcore_debug_intf, but dcore_debug_intf.sv itself
@@ -206,6 +208,9 @@ module jtag (
     assign ddbg_intf_i.tx_pi_ctl = rjtag_intf_i.tx_pi_ctl;
     assign ddbg_intf_i.tx_en_bypass_pi_ctl = rjtag_intf_i.tx_en_bypass_pi_ctl;
     assign ddbg_intf_i.tx_bypass_pi_ctl = rjtag_intf_i.tx_bypass_pi_ctl;
+
+    assign ddbg_intf_i.tx_rst = rjtag_intf_i.tx_rst;
+    assign ddbg_intf_i.tx_ctl_valid = rjtag_intf_i.tx_ctl_valid;
 
 	//Digital Output
 	assign rjtag_intf_i.adcout_avg=ddbg_intf_i.adcout_avg;
@@ -330,6 +335,17 @@ module jtag (
     assign rjtag_intf_i.tx_cal_out_pi = tdbg_intf_i.cal_out_pi;
     assign rjtag_intf_i.tx_Qperi = tdbg_intf_i.Qperi;
     assign rjtag_intf_i.tx_max_sel_mux = tdbg_intf_i.max_sel_mux;
+
+    // Transmitter data generator
+    assign odbg_intf_i.tx_data_gen_mode = rjtag_intf_i.tx_data_gen_mode;
+    assign odbg_intf_i.tx_data_gen_cke = rjtag_intf_i.tx_data_gen_cke;
+    assign odbg_intf_i.tx_data_gen_per = rjtag_intf_i.tx_data_gen_per;
+    assign odbg_intf_i.tx_data_gen_semaphore = rjtag_intf_i.tx_data_gen_semaphore;
+    assign odbg_intf_i.tx_data_gen_register = rjtag_intf_i.tx_data_gen_register;
+    assign odbg_intf_i.tx_prbs_gen_init = rjtag_intf_i.tx_prbs_gen_init;
+    assign odbg_intf_i.tx_prbs_gen_eqn = rjtag_intf_i.tx_prbs_gen_eqn;
+    assign odbg_intf_i.tx_prbs_gen_inj_err = rjtag_intf_i.tx_prbs_gen_inj_err;
+    assign odbg_intf_i.tx_prbs_gen_chicken = rjtag_intf_i.tx_prbs_gen_chicken;
 
 	//JTAG Interface - Output Buffer Enable is not passed through *
 	assign rjtag_intf_i.tck    = jtag_intf_i.phy_tck;
