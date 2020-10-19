@@ -13,7 +13,7 @@ module error_tracker #(
 	input logic clk,
 	input logic rstb,
 
-	error_tracker_debug_intf errt_dbg_intf_i.tracker
+	error_tracker_debug_intf.tracker errt_dbg_intf_i
 );
 
 	localparam [addrwidth-1:0] max_addr = {addrwidth{1'b1}};
@@ -46,7 +46,7 @@ module error_tracker #(
 		for(gi=0; gi < 4; gi = gi + 1) begin
 			assign errt_dbg_intf_i.output_data_frame[gi] = output_data_frame[(gi+1)*32 -1: gi*32];
 		end
-		assign errt_dbg_intf_i.output_data_frame[4] = {output_data_frame[143:128], 16{1'b0}};
+		assign errt_dbg_intf_i.output_data_frame[4] = {output_data_frame[143:128], {16{1'b0}}};
 		//Concatenate and store the error values
 		for(gi=0; gi < 3; gi = gi + 1) begin
 			for(gj = 0; gj < width; gj = gj + 1) begin
