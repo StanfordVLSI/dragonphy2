@@ -46,7 +46,8 @@ module datapath_core #(
                                                            ) 
                                                            + error_output_pipeline_depth
                                                            + channel_pipeline_depth
-                                                    );
+                                                    )
+                                                    +1;
 
     localparam integer code_pipeline_depth          = `MAX(error_code_pipeline_depth, 1+ffe_code_pipeline_depth);
 
