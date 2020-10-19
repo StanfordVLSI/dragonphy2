@@ -43,9 +43,9 @@ class Filter:
         # return result (remembering the throw away the extra time point at the end)
         return t_step[:-1], v_pulse
 
-    def compute_output(self, symbols, f_sig=1e9, resp_depth=50):
+    def compute_output(self, symbols, f_sig=1e9, resp_depth=50, t_delay=0):
         # get the pulse response
-        _, v_pulse = self.get_pulse_resp(f_sig=f_sig, resp_depth=resp_depth)
+        _, v_pulse = self.get_pulse_resp(f_sig=f_sig, resp_depth=resp_depth, t_delay=t_delay)
 
         # convolve pulse response with symbols
         # TODO: should samples at the beginning and end be dropped?
@@ -93,8 +93,8 @@ class Channel(Filter):
         # call the super constructor
         super().__init__(t_vec=t_vec, v_vec=v_vec)
 
-    def compute_output(self, symbols, f_sig=1e9, resp_depth=50):
-        return super().compute_output(symbols, f_sig=f_sig, resp_depth=resp_depth)
+    def compute_output(self, symbols, f_sig=1e9, resp_depth=50, t_delay=0):
+        return super().compute_output(symbols, f_sig=f_sig, resp_depth=resp_depth, t_delay=t_delay)
 
 
 class DelayChannel(Channel):
