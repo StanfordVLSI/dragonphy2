@@ -36,7 +36,7 @@ module datapath_core #(
     localparam integer chan_exit_depth  = channel_pipeline_depth;
     localparam integer bits_exit_depth  = channel_pipeline_depth
                                         + error_output_pipeline_depth
-                                        + sliding_detector_output_pipeline_depth;
+                                        + sliding_detector_output_pipeline_depth+1;
     localparam integer error_exit_depth = error_output_pipeline_depth
                                         + sliding_detector_output_pipeline_depth+1;
 
