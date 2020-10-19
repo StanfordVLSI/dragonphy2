@@ -255,7 +255,7 @@ module test;
 
         // Configure the CDR
       	$display("Configuring the CDR...");
-      	`FORCE_JTAG(misc_ctrl_bits, 'b10000);  // enable CDR clamping
+      	`FORCE_JTAG(cdr_en_clamp, 1'b1);  // enable CDR clamping
       	`FORCE_JTAG(Kp, 21);  // very high value so that we hit clamping behavior
       	`FORCE_JTAG(Ki, 0);
       	`FORCE_JTAG(invert, 1);
