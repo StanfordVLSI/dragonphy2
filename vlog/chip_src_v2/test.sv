@@ -150,7 +150,7 @@ module test ();
         .start      (0)
     ) sb_fb_i (
         .buffer    (sliced_bits_buffer),
-        .flat_slice(pf_sliced_bits)
+        .flat_slice(flat_sliced_bits)
     );
 
     signed_flatten_buffer_slice #(
@@ -177,7 +177,7 @@ module test ();
 
     genvar gi, gj;
     generate 
-        for(gi =0 ; gi < constant_gpack::channel_width; gi = gi + 1) begin
+        for(gi =0 ; gi < constant_gpack::channel_width*3; gi = gi + 1) begin
             assign pf_sliced_bits[gi] = flat_sliced_bits[gi]; 
         end
     endgenerate
@@ -193,7 +193,7 @@ module test ();
 
         .prbs_flags(),
         .errors(flat_est_error),
-        .bitstream(flat_sliced_bits),
+        .bitstream(pf_sliced_bits),
         .sd_flags(flat_sd_flags),
 
         .clk(clk),
