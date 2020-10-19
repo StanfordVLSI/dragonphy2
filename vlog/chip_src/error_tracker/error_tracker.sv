@@ -69,6 +69,7 @@ module error_tracker #(
 
 	//Input Data Frame is always the data_frame attached to the current store count
 	assign input_data_frame = data_frames[store_count];
+	assign errt_dbg_intf_i.number_stored_frames = write_addr;
 
 	always_ff @(posedge clk or negedge rstb) begin 
 		integer ii;
