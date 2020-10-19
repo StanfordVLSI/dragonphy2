@@ -21,6 +21,10 @@ export mLINGUA_DIR=`realpath DaVE/mLingua`
 # install dragonphy
 pip install -e .
 
+# fix JusTAG
+export python_site_pack=`pip show justag|sed -n 's/Location: \(.*\)/\1/p'`
+patch "$python_site_pack/justag/JusTAG.py" justag.patch
+
 # install pytest
 pip install pytest pytest-cov
 

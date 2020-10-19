@@ -18,6 +18,10 @@ cd ..
 # install dragonphy
 pip install -e .
 
+# fix JusTAG
+export python_site_pack=`pip show justag|sed -n 's/Location: \(.*\)/\1/p'`
+patch "$python_site_pack/justag/JusTAG.py" justag.patch
+
 # make dependencies for design
 python make.py --view asic
 
