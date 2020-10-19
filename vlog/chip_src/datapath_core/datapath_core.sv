@@ -15,7 +15,7 @@ module datapath_core #(
     output logic                                               sliced_bits_out [constant_gpack::channel_width-1:0],
     output logic signed [constant_gpack::code_precision-1:0]   est_codes_out [constant_gpack::channel_width-1:0],
     output logic signed [error_gpack::est_error_precision-1:0] est_errors_out [constant_gpack::channel_width-1:0],
-    output logic signed [1:0] sd_flags [constant_gpack::channel_width-1:0],
+    output logic        [1:0] sd_flags [constant_gpack::channel_width-1:0],
 
     dsp_debug_intf.dsp dsp_dbg_intf_i //Stand in for Debug Interface
 );
@@ -23,7 +23,7 @@ module datapath_core #(
     genvar gi;
 
     localparam integer sliding_detector_input_pipeline_depth = 1;
-    localparam integer error_pipeline_depth = sliding_detector_input_pipeline_depth + error_output_pipeline_depth;
+    localparam integer error_pipeline_depth = `MAX(sliding_detector_input_pipeline_depth, sliding_detector_output_pipeline_depth) + error_output_pipeline_depth;
     localparam integer error_code_pipeline_depth = 1+ffe_pipeline_depth + channel_pipeline_depth;
     
     localparam integer ffe_code_pipeline_depth = 1;
@@ -89,7 +89,7 @@ module datapath_core #(
 
     generate 
         for(gi = 0; gi < constant_gpack::channel_width; gi = gi + 1) begin
-            assign trunc_ffe_out[gi]   = buffered_estimated_bit[gi];
+            assign trunc_ffe_out[gi]   = buffered_estimated_bit[gi] >>> (ffe_gpack::output_precision - constant_gpack::code_precision);
             assign est_codes_out[gi]   = end_buffer_est_codes[gi];
             //The following assignments are aligned
             assign est_errors_out[gi]  = est_error_buffer[gi][error_exit_depth];
