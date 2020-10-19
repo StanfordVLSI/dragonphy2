@@ -23,7 +23,7 @@ module datapath_core #(
     genvar gi;
 
     localparam integer sliding_detector_input_pipeline_depth = 1;
-
+    localparam integer error_pipeline_depth = sliding_detector_input_pipeline_depth + error_output_pipeline_depth;
     localparam integer error_code_pipeline_depth = 1+ffe_pipeline_depth + channel_pipeline_depth;
     
     localparam integer ffe_code_pipeline_depth = 1;
