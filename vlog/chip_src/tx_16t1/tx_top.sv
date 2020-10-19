@@ -1,5 +1,4 @@
 `timescale 100ps/1ps   //  unit_time / time precision
-`include "iotype.sv"
 
 `default_nettype none
 
