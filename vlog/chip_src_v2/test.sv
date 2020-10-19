@@ -79,10 +79,10 @@ module test ();
 
     dsp_debug_intf dsp_dbg_intf_i();
     datapath_core #(
-        .ffe_pipeline_depth(constant_gpack::ffe_pipeline_depth), 
-        .channel_pipeline_depth(constant_gpack::chan_pipeline_depth), 
-        .error_output_pipeline_depth(constant_gpack::err_out_pipeline_depth), 
-        .sliding_detector_output_pipeline_depth(constant_gpack::sld_dtct_out_pipeline_depth)
+        .ffe_pipeline_depth(5), //constant_gpack::ffe_pipeline_depth), 
+        .channel_pipeline_depth(10), 
+        .error_output_pipeline_depth(1), 
+        .sliding_detector_output_pipeline_depth(5)
     ) dp_core_i (
         .adc_codes(adc_codes),
         .clk(clk),
