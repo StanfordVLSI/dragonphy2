@@ -52,7 +52,7 @@ module error_tracker #(
 		//Concatenate and store the error values
 		for(gi=0; gi < 3; gi = gi + 1) begin
 			for(gj = 0; gj < width; gj = gj + 1) begin
-				assign data_frames[gi][(gj+1)*error_bitwidth-1:gj*error_bitwidth] = $unsigned(errors[gj + width*gi]);
+				assign data_frames[gi][(gj+1)*error_bitwidth-1:gj*error_bitwidth] = $unsigned(errors[gj + width*gi][error_bitwidth-1:0]);
 			end
 		end
 		//Concatenate and store the PRBS flags, the bistream and the sliding detector outputs
