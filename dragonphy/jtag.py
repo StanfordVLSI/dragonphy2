@@ -13,6 +13,7 @@ class JTAG:
 
         justag_inputs = []
         justag_inputs += [str(id_code)]
+        justag_inputs += [str(4)]
         justag_inputs += list(get_dir('md').glob('*.md'))
         justag_inputs += [get_file('vlog/pack/const_pack.sv')]
         print(justag_inputs)
