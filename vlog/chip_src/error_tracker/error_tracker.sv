@@ -1,7 +1,6 @@
 module error_tracker #(
 	parameter integer width=16,
 	parameter integer error_bitwidth=8,
-	parameter integer seq_length=4,
 	parameter integer addrwidth= 12
 )(
 	input logic trigger,
@@ -10,8 +9,6 @@ module error_tracker #(
 	input logic [width*3-1:0] prbs_flags,
 	input logic [width*3-1:0] bitstream,
 	input logic [1:0] sd_flags [width*3-1:0],
-
-	input logic [addrwidth-1:0] read_addr,
 
 	input logic clk,
 	input logic rstb,
