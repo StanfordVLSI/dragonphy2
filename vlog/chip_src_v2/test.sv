@@ -296,11 +296,19 @@ module test ();
         start = 1;
         repeat (5) @(posedge clk);
         rstb = 1;
+        repeat (3) @(posedge clk);
         trigger = 1;
-         
-        repeat (50) @(posedge clk);
+        repeat (2) @(posedge clk);
+        trigger = 0;
+        repeat (10) @(posedge clk);
+        trigger = 1;
+        repeat (3) @(posedge clk); 
+        trigger =0 ;
+        repeat (10) @(posedge clk);
+        errt_dbg_intf_i.addr = 0;
+        errt_dbg_intf_i.read = 1;
 
-
+        repeat (10) @(posedge clk);
         $finish;
     end
 
