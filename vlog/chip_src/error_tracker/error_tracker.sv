@@ -98,7 +98,7 @@ module error_tracker #(
 				end
 				DONE : begin
 					WEB		    <= 1'b1;
-					write_addr  <= enabled ? 'd0 : max_addr;
+					write_addr  <= enabled ? 'd0 : write_addr;
 					store_count <= enabled ? 2'b00 : store_count;
 					state       <= enabled ? READY : DONE;
 				end
