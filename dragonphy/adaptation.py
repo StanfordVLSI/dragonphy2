@@ -3,12 +3,17 @@ import matplotlib.pyplot as plt
 from .channel import Channel
 
 class Wiener():
-    def __init__(self, step_size=2, num_taps=5, debug=False, cursor_pos=1):
+    def __init__(self, step_size=2, num_taps=5, debug=False, cursor_pos=1, weights=None):
         self.step_size      		= step_size
         self.num_taps       		= num_taps
+        self.cursor_pos             = cursor_pos
         self.filter_in      		= np.zeros(num_taps)
-        self.weights        		= np.zeros(num_taps) #np.random.randn(num_taps)
-        self.weights[0]    = 1
+        self.prior_est_data         = np.zeros(num_taps)
+        if weights == None:
+            self.weights        	= np.random.randn(num_taps)/10
+            self.weights[0]         = 1
+        else:
+            self.weights = weights
         self.error          		= np.inf
         self.total_error    		= []
         self.debug          		= debug
@@ -63,11 +68,12 @@ class Wiener():
         est_input  = np.dot(self.weights, self.filter_in)
         if blind:
             est_data  = 2.0*(est_input>0) - 1
+            self.prior_est_data = np.insert(self.prior_est_data[0:-1], 0, est_data)
+            self.error = self.prior_est_data[0] - est_input
         else:
-            est_data = ideal_in
-        self.error = est_data - est_input
-        self.total_error.append(self.error)
+            self.error = ideal_in - est_input
 
+        self.total_error.append(self.error)
         ue_prod = np.multiply(self.filter_in, self.error)
         normal_coeff = 1.0/(1e-5 + np.dot(self.filter_in, self.filter_in))
         next_weights = self.weights + normal_coeff*self.step_size*ue_prod
