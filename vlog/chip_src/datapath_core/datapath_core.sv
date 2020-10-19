@@ -15,7 +15,7 @@ module datapath_core #(
     output logic                                               sliced_bits_out [constant_gpack::channel_width-1:0],
     output logic signed [constant_gpack::code_precision-1:0]   est_codes_out [constant_gpack::channel_width-1:0],
     output logic signed [error_gpack::est_error_precision-1:0] est_errors_out [constant_gpack::channel_width-1:0],
-    output logic signed [1:0] sd_flags [constant_gpack::channel_width-1:0]
+    output logic signed [1:0] sd_flags [constant_gpack::channel_width-1:0],
 
     dsp_debug_intf.dsp dsp_dbg_intf_i //Stand in for Debug Interface
 );
@@ -56,7 +56,8 @@ module datapath_core #(
 
     logic signed [constant_gpack::code_precision-1:0] adc_codes_buffer    [constant_gpack::channel_width-1:0][code_pipeline_depth:0];
     logic                                             sliced_bits_buffer  [constant_gpack::channel_width-1:0][bits_pipeline_depth:0];
-    
+    logic signed [error_gpack::est_error_precision-1:0] est_error_buffer [constant_gpack::channel_width-1:0][error_pipeline_depth:0];
+
 
     logic signed [ffe_gpack::weight_precision-1:0] weights [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0];
     logic [ffe_gpack::shift_precision-1:0] ffe_shift [constant_gpack::channel_width-1:0];
@@ -64,6 +65,9 @@ module datapath_core #(
     logic signed [channel_gpack::est_channel_precision-1:0] channel_est [constant_gpack::channel_width-1:0][channel_gpack::est_channel_depth-1:0];
     logic [channel_gpack::shift_precision-1:0] channel_shift [constant_gpack::channel_width-1:0];
     logic  disable_product [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0];
+    logic signed [ffe_gpack::output_precision-1:0] buffered_estimated_bit [constant_gpack::channel_width-1:0];
+    logic signed [channel_gpack::est_code_precision-1:0]   end_buffer_est_codes[constant_gpack::channel_width-1:0];
+    logic [1:0] argmin_mmse_buffer [constant_gpack::channel_width-1:0][sliding_detector_output_pipeline_depth:0];
 
     always_comb begin
         integer ii, jj;
@@ -167,7 +171,6 @@ module datapath_core #(
         .buffer(estimated_bits_buffer)
     );
 
-    logic signed [ffe_gpack::output_precision-1:0] buffered_estimated_bit [constant_gpack::channel_width-1:0];
     generate
         for(gi=0; gi<constant_gpack::channel_width; gi=gi+1) begin
             assign buffered_estimated_bit[gi] = estimated_bits_buffer[gi][ffe_pipeline_depth];
@@ -269,7 +272,6 @@ module datapath_core #(
     //Create Error by subtracting codes from channel filter
     logic signed [error_gpack::est_error_precision-1:0] est_error [constant_gpack::channel_width-1:0];
     logic signed [constant_gpack::code_precision-1:0]   end_buffer_adc_codes[constant_gpack::channel_width-1:0];
-    logic signed [channel_gpack::est_code_precision-1:0]   end_buffer_est_codes[constant_gpack::channel_width-1:0];
 
     always_comb begin
         for(ii=0; ii<constant_gpack::channel_width; ii=ii+1) begin
@@ -280,7 +282,6 @@ module datapath_core #(
     end
 
     //Error pipeline
-    logic signed [error_gpack::est_error_precision-1:0] est_error_buffer [constant_gpack::channel_width-1:0][error_pipeline_depth:0];
     signed_buffer #(
         .numChannels(constant_gpack::channel_width),
         .bitwidth   (error_gpack::est_error_precision),
@@ -336,7 +337,6 @@ module datapath_core #(
     );
 
     //Detector pipeline
-    logic [1:0] argmin_mmse_buffer [constant_gpack::channel_width-1:0][sliding_detector_output_pipeline_depth:0];
     buffer #(
         .numChannels(constant_gpack::channel_width),
         .bitwidth   (2),
