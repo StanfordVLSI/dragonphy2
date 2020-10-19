@@ -43,7 +43,7 @@ module digital_core import const_pack::*; (
 
     
     // internal signals
-
+    wire logic error_in_frame;
     wire logic rstb;
     wire logic adc_unfolding_update;
     wire logic [Nadc-1:0] adcout_retimed [Nti-1:0];
@@ -281,8 +281,13 @@ module digital_core import const_pack::*; (
         .codes(adcout_unfolded_non_rep),
         .clk(clk_adc),
         .rstb(rstb),
-        .estimated_bits_q(estimated_bits),
-        .checked_bits(checked_bits),
+        
+        .trunc_ffe_out(estimated_bits),
+        .sliced_bits_out(sliced_bits),
+        .est_codes_out(est_codes),
+        .est_errors_out(est_errors),
+        .sd_flags(sd_flags),
+
         .dsp_dbg_intf_i(dsp_dbg_intf_i)
     );
 
@@ -420,7 +425,8 @@ module digital_core import const_pack::*; (
         .checker_mode(pdbg_intf_i.prbs_checker_mode),
         // outputs
         .err_bits(prbs_err_bits),
-        .total_bits(prbs_total_bits)
+        .total_bits(prbs_total_bits),
+        .error_in_frame(error_in_frame)
     );
 
     // Histogram data generator for BIST
