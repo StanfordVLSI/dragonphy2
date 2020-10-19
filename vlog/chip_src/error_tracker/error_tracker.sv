@@ -77,6 +77,9 @@ module error_tracker #(
 			state 		<= READY;
 			write_addr  <= 0;
 			WEB 		<= 1'b1;
+			for(ii = 0; ii < 4; ii = ii + 1) begin
+				data_frames[ii] <= 0;
+			end
 		end else begin
 			case (state)
 				READY : begin
