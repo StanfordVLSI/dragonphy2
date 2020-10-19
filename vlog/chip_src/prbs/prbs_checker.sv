@@ -32,7 +32,8 @@ module prbs_checker #(
 
     // outputs
     output wire logic [63:0] err_bits,
-    output wire logic [63:0] total_bits
+    output wire logic [63:0] total_bits,
+    output wire logic error_in_frame
 );
     // TODO: consider using enum here
     localparam logic [1:0]  RESET = 2'b00;
@@ -58,6 +59,8 @@ module prbs_checker #(
             );
         end
     endgenerate
+
+    assign error_in_frame = |err_signals; //Output when you find ANY error!
 
     // sum up number of errors for selected channels
     logic [$clog2(n_channels):0] err_count;
