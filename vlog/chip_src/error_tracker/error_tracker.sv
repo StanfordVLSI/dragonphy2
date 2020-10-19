@@ -22,6 +22,7 @@ module error_tracker #(
 	typedef enum logic [1:0] {READY, STORE, DONE} state_t;
 	state_t state, next_state;
 	logic [addrwidth-1:0] write_addr;
+	logic [addrwidth-1:0] addr;
 	logic [1:0] store_count;
 	logic write_overflow;
 	logic store_finished;
