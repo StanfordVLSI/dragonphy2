@@ -201,6 +201,12 @@ module jtag (
     assign ddbg_intf_i.en_int_dump_start = rjtag_intf_i.en_int_dump_start;
     assign ddbg_intf_i.int_dump_start = rjtag_intf_i.int_dump_start;
 
+    assign ddbg_intf_i.tx_en_ext_max_sel_mux = rjtag_intf_i.tx_en_ext_max_sel_mux;
+    assign ddbg_intf_i.tx_ext_max_sel_mux = rjtag_intf_i.tx_ext_max_sel_mux;
+    assign ddbg_intf_i.tx_pi_ctl = rjtag_intf_i.tx_pi_ctl;
+    assign ddbg_intf_i.tx_en_bypass_pi_ctl = rjtag_intf_i.tx_en_bypass_pi_ctl;
+    assign ddbg_intf_i.tx_bypass_pi_ctl = rjtag_intf_i.tx_bypass_pi_ctl;
+
 	//Digital Output
 	assign rjtag_intf_i.adcout_avg=ddbg_intf_i.adcout_avg;
 	assign rjtag_intf_i.adcout_sum=ddbg_intf_i.adcout_sum;

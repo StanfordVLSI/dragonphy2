@@ -24,10 +24,18 @@ module digital_core import const_pack::*; (
     output wire logic ctl_valid,
     output wire logic freq_lvl_cross,
     input wire logic ext_dump_start,
+
+    input wire logic clk_tx,
+    output wire logic tx_rst,
+    output wire logic [(Nti-1):0] tx_data,
+    output wire logic [(Npi-1):0] tx_pi_ctl [(Nout-1):0],
+    output wire logic tx_ctl_valid,
+
     acore_debug_intf.dcore adbg_intf_i,
     jtag_intf.target jtag_intf_i,
     mdll_r1_debug_intf.jtag mdbg_intf_i,
     tx_debug_intf.dcore tdbg_intf_i,
+
     output wire logic clk_cgra
 );
     // interfaces
@@ -41,7 +49,6 @@ module digital_core import const_pack::*; (
     prbs_debug_intf pdbg_intf_i ();
     wme_debug_intf wdbg_intf_i ();
     hist_debug_intf hdbg_intf_i ();
-
     
     // internal signals
 
@@ -83,6 +90,9 @@ module digital_core import const_pack::*; (
     wire logic [Npi-1:0] unscaled_pi_ctl [Nout-1:0];
     wire logic [Npi+Npi-1:0] scaled_pi_ctl [Nout-1:0];
 
+    wire logic [(Npi-1):0] tx_scale_value [(Nout-1):0];
+    wire logic [(Npi+Npi-1):0] tx_scaled_pi_ctl [(Nout-1):0];
+
 //    initial begin
 //        $shm_open("waves.shm");
 //        $shm_probe("ACT"); 
@@ -90,9 +100,6 @@ module digital_core import const_pack::*; (
 //        $shm_probe(ddbg_intf_i.disable_product);
 //        $shm_probe(dsp_i.disable_product);
 //    end
-
-    
-
 
     // derived reset signals
 
@@ -241,13 +248,36 @@ module digital_core import const_pack::*; (
         .cdbg_intf_i(cdbg_intf_i)
     );
 
+    ////////////////////////////
+    // Calculate PI CTL codes //
+    ////////////////////////////
+
+    // for analog_core
+
     genvar j;
+
     generate
         for (j=0; j<Nout; j=j+1) begin
             assign scale_value[j]        = (((ddbg_intf_i.en_ext_max_sel_mux ? ddbg_intf_i.ext_max_sel_mux[j]: adbg_intf_i.max_sel_mux[j]) + 1)<<4) -1;
             assign unscaled_pi_ctl[j]    = pi_ctl_cdr[j] + ddbg_intf_i.ext_pi_ctl_offset[j];
             assign scaled_pi_ctl[j]      = unscaled_pi_ctl[j]*scale_value[j];
             assign int_pi_ctl_cdr[j]     = ddbg_intf_i.en_bypass_pi_ctl[j] ?  ddbg_intf_i.bypass_pi_ctl[j] : (scaled_pi_ctl[j] >> Npi);
+        end
+    endgenerate
+
+    // for tx_top
+
+    generate
+        for (j=0; j<Nout; j=j+1) begin
+            assign tx_scale_value[j] = (((ddbg_intf_i.tx_en_ext_max_sel_mux ?
+                                          ddbg_intf_i.tx_ext_max_sel_mux[j] :
+                                          tdbg_intf_i.max_sel_mux[j]) + 1) << 4) - 1;
+
+            assign tx_scaled_pi_ctl[j] = ddbg_intf_i.tx_pi_ctl[j]*tx_scale_value[j];
+
+            assign tx_pi_ctl[j] = (ddbg_intf_i.tx_en_bypass_pi_ctl[j] ?
+                                   ddbg_intf_i.tx_bypass_pi_ctl[j] :
+                                   (tx_scaled_pi_ctl[j] >> Npi));
         end
     endgenerate
 
@@ -568,6 +598,13 @@ module digital_core import const_pack::*; (
     end
 
     assign clk_cgra = (clk_adc & en_cgra_clk_latch);
+
+    // transmitted data
+    // TODO: update these
+
+    assign tx_rst = 0;
+    assign tx_data = 0;
+    assign tx_ctl_valid = 0;
 
 endmodule
 

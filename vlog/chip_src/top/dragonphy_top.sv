@@ -127,6 +127,13 @@ module dragonphy_top import const_pack::*; (
     logic [Nadc-1:0] adcout_rep [Nti_rep-1:0];
     logic [Nti_rep-1:0] adcout_sign_rep;
 
+    // TX control signals
+    logic clk_tx;
+    logic tx_rst;
+    logic [(Nti-1):0] tx_data;
+    logic [(Npi-1):0] tx_pi_ctl [(Nout-1):0];
+    logic tx_ctl_valid;
+
     ///////////////////////////////
 	// analog core instantiation //
     ///////////////////////////////
@@ -163,17 +170,23 @@ module dragonphy_top import const_pack::*; (
 	///////////////////////////////
 
     tx_top itx (
-        .din(16'h0000), // TODO: replace
+        .din(tx_data),
         .mdll_clk(mdll_clk_out),
         .ext_clk(clk_main),
 
-        .rst(1'b0),  // TODO: replace
-        .ctl_pi(pi_ctl_cdr), // TODO: replace
+        .rst(tx_rst),
+        .ctl_pi(tx_pi_ctl),
         .clk_async(clk_async),
-        .clk_encoder(clk_adc), // TODO: review
-        .ctl_valid(ctl_valid), // TODO: review
 
-        .clk_prbsgen(), // TODO: replace
+        ////////////////////////////////////////////////
+        // TODO: review clk_encoder for TX.  should it
+        // be derived from one of the PIs in the TX?
+        .clk_encoder(clk_adc),
+        ////////////////////////////////////////////////
+
+        .ctl_valid(tx_ctl_valid),
+
+        .clk_prbsgen(clk_tx),
         .dout_p(tx_out_p),
         .dout_n(tx_out_n),
         .tx(tdbg_intf_i)
@@ -206,6 +219,11 @@ module dragonphy_top import const_pack::*; (
 	    .disable_ibuf_main(disable_ibuf_main),
         .disable_ibuf_mdll_ref(disable_ibuf_mdll_ref),
 	    .disable_ibuf_mdll_mon(disable_ibuf_mdll_mon),
+	    .clk_tx(clk_tx),
+	    .tx_rst(tx_rst),
+	    .tx_data(tx_data),
+	    .tx_pi_ctl(tx_pi_ctl),
+	    .tx_ctl_valid(tx_ctl_valid),
 		.adbg_intf_i(adbg_intf_i),		
 		.jtag_intf_i(jtag_intf_i),
     	.mdbg_intf_i(mdbg_intf_i),
