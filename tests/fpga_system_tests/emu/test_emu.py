@@ -346,15 +346,15 @@ def test_6(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
 
     # Set the equation for the PRBS checker
     print('Setting the PRBS equation')
-    write_tc_reg('prbs_eqn', 0x100002)  # matches equation used by prbs21 in DaVE
+    write_sc_reg('prbs_eqn', 0x100002)  # matches equation used by prbs21 in DaVE
 
     # Configure PRBS checker
     print('Configure the PRBS checker')
-    write_tc_reg('sel_prbs_mux', 1) # "0" is ADC, "1" is FFE, "3" is BIST
+    write_sc_reg('sel_prbs_mux', 1) # "0" is ADC, "1" is FFE, "3" is BIST
 
     # Release the PRBS checker from reset
     print('Release the PRBS checker from reset')
-    write_tc_reg('prbs_rstb', 1)
+    write_sc_reg('prbs_rstb', 1)
 
     # Set up the FFE
     dt=1.0/(16.0e9)
@@ -417,9 +417,9 @@ def test_6(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
     # minimized by running the test for a longer period.
     print('Run PRBS test')
     t_start = time.time()
-    write_tc_reg('prbs_checker_mode', 2)
+    write_sc_reg('prbs_checker_mode', 2)
     time.sleep(prbs_test_dur)
-    write_tc_reg('prbs_checker_mode', 3)
+    write_sc_reg('prbs_checker_mode', 3)
     t_stop = time.time()
 
     # Print out duration of PRBS test

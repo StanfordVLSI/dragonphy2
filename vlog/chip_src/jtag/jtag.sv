@@ -195,7 +195,10 @@ module jtag (
 
     assign ddbg_intf_i.pfd_cal_ext_ave = rjtag_intf_i.pfd_cal_ext_ave;
 
-    assign ddbg_intf_i.misc_ctrl_bits = rjtag_intf_i.misc_ctrl_bits;
+    assign ddbg_intf_i.pfd_cal_flip_feedback = rjtag_intf_i.pfd_cal_flip_feedback;
+    assign ddbg_intf_i.en_pfd_cal_ext_ave = rjtag_intf_i.en_pfd_cal_ext_ave;
+    assign ddbg_intf_i.en_int_dump_start = rjtag_intf_i.en_int_dump_start;
+    assign ddbg_intf_i.int_dump_start = rjtag_intf_i.int_dump_start;
 
 	//Digital Output
 	assign rjtag_intf_i.adcout_avg=ddbg_intf_i.adcout_avg;
@@ -234,6 +237,7 @@ module jtag (
 	assign cdbg_intf_i.sel_inp_mux  = rjtag_intf_i.sel_inp_mux;
 	assign cdbg_intf_i.sample_state = rjtag_intf_i.sample_state;
 	assign cdbg_intf_i.invert = rjtag_intf_i.invert;
+    assign cdbg_intf_i.cdr_en_clamp = rjtag_intf_i.cdr_en_clamp;
     assign cdbg_intf_i.cdr_clamp_amt = rjtag_intf_i.cdr_clamp_amt;
 
 	//CDR Output
