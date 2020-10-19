@@ -27,6 +27,7 @@ module digital_core import const_pack::*; (
     acore_debug_intf.dcore adbg_intf_i,
     jtag_intf.target jtag_intf_i,
     mdll_r1_debug_intf.jtag mdbg_intf_i,
+    tx_debug_intf.dcore tdbg_intf_i,
     output wire logic clk_cgra
 );
     // interfaces
@@ -551,6 +552,7 @@ module digital_core import const_pack::*; (
         .wdbg_intf_i(wdbg_intf_i),
         .mdbg_intf_i(mdbg_intf_i),
         .hdbg_intf_i(hdbg_intf_i),
+        .tdbg_intf_i(tdbg_intf_i),
         .jtag_intf_i(jtag_intf_i)
     );
 

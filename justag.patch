@@ -1,0 +1,11 @@
+--- /sim/sherbst/miniconda3/envs/dragonphy/lib/python3.7/site-packages/justag/JusTAG.py	2020-10-19 11:27:19.848600387 -0700
++++ ./JusTAG.py	2020-10-19 11:27:09.824401944 -0700
+@@ -296,7 +296,7 @@
+             										    )
+           	
+             num_of_reg = jtag_properties['reg_files'][domain][ii]['num_of_reg']
+-            assert(num_of_reg <= 128 if ii==0 else 64), 'Register Overflow for Bank[{}] on {}_CLK'.format(ii, domain.upper())
++            assert(num_of_reg <= (256 if ii==0 else 128)), 'Register Overflow for Bank[{}] on {}_CLK'.format(ii, domain.upper())
+             
+             registers  = jtag_properties['reg_files'][domain][ii]['registers']
+ 
