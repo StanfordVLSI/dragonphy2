@@ -305,9 +305,15 @@ module test ();
         repeat (3) @(posedge clk); 
         trigger =0 ;
         repeat (10) @(posedge clk);
-        errt_dbg_intf_i.addr = 0;
         errt_dbg_intf_i.read = 1;
-
+        @(posedge clk);
+        errt_dbg_intf_i.addr = 0;
+        @(posedge clk);
+        errt_dbg_intf_i.addr = 1;
+        @(posedge clk);
+        errt_dbg_intf_i.addr = 2;
+        @(posedge clk);
+        errt_dbg_intf_i.addr = 3;
         repeat (10) @(posedge clk);
         $finish;
     end
