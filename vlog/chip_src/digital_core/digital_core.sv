@@ -43,7 +43,6 @@ module digital_core import const_pack::*; (
     error_tracker_debug_intf #(.addrwidth(12)) edbg_intf_i  ();
     
     // internal signals
-    wire logic error_in_frame;
     wire logic rstb;
     wire logic adc_unfolding_update;
     wire logic [Nadc-1:0] adcout_retimed [Nti-1:0];
@@ -56,6 +55,12 @@ module digital_core import const_pack::*; (
     wire logic prbs_rstb;
     wire logic prbs_gen_rstb;
     wire logic signed [Nadc-1:0] adcout_unfolded [Nti+Nti_rep-1:0];
+    wire logic [Nti-1:0] prbs_flags;
+    wire logic        sliced_bits [Nti-1:0];
+    wire logic signed [channel_gpack::est_channel_precision-1:0] est_codes [Nti-1:0];
+    wire logic signed [error_gpack::est_error_precision-1:0] est_errors [Nti-1:0];
+    wire logic        [1:0] sd_flags [Nti-1:0];
+
 
     wire logic signed [ffe_gpack::output_precision-1:0] estimated_bits [constant_gpack::channel_width-1:0];
     wire logic signed [7:0] trunc_est_bits [Nti+Nti_rep-1:0];
@@ -405,7 +410,6 @@ module digital_core import const_pack::*; (
     assign pdbg_intf_i.prbs_total_bits_upper = prbs_total_bits[63:32];
     assign pdbg_intf_i.prbs_total_bits_lower = prbs_total_bits[31:0];
 
-    logic [Nti-1:0] prbs_flags;
 
     prbs_checker #(
         .n_prbs(Nprbs),
@@ -438,10 +442,10 @@ module digital_core import const_pack::*; (
         .addrwidth(12)
     ) errt_i (
         .prbs_flags(prbs_flags),
-        .est_error(),
-        .sliced_bits(),
-        .sd_flags(),
-        .clk(clk),
+        .est_error(est_errors),
+        .sliced_bits(sliced_bits),
+        .sd_flags(sd_flags),
+        .clk(clk_adc),
         .rstb(rstb),
         .errt_dbg_intf_i(edbg_intf_i)
     );
