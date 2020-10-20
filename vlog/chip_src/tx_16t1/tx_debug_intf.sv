@@ -92,7 +92,6 @@ interface tx_debug_intf import const_pack::*; (
         output Qperi,
     	output max_sel_mux,
         output pi_out_meas,
-       	// output del_out_rep,
 		output inbuf_out_meas
 	);
 
@@ -137,7 +136,6 @@ interface tx_debug_intf import const_pack::*; (
         input Qperi,
         input max_sel_mux,
         input pi_out_meas,
-        // input del_out_rep,
         input inbuf_out_meas
     );
 endinterface
