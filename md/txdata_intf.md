@@ -1,5 +1,6 @@
 | Name                       | Signed? | Packed Dim      | Unpacked Dim   | Clock Domain | JTAG Dir | Reset Val                                    |
 |----------------------------|---------|-----------------|----------------|--------------|----------|----------------------------------------------|
+| tx_data_gen_rst            |         |                 |                | Test         | out      | 1                                            |
 | tx_data_gen_mode           |         | 2:0             |                | Test         | out      | 0                                            |
 | tx_data_gen_cke            |         |                 |                | Test         | out      | 0                                            |
 | tx_data_gen_per            |         | 15:0            |                | Test         | out      | 0                                            |

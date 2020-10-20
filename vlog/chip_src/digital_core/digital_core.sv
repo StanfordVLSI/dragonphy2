@@ -64,7 +64,6 @@ module digital_core import const_pack::*; (
     wire logic cdr_rstb;
     wire logic prbs_rstb;
     wire logic prbs_gen_rstb;
-    wire logic tx_data_rstb;
     wire logic signed [Nadc-1:0] adcout_unfolded [Nti+Nti_rep-1:0];
 
     wire logic signed [ffe_gpack::output_precision-1:0] estimated_bits [constant_gpack::channel_width-1:0];
@@ -111,7 +110,6 @@ module digital_core import const_pack::*; (
     assign cdr_rstb         = ddbg_intf_i.cdr_rstb  && ext_rstb;
     assign prbs_rstb        = ddbg_intf_i.prbs_rstb && ext_rstb;
     assign prbs_gen_rstb    = ddbg_intf_i.prbs_gen_rstb && ext_rstb;
-    assign tx_data_rstb     = ddbg_intf_i.tx_data_rstb && ext_rstb;
 
     // the dump_start signal can be set internally or externally
 
@@ -616,7 +614,7 @@ module digital_core import const_pack::*; (
         .Nti(Nti)
     ) tx_data_gen_i (
         .clk(clk_tx),
-        .rstb(tx_data_rstb),
+        .rst(odbg_intf_i.tx_data_gen_rst),
         .cke(odbg_intf_i.tx_data_gen_cke),
         .semaphore(odbg_intf_i.tx_data_gen_semaphore),
 
