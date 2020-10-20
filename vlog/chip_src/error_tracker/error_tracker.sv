@@ -82,10 +82,13 @@ module error_tracker #(
     );
 
     logic flat_sliced_bits [width*3-1:0];
+    logic [width-1:0] flat_prbs_flags [2:0];
+
     logic signed [error_bitwidth-1:0] flat_est_error   [width*3-1:0];
     logic [1:0] flat_sd_flags [width*3-1:0];
     logic [width*3-1:0] pf_sliced_bits;
-    
+    logic [width*3-1:0] pf_prbs_flags;
+
     flatten_buffer_slice #(
         .numChannels(width),
         .bitwidth   (1),
@@ -134,6 +137,11 @@ module error_tracker #(
         for(gi =0 ; gi < width*3; gi = gi + 1) begin
             assign pf_sliced_bits[gi] = flat_sliced_bits[gi]; 
         end
+        for(gi =0; gi < 3; gi = gi + 1) begin
+            for(gj = 0; gj < width; gj = gj + 1) begin
+                assign pf_prbs_flags[width*gi + gj]  = flat_prbs_flags[gi][gj];
+            end
+        end
     endgenerate
 
     error_tracker_core #(
@@ -143,7 +151,7 @@ module error_tracker #(
     ) errt_i (
         .trigger(delayed_trigger),
 
-        .prbs_flags(flat_prbs_flags),
+        .prbs_flags(pf_prbs_flags),
         .errors(flat_est_error),
         .bitstream(pf_sliced_bits),
         .sd_flags(flat_sd_flags),
