@@ -15,11 +15,16 @@ module error_tracker #(
     error_tracker_debug_intf.tracker errt_dbg_intf_i
 );
     genvar gi, gj;
+
     logic sliced_bits_buffer [width-1:0][2:0];
-    logic prbs_flags_buffer [width-1:0][2:0];
+    logic [width-1:0] prbs_flags_buffer [0:0][2:0];
     logic signed [error_bitwidth-1:0] est_error_buffer [width-1:0][2:0];
     logic [1:0] sd_flags_buffer [width-1:0][2:0];
     
+    logic [width-1:0] unpacked_prbs_flags [0:0];
+
+    assign unpacked_prbs_flags[0] = prbs_flags;
+
     logic delayed_trigger; 
     always_ff @(posedge clk or negedge rstb) begin
         if(~rstb) begin
@@ -48,7 +53,7 @@ module error_tracker #(
         .bitwidth    (width),
         .depth       (2)
     ) ps_buff_i (
-        .in      (prbs_flags),
+        .in      (unpacked_prbs_flags),
         .clk     (clk),
         .rstb    (1'b1),
         .buffer  (prbs_flags_buffer)
@@ -138,7 +143,7 @@ module error_tracker #(
     ) errt_i (
         .trigger(delayed_trigger),
 
-        .prbs_flags(flat_prbs_flagss),
+        .prbs_flags(flat_prbs_flags),
         .errors(flat_est_error),
         .bitstream(pf_sliced_bits),
         .sd_flags(flat_sd_flags),
