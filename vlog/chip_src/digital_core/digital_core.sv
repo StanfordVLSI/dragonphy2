@@ -434,7 +434,7 @@ module digital_core import const_pack::*; (
 
     error_tracker #(
         .width(Nti),
-        .error_bitwidth(error_gpack::est_error_bitwidth),
+        .error_bitwidth(error_gpack::est_error_precision),
         .addrwidth(12)
     ) errt_i (
         .prbs_flags(prbs_flags),
