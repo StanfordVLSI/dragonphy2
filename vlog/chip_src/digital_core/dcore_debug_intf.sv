@@ -51,7 +51,7 @@ interface dcore_debug_intf import const_pack::*; (
     	logic prbs_gen_rstb;
    		logic [ffe_gpack::shift_precision-1:0] ffe_shift [constant_gpack::channel_width-1:0];
     	logic signed [cmp_gpack::thresh_precision-1:0] cmp_thresh  [constant_gpack::channel_width-1:0];
-    	logic [mlsd_gpack::shift_precision-1:0] mlsd_shift [constant_gpack::channel_width-1:0];
+    	logic [channel_gpack::shift_precision-1:0] channel_shift [constant_gpack::channel_width-1:0];
     	logic [constant_gpack::channel_width-1:0] disable_product [ffe_gpack::length-1:0];
     	logic signed [Nadc-1:0] adc_thresh [constant_gpack::channel_width-1:0];
 		logic signed [ffe_gpack::output_precision-1:0] ffe_thresh [constant_gpack::channel_width-1:0];
@@ -59,6 +59,7 @@ interface dcore_debug_intf import const_pack::*; (
         logic en_cgra_clk;
         logic pfd_cal_flip_feedback;
         logic en_pfd_cal_ext_ave;
+        logic align_pos;
         logic signed [Nadc-1:0] pfd_cal_ext_ave;
 
     modport dcore ( 	
@@ -107,6 +108,7 @@ interface dcore_debug_intf import const_pack::*; (
         input pfd_cal_flip_feedback,
         input en_pfd_cal_ext_ave,
         input pfd_cal_ext_ave,
+        input align_pos,
 
 		output adcout_avg ,
 		output adcout_sum,
@@ -165,6 +167,7 @@ interface dcore_debug_intf import const_pack::*; (
         output pfd_cal_flip_feedback,
         output en_pfd_cal_ext_ave,
         output pfd_cal_ext_ave,
+        output align_pos,
 
 		input adcout_avg ,
 		input adcout_sum,
