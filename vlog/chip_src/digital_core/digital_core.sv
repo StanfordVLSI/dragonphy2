@@ -40,7 +40,7 @@ module digital_core import const_pack::*; (
     prbs_debug_intf pdbg_intf_i ();
     wme_debug_intf wdbg_intf_i ();
     hist_debug_intf hdbg_intf_i ();
-    error_tracker_debug_intf errt_dbg_intf_i #(.addrwidth(12)) ();
+    error_tracker_debug_intf #(.addrwidth(12)) errt_dbg_intf_i  ();
     
     // internal signals
     wire logic error_in_frame;
