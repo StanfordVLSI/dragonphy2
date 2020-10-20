@@ -107,7 +107,7 @@ module test ();
         .prbs_flags(prbs_flags),
         .est_error(est_error),
         .sliced_bits(sliced_bits),
-        .sd_flags(flat_sd_flags),
+        .sd_flags(sd_flags),
 
         .clk(clk),
         .rstb(rstb),
