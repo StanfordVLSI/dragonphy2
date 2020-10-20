@@ -610,9 +610,27 @@ module digital_core import const_pack::*; (
     assign tx_ctl_valid = ddbg_intf_i.tx_ctl_valid;
 
     // TX data generator
-    // TODO: implement this
 
-    assign tx_data = 0;
+    tx_data_gen #(
+        .Nprbs(Nprbs),
+        .Nti(Nti)
+    ) tx_data_gen_i (
+        .clk(clk_tx),
+        .rstb(tx_data_rstb),
+        .cke(odbg_intf_i.tx_data_gen_cke),
+        .semaphore(odbg_intf_i.tx_data_gen_semaphore),
+
+        .data_mode(odbg_intf_i.tx_data_gen_mode),
+        .data_per(odbg_intf_i.tx_data_gen_per),
+        .data_in(odbg_intf_i.tx_data_gen_register),
+
+        .prbs_init(odbg_intf_i.tx_prbs_gen_init),
+        .prbs_eqn(odbg_intf_i.tx_prbs_gen_eqn),
+        .prbs_inj_err(odbg_intf_i.tx_prbs_gen_inj_err),
+        .prbs_chicken(odbg_intf_i.tx_prbs_gen_chicken),
+
+        .data_out(tx_data)
+    );
 
 endmodule
 
