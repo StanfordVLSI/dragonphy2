@@ -149,3 +149,4 @@ module error_tracker #(
         .rstb(rstb),
         .errt_dbg_intf_i(errt_dbg_intf_i)
     );
+endmodule : error_tracker
