@@ -167,7 +167,6 @@ module jtag (
 	assign ddbg_intf_i.cdr_rstb 	 = rjtag_intf_i.cdr_rstb;
     assign ddbg_intf_i.prbs_rstb 	 = rjtag_intf_i.prbs_rstb;
     assign ddbg_intf_i.prbs_gen_rstb = rjtag_intf_i.prbs_gen_rstb;
-    assign ddbg_intf_i.tx_data_rstb  = rjtag_intf_i.tx_data_rstb;
 
     // work-around for Vivado: disable product is set to an unpacked dimension of "10"
     // in the JTAG markdown file for dcore_debug_intf, but dcore_debug_intf.sv itself
@@ -337,6 +336,7 @@ module jtag (
     assign rjtag_intf_i.tx_max_sel_mux = tdbg_intf_i.max_sel_mux;
 
     // Transmitter data generator
+    assign odbg_intf_i.tx_data_gen_rst = rjtag_intf_i.tx_data_gen_rst;
     assign odbg_intf_i.tx_data_gen_mode = rjtag_intf_i.tx_data_gen_mode;
     assign odbg_intf_i.tx_data_gen_cke = rjtag_intf_i.tx_data_gen_cke;
     assign odbg_intf_i.tx_data_gen_per = rjtag_intf_i.tx_data_gen_per;
