@@ -6,9 +6,9 @@ interface wme_debug_intf import const_pack::*; ();
     logic signed [((ffe_gpack::weight_precision)-1):0] wme_ffe_read;
 
     logic [31:0] wme_chan_data;
-    logic [$clog2(Nti)+$clog2(chan_gpack::estimate_depth):0] wme_chan_inst;
+    logic [$clog2(Nti)+$clog2(channel_gpack::est_channel_depth):0] wme_chan_inst;
     logic wme_chan_exec;
-    logic signed [((chan_gpack::estimate_precision)-1):0] wme_chan_read;
+    logic signed [((channel_gpack::est_channel_precision)-1):0] wme_chan_read;
 
 
     modport wme (
