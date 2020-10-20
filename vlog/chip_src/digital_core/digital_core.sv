@@ -40,7 +40,7 @@ module digital_core import const_pack::*; (
     prbs_debug_intf pdbg_intf_i ();
     wme_debug_intf wdbg_intf_i ();
     hist_debug_intf hdbg_intf_i ();
-    error_tracker_debug_intf #(.addrwidth(12)) errt_dbg_intf_i  ();
+    error_tracker_debug_intf #(.addrwidth(12)) edbg_intf_i  ();
     
     // internal signals
     wire logic error_in_frame;
@@ -246,8 +246,9 @@ module digital_core import const_pack::*; (
 
     assign dsp_dbg_intf_i.disable_product = ddbg_intf_i.disable_product;
     assign dsp_dbg_intf_i.ffe_shift       = ddbg_intf_i.ffe_shift;
-    assign dsp_dbg_intf_i.mlsd_shift      = ddbg_intf_i.mlsd_shift;
+    assign dsp_dbg_intf_i.channel_shift   = ddbg_intf_i.channel_shift;
     assign dsp_dbg_intf_i.thresh          = ddbg_intf_i.cmp_thresh;
+    assign dsp_dbg_intf_i.align_pos       = ddbg_intf_i.align_pos;
 
     weight_manager #(
         .width(Nti),
@@ -265,15 +266,15 @@ module digital_core import const_pack::*; (
 
     weight_manager #(
         .width(Nti),
-        .depth(mlsd_gpack::estimate_depth),
-        .bitwidth(mlsd_gpack::estimate_precision)
+        .depth(channel_gpack::est_channel_depth),
+        .bitwidth(channel_gpack::est_channel_precision)
     ) wme_channel_est_i (
-        .data(wdbg_intf_i.wme_mlsd_data),
-        .inst(wdbg_intf_i.wme_mlsd_inst),
-        .exec(wdbg_intf_i.wme_mlsd_exec),
+        .data(wdbg_intf_i.wme_chan_data),
+        .inst(wdbg_intf_i.wme_chan_inst),
+        .exec(wdbg_intf_i.wme_chan_exec),
         .clk(clk_adc),
         .rstb(rstb),
-        .read_reg(wdbg_intf_i.wme_mlsd_read),
+        .read_reg(wdbg_intf_i.wme_chan_read),
         .weights (dsp_dbg_intf_i.channel_est)
     );
 
@@ -442,7 +443,7 @@ module digital_core import const_pack::*; (
         .sd_flags(),
         .clk(clk),
         .rstb(rstb),
-        .errt_dbg_intf_i(errt_dbg_intf_i)
+        .errt_dbg_intf_i(edbg_intf_i)
     );
 
     // Histogram data generator for BIST
@@ -567,6 +568,7 @@ module digital_core import const_pack::*; (
         .wdbg_intf_i(wdbg_intf_i),
         .mdbg_intf_i(mdbg_intf_i),
         .hdbg_intf_i(hdbg_intf_i),
+        .edbg_intf_i(edbg_intf_i),
         .jtag_intf_i(jtag_intf_i)
     );
 
