@@ -284,7 +284,7 @@ module digital_core import const_pack::*; (
     );
 
     datapath_core datapath_i(
-        .codes(adcout_unfolded_non_rep),
+        .adc_codes(adcout_unfolded_non_rep),
         .clk(clk_adc),
         .rstb(rstb),
 
