@@ -85,6 +85,7 @@ module error_tracker #(
     logic signed [error_bitwidth-1:0] flat_est_error   [width*3-1:0];
     logic [1:0] flat_sd_flags [width*3-1:0];
     logic [width*3-1:0] pf_sliced_bits;
+    logic [width*3-1:0] flat_prbs_flags;
     
     flatten_buffer_slice #(
         .numChannels(width),
