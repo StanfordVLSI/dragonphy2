@@ -69,6 +69,7 @@ module datapath_core #(
     logic signed [ffe_gpack::output_precision-1:0] buffered_estimated_bit [constant_gpack::channel_width-1:0];
     logic signed [channel_gpack::est_code_precision-1:0]   end_buffer_est_codes[constant_gpack::channel_width-1:0];
     logic [1:0] argmin_mmse_buffer [constant_gpack::channel_width-1:0][sliding_detector_output_pipeline_depth:0];
+    logic signed [ffe_gpack::output_precision-1:0] estimated_bits [constant_gpack::channel_width-1:0];
 
     always_comb begin
         integer ii, jj;
@@ -139,7 +140,6 @@ module datapath_core #(
     );
 
 
-    logic signed [ffe_gpack::output_precision-1:0] estimated_bits [constant_gpack::channel_width-1:0];
 
     comb_ffe #(
         .codeBitwidth(ffe_gpack::input_precision),
