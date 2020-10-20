@@ -15,7 +15,11 @@ module error_tracker #(
     error_tracker_debug_intf.tracker errt_dbg_intf_i
 );
     genvar gi, gj;
-
+    logic sliced_bits_buffer [width-1:0][2:0];
+    logic prbs_flags_buffer [width-1:0][2:0];
+    logic signed [error_bitwidth-1:0] est_error_buffer [width-1:0][2:0];
+    logic [1:0] sd_flags_buffer [width-1:0][2:0];
+    
     logic delayed_trigger; 
     always_ff @(posedge clk or negedge rstb) begin
         if(~rstb) begin
@@ -25,10 +29,7 @@ module error_tracker #(
         end
     end
 
-    logic sliced_bits_buffer [width-1:0][2:0];
-    logic prbs_flags_buffer [width-1:0][2:0];
-    logic signed [error_bitwidth-1:0] est_error_buffer [width-1:0][2:0];
-    logic [1:0] sd_flags_buffer [width-1:0][2:0];
+
     
     //Bits Pipeline
     buffer #(
@@ -78,9 +79,7 @@ module error_tracker #(
     logic flat_sliced_bits [width*3-1:0];
     logic signed [error_bitwidth-1:0] flat_est_error   [width*3-1:0];
     logic [1:0] flat_sd_flags [width*3-1:0];
-
     logic [width*3-1:0] pf_sliced_bits;
-    logic [width*3-1:0] pf_prbs_flags;
     
     flatten_buffer_slice #(
         .numChannels(width),
@@ -128,7 +127,6 @@ module error_tracker #(
 
     generate 
         for(gi =0 ; gi < width*3; gi = gi + 1) begin
-            assign pf_prbs_flags[gi]  = flat_prbs_flags[0][gi];
             assign pf_sliced_bits[gi] = flat_sliced_bits[gi]; 
         end
     endgenerate
@@ -140,7 +138,7 @@ module error_tracker #(
     ) errt_i (
         .trigger(delayed_trigger),
 
-        .prbs_flags(),
+        .prbs_flags(flat_prbs_flagss),
         .errors(flat_est_error),
         .bitstream(pf_sliced_bits),
         .sd_flags(flat_sd_flags),
