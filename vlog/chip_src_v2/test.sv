@@ -312,8 +312,17 @@ module test ();
         errt_dbg_intf_i.addr = 1;
         @(posedge clk);
         errt_dbg_intf_i.addr = 2;
+        trigger = 1;
         @(posedge clk);
         errt_dbg_intf_i.addr = 3;
+        trigger = 0;
+        repeat (10) @(posedge clk);
+        errt_dbg_intf_i.read   = 0;
+        errt_dbg_intf_i.enable = 1;
+        repeat (5) @(posedge clk);
+        trigger = 1;
+        repeat (1) @(posedge clk);
+        trigger =0 ;
         repeat (10) @(posedge clk);
         $finish;
     end
