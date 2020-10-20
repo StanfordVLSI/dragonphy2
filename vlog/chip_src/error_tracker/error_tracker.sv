@@ -22,17 +22,10 @@ module error_tracker #(
     logic [1:0] sd_flags_buffer [width-1:0][2:0];
     
     logic [width-1:0] unpacked_prbs_flags [0:0];
+    logic delayed_trigger; 
 
     assign unpacked_prbs_flags[0] = prbs_flags;
-
-    logic delayed_trigger; 
-    always_ff @(posedge clk or negedge rstb) begin
-        if(~rstb) begin
-            delayed_trigger <= 0;
-        end else begin
-            delayed_trigger <= |prbs_flags_buffer[0][1];
-        end
-    end
+    assign delayed_trigger = |prbs_flags_buffer[0][1];
 
 
     
