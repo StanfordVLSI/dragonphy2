@@ -114,7 +114,7 @@ module test ();
         .errt_dbg_intf_i(errt_dbg_intf_i)
     );
     assign dsp_dbg_intf_i.align_pos = 0;
-
+    genvar gi, gj;
     generate
         for(gi = 0; gi < constant_gpack::channel_width; gi = gi + 1) begin
             assign dsp_dbg_intf_i.ffe_shift[gi] = 0;
@@ -210,13 +210,13 @@ module test ();
         repeat (5) @(posedge clk);
         rstb = 1;
         repeat (3) @(posedge clk);
-        prbs_flags = 4'h0101;
+        prbs_flags = 16'h0101;
         repeat (2) @(posedge clk);
-        prbs_flags = 4'h0000;
+        prbs_flags = 16'h0000;
         repeat (10) @(posedge clk);
-        prbs_flags = 4'h1010;
+        prbs_flags = 16'h1010;
         repeat (3) @(posedge clk); 
-        prbs_flags = 4'h0000;
+        prbs_flags = 16'h0000;
         repeat (10) @(posedge clk);
         errt_dbg_intf_i.read = 1;
         @(posedge clk);
@@ -225,17 +225,17 @@ module test ();
         errt_dbg_intf_i.addr = 1;
         @(posedge clk);
         errt_dbg_intf_i.addr = 2;
-        trigger = 1;
+        prbs_flags = 16'h1010;
         @(posedge clk);
         errt_dbg_intf_i.addr = 3;
-        trigger = 0;
+        prbs_flags = 16'h0000;
         repeat (10) @(posedge clk);
         errt_dbg_intf_i.read   = 0;
         errt_dbg_intf_i.enable = 1;
         repeat (5) @(posedge clk);
-        trigger = 1;
+        prbs_flags = 16'h1010;
         repeat (1) @(posedge clk);
-        trigger =0 ;
+        prbs_flags = 16'h0000;
         repeat (10) @(posedge clk);
         $finish;
     end
