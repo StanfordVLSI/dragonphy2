@@ -288,7 +288,7 @@ module digital_core import const_pack::*; (
         .clk(clk_adc),
         .rstb(rstb),
 
-        .trunc_ffe_out(estimated_bits),
+        .estimated_bits_out(estimated_bits),
         .sliced_bits_out(sliced_bits),
         .est_codes_out(est_codes),
         .est_errors_out(est_errors),

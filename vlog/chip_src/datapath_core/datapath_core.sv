@@ -11,7 +11,7 @@ module datapath_core #(
     input logic clk,
     input logic rstb,
 
-    output logic signed [constant_gpack::code_precision-1:0]   trunc_ffe_out [constant_gpack::channel_width-1:0],
+    output logic signed [ffe_gpack::output_precision-1:0]   estimated_bits_out [constant_gpack::channel_width-1:0],
     output logic                                               sliced_bits_out [constant_gpack::channel_width-1:0],
     output logic signed [constant_gpack::code_precision-1:0]   est_codes_out [constant_gpack::channel_width-1:0],
     output logic signed [error_gpack::est_error_precision-1:0] est_errors_out [constant_gpack::channel_width-1:0],
@@ -90,7 +90,7 @@ module datapath_core #(
 
     generate 
         for(gi = 0; gi < constant_gpack::channel_width; gi = gi + 1) begin
-            assign trunc_ffe_out[gi]   = buffered_estimated_bit[gi] >>> (ffe_gpack::output_precision - constant_gpack::code_precision);
+            assign estimated_bits_out[gi]   = estimated_codes[gi];
             assign est_codes_out[gi]   = end_buffer_est_codes[gi];
             //The following assignments are aligned
             assign est_errors_out[gi]  = est_error_buffer[gi][error_exit_depth];
