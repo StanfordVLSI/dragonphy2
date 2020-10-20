@@ -18,7 +18,7 @@ module jtag (
 	wme_debug_intf.jtag wdbg_intf_i,
     mdll_r1_debug_intf.jtag mdbg_intf_i,
     hist_debug_intf.jtag hdbg_intf_i,
-    errt_debug_intf.jtag edbg_intf_i,
+    error_tracker_debug_intf.jtag edbg_intf_i,
 	jtag_intf.target jtag_intf_i
 );
 	raw_jtag_ifc_unq1 rjtag_intf_i(.Clk(clk), .Reset(rstb));
