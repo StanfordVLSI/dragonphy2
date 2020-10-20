@@ -12,6 +12,13 @@ from dragonphy import get_deps_cpu_sim
 THIS_DIR = Path(__file__).parent.resolve()
 BUILD_DIR = THIS_DIR / 'build'
 
+# operating modes
+RESET = 0
+CONSTANT = 1
+PULSE = 2
+SQUARE = 3
+PRBS = 4
+
 def test_tx_data_gen(simulator_name, n_prbs=32, n_ti=16):
     # set defaults
     if simulator_name is None:
@@ -38,14 +45,52 @@ def test_tx_data_gen(simulator_name, n_prbs=32, n_ti=16):
     # initialize with the right equation
     t.zero_inputs()
     t.poke(dut.rst, 1)
+    t.poke(dut.data_mode, CONSTANT)
+    t.poke(dut.data_in, 42)
 
     # reset
     for _ in range(3):
         t.step(2)
 
-    # run normally
+    # run CONSTANT mode
     t.poke(dut.rst, 0)
-    for _ in range(100):
+    for _ in range(50):
+        t.step(2)
+
+    # reset
+    t.poke(dut.rst, 1)
+    for _ in range(3):
+        t.step(2)
+
+    # run PULSE mode
+    t.poke(dut.rst, 0)
+    t.poke(dut.data_mode, PULSE)
+    t.poke(dut.data_in, 1)
+    t.poke(dut.data_per, 2)
+    for _ in range(50):
+        t.step(2)
+
+    # reset
+    t.poke(dut.rst, 1)
+    for _ in range(3):
+        t.step(2)
+
+    # run SQUARE mode
+    t.poke(dut.rst, 0)
+    t.poke(dut.data_mode, SQUARE)
+    t.poke(dut.data_per, 3)
+    for _ in range(50):
+        t.step(2)
+
+    # reset
+    t.poke(dut.rst, 1)
+    for _ in range(3):
+        t.step(2)
+
+    # run PRBS mode
+    t.poke(dut.rst, 0)
+    t.poke(dut.data_mode, PRBS)
+    for _ in range(50):
         t.step(2)
 
     # run the test
