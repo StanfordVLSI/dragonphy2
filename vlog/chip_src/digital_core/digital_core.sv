@@ -40,7 +40,7 @@ module digital_core import const_pack::*; (
     prbs_debug_intf pdbg_intf_i ();
     wme_debug_intf wdbg_intf_i ();
     hist_debug_intf hdbg_intf_i ();
-
+    error_tracker_debug_intf errt_dbg_intf_i #(.addrwidth(12)) ();
     
     // internal signals
     wire logic error_in_frame;
@@ -277,11 +277,11 @@ module digital_core import const_pack::*; (
         .weights (dsp_dbg_intf_i.channel_est)
     );
 
-    dsp_backend dsp_i(
+    datapath_core datapath_i(
         .codes(adcout_unfolded_non_rep),
         .clk(clk_adc),
         .rstb(rstb),
-        
+
         .trunc_ffe_out(estimated_bits),
         .sliced_bits_out(sliced_bits),
         .est_codes_out(est_codes),
@@ -404,6 +404,8 @@ module digital_core import const_pack::*; (
     assign pdbg_intf_i.prbs_total_bits_upper = prbs_total_bits[63:32];
     assign pdbg_intf_i.prbs_total_bits_lower = prbs_total_bits[31:0];
 
+    logic [Nti-1:0] prbs_flags;
+
     prbs_checker #(
         .n_prbs(Nprbs),
         .n_channels(Nti)
@@ -426,7 +428,21 @@ module digital_core import const_pack::*; (
         // outputs
         .err_bits(prbs_err_bits),
         .total_bits(prbs_total_bits),
-        .error_in_frame(error_in_frame)
+        .prbs_flags(prbs_flags)
+    );
+
+    error_tracker #(
+        .width(Nti),
+        .error_bitwidth(error_gpack::est_error_bitwidth),
+        .addrwidth(12)
+    ) errt_i (
+        .prbs_flags(prbs_flags),
+        .est_error(),
+        .sliced_bits(),
+        .sd_flags(),
+        .clk(clk),
+        .rstb(rstb),
+        .errt_dbg_intf_i(errt_dbg_intf_i)
     );
 
     // Histogram data generator for BIST
