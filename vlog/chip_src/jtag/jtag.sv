@@ -18,6 +18,7 @@ module jtag (
 	wme_debug_intf.jtag wdbg_intf_i,
     mdll_r1_debug_intf.jtag mdbg_intf_i,
     hist_debug_intf.jtag hdbg_intf_i,
+    errt_debug_intf.jtag edbg_intf_i,
 	jtag_intf.target jtag_intf_i
 );
 	raw_jtag_ifc_unq1 rjtag_intf_i(.Clk(clk), .Reset(rstb));
@@ -196,17 +197,18 @@ module jtag (
     endgenerate
 
 	assign ddbg_intf_i.ffe_shift		= rjtag_intf_i.ffe_shift;
-	assign ddbg_intf_i.mlsd_shift		= rjtag_intf_i.mlsd_shift;
+	assign ddbg_intf_i.channel_shift	= rjtag_intf_i.channel_shift;
 	assign ddbg_intf_i.cmp_thresh		= rjtag_intf_i.cmp_thresh;
 	assign ddbg_intf_i.ffe_thresh		= rjtag_intf_i.ffe_thresh;
 	assign ddbg_intf_i.adc_thresh		= rjtag_intf_i.adc_thresh;
 	assign ddbg_intf_i.sel_prbs_mux		= rjtag_intf_i.sel_prbs_mux;
+	assign ddbg_intf_i.align_pos 		= rjtag_intf_i.align_pos;
 
     assign ddbg_intf_i.en_cgra_clk = rjtag_intf_i.en_cgra_clk;
 
-    assign ddbg_intf_i.pfd_cal_flip_feedback = rjtag_intf_i.pfd_cal_flip_feedback;
-    assign ddbg_intf_i.en_pfd_cal_ext_ave = rjtag_intf_i.en_pfd_cal_ext_ave;
-    assign ddbg_intf_i.pfd_cal_ext_ave = rjtag_intf_i.pfd_cal_ext_ave;
+    assign ddbg_intf_i.pfd_cal_flip_feedback 	= rjtag_intf_i.pfd_cal_flip_feedback;
+    assign ddbg_intf_i.en_pfd_cal_ext_ave 		= rjtag_intf_i.en_pfd_cal_ext_ave;
+    assign ddbg_intf_i.pfd_cal_ext_ave 			= rjtag_intf_i.pfd_cal_ext_ave;
 
 	//Digital Output
 	assign rjtag_intf_i.adcout_avg=ddbg_intf_i.adcout_avg;
@@ -220,16 +222,23 @@ module jtag (
 	assign rjtag_intf_i.adcout_hist_side_rep=ddbg_intf_i.adcout_hist_side_rep;
 	assign rjtag_intf_i.pfd_offset_rep=ddbg_intf_i.pfd_offset_rep;
 	
+	//Error Tracker Input
+	assign edbg_intf_i.addr   = rjtag_intf_i.addr_errt;
+	assign edbg_intf_i.read   = rjtag_intf_i.read_errt;
+	assign edbg_intf_i.enable = rjtag_intf_i.enable_errt;
+	//Error Tracker Output
+	assign rjtag_intf_i.output_data_frame_errt = edbg_intf_i.output_data_frame;
+
 	//SRAM Input
 	assign sdbg1_intf_i.in_addr = rjtag_intf_i.in_addr_multi;
 	assign rjtag_intf_i.addr_multi = sdbg1_intf_i.addr;
 	//SRAM Output
 	assign rjtag_intf_i.out_data_multi = sdbg1_intf_i.out_data;
 
-	//SRAM Input FFE/MLSD
+	//SRAM Input FFE/chan
 	assign sdbg2_intf_i.in_addr = rjtag_intf_i.in_addr_multi_ffe;
 	assign rjtag_intf_i.addr_multi_ffe = sdbg2_intf_i.addr;
-	//SRAM Output FFE/MLSD
+	//SRAM Output FFE/chan
 	assign rjtag_intf_i.out_data_multi_ffe = sdbg2_intf_i.out_data;
 
 
@@ -275,11 +284,11 @@ module jtag (
     assign wdbg_intf_i.wme_ffe_data  = rjtag_intf_i.wme_ffe_data;
     assign wdbg_intf_i.wme_ffe_inst  = rjtag_intf_i.wme_ffe_inst;
     assign wdbg_intf_i.wme_ffe_exec  = rjtag_intf_i.wme_ffe_exec;
-    assign wdbg_intf_i.wme_mlsd_data = rjtag_intf_i.wme_mlsd_data;
-    assign wdbg_intf_i.wme_mlsd_inst = rjtag_intf_i.wme_mlsd_inst;
-    assign wdbg_intf_i.wme_mlsd_exec = rjtag_intf_i.wme_mlsd_exec;
+    assign wdbg_intf_i.wme_chan_data = rjtag_intf_i.wme_chan_data;
+    assign wdbg_intf_i.wme_chan_inst = rjtag_intf_i.wme_chan_inst;
+    assign wdbg_intf_i.wme_chan_exec = rjtag_intf_i.wme_chan_exec;
     assign rjtag_intf_i.wme_ffe_read  = wdbg_intf_i.wme_ffe_read;
-    assign rjtag_intf_i.wme_mlsd_read = wdbg_intf_i.wme_mlsd_read;
+    assign rjtag_intf_i.wme_chan_read = wdbg_intf_i.wme_chan_read;
 
     // Histogram inputs
     assign hdbg_intf_i.hist_mode = rjtag_intf_i.hist_mode;
