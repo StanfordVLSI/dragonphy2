@@ -42,7 +42,7 @@ requires_list = [
     # general requirements with special versions to prevent
     # warnings that clutter pytest output
     'jinja2>=2.11.1',
-    'pysmt>=0.8.1.dev93'
+    'pysmt==0.9.0'
 ]
 
 setup(
