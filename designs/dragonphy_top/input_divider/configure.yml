@@ -1,0 +1,14 @@
+# Adapted from Garnet and ButterPHY
+
+name: input_divider
+
+commands:
+  - |
+    mkdir -p outputs
+    tar -xzvf /home/sjkim85/dragonphy_tarballs/input_divider-latest.tar.gz -C outputs
+
+outputs:
+  - input_divider.lef
+  - input_divider.gds
+  - input_divider.spi
+  - input_divider.version
