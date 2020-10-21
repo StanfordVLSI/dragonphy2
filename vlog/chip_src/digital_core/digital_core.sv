@@ -287,7 +287,7 @@ module digital_core import const_pack::*; (
         .ffe_pipeline_depth                    (constant_gpack::ffe_pipeline_depth),
         .channel_pipeline_depth                (constant_gpack::chan_pipeline_depth),
         .error_output_pipeline_depth           (constant_gpack::err_out_pipeline_depth),
-        .sliding_detector_output_pipeline_depth(constant_gpack::sld_dtct_out_pipeline_depth),
+        .sliding_detector_output_pipeline_depth(constant_gpack::sld_dtct_out_pipeline_depth)
     ) datapath_i (
         .adc_codes(adcout_unfolded_non_rep),
         .clk(clk_adc),
