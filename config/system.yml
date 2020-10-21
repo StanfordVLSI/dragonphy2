@@ -23,8 +23,8 @@ generic:
     ffe_weight_precision: *ffe_weight_precision
     ffe_shift: 8
     mlsd_shift: 8
-    ffe_pipeline_depth: 0
-    chan_pipeline_depth: 0
+    ffe_pipeline_depth: 1
+    chan_pipeline_depth: 1
     err_out_pipeline_depth: 0
     sld_dtct_out_pipeline_depth: 0
   ffe:
