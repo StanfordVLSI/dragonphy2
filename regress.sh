@@ -21,11 +21,6 @@ export mLINGUA_DIR=`realpath DaVE/mLingua`
 # install dragonphy
 pip install -e .
 
-# re-install six
-# TODO: why is this necessary?
-pip uninstall -y six
-pip install six
-
 # install pytest
 pip install pytest pytest-cov
 
