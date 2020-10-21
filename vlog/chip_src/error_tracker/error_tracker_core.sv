@@ -25,6 +25,7 @@ module error_tracker_core #(
 	logic [addrwidth-1:0] addr;
 	logic [1:0] store_count;
 	logic store_finished;
+    logic at_memory_end;
 	logic enabled;
 	logic WEB;
 

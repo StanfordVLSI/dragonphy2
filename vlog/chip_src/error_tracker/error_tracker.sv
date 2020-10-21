@@ -1,7 +1,7 @@
 module error_tracker #(
     parameter integer width=16,
     parameter integer error_bitwidth=8,
-    parameter integer addrwidth= 12
+    parameter integer addrwidth= 10
 )(
     input logic        [width-1:0]          prbs_flags,
 

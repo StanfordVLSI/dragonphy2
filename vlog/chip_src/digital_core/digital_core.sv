@@ -40,7 +40,7 @@ module digital_core import const_pack::*; (
     prbs_debug_intf pdbg_intf_i ();
     wme_debug_intf wdbg_intf_i ();
     hist_debug_intf hdbg_intf_i ();
-    error_tracker_debug_intf #(.addrwidth(12)) edbg_intf_i  ();
+    error_tracker_debug_intf #(.addrwidth(10)) edbg_intf_i  ();
     
     // internal signals
     wire logic rstb;
@@ -439,7 +439,7 @@ module digital_core import const_pack::*; (
     error_tracker #(
         .width(Nti),
         .error_bitwidth(error_gpack::est_error_precision),
-        .addrwidth(12)
+        .addrwidth(10)
     ) errt_i (
         .prbs_flags(prbs_flags),
         .est_error(est_errors),

@@ -22,6 +22,7 @@ def create_fpga_graph():
     graph.add_input('sm_ffe_intf', ext='md', folders=['md'])
     graph.add_input('dcore_intf', ext='md', folders=['md'])
     graph.add_input('prbs_intf', ext='md', folders=['md'])
+    graph.add_input('error_intf', ext='md', folders=['md'])
 
     # Scripts
     graph.add_python('adapt_fir', 'adapt_fir', 'AdaptFir', view='chip_src',
@@ -62,6 +63,7 @@ def create_asic_graph():
     graph.add_input('sram_multi_intf', ext='md', folders=['md'])
     graph.add_input('dcore_intf', ext='md', folders=['md'])
     graph.add_input('prbs_intf', ext='md', folders=['md'])
+    graph.add_input('error_intf', ext='md', folders=['md'])
     graph.add_input('sm_ffe_intf', ext='md', folders=['md'])
 
     # Scripts
@@ -89,6 +91,7 @@ def create_cpu_graph():
     graph.add_input('sram_multi_intf', ext='md', folders=['md'])
     graph.add_input('dcore_intf', ext='md', folders=['md'])
     graph.add_input('prbs_intf', ext='md', folders=['md'])
+    graph.add_input('error_intf', ext='md', folders=['md'])
     graph.add_input('sm_ffe_intf', ext='md', folders=['md'])
 
     # Scripts
