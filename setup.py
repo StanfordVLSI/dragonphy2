@@ -18,12 +18,12 @@ requires_list = [
     # system-verilog parser
     'svinst==0.1.5',
     # magma ecosystem dependencies
-    'fault==3.0.36',
-    'magma-lang==2.1.17',
-    'coreir==2.0.120',
-    'mantle==2.0.10',
-    'hwtypes==1.4.3',
-    'ast_tools==0.0.30',
+    #'fault==3.0.36',
+    #'magma-lang==2.1.17',
+    #'coreir==2.0.120',
+    #'mantle==2.0.10',
+    #'hwtypes==1.4.3',
+    #'ast_tools==0.0.30',
     'kratos==0.0.31.1',
     # general requirements
     'pyserial',
@@ -33,7 +33,7 @@ requires_list = [
     'scipy',
     'matplotlib',
     'sklearn',
-    'pygraphviz',
+    #'pygraphviz',
     'html5lib',
     'lxml',
     'scikit-rf',
