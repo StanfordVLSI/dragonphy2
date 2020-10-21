@@ -1,14 +1,16 @@
 `timescale 100ps/1ps   //  unit_time / time precision
 
+`default_nettype none
+
 module qr_4t1_mux_top (
-    input wire clk_Q,
-    input wire clk_QB,
-    input wire clk_I,
-    input wire clk_IB, // Four phase clock input from PI+MDLL
-    input wire [3:0] din,
-    input wire rst,
-    output reg ck_b2,
-    output reg data
+    input wire logic clk_Q,
+    input wire logic clk_QB,
+    input wire logic clk_I,
+    input wire logic clk_IB, // Four phase clock input from PI+MDLL
+    input wire logic [3:0] din,
+    input wire logic rst,
+    output wire logic ck_b2,
+    output wire logic data
 );
 
 // Instantiate the data path for Q clk path, use the Q clock as the reference clock
@@ -39,16 +41,11 @@ ff_c dff_IB0 (.D(din[3]), .CP(clk_Q), .Q(D0DIB)); // data captured using Q clk a
 ff_c dff_IB1 (.D(D0DIB), .CP(clk_QB), .Q(D1DIB));
 ff_c dff_IB2 (.D(D1DIB), .CP(clk_QB), .Q(D2MIB));
 
-// 4 to 1 mux 
-//wire [1:0] sel;
+// 4 to 1 mux
 div_b2 div (.clkin(clk_IB), .rst(rst), .clkout(ck_b2));
-// Combinational logic to generate the selection window from clk Q-QB-I-IB
-// assign sel =  
 
-always @(D1MQ or D1MI or D2MQB or D2MIB or clk_Q or clk_QB or clk_I or clk_IB) begin
-    assign data = (clk_Q && clk_I) ? D1MQ : ((clk_I && clk_QB) ? D1MI : ((clk_QB && clk_IB) ? D2MQB : D2MIB)); // Maybe problematic to write it in this way, need to check after synthesis
-end
+assign data = (clk_Q && clk_I) ? D1MQ : ((clk_I && clk_QB) ? D1MI : ((clk_QB && clk_IB) ? D2MQB : D2MIB));
 
 endmodule
 
-
+`default_nettype wire

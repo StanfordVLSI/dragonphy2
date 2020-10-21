@@ -80,6 +80,8 @@ def construct():
             Step( this_dir + '/analog_core'       ),
             Step( this_dir + '/input_buffer'      ),
             Step( this_dir + '/output_buffer'     ),
+            Step( this_dir + '/input_divider' ),
+            Step( this_dir + '/phase_interpolator' ),
             Step( this_dir + '/mdll_r1' )
         ]
 
@@ -117,6 +119,8 @@ def construct():
         'analog_core_lib.db',
         'input_buffer_lib.db',
         'output_buffer_lib.db',
+        'input_divider_lib.db',
+        'phase_interpolator_lib.db',
         'mdll_r1_top_lib.db',
         'sram_tt.db',
         'sram_small_tt.db'
@@ -131,6 +135,8 @@ def construct():
         'mdll_r1_top.lib',
         'input_buffer.lib',
         'output_buffer.lib',
+        'input_divider.lib',
+        'phase_interpolator.lib',
         'sram_tt.lib',
         'sram_small_tt.lib'
     ]
@@ -139,6 +145,8 @@ def construct():
         'analog_core.lef',
         'input_buffer.lef',
         'output_buffer.lef',
+        'input_divider.lef',
+        'phase_interpolator.lef',
         'mdll_r1_top.lef',
         'sram.lef',
         'sram_small.lef'
@@ -154,6 +162,8 @@ def construct():
         'analog_core.gds',
         'input_buffer.gds',
         'output_buffer.gds',
+        'input_divider.gds',
+        'phase_interpolator.gds',
         'mdll_r1_top.gds',
         'sram.gds',
         'sram_small.gds'
@@ -165,6 +175,8 @@ def construct():
         'analog_core.spi',
         'mdll_r1_top_macro.cdl',
         'input_buffer.spi',
+        'input_divider.spi',  # TODO: should this be *.lvs.v instead?
+        'phase_interpolator.spi',  # TODO: should this be *.lvs.v instead?
         'output_buffer.lvs.v',
         'mdll_r1_top.lvs.v',
         'sram.spi',
