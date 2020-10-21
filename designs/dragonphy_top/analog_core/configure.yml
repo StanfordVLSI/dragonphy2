@@ -5,7 +5,7 @@ name: analog_core
 commands:
   - |
     mkdir -p outputs
-    tar -xzvf /home/sjkim85/dragonphy_tarballs/analog_core-latest.tar.gz -C outputs
+    tar -xvf /home/sjkim85/dragonphy_tarballs/analog_core-latest.tar.gz -C outputs
 
 outputs:
   - analog_core.lef

@@ -1,7 +1,7 @@
 `default_nettype none
 
 interface error_tracker_debug_intf #(
-    parameter integer addrwidth = 12
+    parameter integer addrwidth = 10
 );
 
 	import const_pack::*;

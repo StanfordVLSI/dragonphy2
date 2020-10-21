@@ -12,3 +12,6 @@ def test_sim():
         ext_srcs=deps,
         directory=BUILD_DIR,
     ).run()
+
+if __name__ == "__main__":
+   test_sim() 
