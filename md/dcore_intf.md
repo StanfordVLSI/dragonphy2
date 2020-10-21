@@ -55,3 +55,10 @@
 | en_pfd_cal_ext_ave         |         |                        |                  | Test         | out      |   0       |
 | en_int_dump_start          |         |                        |                  | Test         | out      |   0       |
 | int_dump_start             |         |                        |                  | Test         | out      |   0       |
+| tx_en_ext_max_sel_mux      |         |                        |                  | Test         | out      | 'b0       |
+| tx_ext_max_sel_mux         |         | $clog2(Nunit_pi)-1:0   | Nout-1:0         | Test         | out      | 'h1F      |
+| tx_pi_ctl                  |         | Npi-1:0                | Nout-1:0         | Test         | out      | 0&135&270&405|
+| tx_en_bypass_pi_ctl        |         | Npi-1:0                |                  | Test         | out      | 0         |
+| tx_bypass_pi_ctl           |         | Npi-1:0                | Nout-1:0         | Test         | out      | 0         |
+| tx_rst                     |         |                        |                  | Test         | out      |   1       |
+| tx_ctl_valid               |         |                        |                  | Test         | out      |   0       |

@@ -1,0 +1,14 @@
+# Adapted from Garnet and ButterPHY
+
+name: phase_interpolator
+
+commands:
+  - |
+    mkdir -p outputs
+    tar -xzvf /home/sjkim85/dragonphy_tarballs/phase_interpolator-latest.tar.gz -C outputs
+
+outputs:
+  - phase_interpolator.lef
+  - phase_interpolator.gds
+  - phase_interpolator.spi
+  - phase_interpolator.version

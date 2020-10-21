@@ -1,8 +1,10 @@
 `timescale 100ps/1ps   //  unit_time / time precision
 
+`default_nettype none
+
 module div_b2 (
-    input wire clkin,
-    input wire rst,
+    input wire logic clkin,
+    input wire logic rst,
     output reg clkout
 );
 
@@ -17,4 +19,7 @@ always@(posedge clkin) begin
         clkout <= ~clkout;
     end
 end
+
 endmodule
+
+`default_nettype wire
