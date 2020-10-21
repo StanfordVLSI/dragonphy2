@@ -20,7 +20,7 @@ pip install -e .
 
 # re-install six
 # TODO: why is this necessary?
-pip uninstall six
+pip uninstall -y six
 pip install six
 
 # make dependencies for design
