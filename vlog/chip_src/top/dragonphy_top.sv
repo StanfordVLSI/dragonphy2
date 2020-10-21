@@ -11,6 +11,11 @@ module dragonphy_top import const_pack::*; (
 	input `pwl_t ext_rx_inp_test,
 	input `pwl_t ext_rx_inn_test,
 
+    // analog outputs
+    // TODO: use pwl_t
+    output wire logic ext_tx_outp,
+    output wire logic ext_tx_outn,
+
 	// clock inputs 
 	input wire logic ext_clk_async_p,
 	input wire logic ext_clk_async_n,
@@ -43,15 +48,22 @@ module dragonphy_top import const_pack::*; (
 );
 	// analog core debug interface
 	acore_debug_intf adbg_intf_i ();
-	mdll_r1_debug_intf mdbg_intf_i ();
 
+	// transmitter debug interface
+	tx_debug_intf tdbg_intf_i ();
+
+	// MDLL debug interface
+	mdll_r1_debug_intf mdbg_intf_i ();
 
     wire logic disable_ibuf_async;
 	wire logic disable_ibuf_main;
     wire logic disable_ibuf_mdll_ref;
     wire logic disable_ibuf_mdll_mon;
 
-	// async clock buffer
+    ////////////////////////
+	// async clock buffer //
+	////////////////////////
+
 	logic clk_async;
 	input_buffer ibuf_async (
 		.inp(ext_clk_async_p),
@@ -61,7 +73,10 @@ module dragonphy_top import const_pack::*; (
 		.clk_b() // unused output
 	);
 
-    // main clock buffer
+    ///////////////////////
+    // main clock buffer //
+    ///////////////////////
+
     logic clk_main;
 	input_buffer ibuf_main (
 		.inp(ext_clkp),
@@ -71,7 +86,10 @@ module dragonphy_top import const_pack::*; (
 		.clk_b() // unused output
 	);
 
-    // MDLL reference clock
+    //////////////////////////
+    // MDLL reference clock //
+    //////////////////////////
+
     logic mdll_clk_refp, mdll_clk_refn;
 	input_buffer ibuf_mdll_ref (
 		.inp(ext_mdll_clk_refp),
@@ -81,7 +99,10 @@ module dragonphy_top import const_pack::*; (
 		.clk_b(mdll_clk_refn)
 	);
 
-    // MDLL monitor clock
+    ////////////////////////
+    // MDLL monitor clock //
+    ////////////////////////
+
 	logic mdll_clk_monp, mdll_clk_monn;
 	input_buffer ibuf_mdll_mon (
 		.inp(ext_mdll_clk_monp),
@@ -106,7 +127,17 @@ module dragonphy_top import const_pack::*; (
     logic [Nadc-1:0] adcout_rep [Nti_rep-1:0];
     logic [Nti_rep-1:0] adcout_sign_rep;
 
-	// Analog core instantiation
+    // TX control signals
+    logic clk_tx;
+    logic tx_rst;
+    logic [(Nti-1):0] tx_data;
+    logic [(Npi-1):0] tx_pi_ctl [(Nout-1):0];
+    logic tx_ctl_valid;
+
+    ///////////////////////////////
+	// analog core instantiation //
+    ///////////////////////////////
+
 	analog_core iacore (
 		.rx_inp(ext_rx_inp),              // RX input (+)
 		.rx_inn(ext_rx_inn),              // RX input (-)
@@ -133,8 +164,39 @@ module dragonphy_top import const_pack::*; (
 
 		.adbg_intf_i(adbg_intf_i)            // debug IO
 	);
-	
-	// digital core instantiation
+
+    ///////////////////////////////
+	// transmitter instantiation //
+	///////////////////////////////
+
+    tx_top itx (
+        .din(tx_data),
+        .mdll_clk(mdll_clk_out),
+        .ext_clk(clk_main),
+
+        .rst(tx_rst),
+        .ctl_pi(tx_pi_ctl),
+        .clk_async(clk_async),
+
+        ////////////////////////////////////////////////
+        // TODO: review clk_encoder for TX.  should it
+        // be derived from one of the PIs in the TX?
+        .clk_encoder(clk_adc),
+        ////////////////////////////////////////////////
+
+        .ctl_valid(tx_ctl_valid),
+
+        .clk_prbsgen(clk_tx),
+
+        .dout_p(ext_tx_outp),
+        .dout_n(ext_tx_outn),
+
+        .tx(tdbg_intf_i)
+	);
+
+    ////////////////////////////////
+	// digital core instantiation //
+	////////////////////////////////
 
 	digital_core idcore (
 		.clk_adc(clk_adc),                   // clock for retiming adc data
@@ -159,12 +221,21 @@ module dragonphy_top import const_pack::*; (
 	    .disable_ibuf_main(disable_ibuf_main),
         .disable_ibuf_mdll_ref(disable_ibuf_mdll_ref),
 	    .disable_ibuf_mdll_mon(disable_ibuf_mdll_mon),
+	    .clk_tx(clk_tx),
+	    .tx_rst(tx_rst),
+	    .tx_data(tx_data),
+	    .tx_pi_ctl(tx_pi_ctl),
+	    .tx_ctl_valid(tx_ctl_valid),
 		.adbg_intf_i(adbg_intf_i),		
 		.jtag_intf_i(jtag_intf_i),
     	.mdbg_intf_i(mdbg_intf_i),
+    	.tdbg_intf_i(tdbg_intf_i),
     	.clk_cgra(clk_cgra)
 	);
 
+    ////////////////////////
+    // MDLL instantiation //
+    ////////////////////////
 
 	 mdll_r1_top imdll (
         .clk_refp(mdll_clk_refp),
