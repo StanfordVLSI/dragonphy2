@@ -18,6 +18,11 @@ cd ..
 # install dragonphy
 pip install -e .
 
+# re-install six
+# TODO: why is this necessary?
+pip uninstall six
+pip install six
+
 # make dependencies for design
 python make.py --view asic
 
