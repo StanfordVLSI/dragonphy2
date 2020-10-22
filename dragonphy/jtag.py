@@ -11,10 +11,15 @@ class JTAG:
         id_code = self.calc_id_code()
         print(f'JTAG ID Code: 0x{id_code:08x}')
 
+        # get a list of markdown files and sort by name
+        md_files = list(get_dir('md').glob('*.md'))
+        md_files = sorted(md_files, key=lambda md: md.stem)
+        md_files = [str(md) for md in md_files]
+
         justag_inputs = []
         justag_inputs += [str(id_code)]
         justag_inputs += [str(4)]
-        justag_inputs += list(get_dir('md').glob('*.md'))
+        justag_inputs += md_files
         justag_inputs += [get_file('vlog/pack/const_pack.sv')]
         print(justag_inputs)
 
@@ -80,7 +85,8 @@ class JTAG:
         args = []
         args += [f'justag']
         args += list(inputs)
-        subprocess.call(args, cwd=cwd)
+        retcode = subprocess.call(args, cwd=cwd)
+        assert retcode==0, 'Error when calling justag.'
 
     @staticmethod
     def genesis(top, *inputs, cwd=None):
@@ -90,7 +96,8 @@ class JTAG:
         args += ['-generate']
         args += ['-top', top]
         args += ['-input'] + list(inputs)
-        subprocess.call(args, cwd=cwd)
+        retcode = subprocess.call(args, cwd=cwd)
+        assert retcode==0, 'Error when calling genesis.'
 
     @staticmethod
     def required_values():

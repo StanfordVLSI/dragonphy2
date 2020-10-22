@@ -142,6 +142,8 @@ def get_deps_asic(cell_name=None, impl_file=None, process='tsmc16'):
     # Set of views to skip (since a *.db will be provided)
     skip = {
         'analog_core',
+        'phase_interpolator',  # used in TX
+        'input_divider',  # used in TX
         'input_buffer',
         'output_buffer',
         'mdll_r1_top',

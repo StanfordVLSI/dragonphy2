@@ -19,6 +19,8 @@ module jtag (
     mdll_r1_debug_intf.jtag mdbg_intf_i,
     hist_debug_intf.jtag hdbg_intf_i,
     error_tracker_debug_intf.jtag edbg_intf_i,
+    tx_debug_intf.dcore tdbg_intf_i,
+    tx_data_intf.jtag odbg_intf_i,
 	jtag_intf.target jtag_intf_i
 );
 	raw_jtag_ifc_unq1 rjtag_intf_i(.Clk(clk), .Reset(rstb));
@@ -64,10 +66,6 @@ module jtag (
 	assign adbg_intf_i.ctl_v2tp = rjtag_intf_i.ctl_v2tp;
 	assign adbg_intf_i.init = rjtag_intf_i.init;
 	assign adbg_intf_i.ALWS_ON = rjtag_intf_i.ALWS_ON;
-	assign adbg_intf_i.sel_pm_sign =rjtag_intf_i.sel_pm_sign;
-	assign adbg_intf_i.sel_pm_in =rjtag_intf_i.sel_pm_in;
-	assign adbg_intf_i.sel_clk_TDC =rjtag_intf_i.sel_clk_TDC;
-	assign adbg_intf_i.en_pm =rjtag_intf_i.en_pm;
 	assign adbg_intf_i.ctl_dcdl_late=rjtag_intf_i.ctl_dcdl_late;
 	assign adbg_intf_i.ctl_dcdl_early=rjtag_intf_i.ctl_dcdl_early;
 	assign adbg_intf_i.ctl_dcdl_TDC = rjtag_intf_i.ctl_dcdl_TDC;
@@ -81,6 +79,7 @@ module jtag (
 	assign adbg_intf_i.en_ext_Qperi = rjtag_intf_i.en_ext_Qperi;
 	assign adbg_intf_i.sel_pm_sign_pi= rjtag_intf_i.sel_pm_sign_pi;
 	assign adbg_intf_i.del_inc= rjtag_intf_i.del_inc;
+	assign adbg_intf_i.enb_unit_pi= rjtag_intf_i.enb_unit_pi;
 	assign adbg_intf_i.ctl_dcdl_slice= rjtag_intf_i.ctl_dcdl_slice;
 	assign adbg_intf_i.ctl_dcdl_sw= rjtag_intf_i.ctl_dcdl_sw;
 	assign adbg_intf_i.ctl_dcdl_clk_encoder= rjtag_intf_i.ctl_dcdl_clk_encoder;
@@ -94,18 +93,10 @@ module jtag (
 	assign adbg_intf_i.ctl_v2tp_rep = rjtag_intf_i.ctl_v2tp_rep;
 	assign adbg_intf_i.init_rep = rjtag_intf_i.init_rep;
 	assign adbg_intf_i.ALWS_ON_rep = rjtag_intf_i.ALWS_ON_rep;
-	assign adbg_intf_i.sel_pm_sign_rep =rjtag_intf_i.sel_pm_sign_rep;
-	assign adbg_intf_i.sel_pm_in_rep =rjtag_intf_i.sel_pm_in_rep;
-	assign adbg_intf_i.sel_clk_TDC_rep =rjtag_intf_i.sel_clk_TDC_rep;
-	assign adbg_intf_i.en_pm_rep =rjtag_intf_i.en_pm_rep;
 	assign adbg_intf_i.ctl_dcdl_late_rep=rjtag_intf_i.ctl_dcdl_late_rep;
 	assign adbg_intf_i.ctl_dcdl_early_rep=rjtag_intf_i.ctl_dcdl_early_rep;
 	assign adbg_intf_i.ctl_dcdl_TDC_rep = rjtag_intf_i.ctl_dcdl_TDC_rep;
 
-	assign adbg_intf_i.sel_pfd_in       = rjtag_intf_i.sel_pfd_in;
-	assign adbg_intf_i.sel_pfd_in_meas  = rjtag_intf_i. sel_pfd_in_meas;
-	assign adbg_intf_i.en_pfd_inp_meas  = rjtag_intf_i.en_pfd_inp_meas;
-	assign adbg_intf_i.en_pfd_inn_meas  = rjtag_intf_i.en_pfd_inn_meas;
 	assign adbg_intf_i.sel_del_out      = rjtag_intf_i.sel_del_out;
 
 	assign disable_ibuf_async = rjtag_intf_i.disable_ibuf_async;
@@ -129,20 +120,20 @@ module jtag (
 
 	assign adbg_intf_i.retimer_mux_ctrl_1 = rjtag_intf_i.retimer_mux_ctrl_1;
 	assign adbg_intf_i.retimer_mux_ctrl_2 = rjtag_intf_i.retimer_mux_ctrl_2;
-
 	assign adbg_intf_i.retimer_mux_ctrl_1_rep = rjtag_intf_i.retimer_mux_ctrl_1_rep;
 	assign adbg_intf_i.retimer_mux_ctrl_2_rep = rjtag_intf_i.retimer_mux_ctrl_2_rep;
 
-	//Analog Output
-
-	assign rjtag_intf_i.pm_out = adbg_intf_i.pm_out;
+	assign adbg_intf_i.sel_PFD_in = rjtag_intf_i.sel_PFD_in;
+	assign adbg_intf_i.sign_PFD_clk_in = rjtag_intf_i.sign_PFD_clk_in;
+	assign adbg_intf_i.sel_PFD_in_rep = rjtag_intf_i.sel_PFD_in_rep;
+	assign adbg_intf_i.sign_PFD_clk_in_rep = rjtag_intf_i.sign_PFD_clk_in_rep;
 	
+
+	//Analog Output
 	assign rjtag_intf_i.pm_out_pi = adbg_intf_i.pm_out_pi;
 	assign rjtag_intf_i.cal_out_pi = adbg_intf_i.cal_out_pi;
 	assign rjtag_intf_i.Qperi 		= adbg_intf_i.Qperi;
 	assign rjtag_intf_i.max_sel_mux= adbg_intf_i.max_sel_mux;
-
-	assign rjtag_intf_i.pm_out_rep = adbg_intf_i.pm_out_rep;
 
 	//Digital Input
 	assign ddbg_intf_i.ext_pi_ctl_offset = rjtag_intf_i.ext_pi_ctl_offset;
@@ -206,9 +197,22 @@ module jtag (
 
     assign ddbg_intf_i.en_cgra_clk = rjtag_intf_i.en_cgra_clk;
 
-    assign ddbg_intf_i.pfd_cal_flip_feedback 	= rjtag_intf_i.pfd_cal_flip_feedback;
-    assign ddbg_intf_i.en_pfd_cal_ext_ave 		= rjtag_intf_i.en_pfd_cal_ext_ave;
-    assign ddbg_intf_i.pfd_cal_ext_ave 			= rjtag_intf_i.pfd_cal_ext_ave;
+
+    assign ddbg_intf_i.pfd_cal_ext_ave = rjtag_intf_i.pfd_cal_ext_ave;
+
+    assign ddbg_intf_i.pfd_cal_flip_feedback = rjtag_intf_i.pfd_cal_flip_feedback;
+    assign ddbg_intf_i.en_pfd_cal_ext_ave = rjtag_intf_i.en_pfd_cal_ext_ave;
+    assign ddbg_intf_i.en_int_dump_start = rjtag_intf_i.en_int_dump_start;
+    assign ddbg_intf_i.int_dump_start = rjtag_intf_i.int_dump_start;
+
+    assign ddbg_intf_i.tx_en_ext_max_sel_mux = rjtag_intf_i.tx_en_ext_max_sel_mux;
+    assign ddbg_intf_i.tx_ext_max_sel_mux = rjtag_intf_i.tx_ext_max_sel_mux;
+    assign ddbg_intf_i.tx_pi_ctl = rjtag_intf_i.tx_pi_ctl;
+    assign ddbg_intf_i.tx_en_bypass_pi_ctl = rjtag_intf_i.tx_en_bypass_pi_ctl;
+    assign ddbg_intf_i.tx_bypass_pi_ctl = rjtag_intf_i.tx_bypass_pi_ctl;
+
+    assign ddbg_intf_i.tx_rst = rjtag_intf_i.tx_rst;
+    assign ddbg_intf_i.tx_ctl_valid = rjtag_intf_i.tx_ctl_valid;
 
 	//Digital Output
 	assign rjtag_intf_i.adcout_avg=ddbg_intf_i.adcout_avg;
@@ -254,6 +258,8 @@ module jtag (
 	assign cdbg_intf_i.sel_inp_mux  = rjtag_intf_i.sel_inp_mux;
 	assign cdbg_intf_i.sample_state = rjtag_intf_i.sample_state;
 	assign cdbg_intf_i.invert = rjtag_intf_i.invert;
+    assign cdbg_intf_i.cdr_en_clamp = rjtag_intf_i.cdr_en_clamp;
+    assign cdbg_intf_i.cdr_clamp_amt = rjtag_intf_i.cdr_clamp_amt;
 
 	//CDR Output
 	assign rjtag_intf_i.phase_est   = cdbg_intf_i.phase_est;
@@ -307,6 +313,49 @@ module jtag (
     assign hdbg_intf_i.data_gen_mode = rjtag_intf_i.data_gen_mode;
     assign hdbg_intf_i.data_gen_in_0 = rjtag_intf_i.data_gen_in_0;
     assign hdbg_intf_i.data_gen_in_1 = rjtag_intf_i.data_gen_in_1;
+
+    // Transmitter
+    assign tdbg_intf_i.en_gf = rjtag_intf_i.tx_en_gf;
+    assign tdbg_intf_i.en_arb_pi = rjtag_intf_i.tx_en_arb_pi;
+    assign tdbg_intf_i.en_delay_pi = rjtag_intf_i.tx_en_delay_pi;
+    assign tdbg_intf_i.en_ext_Qperi = rjtag_intf_i.tx_en_ext_Qperi;
+    assign tdbg_intf_i.en_pm_pi = rjtag_intf_i.tx_en_pm_pi;
+    assign tdbg_intf_i.en_cal_pi = rjtag_intf_i.tx_en_cal_pi;
+    assign tdbg_intf_i.ext_Qperi = rjtag_intf_i.tx_ext_Qperi;
+    assign tdbg_intf_i.sel_pm_sign_pi = rjtag_intf_i.tx_sel_pm_sign_pi;
+    assign tdbg_intf_i.del_inc = rjtag_intf_i.tx_del_inc;
+    assign tdbg_intf_i.enb_unit_pi = rjtag_intf_i.tx_enb_unit_pi;
+    assign tdbg_intf_i.ctl_dcdl_slice = rjtag_intf_i.tx_ctl_dcdl_slice;
+    assign tdbg_intf_i.ctl_dcdl_sw = rjtag_intf_i.tx_ctl_dcdl_sw;
+    assign tdbg_intf_i.ctl_dcdl_clk_encoder = rjtag_intf_i.tx_ctl_dcdl_clk_encoder;
+    assign tdbg_intf_i.disable_state = rjtag_intf_i.tx_disable_state;
+    assign tdbg_intf_i.en_clk_sw = rjtag_intf_i.tx_en_clk_sw;
+    assign tdbg_intf_i.en_meas_pi = rjtag_intf_i.tx_en_meas_pi;
+    assign tdbg_intf_i.sel_meas_pi = rjtag_intf_i.tx_sel_meas_pi;
+    assign tdbg_intf_i.en_inbuf = rjtag_intf_i.tx_en_inbuf;
+    assign tdbg_intf_i.sel_clk_source = rjtag_intf_i.tx_sel_clk_source;
+    assign tdbg_intf_i.bypass_inbuf_div = rjtag_intf_i.tx_bypass_inbuf_div;
+    assign tdbg_intf_i.bypass_inbuf_div2 = rjtag_intf_i.tx_bypass_inbuf_div2;
+    assign tdbg_intf_i.inbuf_ndiv = rjtag_intf_i.tx_inbuf_ndiv;
+    assign tdbg_intf_i.en_inbuf_meas = rjtag_intf_i.tx_en_inbuf_meas;
+    assign tdbg_intf_i.sel_del_out_pi = rjtag_intf_i.tx_sel_del_out_pi;
+    assign tdbg_intf_i.en_del_out_pi = rjtag_intf_i.tx_en_del_out_pi;
+    assign rjtag_intf_i.tx_pm_out_pi = tdbg_intf_i.pm_out_pi;
+    assign rjtag_intf_i.tx_cal_out_pi = tdbg_intf_i.cal_out_pi;
+    assign rjtag_intf_i.tx_Qperi = tdbg_intf_i.Qperi;
+    assign rjtag_intf_i.tx_max_sel_mux = tdbg_intf_i.max_sel_mux;
+
+    // Transmitter data generator
+    assign odbg_intf_i.tx_data_gen_rst = rjtag_intf_i.tx_data_gen_rst;
+    assign odbg_intf_i.tx_data_gen_mode = rjtag_intf_i.tx_data_gen_mode;
+    assign odbg_intf_i.tx_data_gen_cke = rjtag_intf_i.tx_data_gen_cke;
+    assign odbg_intf_i.tx_data_gen_per = rjtag_intf_i.tx_data_gen_per;
+    assign odbg_intf_i.tx_data_gen_semaphore = rjtag_intf_i.tx_data_gen_semaphore;
+    assign odbg_intf_i.tx_data_gen_register = rjtag_intf_i.tx_data_gen_register;
+    assign odbg_intf_i.tx_prbs_gen_init = rjtag_intf_i.tx_prbs_gen_init;
+    assign odbg_intf_i.tx_prbs_gen_eqn = rjtag_intf_i.tx_prbs_gen_eqn;
+    assign odbg_intf_i.tx_prbs_gen_inj_err = rjtag_intf_i.tx_prbs_gen_inj_err;
+    assign odbg_intf_i.tx_prbs_gen_chicken = rjtag_intf_i.tx_prbs_gen_chicken;
 
 	//JTAG Interface - Output Buffer Enable is not passed through *
 	assign rjtag_intf_i.tck    = jtag_intf_i.phy_tck;

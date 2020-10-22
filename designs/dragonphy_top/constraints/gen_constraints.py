@@ -32,9 +32,18 @@ create_clock -name clk_retimer \\
     -waveform {{0 {0.5*main_per*time_scale}}} \\
     [get_pins iacore/clk_adc]
 
+# TX clocks
+# TODO: add generated clocks in TX
+create_clock -name clk_prbsgen \\
+    -period {main_per*time_scale} \\
+    -waveform {{0 {0.5*main_per*time_scale}}} \\
+    [get_pins itx/clk_prbsgen]
+
 # clock uncertainty
 set_clock_uncertainty -setup 0.03 clk_retimer
 set_clock_uncertainty -hold 0.03 clk_retimer
+set_clock_uncertainty -setup 0.03 clk_prbsgen
+set_clock_uncertainty -hold 0.03 clk_prbsgen
 
 ################
 # JTAG interface
@@ -76,6 +85,7 @@ set_input_transition 0.5 [get_port jtag_intf_i.phy_trst_n]
 
 set_clock_groups -asynchronous \\
     -group {{ clk_jtag }} \\
+    -group {{ clk_prbsgen }} \\
     -group {{ clk_retimer clk_main_buf }}
 
 ####################
@@ -90,7 +100,9 @@ set ext_dont_touch_false_path {{ \\
     ext_Vcm \\
     ext_Vcal \\
     ext_rx_inp_test \\
-    ext_rx_inn_test
+    ext_rx_inn_test \\
+    ext_tx_outp \\
+    ext_tx_outn \\
     ext_clk_async_p \\
     ext_clk_async_n \\
     ext_clkp \\
@@ -145,6 +157,21 @@ set adbg_clk_pins [get_pins {{ \\
 }}]
 set_dont_touch_network $adbg_clk_pins
 
+#############
+# Transmitter
+#############
+
+# Debugging signals are all false paths
+set_false_path -through [get_pins itx/tx.*]
+
+# Clock outputs in the debug interface should not have buffers added
+set tdbg_clk_pins [get_pins {{ \\
+    itx/*del_out_pi* \\
+    itx/*pi_out_meas* \\
+    itx/*inbuf_out_meas* \\
+}}]
+set_dont_touch_network $tdbg_clk_pins
+
 ######
 # MDLL
 ######
@@ -186,16 +213,23 @@ set_load {0.1*cap_scale} [all_outputs]
 set_max_capacitance {1.0*cap_scale} [get_port ext_Vcal]
 
 # Tighten transition constraint for clocks declared so far
-set_max_transition {0.1*time_scale} -clock_path [get_clock clk_retimer]
 set_max_transition {0.1*time_scale} -clock_path [get_clock clk_jtag]
+set_max_transition {0.1*time_scale} -clock_path [get_clock clk_retimer]
+set_max_transition {0.1*time_scale} -clock_path [get_clock clk_prbsgen]
 
-# Set transition time for high-speed signals monitored from iacore
+# Set transition time for high-speed signals monitored from iacore and itx
 # transition time is 10% of a 4 GHz period.  Note that we have to
 # create a clock before the transition constraint is applied
 # (appears to be related to the fact that these are internal nets)
+
 foreach x [get_object_name $adbg_clk_pins] {{
     create_clock -name clk_mon_net_$x -period {0.25*time_scale} [get_pins $x]
     set_max_transition {0.025*time_scale} -clock_path [get_clocks clk_mon_net_$x]
+}}
+
+foreach x [get_object_name $tdbg_clk_pins] {{
+    create_clock -name tx_clk_mon_net_$x -period {0.25*time_scale} [get_pins $x]
+    set_max_transition {0.025*time_scale} -clock_path [get_clocks tx_clk_mon_net_$x]
 }}
 
 #######################################################################

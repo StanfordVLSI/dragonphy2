@@ -14,4 +14,5 @@
 | sel_inp_mux    |           |                           |               | Test         | out      | 0         |
 | sample_state   |           |                           |               | Test         | out      | 0         |
 | invert         |           |                           |               | Test         | out      | 0         |
-
+| cdr_en_clamp   |           |                           |               | Test         | out      | 0         |
+| cdr_clamp_amt  | yes       | 31:0                      |               | Test         | out      | 1048576   |

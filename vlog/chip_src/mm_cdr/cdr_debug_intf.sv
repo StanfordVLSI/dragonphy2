@@ -20,6 +20,9 @@ interface cdr_debug_intf;
 	logic sample_state;
 	logic invert;
 
+    logic cdr_en_clamp;
+    logic signed [31:0] cdr_clamp_amt;
+
 	modport cdr (
 	 input  pd_offset_ext,
 	 input  Ki,
@@ -34,8 +37,9 @@ interface cdr_debug_intf;
 	 output ramp_est,
 	 input sel_inp_mux,
 	 input sample_state,
-	 input invert
-
+	 input invert,
+	 input cdr_en_clamp,
+     input cdr_clamp_amt
 	);
 
 	modport jtag (
@@ -52,7 +56,9 @@ interface cdr_debug_intf;
      input ramp_est,
      output sel_inp_mux,
 	 output sample_state,
-	 output invert
+	 output invert,
+     output cdr_en_clamp,
+	 output cdr_clamp_amt
 	);
 
 endinterface
