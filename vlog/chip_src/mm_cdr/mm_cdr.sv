@@ -15,6 +15,7 @@ module mm_cdr import const_pack::*; #(
     output logic [Npi-1:0]pi_ctl[Nout-1:0],
     output logic freq_lvl_cross,
     output logic wait_on_reset_b,
+
     cdr_debug_intf.cdr cdbg_intf_i
 );
 
@@ -33,6 +34,29 @@ module mm_cdr import const_pack::*; #(
     logic ramp_clock_sync;
     logic signed [Nadc+1:0] phase_error, pd_phase_error, phase_error_inv;
     logic signed [Nadc+1+phase_est_shift:0] phase_est_d, phase_est_q, phase_est_update;
+
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+
+    // new signals added that allow the phase update to be clamped
+    // ref: https://github.com/StanfordVLSI/issues/20
+
+    logic signed [Nadc+1+phase_est_shift:0] clamp_min;
+    logic signed [Nadc+1+phase_est_shift:0] clamp_max;
+    logic signed [Nadc+1+phase_est_shift:0] phase_update_clamped;
+
+    always_ff @(posedge clk or negedge ext_rstb) begin
+        if(~ext_rstb) begin
+            clamp_min <= 0;
+            clamp_max <= 0;
+        end else begin
+            clamp_min  <= -1 * cdbg_intf_i.cdr_clamp_amt;
+            clamp_max  <= cdbg_intf_i.cdr_clamp_amt;
+        end
+    end
+
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
 
     logic signed [Nadc+1+phase_est_shift:0] ramp_est_pls_d, ramp_est_pls_q, ramp_est_pls_update;
     logic signed [Nadc+1+phase_est_shift:0] ramp_est_neg_d, ramp_est_neg_q, ramp_est_neg_update;
@@ -82,20 +106,27 @@ module mm_cdr import const_pack::*; #(
         freq_est_d       = freq_est_q          + (cdbg_intf_i.en_freq_est ? freq_est_update : 0);
         freq_diff        = freq_est_update - prev_freq_update_q;
 
+        // calculate the phase update
         phase_est_update = ((phase_error << Kp) + freq_est_q);
 
-        //cond1 = (phase_est_q + phase_est_update) > (((phase_est_q  + (1 << phase_est_shift)) >>> phase_est_shift ) << phase_est_shift);
-        //cond2 = (phase_est_q + phase_est_update) < (((phase_est_q  - (1 << phase_est_shift)) >>> phase_est_shift ) << phase_est_shift);
-        //if(cond1 && !phase_est_q[Nadc+1+phase_est_shift]) begin
-        //    phase_est_d      = phase_est_q + (1 << phase_est_shift);
-        //end else begin
-        //    if (cond2 && phase_est_q[Nadc+1+phase_est_shift]) begin
-        //        phase_est_d      = phase_est_q - (1 << phase_est_shift);
-        //    end
-        //end else begin
-        phase_est_d      = phase_est_q + phase_est_update;
-        //end
-        phase_est_out    = phase_est_q >> phase_est_shift;
+        // clamp the phase update, if requested
+        if (cdbg_intf_i.cdr_en_clamp) begin
+            if (phase_est_update < clamp_min) begin
+                phase_update_clamped = clamp_min;
+            end else if (phase_est_update > clamp_max) begin
+                phase_update_clamped = clamp_max;
+            end else begin
+                phase_update_clamped = phase_est_update;
+            end
+        end else begin
+            phase_update_clamped = phase_est_update;
+        end
+
+        // apply the phase update
+        phase_est_d = phase_est_q + phase_update_clamped;
+
+        // shift to produce output
+        phase_est_out = phase_est_q >> phase_est_shift;
     end
 
     always_ff @(posedge clk or negedge ext_rstb) begin 
