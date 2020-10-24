@@ -1,4 +1,4 @@
-`timescale 100ps/1ps   //  unit_time / time precision
+
 
 `default_nettype none
 
