@@ -1,26 +1,24 @@
 `timescale 1fs/1fs   //  unit_time / time precision
-// `include "iotype.sv"
+
+`default_nettype none
 
 module tx_top import const_pack::*; #(
-)(
-    input wire [15:0] din,
-    input wire mdll_clk, // Clock from MDLL
-    input wire ext_clk, // Clock from external source
+) (
+    input wire logic [15:0] din,
+    input wire logic mdll_clk, // Clock from MDLL
+    input wire logic ext_clk, // Clock from external source
 
-    input wire rst, // Global reset for Tx
-    input wire cke, // Gloabl lock gating for Tx
-    input wire logic [Npi-1:0] ctl_pi[Nout-1:0],
+    input wire logic rst, // Global reset for Tx
+    input wire logic [Npi-1:0] ctl_pi [Nout-1:0],
     input wire logic clk_async,
-    output wire logic clk_encoder,
+    input wire logic clk_encoder,
     input wire logic ctl_valid,
 
-    // output reg tx.inbuf_out_meas,
-    output wire clk_prbsgen,  // Output clock for 16-bit prbs generator
-    output wire dout_p, // Data output
-    output wire dout_n,
-    
+    output wire logic clk_prbsgen,  // Output clock for 16-bit prbs generator
+    output wire logic dout_p, // Data output
+    output wire logic dout_n,
     tx_debug_intf.tx tx
-    );
+);
 
 //This Tx top specify the connect between qr_4t1_mux_top and hr_16t4_mux_top
 
@@ -63,7 +61,7 @@ assign din_reorder[15] = din[0];
 
 // Global reset 
 wire rstb;
-assign rstb = ~ rst;
+assign rstb = ~rst;
 
     // Instantiate the phase interpolator
     logic [3:0] inv_del_out_pi;
@@ -189,4 +187,4 @@ qr_4t1_mux_top qr_mux_4t1_1 (
 
 endmodule
 
-
+`default_nettype wire

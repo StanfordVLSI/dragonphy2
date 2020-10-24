@@ -37,9 +37,6 @@ module test;
     localparam integer Nwrite = (2**(N_mem_addr+$clog2(N_mem_tiles)))*1.1;
     localparam integer Nread = 1024;
 
-    localparam [31:0] dump_off = 4'b0100;
-    localparam [31:0] dump_on  = 4'b1100;
-
 	// clock inputs
 
 	logic ext_clkp;
@@ -244,11 +241,11 @@ module test;
 
 		// Trigger dump and record input for awhile
 		should_record = 1'b1;
-		`FORCE_JTAG(misc_ctrl_bits, dump_on);
+		`FORCE_JTAG(en_int_dump_start, 1'b1);
+		`FORCE_JTAG(int_dump_start, 1'b1);
 		for (int k=0; k<(`N_INTERVAL); k=k+1) begin
 		    $display("Test is %0.1f%% complete.", (100.0*k)/(1.0*(`N_INTERVAL)));
 		    #((`INTERVAL_LENGTH)*1s);
-            if (k == 0) `FORCE_JTAG(misc_ctrl_bits, dump_off);
 		end
 
         // Read from SRAM

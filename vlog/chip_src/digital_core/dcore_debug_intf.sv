@@ -58,7 +58,19 @@ interface dcore_debug_intf import const_pack::*; (
 		logic [1:0] sel_prbs_mux;
         logic en_cgra_clk;
         logic signed [Nadc-1:0] pfd_cal_ext_ave;
-        logic [31:0] misc_ctrl_bits;
+        logic pfd_cal_flip_feedback;
+        logic en_pfd_cal_ext_ave;
+        logic en_int_dump_start;
+        logic int_dump_start;
+
+        // for the transmitter
+        logic tx_en_ext_max_sel_mux;
+ 		logic [($clog2(Nunit_pi)-1):0] tx_ext_max_sel_mux[(Nout-1):0];
+		logic [(Npi-1):0] tx_pi_ctl [(Nout-1):0];
+        logic [(Nout-1):0] tx_en_bypass_pi_ctl;
+        logic [(Npi-1):0] tx_bypass_pi_ctl [(Nout-1):0];
+        logic tx_rst;
+        logic tx_ctl_valid;
 
     modport dcore ( 	
 		input en_ext_pi_ctl_cdr,
@@ -104,7 +116,17 @@ interface dcore_debug_intf import const_pack::*; (
 		input sel_prbs_mux,
         input en_cgra_clk,
         input pfd_cal_ext_ave,
-        input misc_ctrl_bits,
+        input pfd_cal_flip_feedback,
+        input en_pfd_cal_ext_ave,
+        input en_int_dump_start,
+        input int_dump_start,
+        input tx_en_ext_max_sel_mux,
+ 		input tx_ext_max_sel_mux,
+		input tx_pi_ctl,
+        input tx_en_bypass_pi_ctl,
+        input tx_bypass_pi_ctl,
+        input tx_rst,
+        input tx_ctl_valid,
 
 		output adcout_avg ,
 		output adcout_sum,
@@ -161,7 +183,17 @@ interface dcore_debug_intf import const_pack::*; (
 		output sel_prbs_mux,
         output en_cgra_clk,
         output pfd_cal_ext_ave,
-        output misc_ctrl_bits,
+        output pfd_cal_flip_feedback,
+        output en_pfd_cal_ext_ave,
+        output en_int_dump_start,
+        output int_dump_start,
+        output tx_en_ext_max_sel_mux,
+ 		output tx_ext_max_sel_mux,
+		output tx_pi_ctl,
+        output tx_en_bypass_pi_ctl,
+        output tx_bypass_pi_ctl,
+        output tx_rst,
+        output tx_ctl_valid,
 
 		input adcout_avg ,
 		input adcout_sum,

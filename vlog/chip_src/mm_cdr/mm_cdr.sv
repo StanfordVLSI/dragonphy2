@@ -16,7 +16,6 @@ module mm_cdr import const_pack::*; #(
     output logic freq_lvl_cross,
     output logic wait_on_reset_b,
 
-    input wire logic en_clamp,
     cdr_debug_intf.cdr cdbg_intf_i
 );
 
@@ -111,7 +110,7 @@ module mm_cdr import const_pack::*; #(
         phase_est_update = ((phase_error << Kp) + freq_est_q);
 
         // clamp the phase update, if requested
-        if (en_clamp) begin
+        if (cdbg_intf_i.cdr_en_clamp) begin
             if (phase_est_update < clamp_min) begin
                 phase_update_clamped = clamp_min;
             end else if (phase_est_update > clamp_max) begin
