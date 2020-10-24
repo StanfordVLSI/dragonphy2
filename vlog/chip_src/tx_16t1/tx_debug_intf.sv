@@ -2,8 +2,6 @@ interface tx_debug_intf import const_pack::*; (
 );
 	// inputs to analog core
 		//TX 16 to 1
-		logic rst;											// Tx top reset signal
-		logic cke; 											// Tx top clock gating signal
 		//PI
 		logic en_gf;										// 
         logic [Nout-1:0] en_arb_pi;							// 
