@@ -20,6 +20,7 @@ interface cdr_debug_intf;
 	logic sample_state;
 	logic invert;
 
+    logic cdr_en_clamp;
     logic signed [31:0] cdr_clamp_amt;
 
 	modport cdr (
@@ -37,6 +38,7 @@ interface cdr_debug_intf;
 	 input sel_inp_mux,
 	 input sample_state,
 	 input invert,
+	 input cdr_en_clamp,
      input cdr_clamp_amt
 	);
 
@@ -55,6 +57,7 @@ interface cdr_debug_intf;
      output sel_inp_mux,
 	 output sample_state,
 	 output invert,
+     output cdr_en_clamp,
 	 output cdr_clamp_amt
 	);
 

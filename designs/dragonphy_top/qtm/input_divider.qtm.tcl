@@ -19,7 +19,7 @@ set input_list { \
  sel_clk_source \
  en \
  en_meas \
- ndiv [2:0] \
+ ndiv[2:0] \
  bypass_div \
  bypass_div2 \
 }

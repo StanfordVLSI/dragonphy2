@@ -24,9 +24,18 @@ module digital_core import const_pack::*; (
     output wire logic ctl_valid,
     output wire logic freq_lvl_cross,
     input wire logic ext_dump_start,
+
+    input wire logic clk_tx,
+    output wire logic tx_rst,
+    output wire logic [(Nti-1):0] tx_data,
+    output wire logic [(Npi-1):0] tx_pi_ctl [(Nout-1):0],
+    output wire logic tx_ctl_valid,
+
     acore_debug_intf.dcore adbg_intf_i,
     jtag_intf.target jtag_intf_i,
     mdll_r1_debug_intf.jtag mdbg_intf_i,
+    tx_debug_intf.dcore tdbg_intf_i,
+
     output wire logic clk_cgra
 );
     // interfaces
@@ -40,7 +49,7 @@ module digital_core import const_pack::*; (
     prbs_debug_intf pdbg_intf_i ();
     wme_debug_intf wdbg_intf_i ();
     hist_debug_intf hdbg_intf_i ();
-
+    tx_data_intf odbg_intf_i ();
     
     // internal signals
 
@@ -82,6 +91,9 @@ module digital_core import const_pack::*; (
     wire logic [Npi-1:0] unscaled_pi_ctl [Nout-1:0];
     wire logic [Npi+Npi-1:0] scaled_pi_ctl [Nout-1:0];
 
+    wire logic [(Npi-1):0] tx_scale_value [(Nout-1):0];
+    wire logic [(Npi+Npi-1):0] tx_scaled_pi_ctl [(Nout-1):0];
+
 //    initial begin
 //        $shm_open("waves.shm");
 //        $shm_probe("ACT"); 
@@ -90,35 +102,21 @@ module digital_core import const_pack::*; (
 //        $shm_probe(dsp_i.disable_product);
 //    end
 
-    
-
-
     // derived reset signals
+    // these combine external reset with JTAG reset
 
-    assign rstb             = ddbg_intf_i.int_rstb  && ext_rstb; //combine external reset with JTAG reset\
+    assign rstb             = ddbg_intf_i.int_rstb  && ext_rstb;
     assign sram_rstb        = ddbg_intf_i.sram_rstb && ext_rstb;
     assign cdr_rstb         = ddbg_intf_i.cdr_rstb  && ext_rstb;
     assign prbs_rstb        = ddbg_intf_i.prbs_rstb && ext_rstb;
     assign prbs_gen_rstb    = ddbg_intf_i.prbs_gen_rstb && ext_rstb;
 
-    // wire out miscellaneous control bits
-
-    logic pfd_cal_flip_feedback;
-    logic en_pfd_cal_ext_ave;
-    logic en_int_dump_start;
-    logic int_dump_start;
-    logic cdr_en_clamp;
-
-    assign pfd_cal_flip_feedback = ddbg_intf_i.misc_ctrl_bits[0];
-    assign en_pfd_cal_ext_ave    = ddbg_intf_i.misc_ctrl_bits[1];
-    assign en_int_dump_start     = ddbg_intf_i.misc_ctrl_bits[2];
-    assign int_dump_start        = ddbg_intf_i.misc_ctrl_bits[3];
-    assign cdr_en_clamp          = ddbg_intf_i.misc_ctrl_bits[4];
-
     // the dump_start signal can be set internally or externally
 
     logic dump_start;
-    assign dump_start = en_int_dump_start ? int_dump_start : ext_dump_start;
+    assign dump_start = (ddbg_intf_i.en_int_dump_start ?
+                         ddbg_intf_i.int_dump_start :
+                         ext_dump_start);
 
     // ADC Output Reordering
     // used to do retiming as well, but now that is handled in the analog core
@@ -176,8 +174,8 @@ module digital_core import const_pack::*; (
                 .Nbin(ddbg_intf_i.Nbin_adc),
                 .Navg(ddbg_intf_i.Navg_adc),
                 .DZ(ddbg_intf_i.DZ_hist_adc),
-                .flip_feedback(pfd_cal_flip_feedback),
-                .en_ext_ave(en_pfd_cal_ext_ave),
+                .flip_feedback(ddbg_intf_i.pfd_cal_flip_feedback),
+                .en_ext_ave(ddbg_intf_i.en_pfd_cal_ext_ave),
                 .ext_ave(ddbg_intf_i.pfd_cal_ext_ave),
                 .dout_avg(ddbg_intf_i.adcout_avg[k]),
                 .dout_sum(ddbg_intf_i.adcout_sum[k]),
@@ -249,17 +247,39 @@ module digital_core import const_pack::*; (
         .freq_lvl_cross(freq_lvl_cross),
         .pi_ctl(pi_ctl_cdr),
         .wait_on_reset_b(ctl_valid),
-        .en_clamp(cdr_en_clamp),
         .cdbg_intf_i(cdbg_intf_i)
     );
 
+    ////////////////////////////
+    // Calculate PI CTL codes //
+    ////////////////////////////
+
+    // for analog_core
+
     genvar j;
+
     generate
         for (j=0; j<Nout; j=j+1) begin
             assign scale_value[j]        = (((ddbg_intf_i.en_ext_max_sel_mux ? ddbg_intf_i.ext_max_sel_mux[j]: adbg_intf_i.max_sel_mux[j]) + 1)<<4) -1;
             assign unscaled_pi_ctl[j]    = pi_ctl_cdr[j] + ddbg_intf_i.ext_pi_ctl_offset[j];
             assign scaled_pi_ctl[j]      = unscaled_pi_ctl[j]*scale_value[j];
             assign int_pi_ctl_cdr[j]     = ddbg_intf_i.en_bypass_pi_ctl[j] ?  ddbg_intf_i.bypass_pi_ctl[j] : (scaled_pi_ctl[j] >> Npi);
+        end
+    endgenerate
+
+    // for tx_top
+
+    generate
+        for (j=0; j<Nout; j=j+1) begin
+            assign tx_scale_value[j] = (((ddbg_intf_i.tx_en_ext_max_sel_mux ?
+                                          ddbg_intf_i.tx_ext_max_sel_mux[j] :
+                                          tdbg_intf_i.max_sel_mux[j]) + 1) << 4) - 1;
+
+            assign tx_scaled_pi_ctl[j] = ddbg_intf_i.tx_pi_ctl[j]*tx_scale_value[j];
+
+            assign tx_pi_ctl[j] = (ddbg_intf_i.tx_en_bypass_pi_ctl[j] ?
+                                   ddbg_intf_i.tx_bypass_pi_ctl[j] :
+                                   (tx_scaled_pi_ctl[j] >> Npi));
         end
     endgenerate
 
@@ -564,6 +584,8 @@ module digital_core import const_pack::*; (
         .wdbg_intf_i(wdbg_intf_i),
         .mdbg_intf_i(mdbg_intf_i),
         .hdbg_intf_i(hdbg_intf_i),
+        .tdbg_intf_i(tdbg_intf_i),
+        .odbg_intf_i(odbg_intf_i),
         .jtag_intf_i(jtag_intf_i)
     );
 
@@ -579,6 +601,34 @@ module digital_core import const_pack::*; (
     end
 
     assign clk_cgra = (clk_adc & en_cgra_clk_latch);
+
+    // transmitter control signals
+
+    assign tx_rst = ddbg_intf_i.tx_rst;
+    assign tx_ctl_valid = ddbg_intf_i.tx_ctl_valid;
+
+    // TX data generator
+
+    tx_data_gen #(
+        .Nprbs(Nprbs),
+        .Nti(Nti)
+    ) tx_data_gen_i (
+        .clk(clk_tx),
+        .rst(odbg_intf_i.tx_data_gen_rst),
+        .cke(odbg_intf_i.tx_data_gen_cke),
+        .semaphore(odbg_intf_i.tx_data_gen_semaphore),
+
+        .data_mode(odbg_intf_i.tx_data_gen_mode),
+        .data_per(odbg_intf_i.tx_data_gen_per),
+        .data_in(odbg_intf_i.tx_data_gen_register),
+
+        .prbs_init(odbg_intf_i.tx_prbs_gen_init),
+        .prbs_eqn(odbg_intf_i.tx_prbs_gen_eqn),
+        .prbs_inj_err(odbg_intf_i.tx_prbs_gen_inj_err),
+        .prbs_chicken(odbg_intf_i.tx_prbs_gen_chicken),
+
+        .data_out(tx_data)
+    );
 
 endmodule
 
