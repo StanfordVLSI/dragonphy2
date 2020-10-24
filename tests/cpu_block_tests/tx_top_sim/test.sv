@@ -82,6 +82,7 @@ tx_top tx_mux (
     .clk_async(clk_async),
     .clk_encoder(clk_encoder),
     .ctl_valid(ctl_valid),
+    .rst(rst),
     .clk_prbsgen(clk_prbs),  // Output clock for 16-bit prbs generator
     .dout_p(dout_p),
     .dout_n(dout_n),
@@ -96,28 +97,22 @@ div_b2 divb2 (.clkin(clk_oversample), .rst(rst), .clkout(clk_prbschecker));
 // fppi pi(.clkin(clk_a), .clk_Q(cq), .clk_I(ci), .clk_QB(cqb), .clk_IB(cib));
 // div_b2 div0(.clkin(clk_full), .clkout(clk_a));
 
-
 initial begin
 
     `ifdef DUMP_WAVEFORMS
 	        $shm_open("waves.shm");
 	        $shm_probe("ASMC");
     `endif
-
-    // clk_a  = 1'b0;
     // Initialize all the nodes
-    //Global
+    // Global
     clk_full = 1'b0;
     clk_2 = 1'b0;
     clk_oversample = 1'b0;
     // clk_encoder =1'b0; 
     rst = 1'b1;
-    tx_intf.rst = 1'b1;
-    tx_intf.cke = 1'b1;
     cke = 1'b1;
     rst_prbs = 1'b1;
     #3ns;
-
     // Input divider
     tx_intf.en_inbuf = 1'b0;
     tx_intf.sel_clk_source = 1'b0;
@@ -192,8 +187,6 @@ initial begin
     #5ns; // After 50 units time, release the enable and reset button
     rst = 1'b0;
     cke = 1'b1;
-    tx_intf.rst = 1'b0;
-    tx_intf.cke = 1'b1;
     // PI setting
     #5ns;
     tx_intf.en_inbuf = 1'b1;
@@ -202,33 +195,9 @@ initial begin
     tx_intf.en_gf = 1'b1;
     #5ns;
     rst_prbs = 1'b0;
-    #5ns;
+    #8ns;
 
-    // tx_intf.en_arb_pi = 4'hf;
-    // tx_intf.en_delay_pi = 4'hf;
-    // tx_intf.en_ext_Qperi = 4'h0;
-    // tx_intf.en_pm_pi = 4'h0;
-    // tx_intf.en_cal_pi = 4'h0;
-    // tx_intf.en_clk_sw = 4'hf;
-    // tx_intf.en_meas_pi = 4'h0;
-
-    // Input clock divider
-    
-    // tx_intf.sel_clk_source = 1'b1;
-    // tx_intf.bypass_inbuf_div = 1'b1;
-    // tx_intf.bypass_inbuf_div2 = 1'b0;
-    // tx_intf.inbuf_ndiv = 3'd1;
-    // tx_intf.en_inbuf_meas = 1'b0;
-
-    // tx_intf.sel_del_out_pi = 1'b0;
-    // tx_intf.en_del_out_pi = 1'b1;
-
-
-
-    #3ns;
-    // rst = 1'b0; // Release the reset button of prbs generator
-
-    //Set the simulation time
+    //Set the fnish time
     #100ns $finish;
 end
     
