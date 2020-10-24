@@ -1,5 +1,5 @@
-`timescale 100ps/1ps   //  unit_time / time precision
-`include "iotype.sv"
+`timescale 1fs/1fs   //  unit_time / time precision
+// `include "iotype.sv"
 
 module tx_top import const_pack::*; #(
 )(
@@ -18,6 +18,7 @@ module tx_top import const_pack::*; #(
     output wire clk_prbsgen,  // Output clock for 16-bit prbs generator
     output wire dout_p, // Data output
     output wire dout_n,
+    
     tx_debug_intf.tx tx
     );
 
@@ -33,6 +34,32 @@ wire [3:0] clk_interp_slice; // Output from the phase interpolator
 wire [3:0] clk_interp_sw; //
 
 wire clk_in_pi;
+
+
+
+wire [15:0] din_reorder;
+assign din_reorder[0] = din[15];
+assign din_reorder[4] = din[14];
+assign din_reorder[8] = din[13];
+assign din_reorder[12] = din[12];
+assign din_reorder[2] = din[11];
+assign din_reorder[6] = din[10];
+assign din_reorder[10] = din[9];
+assign din_reorder[14] = din[8];
+assign din_reorder[1] = din[7];
+assign din_reorder[5] = din[6];
+assign din_reorder[9] = din[5];
+assign din_reorder[13] = din[4];
+assign din_reorder[3] = din[3];
+assign din_reorder[7] = din[2];
+assign din_reorder[11] = din[1];
+assign din_reorder[15] = din[0];
+
+// Input order [0][1][2][3][4][5][6][7][8][9][10][11][12][13][14][15]
+//                           After going through the TX                     
+// Output order [0][4][8][12][2][6][10][14][1][5][9][13][3][7][11][15]
+//             Late   <--------------------------------------->   Early
+
 
 // Global reset 
 wire rstb;
@@ -121,7 +148,7 @@ assign rstb = ~ rst;
 // Data + positive
 hr_16t4_mux_top hr_mux_16t4_0 (
     .clk_hr(clk_halfrate), // This is a divided (by 2) clock from quarter-rate 4 to 1 mux
-    .din(din),
+    .din(din_reorder),
     .rst(rst), 
     .dout(qr_data_p),
     .clk_b2(clk_prbsgen)  // This clk_halfrate 
@@ -142,7 +169,7 @@ qr_4t1_mux_top qr_mux_4t1_0 (
 // Data - negative
 hr_16t4_mux_top hr_mux_16t4_1 (
     .clk_hr(clk_halfrate_n), // This is a divided (by 2) clock from quarter-rate 4 to 1 mux
-    .din(~din), // Inverting the data input for differential output
+    .din(~din_reorder), // Inverting the data input for differential output
     .rst(rst),
     .dout(qr_data_n),
     .clk_b2()  // This is a residue clock signal 

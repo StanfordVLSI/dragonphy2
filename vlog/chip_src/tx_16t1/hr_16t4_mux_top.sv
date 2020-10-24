@@ -13,9 +13,9 @@ generate  // Instantiate 4 hr_4t1_mux_top to form 16:4 mux
     for (i=1; i<5; i=i+1) begin
         hr_4t1_mux_top mux_4t1 (
             .clk_b(clk_hr),
-            .din(din[3*(i+1):3*i]),  // Map 16 bits input to 4 half-rate 4 to 1 mux
+            .din(din[4*i-1:4*(i-1)]),  // Map 16 bits input to 4 half-rate 4 to 1 mux
             .dout(dout[i-1]),
-            .clk_half(clk_b2)  // Divide-by-two clock for prbs generator
+            .clk_half(clk_b2)
         );
     end
 endgenerate

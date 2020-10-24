@@ -4,7 +4,7 @@ module hr_4t1_mux_top (
     input wire clk_b,     // Half rate clock input
     input wire [3:0] din,  // Two-bit input data
     output wire dout,
-    input wire clk_half  // Divide clock , same as the prbs generator clock
+    input logic clk_half
 );
 
 
@@ -16,6 +16,6 @@ hr_2t1_mux_top hr_2t1_mux_0 (.clk_b(clk_half), .din(din[1:0]), .dout(hd[0])); //
 hr_2t1_mux_top hr_2t1_mux_1 (.clk_b(clk_half), .din(din[3:2]), .dout(hd[1])); // DFF on din[3:2] path
 
 // High speed hr_2t1_mux_top
-hr_2t1_mux_top hr_2t1_mux_2 (.clk_b(clk_b), .din(hd[1:0]), .dout(dout));
+hr_2t1_mux_top hr_2t1_mux_2 (.clk_b(clk_b), .din(hd), .dout(dout));
 
 endmodule
