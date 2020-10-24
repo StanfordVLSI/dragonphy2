@@ -78,8 +78,6 @@ tx_top tx_mux (
     .din(prbsdata),
     .mdll_clk(clk_prbschecker),
     .ext_clk(1'b0),
-    .rst(rst),
-    .cke(cke),
     .ctl_pi(ctl_pi),
     .clk_async(clk_async),
     .clk_encoder(clk_encoder),
@@ -114,6 +112,8 @@ initial begin
     clk_oversample = 1'b0;
     // clk_encoder =1'b0; 
     rst = 1'b1;
+    tx_intf.rst = 1'b1;
+    tx_intf.cke = 1'b1;
     cke = 1'b1;
     rst_prbs = 1'b1;
     #3ns;
@@ -192,6 +192,8 @@ initial begin
     #5ns; // After 50 units time, release the enable and reset button
     rst = 1'b0;
     cke = 1'b1;
+    tx_intf.rst = 1'b0;
+    tx_intf.cke = 1'b1;
     // PI setting
     #5ns;
     tx_intf.en_inbuf = 1'b1;
