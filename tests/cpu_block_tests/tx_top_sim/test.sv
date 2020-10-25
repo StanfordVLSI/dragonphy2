@@ -381,6 +381,7 @@ initial begin
         $error("Pattern lost (case 9)");
     end
 
+    //Check the error bits number injected by inj_err
     #10ns;
     $display("error_bits_1: %0d", error_bits_1);
  
