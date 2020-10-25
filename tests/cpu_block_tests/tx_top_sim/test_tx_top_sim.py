@@ -11,5 +11,5 @@ def test_sim():
     DragonTester(
         ext_srcs=deps,
         directory=BUILD_DIR,
-        # dump_waveforms=True,
+        dump_waveforms=True,
     ).run()
