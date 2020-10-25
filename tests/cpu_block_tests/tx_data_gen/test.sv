@@ -41,7 +41,7 @@ module test #(
         .clk(clk),
         .rst(rst),
         .cke(1'b1),
-        .semaphore(1'b1),
+        .exec(1'b1),
 
         .data_mode(data_mode),
         .data_per(data_per),
