@@ -89,7 +89,7 @@ module datapath_core #(
             end
     end
 
-    generate 
+    generate
         for(gi = 0; gi < constant_gpack::channel_width; gi = gi + 1) begin
             assign estimated_bits_out[gi]   = estimated_bits[gi][ffe_pipeline_depth];
             assign est_codes_out[gi]   = end_buffer_est_codes[gi];
