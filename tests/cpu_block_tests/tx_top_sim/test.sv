@@ -408,6 +408,7 @@ end
         end
     end
 
+    // Counter initialization
     always @(posedge clk_prbs) begin
         if (rst) begin
             count_flag[0] <= 8'b0;
@@ -419,7 +420,7 @@ end
             count_flag[6] <= 8'b0;
             count_flag[7] <= 8'b0;
         end else if (record_flag[0]) begin
-            #0.875ns;
+            #0.875ns;  // Manually align the count down with the first bit of the data output, this delay should be fixed if not circuit connection is changed
             count_flag[0] = 8'd16; // determine how many bits to store in the shift reg
             record_flag[0] = 1'b0;
         end else if (record_flag[1]) begin
@@ -457,6 +458,13 @@ end
     always @(posedge clk_oversample) begin
         if (rst) begin
             parecord1 <= 16'h0000;
+            parecord2 <= 16'h0000;
+            parecord3 <= 16'h0000;
+            parecord4 <= 16'h0000;
+            parecord5 <= 16'h0000;
+            parecord6 <= 16'h0000;
+            parecord7 <= 16'h0000;
+            parecord8 <= 16'h0000;
         end else if ((!prbs_den) && (count_flag[0] > 0)) begin
             //shift register
             parecord1 <= {dout_p, parecord1[15:1]};  // Right shift to store the 16-bit data package in the correct order
