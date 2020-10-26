@@ -407,6 +407,22 @@ puts "Info: DC compile_ultra options = $compile_ultra_options"
 
 eval "compile_ultra $compile_ultra_options"
 
+
+if {[info exists DC_RETIME_REGISTERS]} {
+  set dc_retime_registers $DC_RETIME_REIGSTERS
+  if {"$dc_retime_registers" == ""} {
+    set dc_retime_registers 0
+  }
+} else {
+  set dc_retime_registers 0
+}
+
+if {$dc_retime_registers == 1 } {
+    optimize_registers
+} elseif {$dc_retime_registers == 2} {
+    balance_registers
+}
+
 # High-effort area optimization
 #
 # This command was introduced in I-2013.12 and performs monotonic

@@ -98,6 +98,7 @@ module digital_core import const_pack::*; (
     wire logic [Npi+Npi-1:0] scaled_pi_ctl [Nout-1:0];
 
     wire logic [(Npi-1):0] tx_scale_value [(Nout-1):0];
+    logic [(Npi-1):0] reg_tx_scale_value [(Nout-1):0];
     wire logic [(Npi+Npi-1):0] tx_scaled_pi_ctl [(Nout-1):0];
 
 //    initial begin
@@ -274,26 +275,22 @@ module digital_core import const_pack::*; (
     endgenerate
 
     // for tx_top
-    logic [$clog2(Nunit_pi)-1:0] reg_max_sel_mux[Nout-1:0]; // to DCORE and JTAG
-    logic [$clog2(Nunit_pi)-1:0] reg_ext_max_sel_mux[Nout-1:0];
     generate
         for (j=0; j<Nout; j=j+1) begin
             always_ff @(posedge clk_adc or negedge rstb) begin
                 if(~rstb) begin
-                    reg_max_sel_mux[j] <= 0;
-                    reg_ext_max_sel_mux <= 0;
+                    reg_tx_scale_value[j] <= 0;
                 end else begin
-                    reg_ext_max_sel_mux[j] <= ddbg_intf_i.tx_ext_max_sel_mux[j];
-                    reg_max_sel_mux[j] <= tdbg_intf_i.max_sel_mux[j];
+                    reg_tx_scale_value[j] <= tx_scale_value[j];
                 end
             end
 
 
             assign tx_scale_value[j] = (((ddbg_intf_i.tx_en_ext_max_sel_mux ?
-                                          reg_ext_max_sel_mux :
-                                          reg_max_sel_mux) + 1) << 4) - 1;
+                                          ddbg_intf_i.tx_ext_max_sel_mux[j] :
+                                          tdbg_intf_i.max_sel_mux[j]) + 1) << 4) - 1;
 
-            assign tx_scaled_pi_ctl[j] = ddbg_intf_i.tx_pi_ctl[j]*tx_scale_value[j];
+            assign tx_scaled_pi_ctl[j] = ddbg_intf_i.tx_pi_ctl[j]*reg_tx_scale_value[j];
 
             assign tx_pi_ctl[j] = (ddbg_intf_i.tx_en_bypass_pi_ctl[j] ?
                                    ddbg_intf_i.tx_bypass_pi_ctl[j] :
