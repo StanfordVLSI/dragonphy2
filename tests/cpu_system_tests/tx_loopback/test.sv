@@ -142,6 +142,12 @@ module test;
 
             // transmitter signals
             $shm_probe(top_i.itx);
+
+            // PI controls
+            $shm_probe(top_i.idcore.int_pi_ctl_cdr);
+            $shm_probe(top_i.idcore.ctl_valid);
+            $shm_probe(top_i.idcore.tx_pi_ctl);
+            $shm_probe(top_i.idcore.tx_ctl_valid);
         `endif
 
         // print test condition
@@ -172,8 +178,20 @@ module test;
         `FORCE_JTAG(en_gf, 1);
         `FORCE_JTAG(tx_en_gf, 1);
         #(1ns);
+
+        // set the TX PI codes
+        // these are selected so that the optimal
+        // PI codes of the RX will be in a good range
+        tmp_tx_pi_ctl[0] = 97;
+        tmp_tx_pi_ctl[1] = 232;
+        tmp_tx_pi_ctl[2] = 367;
+        tmp_tx_pi_ctl[3] = 502;
+        `FORCE_JTAG(tx_pi_ctl, tmp_tx_pi_ctl);
+        #(1ns);
         `FORCE_JTAG(tx_ctl_valid, 1);
         #(1ns);
+
+        // enable the V2T, which starts clk_adc
         `FORCE_JTAG(en_v2t, 1);
         #(64ns);
 
