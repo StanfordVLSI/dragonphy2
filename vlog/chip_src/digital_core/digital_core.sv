@@ -246,14 +246,27 @@ module digital_core import const_pack::*; (
     endgenerate
 
 
+    //Move reset logic out of loop of CDR :)
+    logic [4:0] wait_on_reset_ii;
+    logic ctl_valid;
+    //Wait 32 cycles on each reset
+    always_ff @(posedge clk_adc or negedge cdr_rstb) begin
+        if(~cdr_rstb) begin
+            ctl_valid <= 0;
+            wait_on_reset_ii <= 0;
+        end else begin
+            wait_on_reset_ii <=  (wait_on_reset_ii == 5'b11111) ? wait_on_reset_ii : wait_on_reset_ii + 1;
+            ctl_valid        <=   (wait_on_reset_ii == 5'b11111) ? 1 : 0;
+        end
+    end
+
     mm_cdr iMM_CDR (
         .din(mm_cdr_input),
         .clk(clk_adc),
-        .ext_rstb(cdr_rstb),
+        .ext_rstb(ctl_valid),
         .ramp_clock(ramp_clock),
         .freq_lvl_cross(freq_lvl_cross),
         .pi_ctl(pi_ctl_cdr),
-        .wait_on_reset_b(ctl_valid),
         .cdbg_intf_i(cdbg_intf_i)
     );
 
