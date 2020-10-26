@@ -31,7 +31,7 @@ module mm_cdr import const_pack::*; #(
 
     logic ramp_clock_ff;
     logic ramp_clock_sync;
-    logic signed [Nadc+1:0] phase_error, pd_phase_error, phase_error_inv;
+    logic signed [Nadc+1:0] phase_error_d, phase_error_q, pd_phase_error, phase_error_inv;
     logic signed [Nadc+1+phase_est_shift:0] phase_est_d, phase_est_q, phase_est_update;
 
     ////////////////////////////////////////////////////////////////////////////
@@ -77,21 +77,21 @@ module mm_cdr import const_pack::*; #(
 
 
     always @* begin
-        phase_error         = cdbg_intf_i.invert ? -1*pd_phase_error : pd_phase_error;
+        phase_error_d         = cdbg_intf_i.invert ? -1*pd_phase_error : pd_phase_error;
 
 
-        ramp_est_pls_update  = ramp_est_pls_q + (ramp_clock ? (phase_error << Kr) : 0 );
-        ramp_est_neg_update  = ramp_est_neg_q + (ramp_clock ? 0 : (phase_error << Kr));
+        ramp_est_pls_update  = ramp_est_pls_q + (ramp_clock ? (phase_error_q << Kr) : 0 );
+        ramp_est_neg_update  = ramp_est_neg_q + (ramp_clock ? 0 : (phase_error_q << Kr));
 
         ramp_est_pls_d       = cdbg_intf_i.en_ramp_est ? ramp_est_pls_update : 0;
         ramp_est_neg_d       = cdbg_intf_i.en_ramp_est ? ramp_est_neg_update : 0;
 
-        freq_est_update  = (phase_error << Ki) + (ramp_clock_sync ? ramp_est_pls_q : -1*ramp_est_neg_q);
+        freq_est_update  = (phase_error_q << Ki) + (ramp_clock_sync ? ramp_est_pls_q : -1*ramp_est_neg_q);
         freq_est_d       = freq_est_q          + (cdbg_intf_i.en_freq_est ? freq_est_update : 0);
         freq_diff        = freq_est_update - prev_freq_update_q;
 
         // calculate the phase update
-        phase_est_update = ((phase_error << Kp) + freq_est_q);
+        phase_est_update = ((phase_error_q << Kp) + freq_est_q);
 
         // clamp the phase update, if requested
         if (cdbg_intf_i.cdr_en_clamp) begin
@@ -123,6 +123,7 @@ module mm_cdr import const_pack::*; #(
             ramp_clock_ff <= 0;
             ramp_clock_sync <= 0;
         end else begin
+            phase_error_q           <= phase_error_d;
             phase_est_q             <= phase_est_d;
             freq_est_q              <= freq_est_d;
             prev_freq_update_q      <= freq_est_update;
