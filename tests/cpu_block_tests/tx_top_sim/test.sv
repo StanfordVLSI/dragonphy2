@@ -247,10 +247,10 @@ initial begin
     error_bits_1 = 32'b0;
     err_count = 32'b0;
     // Inject error bits by turning on injerror, 
-    inj_error = 1'b1;
+    inj_error = 1'b0;
     #0.8ns;
     inj_error = 1'b0; 
-    #30ns;  // for the counter to finish counting 
+    #150ns;  // for the counter to finish counting 
     error_bits_1 = err_count;
     //store the error count
     prbs_den = 1'b0;
@@ -385,7 +385,7 @@ initial begin
     #10ns;
     $display("error_bits_1: %0d", error_bits_1);
  
-    if (error_bits_1 == 20) begin
+    if (error_bits_1 == 0) begin
         $display("Exact amount of errors detected, Success! (case 1)");
     end else begin
         $error("Error count incorrect (case 1)");
