@@ -5,7 +5,7 @@ module tx_data_gen #(
     parameter integer Nti=16
 ) (
     input wire logic clk,
-    input wire logic semaphore,
+    input wire logic exec,
 
     input wire logic rst,
     input wire logic cke,
@@ -35,15 +35,15 @@ module tx_data_gen #(
     localparam logic [2:0]   SQUARE = 3'd3;
     localparam logic [2:0]     PRBS = 3'd4;
 
-    // synchronize the semaphore, which is used to enable
-    // loading of the other control signals
+    // synchronize the exec signal, which is used
+    // to enable loading of the other control signals
 
-    logic semaphore_m;
-    logic semaphore_d;
+    logic exec_m;
+    logic exec_d;
 
     always @(posedge clk) begin
-        semaphore_m <= semaphore;
-        semaphore_d <= semaphore_m;
+        exec_m <= exec;
+        exec_d <= exec_m;
     end
 
     // register the reset and clock enable
@@ -52,7 +52,7 @@ module tx_data_gen #(
     logic cke_d;
 
     always @(posedge clk) begin
-        if (semaphore_d) begin
+        if (exec_d) begin
             rst_d <= rst;
             cke_d <= cke;
         end else begin
@@ -68,7 +68,7 @@ module tx_data_gen #(
     logic [(Nti-1):0] data_in_d;
 
     always @(posedge clk) begin
-        if (semaphore_d) begin
+        if (exec_d) begin
             data_mode_d <= data_mode;
             data_per_d <= data_per;
             data_in_d <= data_in;
@@ -89,7 +89,7 @@ module tx_data_gen #(
     logic [(Nti-1):0] prbs_out;
 
     always @(posedge clk) begin
-        if (semaphore_d) begin
+        if (exec_d) begin
             prbs_eqn_d <= prbs_eqn;
             prbs_inj_err_d <= prbs_inj_err;
             prbs_chicken_d <= prbs_chicken;
@@ -104,7 +104,7 @@ module tx_data_gen #(
     generate
         for(i=0; i<Nti; i=i+1) begin
             always @(posedge clk) begin
-                if (semaphore_d) begin
+                if (exec_d) begin
                     prbs_init_d[i] <= prbs_init[i];
                 end else begin
                     prbs_init_d[i] <= prbs_init_d[i];

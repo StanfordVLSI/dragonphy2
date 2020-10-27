@@ -6,7 +6,7 @@ interface tx_data_intf;
     logic [2:0] tx_data_gen_mode;
     logic tx_data_gen_cke;
     logic [15:0] tx_data_gen_per;
-    logic tx_data_gen_semaphore;
+    logic tx_data_gen_exec;
     logic [(Nti-1):0] tx_data_gen_register;
 
     logic [(Nprbs-1):0] tx_prbs_gen_init [(Nti-1):0];
@@ -19,7 +19,7 @@ interface tx_data_intf;
         input tx_data_gen_mode,
         input tx_data_gen_cke,
         input tx_data_gen_per,
-        input tx_data_gen_semaphore,
+        input tx_data_gen_exec,
         input tx_data_gen_register,
         input tx_prbs_gen_init,
         input tx_prbs_gen_eqn,
@@ -32,7 +32,7 @@ interface tx_data_intf;
         output tx_data_gen_mode,
         output tx_data_gen_cke,
         output tx_data_gen_per,
-        output tx_data_gen_semaphore,
+        output tx_data_gen_exec,
         output tx_data_gen_register,
         output tx_prbs_gen_init,
         output tx_prbs_gen_eqn,
