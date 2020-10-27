@@ -10,8 +10,9 @@ module test #(
     input wire logic [2:0] data_mode,
     input wire logic [15:0] data_per,
     input wire logic [(Nti-1):0] data_in,
+    output wire logic [(Nti-1):0] data_out,
 
-    output wire logic [(Nti-1):0] data_out
+    input wire logic [(Nprbs-1):0] prbs_eqn
 );
 
     // assign the initial values
@@ -41,14 +42,14 @@ module test #(
         .clk(clk),
         .rst(rst),
         .cke(1'b1),
-        .semaphore(1'b1),
+        .exec(1'b1),
 
         .data_mode(data_mode),
         .data_per(data_per),
         .data_in(data_in),
 
         .prbs_init(prbs_init),
-        .prbs_eqn(32'h100002),
+        .prbs_eqn(prbs_eqn),
         .prbs_inj_err(16'd0),
         .prbs_chicken(2'b00),
 
