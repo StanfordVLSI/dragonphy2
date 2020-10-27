@@ -22,6 +22,32 @@ wire clk_encoder;
 logic ctl_valid;
 logic clk_oversample;
 logic clk_prbschecker;
+logic inj_error;
+logic prbs_den;
+logic [15:0] fixed_pa;
+logic [15:0] data;
+logic [7:0] count_flag[7:0];
+
+assign data = prbs_den ? prbsdata : fixed_pa;
+logic [7:0] record_flag;
+logic [15:0] parecord1;
+logic [15:0] parecord2;
+logic [15:0] parecord3;
+logic [15:0] parecord4;
+logic [15:0] parecord5;
+logic [15:0] parecord6;
+logic [15:0] parecord7;
+logic [15:0] parecord8;
+logic [15:0] parecord9;
+logic [15:0] parecord10;
+logic [15:0] parecord11;
+logic [15:0] parecord12;
+logic [15:0] parecord13;
+logic [15:0] parecord14;
+logic [15:0] parecord15;
+logic [15:0] parecord16;
+
+
 
 logic err_flag; 
 
@@ -54,7 +80,7 @@ logic err_flag;
                 .cke(1'b1),
                 .init_val(init_vals[i]),
                 .eqn(32'h100002),
-                .inj_err(1'b0),
+                .inj_err(inj_error),
                 .inv_chicken(2'b00),
                 .out(prbsdata[i])
             );
@@ -75,7 +101,7 @@ prbs_checker_core #(
 );
 
 tx_top tx_mux (
-    .din(prbsdata),
+    .din(data),
     .mdll_clk(clk_prbschecker),
     .ext_clk(1'b0),
     .ctl_pi(ctl_pi),
@@ -97,6 +123,12 @@ div_b2 divb2 (.clkin(clk_oversample), .rst(rst), .clkout(clk_prbschecker));
 // fppi pi(.clkin(clk_a), .clk_Q(cq), .clk_I(ci), .clk_QB(cqb), .clk_IB(cib));
 // div_b2 div0(.clkin(clk_full), .clkout(clk_a));
 
+
+// Testing variable
+logic [31:0] err_count;
+logic [31:0] error_bits_1;
+
+
 initial begin
 
     `ifdef DUMP_WAVEFORMS
@@ -108,6 +140,10 @@ initial begin
     clk_full = 1'b0;
     clk_2 = 1'b0;
     clk_oversample = 1'b0;
+    inj_error = 1'b0;
+    prbs_den = 1'b0;
+    fixed_pa = 16'b0;
+    record_flag[0] = 1'b0;
     // clk_encoder =1'b0; 
     rst = 1'b1;
     cke = 1'b1;
@@ -177,34 +213,294 @@ initial begin
     tx_intf.sel_del_out_pi = 1'b0;
     tx_intf.en_del_out_pi = 1'b1;
 
-
+    // Configure the Fout phases PI
     ctl_pi[0] = 9'd0;
     ctl_pi[1] = 9'd67;
     ctl_pi[2] = 9'd135;
     ctl_pi[3] = 9'd202;
-
+    //
     ctl_valid = 1'b1;
     #5ns; // After 50 units time, release the enable and reset button
+    $display("Releasing reset...");
     rst = 1'b0;
     cke = 1'b1;
     // PI setting
     #5ns;
+    $display("Enable the input clock buffer...");
     tx_intf.en_inbuf = 1'b1;
+    
     #5ns;
     // Phase interpoator
+    $display("Enable phase interpolator...");
     tx_intf.en_gf = 1'b1;
     #5ns;
-    rst_prbs = 1'b0;
-    #8ns;
+    $display("Release prbs generator reset..."); // The reset of the prbs must hold unit valid clock are generated and fed into TX
+    rst_prbs = 1'b0;  // Otherwise the initall value will not be loaded
+    prbs_den = 1'b1;
+    #5ns;  // wait 5 ns to avoid initial state error
+    
+    
+    
+    // Test case 1 | PRBS test 
+    #50ns;
+    #15.77ns;
+    error_bits_1 = 32'b0;
+    err_count = 32'b0;
+    // Inject error bits by turning on injerror, 
+    inj_error = 1'b0;
+    #0.8ns;
+    inj_error = 1'b0; 
+    #150ns;  // for the counter to finish counting 
+    error_bits_1 = err_count;
+    //store the error count
+    prbs_den = 1'b0;
+    #30ns;
 
-    //Set the fnish time
-    #100ns $finish;
+    
+    
+    // Test Case 2 fixed pattern
+    fixed_pa = 16'b1010101010101010;  // 1,0 repetition, asymmetric
+    prbs_den = 1'b0;
+    //wait for 2 ns
+    #1.1ns; // record flag on
+    record_flag[0] = 1'b1;
+    #3ns; // stop recording
+
+    $display("parecord1: %b", parecord1);
+
+    if (parecord1 == 16'b1010101010101010) begin
+        $display("Pattern deteced, Success! (case 2)");
+    end else begin
+        $error("Pattern lost (case 2)");
+    end
+
+    // Test Case 3 fixed pattern
+    fixed_pa = 16'b1010101001010101; // 1,0 repetition, mirrored in middle
+    prbs_den = 1'b0;
+    //wait for 2 ns
+    #1.1ns; // record flag on
+    record_flag[1] = 1'b1;
+    #3ns; // stop recording
+
+    $display("parecord2: %b", parecord2);
+
+    if (parecord2 == 16'b1010101001010101) begin
+        $display("Pattern deteced, Success! (case 3)");
+    end else begin
+        $error("Pattern lost (case 3)");
+    end
+
+    // Test Case 4 fixed pattern
+    fixed_pa = 16'b1101001111110011;  // 
+    prbs_den = 1'b0;
+    //wait for 2 ns
+    #1.1ns; // record flag on
+    record_flag[2] = 1'b1;
+    #3ns; // stop recording
+
+    $display("parecord3: %b", parecord3);
+
+    if (parecord3 == 16'b1101001111110011) begin
+        $display("Pattern deteced, Success! (case 4)");
+    end else begin
+        $error("Pattern lost (case 4)");
+    end
+
+    // Test Case 5 fixed pattern
+    fixed_pa = 16'b1100100000000011;  //
+    //wait for 2 ns
+    #1.1ns; // record flag on
+    record_flag[3] = 1'b1;
+    #3ns; // stop recording
+
+    $display("parecord4: %b", parecord4);
+
+    if (parecord4 == 16'b1100100000000011) begin
+        $display("Pattern deteced, Success! (case 5)");
+    end else begin
+        $error("Pattern lost (case 5)");
+    end
+
+    // Test Case 6 fixed pattern
+    fixed_pa = 16'b101110010101011;
+    //wait for 2 ns
+    #1.1ns; // record flag on
+    record_flag[4] = 1'b1;
+    #3ns; // stop recording
+
+    $display("parecord5: %b", parecord5);
+
+    if (parecord5 == 16'b101110010101011) begin
+        $display("Pattern deteced, Success! (case 6)");
+    end else begin
+        $error("Pattern lost (case 6)");
+    end
+
+    // Test Case 7 fixed pattern
+    fixed_pa = 16'b101010001111011;
+    //wait for 2 ns
+    #1.1ns; // record flag on
+    record_flag[5] = 1'b1;
+    #3ns; // stop recording
+
+    $display("parecord6: %b", parecord6);
+
+    if (parecord6 == 16'b101010001111011) begin
+        $display("Pattern deteced, Success! (case 7)");
+    end else begin
+        $error("Pattern lost (case 7)");
+    end
+
+    // Test Case 8 fixed pattern
+    fixed_pa = 16'b101010010101011;
+    //wait for 2 ns
+    #1.1ns; // record flag on
+    record_flag[6] = 1'b1;
+    #3ns; // stop recording
+
+    $display("parecord7: %b", parecord7);
+
+    if (parecord7 == 16'b101010010101011) begin
+        $display("Pattern deteced, Success! (case 8)");
+    end else begin
+        $error("Pattern lost (case 8)");
+    end
+
+    // Test Case 9 fixed pattern
+    fixed_pa = 16'b101011001111011;
+    //wait for 2 ns
+    #1.1ns; // record flag on
+    record_flag[7] = 1'b1;
+    #3ns; // stop recording
+
+    $display("parecord8: %b", parecord8);
+
+    if (parecord8 == 16'b101011001111011) begin
+        $display("Pattern deteced, Success! (case 9)");
+    end else begin
+        $error("Pattern lost (case 9)");
+    end
+
+    //Check the error bits number injected by inj_err
+    #10ns;
+    $display("error_bits_1: %0d", error_bits_1);
+ 
+    if (error_bits_1 == 0) begin
+        $display("Exact amount of errors detected, Success! (case 1)");
+    end else begin
+        $error("Error count incorrect (case 1)");
+    end
+
+    #2ns $finish;
 end
     
     // always #0.625 clk_a = ~clk_a; // #5 for 1 GHz
     always #(0.0625ns) clk_full <= ~clk_full; // 8GHz
-    always #(0.5ns) clk_2 <= ~clk_2; 
-    always #(0.03125ns) clk_oversample <= ~clk_oversample;
+    always #(0.5ns) clk_2 <= ~clk_2; // clk_encoder to load the 
+    always #(0.03125ns) clk_oversample <= ~clk_oversample; // Clock for prbs checker core
+    //Error number counter 
+    always @(posedge clk_oversample) begin
+        if (rst) begin
+            inj_error <= 0;
+            error_bits_1 <= 32'b0;
+            err_count <= 32'b0;
+        end else if (err_flag && prbs_den) begin
+            err_count += 1'b1;
+        end
+    end
+
+    // Counter initialization
+    always @(posedge clk_prbs) begin
+        if (rst) begin
+            count_flag[0] <= 8'b0;
+            count_flag[1] <= 8'b0;
+            count_flag[2] <= 8'b0;
+            count_flag[3] <= 8'b0;
+            count_flag[4] <= 8'b0;
+            count_flag[5] <= 8'b0;
+            count_flag[6] <= 8'b0;
+            count_flag[7] <= 8'b0;
+        end else if (record_flag[0]) begin
+            #0.875ns;  // Manually align the count down with the first bit of the data output, this delay should be fixed if not circuit connection is changed
+            count_flag[0] = 8'd16; // determine how many bits to store in the shift reg
+            record_flag[0] = 1'b0;
+        end else if (record_flag[1]) begin
+            #0.875ns;
+            count_flag[1] = 8'd16;
+            record_flag[1] = 1'b0;
+        end else if (record_flag[2]) begin
+            #0.875ns;
+            count_flag[2] = 8'd16;
+            record_flag[2] = 1'b0;
+        end else if (record_flag[3]) begin
+            #0.875ns;
+            count_flag[3] = 8'd16;
+            record_flag[3] = 1'b0;
+        end else if (record_flag[4]) begin
+            #0.875ns;
+            count_flag[4] = 8'd16;
+            record_flag[4] = 1'b0;
+        end else if (record_flag[5]) begin
+            #0.875ns;
+            count_flag[5] = 8'd16;
+            record_flag[5] = 1'b0;
+        end else if (record_flag[6]) begin
+            #0.875ns;
+            count_flag[6] = 8'd16;
+            record_flag[6] = 1'b0;
+        end else if (record_flag[7]) begin
+            #0.875ns;
+            count_flag[7] = 8'd16;
+            record_flag[7] = 1'b0;
+        end
+    end
+
+    //Pattern recording
+    always @(posedge clk_oversample) begin
+        if (rst) begin
+            parecord1 <= 16'h0000;
+            parecord2 <= 16'h0000;
+            parecord3 <= 16'h0000;
+            parecord4 <= 16'h0000;
+            parecord5 <= 16'h0000;
+            parecord6 <= 16'h0000;
+            parecord7 <= 16'h0000;
+            parecord8 <= 16'h0000;
+        end else if ((!prbs_den) && (count_flag[0] > 0)) begin
+            //shift register
+            parecord1 <= {dout_p, parecord1[15:1]};  // Right shift to store the 16-bit data package in the correct order
+            count_flag[0] -= 1;
+        end else if ((!prbs_den) && (count_flag[1] > 0)) begin
+            //shift register
+            parecord2 <= {dout_p, parecord2[15:1]};
+            count_flag[1] -= 1;
+        end else if ((!prbs_den) && (count_flag[2] > 0)) begin
+            //shift register
+            parecord3 <= {dout_p, parecord3[15:1]};
+            count_flag[2] -= 1;
+        end else if ((!prbs_den) && (count_flag[3] > 0)) begin
+            //shift register
+            parecord4 <= {dout_p, parecord4[15:1]};
+            count_flag[3] -= 1;
+        end  else if ((!prbs_den) && (count_flag[4] > 0)) begin
+            //shift register
+            parecord5 <= {dout_p, parecord5[15:1]};
+            count_flag[4] -= 1;
+        end else if ((!prbs_den) && (count_flag[5] > 0)) begin
+            //shift register
+            parecord6 <= {dout_p, parecord6[15:1]};
+            count_flag[5] -= 1;
+        end else if ((!prbs_den) && (count_flag[6] > 0)) begin
+            //shift register
+            parecord7 <= {dout_p, parecord7[15:1]};
+            count_flag[6] -= 1;
+        end else if ((!prbs_den) && (count_flag[7] > 0)) begin
+            //shift register
+            parecord8 <= {dout_p, parecord8[15:1]};
+            count_flag[7] -= 1;
+        end
+    end 
+
 
 endmodule
 
