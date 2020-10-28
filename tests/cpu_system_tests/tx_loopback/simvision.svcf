@@ -1,7 +1,13 @@
-# SimVision Command Script (Tue Jul 21 01:58:18 PM PDT 2020)
+# SimVision Command Script (Mon Oct 26 03:33:59 PM PDT 2020)
 #
 # Version 19.03.s003
 #
+# You can restore this configuration with:
+#
+#     simvision -input simvision.svcf
+#  or simvision -input simvision.svcf database1 database2 ...
+#
+
 
 #
 # Preferences
@@ -28,11 +34,11 @@ preferences set whats-new-dont-show-at-startup 1
 # Databases
 #
 array set dbNames ""
-set dbNames(realName1) [ database require top_sim -hints {
-	file ./tests/fpga_system_tests/emu_macro/build/sim/raw_results/top_sim.trn
+set dbNames(realName1) [ database require waves -hints {
+	file ./build/waves.shm/waves.trn
 }]
 if {$dbNames(realName1) == ""} {
-    set dbNames(realName1) top_sim
+    set dbNames(realName1) waves
 }
 
 #
@@ -48,8 +54,8 @@ mmap new  -reuse -name {Example Map} -radix %x -contents {{%b=11???? -bgcolor or
 #
 # Waveform windows
 #
-if {[catch {window new WaveWindow -name "Waveform 1" -geometry 1311x563+48+62}] != ""} {
-    window geometry "Waveform 1" 1311x563+48+62
+if {[catch {window new WaveWindow -name "Waveform 1" -geometry 1165x640+51+264}] != ""} {
+    window geometry "Waveform 1" 1165x640+51+264
 }
 window target "Waveform 1" on
 waveform using {Waveform 1}
@@ -58,37 +64,28 @@ waveform set \
     -primarycursor TimeA \
     -signalnames name \
     -signalwidth 175 \
-    -units fs \
+    -units ns \
     -valuewidth 75
-waveform baseline set -time 18,960,190,546,529fs
+waveform baseline set -time 0
 
 set id [waveform add -signals [subst  {
-	{$dbNames(realName1)::[format {top.trace_port_gen_i.ctl_pi_0[8:0]}]}
+	{$dbNames(realName1)::[format {test.top_i.idcore.int_pi_ctl_cdr[3:0]}]}
 	} ]]
-waveform format $id -radix %d -trace analogSampleAndHold
-waveform axis range $id -for default -min 0 -max 65 -scale linear
-set id [waveform add -signals [subst  {
-	{[format {signed(%s::top.trace_port_gen_i.adcout_unfolded_0)}  $dbNames(realName1)]}
-	} ]]
-waveform format $id -radix %d -trace analogSampleAndHold
-waveform axis range $id -for default -min -127 -max 126 -scale linear
-set id [waveform add -signals [subst  {
-	{[format {signed(%s::top.trace_port_gen_i.estimated_bits_0)}  $dbNames(realName1)]}
-	} ]]
-waveform format $id -radix %d -trace analogSampleAndHold
-waveform axis range $id -for default -min -127 -max 291 -scale linear
+waveform hierarchy expand $id
+set id2 [lindex [waveform hierarchy content $id] 0]
+waveform format $id2 -radix %d -trace analogSampleAndHold
+set id2 [lindex [waveform hierarchy content $id] 1]
+waveform format $id2 -radix %d -trace analogSampleAndHold
+set id2 [lindex [waveform hierarchy content $id] 2]
+waveform format $id2 -radix %d -trace analogSampleAndHold
+set id2 [lindex [waveform hierarchy content $id] 3]
+waveform format $id2 -radix %d -trace analogSampleAndHold
 
-waveform xview limits 1091803118168fs 1418883118168fs
+waveform xview limits 621.532248ns 1461.080663ns
 
 #
 # Waveform Window Links
 #
-
-#
-# Console windows
-#
-console set -windowname Console
-window geometry Console 600x250+118+147
 
 #
 # Layout selection

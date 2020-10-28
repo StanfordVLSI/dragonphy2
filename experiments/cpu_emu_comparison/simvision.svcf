@@ -4,10 +4,6 @@
 #
 # You can restore this configuration with:
 #
-#     simvision -input /home/sherbst/Code/dragonphy2/experiments/cpu_emu_comparison/simvision.svcf
-#  or simvision -input /home/sherbst/Code/dragonphy2/experiments/cpu_emu_comparison/simvision.svcf database1 database2 ...
-#
-
 
 #
 # Preferences
@@ -36,7 +32,6 @@ preferences set whats-new-dont-show-at-startup 1
 array set dbNames ""
 set dbNames(realName1) [ database require waves -hints {
 	file ./build/waves.shm/waves.trn
-	file /home/sherbst/Code/dragonphy2/experiments/cpu_emu_comparison/build/waves.shm/waves.trn
 }]
 if {$dbNames(realName1) == ""} {
     set dbNames(realName1) waves

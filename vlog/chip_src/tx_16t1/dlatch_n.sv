@@ -1,6 +1,6 @@
 // This is a D latch for the TX mux
 
-`timescale 100ps/1ps
+`timescale 1fs/1fs
 
 `default_nettype none
 
