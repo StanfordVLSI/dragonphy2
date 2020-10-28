@@ -2,12 +2,6 @@
 #
 # Version 19.03.s003
 #
-# You can restore this configuration with:
-#
-#     simvision -input simvision.svcf
-#  or simvision -input simvision.svcf database1 database2 ...
-#
-
 
 #
 # Preferences
@@ -28,7 +22,6 @@ preferences set whats-new-dont-show-at-startup 1
 array set dbNames ""
 set dbNames(realName1) [ database require waves -hints {
 	file ./waves.shm/waves.trn
-	file /home/sherbst/Code/ButterPHY/sim/LOOPBACK/waves.shm/waves.trn
 }]
 if {$dbNames(realName1) == ""} {
     set dbNames(realName1) waves

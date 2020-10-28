@@ -673,7 +673,7 @@ module digital_core import const_pack::*; (
         .clk(clk_tx),
         .rst(odbg_intf_i.tx_data_gen_rst),
         .cke(odbg_intf_i.tx_data_gen_cke),
-        .semaphore(odbg_intf_i.tx_data_gen_semaphore),
+        .exec(odbg_intf_i.tx_data_gen_exec),
 
         .data_mode(odbg_intf_i.tx_data_gen_mode),
         .data_per(odbg_intf_i.tx_data_gen_per),
