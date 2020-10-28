@@ -248,15 +248,16 @@ module digital_core import const_pack::*; (
 
     //Move reset logic out of loop of CDR :)
     logic [4:0] wait_on_reset_ii;
-    logic ctl_valid;
+    logic ctl_valid_reg;
+    assign ctl_valid = ctl_valid_reg;
     //Wait 32 cycles on each reset
     always_ff @(posedge clk_adc or negedge cdr_rstb) begin
         if(~cdr_rstb) begin
-            ctl_valid <= 0;
+            ctl_valid_reg <= 0;
             wait_on_reset_ii <= 0;
         end else begin
             wait_on_reset_ii <=  (wait_on_reset_ii == 5'b11111) ? wait_on_reset_ii : wait_on_reset_ii + 1;
-            ctl_valid        <=   (wait_on_reset_ii == 5'b11111) ? 1 : 0;
+            ctl_valid_reg        <=   (wait_on_reset_ii == 5'b11111) ? 1 : 0;
         end
     end
 
