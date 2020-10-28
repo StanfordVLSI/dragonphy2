@@ -26,6 +26,7 @@
     set sram_FP_adjust [snap_to_grid 350 $horiz_pitch]
     set tx_FP_adjust [snap_to_grid 250 $horiz_pitch]
     set bottom_y [snap_to_grid 100 $vert_pitch]
+
     set output_buffer_width [dbGet [dbGet -p top.insts.name *out_buff_i*].cell.size_x]
     set output_buffer_height [dbGet [dbGet -p top.insts.name *out_buff_i*].cell.size_y]
     
@@ -40,6 +41,9 @@
     
     set mdll_width [dbGet [dbGet -p top.insts.name *imdll*].cell.size_x]
     set mdll_height [dbGet [dbGet -p top.insts.name *imdll*].cell.size_y]
+
+    set small_sram_height [dbGet [lindex [dbGet -p top.insts.name *hist_sram_inst_memory*] 0].cell.size_x] 
+    set small_sram_width  [dbGet [lindex [dbGet -p top.insts.name *hist_sram_inst_memory*] 0].cell.size_y] 
 
     # Make room in the floorplan for the core power ring
 
@@ -249,6 +253,19 @@
         [expr $origin_sram_adc_x + 2*$sram_pair_spacing] \
         $origin_sram_adc_y 
 
+
+
+    placeInstance \
+    idcore/histogram_inst_core_0_hist_sram_inst_memory \
+        [expr $origin_sram_ffe_x + 2*$sram_pair_spacing] \
+        $origin_sram_ffe_y2
+
+    placeInstance \
+    idcore/histogram_inst_core_1_hist_sram_inst_memory \
+        [expr $origin_sram_ffe_x + 2*$sram_pair_spacing + $small_sram_height] \
+        $origin_sram_ffe_y2
+
+
     ###################
     # Place Blockages #
     ###################
@@ -257,6 +274,12 @@
     #    [expr $origin_sram_adc_y + $sram_height]  \
      #   [expr $origin_acore_x] \
      #   [expr $origin_sram_ffe_y2]
+     createPlaceBlockage -box \
+        [expr $origin_sram_ffe_x + 2*$sram_pair_spacing] \
+        [expr $origin_sram_ffe_y2 - $blockage_height] \
+        [expr $origin_sram_ffe_x + 2*$sram_pair_spacing + $small_sram_width + $blockage_width]\
+        [expr $origin_sram_ffe_y2 + 2*$small_sram_height + $blockage_height]
+
 
     #rotated by 90
     createPlaceBlockage -box  \
