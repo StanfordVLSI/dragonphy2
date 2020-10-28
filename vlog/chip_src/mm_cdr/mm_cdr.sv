@@ -79,7 +79,6 @@ module mm_cdr import const_pack::*; #(
     always @* begin
         phase_error_d         = cdbg_intf_i.invert ? -1*pd_phase_error : pd_phase_error;
 
-
         ramp_est_pls_update  = ramp_est_pls_q + (ramp_clock ? (phase_error_q << Kr) : 0 );
         ramp_est_neg_update  = ramp_est_neg_q + (ramp_clock ? 0 : (phase_error_q << Kr));
 

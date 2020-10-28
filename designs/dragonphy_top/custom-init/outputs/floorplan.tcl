@@ -31,6 +31,8 @@
     set acore_width [dbGet [dbGet -p top.insts.name *iacore*].cell.size_x]
     set acore_height [dbGet [dbGet -p top.insts.name *iacore*].cell.size_y]
 
+    set pi_width [dbGet [lindex [dbGet -p top.insts.name *iPI*] 0].cell.size_x]
+    set pi_height [dbGet [lindex [dbGet -p top.insts.name *iPI*] 0].cell.size_y]
 
     set mdll_width [dbGet [dbGet -p top.insts.name *imdll*].cell.size_x]
     set mdll_height [dbGet [dbGet -p top.insts.name *imdll*].cell.size_y]
@@ -131,6 +133,11 @@
     set origin_ref_x [expr 504.09 + $sram_FP_adjust]
     set origin_ref_y [expr 184.32 - $bottom_y]
 
+    set origin_txpi_x  [snap_to_grid 200 $horiz_pitch]
+    set txpi_x_spacing [snap_to_grid [expr $pi_width + 30] $horiz_pitch]
+    set origin_txpi_y  [snap_to_grid 200 $vert_pitch]
+    set txpi_y_spacing [snap_to_grid [expr $pi_height + 30] $vert_pitch]
+
     #set origin_ref_x [expr $FP_width - 6*$blockage_width - $input_buffer_width - $core_margin_l]
     #set origin_ref_y [expr $origin_out_y + $output_buffer_height + $blockage_height + 10*$vert_pitch]
         
@@ -178,6 +185,27 @@
         $origin_out_x \
         $origin_out_y
  
+    #PI Macros
+    placeInstance \
+    itx/iPI_0__iPI \
+        $origin_txpi_x \
+        $origin_txpi_y 
+
+    placeInstance \
+    itx/iPI_1__iPI \
+        [expr $origin_txpi_x + $txpi_x_spacing] \
+        $origin_txpi_y MY
+
+    placeInstance \
+    itx/iPI_2__iPI \
+        $origin_txpi_x \
+        [expr $origin_txpi_y + $txpi_y_spacing] MX
+
+        placeInstance \
+    itx/iPI_3__iPI \
+        [expr $origin_txpi_x + $txpi_x_spacing] \
+        [expr $origin_txpi_y + $txpi_y_spacing] R180
+
     #Memory Macros
     for {set k 0} {$k<4} {incr k} {
         if {[expr $k % 2] == 0} {
