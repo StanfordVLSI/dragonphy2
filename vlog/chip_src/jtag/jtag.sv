@@ -350,7 +350,7 @@ module jtag (
     assign odbg_intf_i.tx_data_gen_mode = rjtag_intf_i.tx_data_gen_mode;
     assign odbg_intf_i.tx_data_gen_cke = rjtag_intf_i.tx_data_gen_cke;
     assign odbg_intf_i.tx_data_gen_per = rjtag_intf_i.tx_data_gen_per;
-    assign odbg_intf_i.tx_data_gen_semaphore = rjtag_intf_i.tx_data_gen_semaphore;
+    assign odbg_intf_i.tx_data_gen_exec = rjtag_intf_i.tx_data_gen_exec;
     assign odbg_intf_i.tx_data_gen_register = rjtag_intf_i.tx_data_gen_register;
     assign odbg_intf_i.tx_prbs_gen_init = rjtag_intf_i.tx_prbs_gen_init;
     assign odbg_intf_i.tx_prbs_gen_eqn = rjtag_intf_i.tx_prbs_gen_eqn;
