@@ -409,7 +409,7 @@ eval "compile_ultra $compile_ultra_options"
 
 
 if {[info exists DC_RETIME_REGISTERS]} {
-  set dc_retime_registers $DC_RETIME_REIGSTERS
+  set dc_retime_registers $DC_RETIME_REGISTERS
   if {"$dc_retime_registers" == ""} {
     set dc_retime_registers 0
   }
@@ -418,6 +418,7 @@ if {[info exists DC_RETIME_REGISTERS]} {
 }
 
 if {$dc_retime_registers == 1 } {
+    set_dont_retime [get_cells itx]
     optimize_registers
 } elseif {$dc_retime_registers == 2} {
     balance_registers

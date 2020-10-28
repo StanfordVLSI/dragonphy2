@@ -38,9 +38,9 @@ parameters:
   design_name: undefined
   # Path to the design instance in run.saif (e.g., tb/dut)
   saif_instance: undefined
-  flatten_effort: 0
+  flatten_effort: 2
   retime: 1
-  retime_registers: 0
+  retime_registers: 1
   topographical: True
   nthreads: 16  # multithreading available to the tool
 
