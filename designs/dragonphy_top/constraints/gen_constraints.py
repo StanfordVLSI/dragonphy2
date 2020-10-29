@@ -106,10 +106,10 @@ set_clock_uncertainty -setup 0.02 clk_tx_hr_1
 set_clock_uncertainty -hold 0.02 clk_tx_hr_1
 
 # quarter rate
-set_clock_uncertainty -setup 0.01 clk_tx_qr_0
-set_clock_uncertainty -hold 0.01 clk_tx_qr_0
-set_clock_uncertainty -setup 0.01 clk_tx_qr_1
-set_clock_uncertainty -hold 0.01 clk_tx_qr_1
+set_clock_uncertainty -setup 0.03 clk_tx_qr_0
+set_clock_uncertainty -hold 0.03 clk_tx_qr_0
+set_clock_uncertainty -setup 0.03 clk_tx_qr_1
+set_clock_uncertainty -hold 0.03 clk_tx_qr_1
 
 ################
 # JTAG interface
@@ -199,6 +199,8 @@ set ext_false_path_only {{ \\
     ext_rstb \\
     ext_dump_start \\
     clk_cgra \\
+    ramp_clock \\
+    freq_lvl_cross \\
 }}
 
 set_false_path -through [get_ports $ext_false_path_only]
@@ -290,12 +292,12 @@ set_max_capacitance {1.0*cap_scale} [get_port ext_Vcal]
 # Tighten transition constraint for clocks declared so far
 set_max_transition {0.1*time_scale} -clock_path [get_clock clk_jtag]
 set_max_transition {0.1*time_scale} -clock_path [get_clock clk_retimer]
-set_max_transition {0.1*time_scale} -clock_path [get_clock clk_tx_pi_0]
-set_max_transition {0.1*time_scale} -clock_path [get_clock clk_tx_pi_1]
-set_max_transition {0.1*time_scale} -clock_path [get_clock clk_tx_pi_2]
-set_max_transition {0.1*time_scale} -clock_path [get_clock clk_tx_pi_3]
-set_max_transition {0.1*time_scale} -clock_path [get_clock clk_tx_hr_0]
-set_max_transition {0.1*time_scale} -clock_path [get_clock clk_tx_hr_1]
+set_max_transition {0.025*time_scale} -clock_path [get_clock clk_tx_pi_0]
+set_max_transition {0.025*time_scale} -clock_path [get_clock clk_tx_pi_1]
+set_max_transition {0.025*time_scale} -clock_path [get_clock clk_tx_pi_2]
+set_max_transition {0.025*time_scale} -clock_path [get_clock clk_tx_pi_3]
+set_max_transition {0.05*time_scale} -clock_path [get_clock clk_tx_hr_0]
+set_max_transition {0.05*time_scale} -clock_path [get_clock clk_tx_hr_1]
 set_max_transition {0.1*time_scale} -clock_path [get_clock clk_tx_qr_0]
 set_max_transition {0.1*time_scale} -clock_path [get_clock clk_tx_qr_1]
 
@@ -305,13 +307,13 @@ set_max_transition {0.1*time_scale} -clock_path [get_clock clk_tx_qr_1]
 # (appears to be related to the fact that these are internal nets)
 
 foreach x [get_object_name $adbg_clk_pins] {{
-    create_clock -name clk_mon_net_$x -period {0.25*time_scale} [get_pins $x]
-    set_max_transition {0.025*time_scale} -clock_path [get_clocks clk_mon_net_$x]
+    # create_clock -name clk_mon_net_$x -period {0.25*time_scale} [get_pins $x]
+    set_max_transition {0.025*time_scale} [get_pins $x]
 }}
 
 foreach x [get_object_name $tdbg_clk_pins] {{
-    create_clock -name tx_clk_mon_net_$x -period {0.25*time_scale} [get_pins $x]
-    set_max_transition {0.025*time_scale} -clock_path [get_clocks tx_clk_mon_net_$x]
+    # create_clock -name tx_clk_mon_net_$x -period {0.25*time_scale} [get_pins $x]
+    set_max_transition {0.025*time_scale} [get_pins $x]
 }}
 
 #######################################################################
