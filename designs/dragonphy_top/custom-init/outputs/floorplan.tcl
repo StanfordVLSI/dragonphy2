@@ -42,8 +42,8 @@
     set mdll_width [dbGet [dbGet -p top.insts.name *imdll*].cell.size_x]
     set mdll_height [dbGet [dbGet -p top.insts.name *imdll*].cell.size_y]
 
-    set small_sram_height [dbGet [lindex [dbGet -p top.insts.name *hist_sram_inst_memory*] 0].cell.size_x] 
-    set small_sram_width  [dbGet [lindex [dbGet -p top.insts.name *hist_sram_inst_memory*] 0].cell.size_y] 
+    set small_sram_height [dbGet [lindex [dbGet -p top.insts.name *hist_sram_inst_memory*] 0].cell.size_y] 
+    set small_sram_width  [dbGet [lindex [dbGet -p top.insts.name *hist_sram_inst_memory*] 0].cell.size_x] 
 
     # Make room in the floorplan for the core power ring
 
@@ -220,7 +220,7 @@
     placeInstance \
     itx/indiv \
         $origin_txindiv_x \
-        $origin_txindiv_y R90
+        $origin_txindiv_y
 
     #Memory Macros
     for {set k 0} {$k<4} {incr k} {
@@ -262,9 +262,8 @@
 
     placeInstance \
     idcore/histogram_inst_core_1_hist_sram_inst_memory \
-        [expr $origin_sram_ffe_x + 2*$sram_pair_spacing + $small_sram_height] \
-        $origin_sram_ffe_y2
-
+        [expr $origin_sram_ffe_x  + 2*$sram_pair_spacing] \
+        [expr $origin_sram_ffe_y2 + $small_sram_height] 
 
     ###################
     # Place Blockages #
@@ -285,8 +284,8 @@
     createPlaceBlockage -box  \
         [expr $origin_txindiv_x -$blockage_width] \
         [expr $origin_txindiv_y -$blockage_height] \
-        [expr $origin_txindiv_x + $indiv_height + $blockage_width] \
-        [expr $origin_txindiv_y + $indiv_width + $blockage_height] 
+        [expr $origin_txindiv_x + $indiv_width + $blockage_width] \
+        [expr $origin_txindiv_y + $indiv_height + $blockage_height] 
     #PI Blockages
     createPlaceBlockage -box \
         [expr $origin_txpi_x -$blockage_width] \
