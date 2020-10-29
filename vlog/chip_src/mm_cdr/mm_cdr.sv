@@ -14,7 +14,6 @@ module mm_cdr import const_pack::*; #(
     
     output logic [Npi-1:0]pi_ctl[Nout-1:0],
     output logic freq_lvl_cross,
-    output logic wait_on_reset_b,
 
     cdr_debug_intf.cdr cdbg_intf_i
 );
@@ -32,7 +31,7 @@ module mm_cdr import const_pack::*; #(
 
     logic ramp_clock_ff;
     logic ramp_clock_sync;
-    logic signed [Nadc+1:0] phase_error, pd_phase_error, phase_error_inv;
+    logic signed [Nadc+1:0] phase_error_d, phase_error_q, pd_phase_error, phase_error_inv;
     logic signed [Nadc+1+phase_est_shift:0] phase_est_d, phase_est_q, phase_est_update;
 
     ////////////////////////////////////////////////////////////////////////////
@@ -69,8 +68,6 @@ module mm_cdr import const_pack::*; #(
     logic signed [Nadc+1:0] phase_est_out;
 
     //logic cond1, cond2;
-
-    logic [4:0] wait_on_reset_ii;
     
     mm_pd iMM_PD (
         .din(din),
@@ -78,36 +75,22 @@ module mm_cdr import const_pack::*; #(
         .pd_out(pd_phase_error)
     );
 
-    //Wait 32 cycles on each reset
-
-    always_ff @(posedge clk or negedge ext_rstb) begin
-        if(~ext_rstb) begin
-            wait_on_reset_b <= 0;
-            wait_on_reset_ii <= 0;
-        end else begin
-            wait_on_reset_ii <=  (wait_on_reset_ii == 5'b11111) ? wait_on_reset_ii : wait_on_reset_ii + 1;
-            wait_on_reset_b <=   (wait_on_reset_ii == 5'b11111) ? 1 : 0;
-        end
-    end
-
 
     always @* begin
-        phase_error_inv         = cdbg_intf_i.invert ? -1*pd_phase_error : pd_phase_error;
-        phase_error             = wait_on_reset_b ? phase_error_inv : 0;
+        phase_error_d         = cdbg_intf_i.invert ? -1*pd_phase_error : pd_phase_error;
 
-
-        ramp_est_pls_update  = ramp_est_pls_q + (ramp_clock ? (phase_error << Kr) : 0 );
-        ramp_est_neg_update  = ramp_est_neg_q + (ramp_clock ? 0 : (phase_error << Kr));
+        ramp_est_pls_update  = ramp_est_pls_q + (ramp_clock ? (phase_error_q << Kr) : 0 );
+        ramp_est_neg_update  = ramp_est_neg_q + (ramp_clock ? 0 : (phase_error_q << Kr));
 
         ramp_est_pls_d       = cdbg_intf_i.en_ramp_est ? ramp_est_pls_update : 0;
         ramp_est_neg_d       = cdbg_intf_i.en_ramp_est ? ramp_est_neg_update : 0;
 
-        freq_est_update  = (phase_error << Ki) + (ramp_clock_sync ? ramp_est_pls_q : -1*ramp_est_neg_q);
+        freq_est_update  = (phase_error_q << Ki) + (ramp_clock_sync ? ramp_est_pls_q : -1*ramp_est_neg_q);
         freq_est_d       = freq_est_q          + (cdbg_intf_i.en_freq_est ? freq_est_update : 0);
         freq_diff        = freq_est_update - prev_freq_update_q;
 
         // calculate the phase update
-        phase_est_update = ((phase_error << Kp) + freq_est_q);
+        phase_est_update = ((phase_error_q << Kp) + freq_est_q);
 
         // clamp the phase update, if requested
         if (cdbg_intf_i.cdr_en_clamp) begin
@@ -131,6 +114,7 @@ module mm_cdr import const_pack::*; #(
 
     always_ff @(posedge clk or negedge ext_rstb) begin 
         if(~ext_rstb) begin
+            phase_error_q <= 0;
             phase_est_q <= 0;
             freq_est_q  <= 0;
             prev_freq_update_q <= 0;
@@ -139,12 +123,12 @@ module mm_cdr import const_pack::*; #(
             ramp_clock_ff <= 0;
             ramp_clock_sync <= 0;
         end else begin
-            phase_est_q             <= wait_on_reset_b ? phase_est_d    : 0;
-            freq_est_q              <= wait_on_reset_b ? freq_est_d : 0;
-            prev_freq_update_q      <= wait_on_reset_b ? freq_est_update    : 0;
-            ramp_est_pls_q          <= wait_on_reset_b ? ramp_est_pls_d : 0;
-            ramp_est_neg_q          <= wait_on_reset_b ? ramp_est_neg_d : 0;
-
+            phase_error_q           <= phase_error_d;
+            phase_est_q             <= phase_est_d;
+            freq_est_q              <= freq_est_d;
+            prev_freq_update_q      <= freq_est_update;
+            ramp_est_pls_q          <= ramp_est_pls_d;
+            ramp_est_neg_q          <= ramp_est_neg_d;
             ramp_clock_ff           <= ramp_clock;
             ramp_clock_sync         <= ramp_clock_ff;
         end

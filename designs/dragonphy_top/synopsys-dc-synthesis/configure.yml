@@ -40,6 +40,7 @@ parameters:
   saif_instance: undefined
   flatten_effort: 2
   retime: 1
+  retime_registers: 1
   topographical: True
   nthreads: 16  # multithreading available to the tool
 
@@ -70,7 +71,7 @@ postconditions:
 
   # Basic error checking
 
-  - assert 'error' not in File( 'logs/dc.log' )
+  - assert 'Error:' not in File( 'logs/dc.log' )
   - assert 'Unresolved references' not in File( 'logs/dc.log' )
   - assert 'Unable to resolve' not in File( 'logs/dc.log' )
 

@@ -34,6 +34,10 @@ module dragonphy_top import const_pack::*; (
 	output wire logic clk_trig_p,
 	output wire logic clk_trig_n,
 
+	//CDR IO
+	input wire logic ramp_clock,
+	output wire logic freq_lvl_cross,
+
 	//Reset Logic
 	input wire logic ext_rstb,
 
@@ -214,8 +218,8 @@ module dragonphy_top import const_pack::*; (
 		.mdll_clk(mdll_clk_out),             // goes to output buffer
 		.mdll_jm_clk(mdll_jm_clk_fb_out),    // goes to output buffer
 		.int_pi_ctl_cdr(pi_ctl_cdr),         // PI control code from CDR
-		.ramp_clock(1'b0),                   // we didn't get this pin
-		.freq_lvl_cross(),                   // we didn't get this pin
+		.ramp_clock(ramp_clock),                   // we didn't get this pin
+		.freq_lvl_cross(freq_lvl_cross),                   // we didn't get this pin
 		.ext_dump_start(ext_dump_start),
         .disable_ibuf_async(disable_ibuf_async),
 	    .disable_ibuf_main(disable_ibuf_main),
