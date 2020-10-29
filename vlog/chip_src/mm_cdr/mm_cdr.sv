@@ -114,6 +114,7 @@ module mm_cdr import const_pack::*; #(
 
     always_ff @(posedge clk or negedge ext_rstb) begin 
         if(~ext_rstb) begin
+            phase_error_q <= 0;
             phase_est_q <= 0;
             freq_est_q  <= 0;
             prev_freq_update_q <= 0;
@@ -128,7 +129,6 @@ module mm_cdr import const_pack::*; #(
             prev_freq_update_q      <= freq_est_update;
             ramp_est_pls_q          <= ramp_est_pls_d;
             ramp_est_neg_q          <= ramp_est_neg_d;
-
             ramp_clock_ff           <= ramp_clock;
             ramp_clock_sync         <= ramp_clock_ff;
         end
