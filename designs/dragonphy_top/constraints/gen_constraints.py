@@ -34,6 +34,7 @@ create_clock -name clk_retimer \\
 
 # TX clocks
 # TODO: add generated clocks in TX
+
 create_clock -name clk_prbsgen \\
     -period {main_per*time_scale} \\
     -waveform {{0 {0.5*main_per*time_scale}}} \\
