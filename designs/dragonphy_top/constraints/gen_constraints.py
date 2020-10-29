@@ -302,17 +302,13 @@ set_max_transition {0.1*time_scale} -clock_path [get_clock clk_tx_qr_0]
 set_max_transition {0.1*time_scale} -clock_path [get_clock clk_tx_qr_1]
 
 # Set transition time for high-speed signals monitored from iacore and itx
-# transition time is 10% of a 4 GHz period.  Note that we have to
-# create a clock before the transition constraint is applied
-# (appears to be related to the fact that these are internal nets)
+# transition time is 10% of a 4 GHz period.
 
 foreach x [get_object_name $adbg_clk_pins] {{
-    # create_clock -name clk_mon_net_$x -period {0.25*time_scale} [get_pins $x]
     set_max_transition {0.025*time_scale} [get_pins $x]
 }}
 
 foreach x [get_object_name $tdbg_clk_pins] {{
-    # create_clock -name tx_clk_mon_net_$x -period {0.25*time_scale} [get_pins $x]
     set_max_transition {0.025*time_scale} [get_pins $x]
 }}
 
