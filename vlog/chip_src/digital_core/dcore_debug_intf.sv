@@ -51,15 +51,16 @@ interface dcore_debug_intf import const_pack::*; (
     	logic prbs_gen_rstb;
    		logic [ffe_gpack::shift_precision-1:0] ffe_shift [constant_gpack::channel_width-1:0];
     	logic signed [cmp_gpack::thresh_precision-1:0] cmp_thresh  [constant_gpack::channel_width-1:0];
-    	logic [mlsd_gpack::shift_precision-1:0] mlsd_shift [constant_gpack::channel_width-1:0];
+    	logic [channel_gpack::shift_precision-1:0] channel_shift [constant_gpack::channel_width-1:0];
     	logic [constant_gpack::channel_width-1:0] disable_product [ffe_gpack::length-1:0];
     	logic signed [Nadc-1:0] adc_thresh [constant_gpack::channel_width-1:0];
 		logic signed [ffe_gpack::output_precision-1:0] ffe_thresh [constant_gpack::channel_width-1:0];
 		logic [1:0] sel_prbs_mux;
         logic en_cgra_clk;
-        logic signed [Nadc-1:0] pfd_cal_ext_ave;
         logic pfd_cal_flip_feedback;
         logic en_pfd_cal_ext_ave;
+        logic align_pos;
+        logic signed [Nadc-1:0] pfd_cal_ext_ave;
         logic en_int_dump_start;
         logic int_dump_start;
 
@@ -107,7 +108,7 @@ interface dcore_debug_intf import const_pack::*; (
 	    input prbs_gen_rstb,
 		input ffe_shift,
 		input cmp_thresh,
-		input mlsd_shift,
+		input channel_shift,
 		input disable_product,
 		input en_bypass_pi_ctl,
 		input bypass_pi_ctl,
@@ -115,9 +116,11 @@ interface dcore_debug_intf import const_pack::*; (
 		input ffe_thresh,
 		input sel_prbs_mux,
         input en_cgra_clk,
-        input pfd_cal_ext_ave,
         input pfd_cal_flip_feedback,
         input en_pfd_cal_ext_ave,
+        input pfd_cal_ext_ave,
+        input align_pos,
+
         input en_int_dump_start,
         input int_dump_start,
         input tx_en_ext_max_sel_mux,
@@ -174,7 +177,7 @@ interface dcore_debug_intf import const_pack::*; (
 		output prbs_gen_rstb,
 		output ffe_shift,
 		output cmp_thresh,
-		output mlsd_shift,
+		output channel_shift,
 		output disable_product,
 		output en_bypass_pi_ctl,
 		output bypass_pi_ctl,
@@ -182,9 +185,10 @@ interface dcore_debug_intf import const_pack::*; (
 		output ffe_thresh,
 		output sel_prbs_mux,
         output en_cgra_clk,
-        output pfd_cal_ext_ave,
         output pfd_cal_flip_feedback,
         output en_pfd_cal_ext_ave,
+        output pfd_cal_ext_ave,
+        output align_pos,
         output en_int_dump_start,
         output int_dump_start,
         output tx_en_ext_max_sel_mux,

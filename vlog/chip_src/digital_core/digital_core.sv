@@ -49,10 +49,10 @@ module digital_core import const_pack::*; (
     prbs_debug_intf pdbg_intf_i ();
     wme_debug_intf wdbg_intf_i ();
     hist_debug_intf hdbg_intf_i ();
+    error_tracker_debug_intf #(.addrwidth(10)) edbg_intf_i  ();
     tx_data_intf odbg_intf_i ();
     
     // internal signals
-
     wire logic rstb;
     wire logic adc_unfolding_update;
     wire logic [Nadc-1:0] adcout_retimed [Nti-1:0];
@@ -65,6 +65,12 @@ module digital_core import const_pack::*; (
     wire logic prbs_rstb;
     wire logic prbs_gen_rstb;
     wire logic signed [Nadc-1:0] adcout_unfolded [Nti+Nti_rep-1:0];
+    wire logic [Nti-1:0] prbs_flags;
+    wire logic        sliced_bits [Nti-1:0];
+    wire logic signed [channel_gpack::est_channel_precision-1:0] est_codes [Nti-1:0];
+    wire logic signed [error_gpack::est_error_precision-1:0] est_errors [Nti-1:0];
+    wire logic        [1:0] sd_flags [Nti-1:0];
+
 
     wire logic signed [ffe_gpack::output_precision-1:0] estimated_bits [constant_gpack::channel_width-1:0];
     wire logic signed [7:0] trunc_est_bits [Nti+Nti_rep-1:0];
@@ -92,6 +98,7 @@ module digital_core import const_pack::*; (
     wire logic [Npi+Npi-1:0] scaled_pi_ctl [Nout-1:0];
 
     wire logic [(Npi-1):0] tx_scale_value [(Nout-1):0];
+    logic [(Npi-1):0] reg_tx_scale_value [(Nout-1):0];
     wire logic [(Npi+Npi-1):0] tx_scaled_pi_ctl [(Nout-1):0];
 
 //    initial begin
@@ -239,14 +246,28 @@ module digital_core import const_pack::*; (
     endgenerate
 
 
+    //Move reset logic out of loop of CDR :)
+    logic [4:0] wait_on_reset_ii;
+    logic ctl_valid_reg;
+    assign ctl_valid = ctl_valid_reg;
+    //Wait 32 cycles on each reset
+    always_ff @(posedge clk_adc or negedge cdr_rstb) begin
+        if(~cdr_rstb) begin
+            ctl_valid_reg <= 0;
+            wait_on_reset_ii <= 0;
+        end else begin
+            wait_on_reset_ii <=  (wait_on_reset_ii == 5'b11111) ? wait_on_reset_ii : wait_on_reset_ii + 1;
+            ctl_valid_reg        <=   (wait_on_reset_ii == 5'b11111) ? 1 : 0;
+        end
+    end
+
     mm_cdr iMM_CDR (
         .din(mm_cdr_input),
         .clk(clk_adc),
-        .ext_rstb(cdr_rstb),
+        .ext_rstb(ctl_valid),
         .ramp_clock(ramp_clock),
         .freq_lvl_cross(freq_lvl_cross),
         .pi_ctl(pi_ctl_cdr),
-        .wait_on_reset_b(ctl_valid),
         .cdbg_intf_i(cdbg_intf_i)
     );
 
@@ -268,14 +289,22 @@ module digital_core import const_pack::*; (
     endgenerate
 
     // for tx_top
-
     generate
         for (j=0; j<Nout; j=j+1) begin
+            always_ff @(posedge clk_adc or negedge rstb) begin
+                if(~rstb) begin
+                    reg_tx_scale_value[j] <= 0;
+                end else begin
+                    reg_tx_scale_value[j] <= tx_scale_value[j];
+                end
+            end
+
+
             assign tx_scale_value[j] = (((ddbg_intf_i.tx_en_ext_max_sel_mux ?
                                           ddbg_intf_i.tx_ext_max_sel_mux[j] :
                                           tdbg_intf_i.max_sel_mux[j]) + 1) << 4) - 1;
 
-            assign tx_scaled_pi_ctl[j] = ddbg_intf_i.tx_pi_ctl[j]*tx_scale_value[j];
+            assign tx_scaled_pi_ctl[j] = ddbg_intf_i.tx_pi_ctl[j]*reg_tx_scale_value[j];
 
             assign tx_pi_ctl[j] = (ddbg_intf_i.tx_en_bypass_pi_ctl[j] ?
                                    ddbg_intf_i.tx_bypass_pi_ctl[j] :
@@ -285,8 +314,9 @@ module digital_core import const_pack::*; (
 
     assign dsp_dbg_intf_i.disable_product = ddbg_intf_i.disable_product;
     assign dsp_dbg_intf_i.ffe_shift       = ddbg_intf_i.ffe_shift;
-    assign dsp_dbg_intf_i.mlsd_shift      = ddbg_intf_i.mlsd_shift;
+    assign dsp_dbg_intf_i.channel_shift   = ddbg_intf_i.channel_shift;
     assign dsp_dbg_intf_i.thresh          = ddbg_intf_i.cmp_thresh;
+    assign dsp_dbg_intf_i.align_pos       = ddbg_intf_i.align_pos;
 
     weight_manager #(
         .width(Nti),
@@ -304,24 +334,34 @@ module digital_core import const_pack::*; (
 
     weight_manager #(
         .width(Nti),
-        .depth(mlsd_gpack::estimate_depth),
-        .bitwidth(mlsd_gpack::estimate_precision)
+        .depth(channel_gpack::est_channel_depth),
+        .bitwidth(channel_gpack::est_channel_precision)
     ) wme_channel_est_i (
-        .data(wdbg_intf_i.wme_mlsd_data),
-        .inst(wdbg_intf_i.wme_mlsd_inst),
-        .exec(wdbg_intf_i.wme_mlsd_exec),
+        .data(wdbg_intf_i.wme_chan_data),
+        .inst(wdbg_intf_i.wme_chan_inst),
+        .exec(wdbg_intf_i.wme_chan_exec),
         .clk(clk_adc),
         .rstb(rstb),
-        .read_reg(wdbg_intf_i.wme_mlsd_read),
+        .read_reg(wdbg_intf_i.wme_chan_read),
         .weights (dsp_dbg_intf_i.channel_est)
     );
 
-    dsp_backend dsp_i(
-        .codes(adcout_unfolded_non_rep),
+    datapath_core #(
+        .ffe_pipeline_depth                    (constant_gpack::ffe_pipeline_depth),
+        .channel_pipeline_depth                (constant_gpack::chan_pipeline_depth),
+        .error_output_pipeline_depth           (constant_gpack::err_out_pipeline_depth),
+        .sliding_detector_output_pipeline_depth(constant_gpack::sld_dtct_out_pipeline_depth)
+    ) datapath_i (
+        .adc_codes(adcout_unfolded_non_rep),
         .clk(clk_adc),
         .rstb(rstb),
-        .estimated_bits_q(estimated_bits),
-        .checked_bits(checked_bits),
+
+        .estimated_bits_out(estimated_bits),
+        .sliced_bits_out(sliced_bits),
+        .est_codes_out(est_codes),
+        .est_errors_out(est_errors),
+        .sd_flags(sd_flags),
+
         .dsp_dbg_intf_i(dsp_dbg_intf_i)
     );
 
@@ -438,6 +478,7 @@ module digital_core import const_pack::*; (
     assign pdbg_intf_i.prbs_total_bits_upper = prbs_total_bits[63:32];
     assign pdbg_intf_i.prbs_total_bits_lower = prbs_total_bits[31:0];
 
+
     prbs_checker #(
         .n_prbs(Nprbs),
         .n_channels(Nti)
@@ -459,7 +500,22 @@ module digital_core import const_pack::*; (
         .checker_mode(pdbg_intf_i.prbs_checker_mode),
         // outputs
         .err_bits(prbs_err_bits),
-        .total_bits(prbs_total_bits)
+        .total_bits(prbs_total_bits),
+        .prbs_flags(prbs_flags)
+    );
+
+    error_tracker #(
+        .width(Nti),
+        .error_bitwidth(error_gpack::est_error_precision),
+        .addrwidth(10)
+    ) errt_i (
+        .prbs_flags(prbs_flags),
+        .est_error(est_errors),
+        .sliced_bits(sliced_bits),
+        .sd_flags(sd_flags),
+        .clk(clk_adc),
+        .rstb(rstb),
+        .errt_dbg_intf_i(edbg_intf_i)
     );
 
     // Histogram data generator for BIST
@@ -584,6 +640,7 @@ module digital_core import const_pack::*; (
         .wdbg_intf_i(wdbg_intf_i),
         .mdbg_intf_i(mdbg_intf_i),
         .hdbg_intf_i(hdbg_intf_i),
+        .edbg_intf_i(edbg_intf_i),
         .tdbg_intf_i(tdbg_intf_i),
         .odbg_intf_i(odbg_intf_i),
         .jtag_intf_i(jtag_intf_i)

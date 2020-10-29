@@ -32,7 +32,8 @@ module prbs_checker #(
 
     // outputs
     output wire logic [63:0] err_bits,
-    output wire logic [63:0] total_bits
+    output wire logic [63:0] total_bits,
+    output wire logic [n_channels-1:0] prbs_flags
 );
     // TODO: consider using enum here
     localparam logic [1:0]  RESET = 2'b00;
@@ -42,6 +43,7 @@ module prbs_checker #(
 
     // instantiate the core prbs checker
     logic [(n_channels-1):0] err_signals;
+    assign prbs_flags = err_signals;
     genvar k;
     generate
         for (k=0; k<n_channels; k=k+1) begin
