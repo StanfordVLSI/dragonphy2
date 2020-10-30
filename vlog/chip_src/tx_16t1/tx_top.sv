@@ -32,7 +32,8 @@ wire [3:0] clk_interp_slice; // Output from the phase interpolator
 wire [3:0] clk_interp_sw; //
 
 wire clk_in_pi;
-
+wire logic mtb_n;  // mux to buffer -
+wire logic mtb_p;  // mux to buffer +
 
 
 wire [15:0] din_reorder;
@@ -57,6 +58,8 @@ assign din_reorder[15] = din[0];
 //                           After going through the TX                     
 // Output order [0][4][8][12][2][6][10][14][1][5][9][13][3][7][11][15]
 //             Late   <--------------------------------------->   Early
+
+
 
 
 // Global reset 
@@ -148,8 +151,7 @@ hr_16t4_mux_top hr_mux_16t4_0 (
     .clk_hr(clk_halfrate), // This is a divided (by 2) clock from quarter-rate 4 to 1 mux
     .din(din_reorder),
     .rst(rst), 
-    .dout(qr_data_p),
-    .clk_b2(clk_prbsgen)  // This clk_halfrate 
+    .dout(qr_data_p)
 );
 
 //Instantiate quarter-rate 4 to 1 mux top
@@ -160,17 +162,15 @@ qr_4t1_mux_top qr_mux_4t1_0 (
     .clk_IB(clk_interp_slice[3]),
     .din(qr_data_p), // Quarter-rate data from half-rate 16 to 4 mux
     .rst(rst),
-    .ck_b2(clk_halfrate), // Divided quarter-rate clock for 16 to 4 mux
     .data(dout_p) // Final data output + positive Output driver and termination needs to be added 
 );
 
 // Data - negative
 hr_16t4_mux_top hr_mux_16t4_1 (
-    .clk_hr(clk_halfrate_n), // This is a divided (by 2) clock from quarter-rate 4 to 1 mux
+    .clk_hr(clk_halfrate), // This is a divided (by 2) clock from quarter-rate 4 to 1 mux
     .din(~din_reorder), // Inverting the data input for differential output
     .rst(rst),
-    .dout(qr_data_n),
-    .clk_b2()  // This is a residue clock signal 
+    .dout(qr_data_n)
 );
 
 //Instantiate quarter-rate 4 to 1 mux top
@@ -181,9 +181,23 @@ qr_4t1_mux_top qr_mux_4t1_1 (
     .clk_IB(clk_interp_slice[3]),
     .din(qr_data_n), // Quarter-rate data from half-rate 16 to 4 mux
     .rst(rst),
-    .ck_b2(clk_halfrate_n), // Divided quarter-rate clock for 16 to 4 mux
     .data(dout_n) // Final data output - negative Output driver and termination needs to be added
 );
+
+div_b2 div0 (.clkin(clk_interp_slice[3]), .rst(rst), .clkout(clk_halfrate));  // 4GHz to 2GHz, output goes to hr_16t4_mux
+div_b2 div1 (.clkin(clk_halfrate), .rst(rst), .clkout(clk_prbsgen));  // 2GHz to 1GHz, output goes to prbs_gen
+
+
+// Instantiate the output buf
+output_buf_tx buf(
+    .DINN(mtb_n),
+    .DINP(mtb_p),
+    .CTL_SLICE_N(tx.ctl_buf_n),
+    .CTL_SLICE_P(tx.ctl_buf_p),
+    .DOUTN(dout_n),
+    .DOUTP(dout_p)
+);
+
 
 endmodule
 
