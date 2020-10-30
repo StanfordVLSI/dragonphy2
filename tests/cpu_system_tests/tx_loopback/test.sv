@@ -142,6 +142,8 @@ module test;
 
             // transmitter signals
             $shm_probe(top_i.itx);
+            $shm_probe(top_i.itx.clk_halfrate);
+            $shm_probe(top_i.itx.clk_halfrate_n);
 
             // PI controls
             $shm_probe(top_i.idcore.int_pi_ctl_cdr);
