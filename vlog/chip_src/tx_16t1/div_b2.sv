@@ -1,5 +1,3 @@
-
-
 `default_nettype none
 
 module div_b2 (
@@ -8,11 +6,7 @@ module div_b2 (
     output reg clkout
 );
 
-initial begin
-    clkout = 1'b0;
-end
-
-always@(posedge clkin) begin
+always @(posedge clkin or posedge rst) begin
     if (rst) begin
         clkout <= 0;
     end else begin
