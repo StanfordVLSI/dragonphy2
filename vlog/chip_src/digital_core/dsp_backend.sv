@@ -9,7 +9,6 @@ module dsp_backend (
 
 	dsp_debug_intf.dsp dsp_dbg_intf_i
 );
-	localparam integer ffe_code_centerBuffer      = 0;
 	localparam integer ffe_code_numPastBuffers     = dsp_pack::ffe_code_numPb; //$ceil((ffe_gpack::length-1)*1.0/(constant_gpack::channel_width));
 	localparam integer ffe_code_numFutureBuffers   = 0;
 
@@ -38,7 +37,7 @@ module dsp_backend (
 	wire logic 					  cmp_out_buffer [constant_gpack::channel_width-1:0][cmp_pipeline_depth-1:0];
 	wire logic [mlsd_gpack::bit_length-1:0] pb_buffer      [constant_gpack::channel_width-1:0][pb_buffer_depth-1:0];
 	
-    logic signed [ffe_gpack::weight_precision-1:0] weights [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0];
+    logic signed [ffe_gpack::weight_precision-1:0] weights [constant_gpack::channel_width-1:0][ffe_gpack::length-1:0];
     logic signed [mlsd_gpack::estimate_precision-1:0]    channel_est [constant_gpack::channel_width-1:0][mlsd_gpack::estimate_depth-1:0];
     logic signed [cmp_gpack::thresh_precision-1:0] thresh [constant_gpack::channel_width-1:0];
     logic [ffe_gpack::shift_precision-1:0] ffe_shift [constant_gpack::channel_width-1:0];
@@ -113,7 +112,7 @@ module dsp_backend (
 		.ffeDepth(ffe_gpack::length),
 		.numChannels(constant_gpack::channel_width),
 		.numBuffers    (ffe_code_pipeline_depth),
-		.centerBuffer  (ffe_code_centerBuffer)
+        .t0_buff (1)
 	) cffe_i (
 		.weights       (weights),
 		.flat_codes    (flat_codes_ffe),
