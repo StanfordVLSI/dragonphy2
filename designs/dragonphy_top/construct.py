@@ -84,6 +84,7 @@ def construct():
             Step( this_dir + '/output_buffer'     ),
             Step( this_dir + '/input_divider' ),
             Step( this_dir + '/phase_interpolator' ),
+            Step( this_dir + '/termination' ),
             Step( this_dir + '/mdll_r1' )
         ]
 
@@ -123,6 +124,7 @@ def construct():
         'output_buffer_lib.db',
         'input_divider_lib.db',
         'phase_interpolator_lib.db',
+        'termination_lib.db',
         'mdll_r1_top_lib.db',
         'sram_tt.db',
         'sram_small_tt.db'
@@ -139,6 +141,7 @@ def construct():
         'output_buffer.lib',
         'input_divider.lib',
         'phase_interpolator.lib',
+        'termination.lib',
         'sram_tt.lib',
         'sram_small_tt.lib'
     ]
@@ -149,6 +152,7 @@ def construct():
         'output_buffer.lef',
         'input_divider.lef',
         'phase_interpolator.lef',
+        'termination.lef',
         'mdll_r1_top.lef',
         'sram.lef',
         'sram_small.lef'
@@ -166,6 +170,7 @@ def construct():
         'output_buffer.gds',
         'input_divider.gds',
         'phase_interpolator.gds',
+        'termination.gds',
         'mdll_r1_top.gds',
         'sram.gds',
         'sram_small.gds'
@@ -177,8 +182,9 @@ def construct():
         'analog_core.spi',
         'mdll_r1_top_macro.cdl',
         'input_buffer.spi',
-        'input_divider.spi',  # TODO: should this be *.lvs.v instead?
-        'phase_interpolator.spi',  # TODO: should this be *.lvs.v instead?
+        'input_divider.spi',
+        'phase_interpolator.spi',
+        'termination.spi',
         'output_buffer.lvs.v',
         'mdll_r1_top.lvs.v',
         'sram.spi',
