@@ -42,6 +42,7 @@ set DC_GATE_CLOCK true
 
 set DC_FLATTEN_EFFORT $env(flatten_effort)
 set DC_RETIME $env(retime)
+set DC_RETIME_REGISTERS $env(retime_registers)
 # When boundary optimizations are off, set this variable to true to still
 # allow unconnected registers to be removed.
 
