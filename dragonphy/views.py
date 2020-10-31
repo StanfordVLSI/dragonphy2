@@ -144,6 +144,7 @@ def get_deps_asic(cell_name=None, impl_file=None, process='tsmc16'):
         'analog_core',
         'phase_interpolator',  # used in TX
         'input_divider',  # used in TX
+        'termination',  # used in TX
         'input_buffer',
         'output_buffer',
         'mdll_r1_top',
@@ -155,11 +156,15 @@ def get_deps_asic(cell_name=None, impl_file=None, process='tsmc16'):
     if process == 'freepdk-45nm':
         override['sram'] = 'chip_src_freepdk45'
         override['sram_small'] = 'chip_src_freepdk45'
+        override['tx_tri_buf'] = 'chip_src_freepdk45'
         skip.add('sram_144_1024_freepdk45')
         skip.add('sram_64_256_freepdk45')
+        skip.add('TBUF_X4')
     elif process == 'tsmc16':
         override['sram'] = 'chip_src_tsmc16'
         override['sram_small'] = 'chip_src_tsmc16'
+        override['tx_tri_buf'] = 'chip_src_tsmc16'
+        skip.add('BUFTD4BWP16P90')
         skip.add('TS1N16FFCLLSBLVTC1024X144M4SW')
         skip.add('TS1N16FFCLLSBLVTC256X64M4SW')
     else:

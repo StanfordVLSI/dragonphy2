@@ -9,7 +9,6 @@ module qr_4t1_mux_top (
     input wire logic clk_IB, // Four phase clock input from PI+MDLL
     input wire logic [3:0] din,
     input wire logic rst,
-    output wire logic ck_b2,
     output wire logic data
 );
 
@@ -42,7 +41,7 @@ ff_c dff_IB1 (.D(D0DIB), .CP(clk_QB), .Q(D1DIB));
 ff_c dff_IB2 (.D(D1DIB), .CP(clk_QB), .Q(D2MIB));
 
 // 4 to 1 mux
-div_b2 div (.clkin(clk_IB), .rst(rst), .clkout(ck_b2));
+// div_b2 div (.clkin(clk_IB), .rst(rst), .clkout(ck_b2));
 
 assign data = ((clk_Q  & clk_I  & D1MQ ) |
                (clk_I  & clk_QB & D1MI ) |
