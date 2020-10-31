@@ -19,6 +19,8 @@
 | tx_sel_meas_pi                |         | Nout-1:0               |              | Test         | out      | 0                  |
 | tx_en_inbuf                   |         |                        |              | Test         | out      | 0                  |
 | tx_sel_clk_source             |         |                        |              | Test         | out      | 0                  |
+| tx_ctl_buf_n                  |         | 7:0                    |              | Test         | out      | 0                  |
+| tx_ctl_buf_p                  |         | 7:0                    |              | Test         | out      | 0                  |
 | tx_bypass_inbuf_div           |         |                        |              | Test         | out      | 1                  |
 | tx_bypass_inbuf_div2          |         |                        |              | Test         | out      | 0                  |
 | tx_inbuf_ndiv                 |         | 2:0                    |              | Test         | out      | 0                  |
