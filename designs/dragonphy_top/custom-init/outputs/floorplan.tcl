@@ -24,6 +24,7 @@
     set horiz_pitch [dbGet top.fPlan.coreSite.size_x]
 
     set sram_FP_adjust [snap_to_grid 350 $horiz_pitch]
+    set tx_FP_adjust [snap_to_grid 250 $horiz_pitch]
     set bottom_y [snap_to_grid 100 $vert_pitch]
     set output_buffer_width [dbGet [dbGet -p top.insts.name *out_buff_i*].cell.size_x]
     set output_buffer_height [dbGet [dbGet -p top.insts.name *out_buff_i*].cell.size_y]
@@ -31,7 +32,12 @@
     set acore_width [dbGet [dbGet -p top.insts.name *iacore*].cell.size_x]
     set acore_height [dbGet [dbGet -p top.insts.name *iacore*].cell.size_y]
 
+    set pi_width [dbGet [lindex [dbGet -p top.insts.name *iPI*] 0].cell.size_x]
+    set pi_height [dbGet [lindex [dbGet -p top.insts.name *iPI*] 0].cell.size_y]
 
+    set indiv_width [dbGet [dbGet -p top.insts.name *indiv*].cell.size_x]
+    set indiv_height [dbGet [dbGet -p top.insts.name *indiv*].cell.size_y]
+    
     set mdll_width [dbGet [dbGet -p top.insts.name *imdll*].cell.size_x]
     set mdll_height [dbGet [dbGet -p top.insts.name *imdll*].cell.size_y]
 
@@ -69,7 +75,7 @@
     #             $core_margin_l $core_margin_b $core_margin_r $core_margin_t
 
 
-    set FP_width [snap_to_grid [expr 800 + $sram_FP_adjust] $horiz_pitch ]
+    set FP_width [snap_to_grid [expr 800 + $tx_FP_adjust + $sram_FP_adjust] $horiz_pitch ]
     set FP_height [snap_to_grid 700 $vert_pitch ]
     
 
@@ -91,10 +97,13 @@
     #set origin_acore_x    [snap_to_grid [expr $FP_width/2 - $acore_width/2] $horiz_pitch ]
     #set origin_acore_y    [expr $sram_height + $sram_to_acore_spacing_y ]
 
-    set origin_acore_x    [expr 199.98 + $sram_FP_adjust]
+    set origin_acore_x    [expr 199.98 + $tx_FP_adjust]
     set origin_acore_y    [expr 399.744 - $bottom_y]
-    
-    set origin_sram_ffe_x [expr 15*$blockage_width  + $core_margin_l]
+   
+    set origin_txindiv_x [expr [snap_to_grid 300 $horiz_pitch] + $tx_FP_adjust]
+    set origin_txindiv_y [expr [snap_to_grid 200 $vert_pitch]]
+ 
+    set origin_sram_ffe_x [expr $origin_acore_x + $acore_width + 100 + 15*$blockage_width  + $core_margin_l]
     set origin_sram_ffe_y [expr 6*$blockage_height + $core_margin_b]
    
     set origin_sram_ffe_y2 [expr $FP_height - 6*$blockage_height - $core_margin_t -$sram_height ]
@@ -107,29 +116,34 @@
     #set origin_async_x [expr 3*$blockage_width  + $core_margin_l]
     #set origin_async_y [expr $origin_sram_ffe_y + $sram_height +  $sram_to_buff_spacing_y]
     
-    set origin_async_x [expr 43.56 + $sram_FP_adjust]
+    set origin_async_x [expr 43.56 + $tx_FP_adjust]
     set origin_async_y [expr 312.192 -$bottom_y]
     #set origin_out_x [expr $FP_width - 6*$blockage_width - $output_buffer_width - $core_margin_l]
     #set origin_out_y [expr $origin_sram_adc_y + $sram_height + $sram_to_acore_spacing_y - 4 * $vert_pitch]
     
-    set origin_out_x [expr 555.3 + $sram_FP_adjust]
+    set origin_out_x [expr 555.3 + $tx_FP_adjust]
     set origin_out_y [expr 139.968 -$bottom_y]
     #set origin_main_x [expr $origin_acore_x + [snap_to_grid [expr $acore_width/2] $horiz_pitch]]
     #set origin_main_y [expr [snap_to_grid [expr $sram_height / 2.0] $vert_pitch] + $origin_sram_adc_y]
 
-    set origin_main_x [expr 373.77 + $sram_FP_adjust]
+    set origin_main_x [expr 373.77 + $tx_FP_adjust]
     set origin_main_y [expr 312.192 -$bottom_y]
     #set origin_mdll_x [expr $origin_out_x - $mdll_width - [snap_to_grid 60 $horiz_pitch]]
     #set origin_mdll_y [expr $origin_acore_y + [snap_to_grid [expr $acore_height/4] $vert_pitch ]  ]   
  
-    set origin_mdll_x [expr 462.51 + $sram_FP_adjust]
+    set origin_mdll_x [expr 462.51 + $tx_FP_adjust]
     set origin_mdll_y [expr 301.824 - $bottom_y]
     
-    set origin_mon_x [expr 566.82 + $sram_FP_adjust]
+    set origin_mon_x [expr 566.82 + $tx_FP_adjust]
     set origin_mon_y [expr 184.32 - $bottom_y]
 
-    set origin_ref_x [expr 504.09 + $sram_FP_adjust]
+    set origin_ref_x [expr 504.09 + $tx_FP_adjust]
     set origin_ref_y [expr 184.32 - $bottom_y]
+
+    set origin_txpi_x  [snap_to_grid 100 $horiz_pitch]
+    set txpi_x_spacing [snap_to_grid [expr $pi_width + 30] $horiz_pitch]
+    set origin_txpi_y  [snap_to_grid 250 $vert_pitch]
+    set txpi_y_spacing [snap_to_grid [expr $pi_height + 30] $vert_pitch]
 
     #set origin_ref_x [expr $FP_width - 6*$blockage_width - $input_buffer_width - $core_margin_l]
     #set origin_ref_y [expr $origin_out_y + $output_buffer_height + $blockage_height + 10*$vert_pitch]
@@ -178,19 +192,35 @@
         $origin_out_x \
         $origin_out_y
  
+    #PI Macros
+    placeInstance \
+    itx/iPI_0__iPI \
+        $origin_txpi_x \
+        $origin_txpi_y 
+
+    placeInstance \
+    itx/iPI_1__iPI \
+        [expr $origin_txpi_x + $txpi_x_spacing] \
+        $origin_txpi_y MY
+
+    placeInstance \
+    itx/iPI_2__iPI \
+        $origin_txpi_x \
+        [expr $origin_txpi_y + $txpi_y_spacing] MX
+
+    placeInstance \
+    itx/iPI_3__iPI \
+        [expr $origin_txpi_x + $txpi_x_spacing] \
+        [expr $origin_txpi_y + $txpi_y_spacing] R180
+
+    placeInstance \
+    itx/indiv \
+        $origin_txindiv_x \
+        $origin_txindiv_y R90
+
     #Memory Macros
     for {set k 0} {$k<4} {incr k} {
         if {[expr $k % 2] == 0} {
-            #placeInstance \
-            #idcore/omm_ffe_i/genblk3_$k\__sram_i/memory \
-            #    $origin_sram_ffe_x \
-            #    [expr $origin_sram_ffe_y + ($origin_sram_ffe_y2 - $origin_sram_ffe_y )*($k/2)]
-
-            #placeInstance \
-            #idcore/oneshot_multimemory_i/genblk3_$k\__sram_i/memory \
-            #    $origin_sram_adc_x \
-            #    [expr $origin_sram_adc_y + ($origin_sram_adc_y2 -$origin_sram_adc_y)*($k/2)]
-            
             placeInstance \
             idcore/omm_ffe_i_genblk3_$k\__sram_i_memory \
                 [expr $origin_sram_ffe_x + $sram_pair_spacing*($k/2)] \
@@ -202,15 +232,6 @@
                 $origin_sram_adc_y
 
         } else {
-            #placeInstance \
-            #idcore/omm_ffe_i/genblk3_$k\__sram_i/memory \
-            #    [expr $origin_sram_ffe_x + $sram_neighbor_spacing] \
-            #    [expr $origin_sram_ffe_y + ($origin_sram_ffe_y2 - $origin_sram_ffe_y )*($k/2)] MY 
-
-            #placeInstance \
-            #idcore/oneshot_multimemory_i/genblk3_$k\__sram_i/memory \
-            #    [expr $origin_sram_adc_x + $sram_neighbor_spacing ]\
-            #    [expr $origin_sram_adc_y + ($origin_sram_adc_y2 -$origin_sram_adc_y)*($k/2)] MY
             placeInstance \
             idcore/oneshot_multimemory_i_genblk3_$k\__sram_i_memory \
                 [expr $origin_sram_adc_x + $sram_neighbor_spacing +  $sram_pair_spacing*($k/2)] \
@@ -220,14 +241,13 @@
             idcore/omm_ffe_i_genblk3_$k\__sram_i_memory \
                 [expr $origin_sram_ffe_x + $sram_neighbor_spacing +  $sram_pair_spacing*($k/2)] \
                 $origin_sram_ffe_y2 MY
-
-
-            #placeInstance \
-            #idcore/oneshot_multimemory_i/genblk3_$k\__sram_i/memory \
-            #    [expr $origin_sram_adc_x + $sram_neighbor_spacing +  $sram_pair_spacing*($k/2)] \
-            #    $origin_sram_adc_y MY
         }
     }
+
+    placeInstance \
+    idcore/errt_i/errt_i_sram_i_memory \
+        [expr $origin_sram_adc_x + 2*$sram_pair_spacing] \
+        $origin_sram_adc_y 
 
     ###################
     # Place Blockages #
@@ -238,6 +258,20 @@
      #   [expr $origin_acore_x] \
      #   [expr $origin_sram_ffe_y2]
 
+    #rotated by 90
+    createPlaceBlockage -box  \
+        [expr $origin_txindiv_x -$blockage_width] \
+        [expr $origin_txindiv_y -$blockage_height] \
+        [expr $origin_txindiv_x + $indiv_height + $blockage_width] \
+        [expr $origin_txindiv_y + $indiv_width + $blockage_height] 
+    #PI Blockages
+    createPlaceBlockage -box \
+        [expr $origin_txpi_x -$blockage_width] \
+        [expr $origin_txpi_y -$blockage_height] \
+        [expr $origin_txpi_x + $txpi_x_spacing + $pi_width + $blockage_width] \
+        [expr $origin_txpi_y + $txpi_y_spacing + $pi_height + $blockage_height]
+    
+    #Memory Blockage
     createPlaceBlockage -box \
         [expr $origin_sram_ffe_x - $blockage_width] \
         [expr $origin_sram_ffe_y2 - $blockage_height] \
@@ -277,7 +311,7 @@
     createPlaceBlockage -box \
         [expr $origin_sram_adc_x - $blockage_width] \
         [expr $origin_sram_adc_y - $blockage_height] \
-        [expr $origin_sram_adc_x + 2*$sram_pair_spacing + $blockage_width] \
+        [expr $origin_sram_adc_x + 2*$sram_pair_spacing + $sram_width + $blockage_width] \
         [expr $origin_sram_adc_y + $sram_height         + $blockage_height]
 
     #createPlaceBlockage -box \

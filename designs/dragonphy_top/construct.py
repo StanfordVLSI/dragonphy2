@@ -75,6 +75,8 @@ def construct():
     qtm = Step(this_dir + '/qtm')
     # Block-level designs (only work in TSMC16)
     blocks = []
+
+    print(DRAGONPHY_PROCESS)
     if DRAGONPHY_PROCESS == 'TSMC16':
         blocks += [
             Step( this_dir + '/analog_core'       ),

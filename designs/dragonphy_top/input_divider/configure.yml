@@ -5,8 +5,8 @@ name: input_divider
 commands:
   - |
     mkdir -p outputs
-    tar -xzvf /home/sjkim85/dragonphy_tarballs/input_divider-latest.tar.gz -C outputs
-
+    tar -xvf /home/sjkim85/dragonphy_tarballs/input_divider-latest.tar.gz -C outputs
+    mv outputs/input_divider-0.1.0/* outputs/
 outputs:
   - input_divider.lef
   - input_divider.gds

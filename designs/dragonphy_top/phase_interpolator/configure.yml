@@ -5,8 +5,8 @@ name: phase_interpolator
 commands:
   - |
     mkdir -p outputs
-    tar -xzvf /home/sjkim85/dragonphy_tarballs/phase_interpolator-latest.tar.gz -C outputs
-
+    tar -xvf /home/sjkim85/dragonphy_tarballs/phase_interpolator-latest.tar.gz -C outputs
+    mv outputs/phase_interpolator-0.1.0/* outputs/
 outputs:
   - phase_interpolator.lef
   - phase_interpolator.gds
