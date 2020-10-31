@@ -33,7 +33,7 @@ requires_list = [
     'scipy',
     'matplotlib',
     'sklearn',
-    'pygraphviz',
+    #'pygraphviz',
     'html5lib',
     'lxml',
     'scikit-rf',

@@ -69,7 +69,7 @@ module test;
 
     tx_prbs #(
         .freq(full_rate),
-        .td(34.7e-12)
+        .td(0)
     ) tx_prbs_i (
         .clk(tx_clk),
         .out(tx_data)
@@ -128,10 +128,16 @@ module test;
             $shm_open("waves.shm");
 
             // MM CDR instance
+            $shm_probe(top_i.idcore.iMM_CDR);
+            $shm_probe(top_i.idcore.iMM_CDR.din);
             $shm_probe(top_i.idcore.iMM_CDR.pi_ctl);
-            $shm_probe(top_i.idcore.iMM_CDR.phase_error);
+            $shm_probe(top_i.idcore.iMM_CDR.pd_phase_error);
             $shm_probe(top_i.idcore.iMM_CDR.phase_est_update);
+            $shm_probe(top_i.idcore.iMM_CDR.phase_error_q);
+            $shm_probe(top_i.idcore.iMM_CDR.freq_est_q);
+            $shm_probe(top_i.idcore.iMM_CDR.phase_update_clamped);
             $shm_probe(top_i.idcore.iMM_CDR.phase_est_d);
+            $shm_probe(top_i.idcore.iMM_CDR.phase_est_q);
             $shm_probe(top_i.idcore.iMM_CDR.phase_est_out);
 
             // Calculating PI control codes
@@ -139,6 +145,7 @@ module test;
             $shm_probe(top_i.idcore.unscaled_pi_ctl);
             $shm_probe(top_i.idcore.scaled_pi_ctl);
             $shm_probe(top_i.idcore.int_pi_ctl_cdr);
+            $shm_probe(top_i.idcore.cdbg_intf_i.sel_inp_mux);
             $shm_probe(top_i.idcore.ddbg_intf_i.ext_pi_ctl_offset);
             $shm_probe(top_i.idcore.ddbg_intf_i.en_ext_max_sel_mux);
             $shm_probe(top_i.idcore.ddbg_intf_i.en_bypass_pi_ctl);
@@ -160,10 +167,6 @@ module test;
             // data in digital_core
             $shm_probe(top_i.idcore.adcout_unfolded);
             $shm_probe(top_i.idcore.estimated_bits);
-            $shm_probe(top_i.idcore.dsp_i.cffe_i.weights);
-            $shm_probe(top_i.idcore.dsp_i.cffe_i.flat_codes);
-            $shm_probe(top_i.idcore.dsp_i.cffe_i.disable_product);
-            $shm_probe(top_i.idcore.dsp_i.cffe_i.shift_index);
             $shm_probe(top_i.idcore.dsp_dbg_intf_i.weights);
             $shm_probe(top_i.idcore.dsp_dbg_intf_i.ffe_shift);
         `endif
