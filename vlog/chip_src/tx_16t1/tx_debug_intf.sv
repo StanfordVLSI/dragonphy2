@@ -47,8 +47,9 @@ interface tx_debug_intf import const_pack::*; (
 		// Input clock signal measurement
 		logic inbuf_out_meas;								// to output buffer									
 		
-		
-		
+		// output buffer control
+        logic [7:0] ctl_buf_n;
+		logic [7:0] ctl_buf_p;
 
 	modport tx (
 		
@@ -82,6 +83,10 @@ interface tx_debug_intf import const_pack::*; (
 		input sel_del_out_pi,
 		input en_del_out_pi,
 
+        // output buf
+        input ctl_buf_n,
+        input ctl_buf_p,
+        
         // outputs from analog core
        	output del_out,
        	output pm_out_pi ,
@@ -125,6 +130,10 @@ interface tx_debug_intf import const_pack::*; (
     
         output sel_del_out_pi,
         output en_del_out_pi,
+
+        // output buf ctl
+        output ctl_buf_n,
+        output ctl_buf_p,
 
         // outputs from analog core
         input del_out,
