@@ -61,25 +61,15 @@ create_clock -name clk_tx_pi_3 \\
 
 # clock dividers
 
-create_generated_clock -name clk_tx_hr_0 \\
-    -source [get_pins itx/qr_mux_4t1_0/div/clkin] \\
+create_generated_clock -name clk_tx_hr \\
+    -source [get_pins itx/div0/clkin] \\
     -divide_by 2 \\
-    [get_pins itx/qr_mux_4t1_0/div/clkout]
+    [get_pins itx/div0/clkout]
 
-create_generated_clock -name clk_tx_hr_1 \\
-    -source [get_pins itx/qr_mux_4t1_1/div/clkin] \\
+create_generated_clock -name clk_tx_qr \\
+    -source [get_pins itx/div1/clkin] \\
     -divide_by 2 \\
-    [get_pins itx/qr_mux_4t1_1/div/clkout]
-
-create_generated_clock -name clk_tx_qr_0 \\
-    -source [get_pins itx/hr_mux_16t4_0/clk_div/clkin] \\
-    -divide_by 2 \\
-    [get_pins itx/hr_mux_16t4_0/clk_div/clkout]
-
-create_generated_clock -name clk_tx_qr_1 \\
-    -source [get_pins itx/hr_mux_16t4_1/clk_div/clkin] \\
-    -divide_by 2 \\
-    [get_pins itx/hr_mux_16t4_1/clk_div/clkout]
+    [get_pins itx/div1/clkout]
 
 #####################
 # clock uncertainty #
@@ -100,16 +90,12 @@ set_clock_uncertainty -setup 0.01 clk_tx_pi_3
 set_clock_uncertainty -hold 0.01 clk_tx_pi_3
 
 # half rate
-set_clock_uncertainty -setup 0.02 clk_tx_hr_0
-set_clock_uncertainty -hold 0.02 clk_tx_hr_0
-set_clock_uncertainty -setup 0.02 clk_tx_hr_1
-set_clock_uncertainty -hold 0.02 clk_tx_hr_1
+set_clock_uncertainty -setup 0.02 clk_tx_hr
+set_clock_uncertainty -hold 0.02 clk_tx_hr
 
 # quarter rate
-set_clock_uncertainty -setup 0.03 clk_tx_qr_0
-set_clock_uncertainty -hold 0.03 clk_tx_qr_0
-set_clock_uncertainty -setup 0.03 clk_tx_qr_1
-set_clock_uncertainty -hold 0.03 clk_tx_qr_1
+set_clock_uncertainty -setup 0.03 clk_tx_qr
+set_clock_uncertainty -hold 0.03 clk_tx_qr
 
 ################
 # JTAG interface
@@ -156,10 +142,8 @@ set_clock_groups -asynchronous \\
         clk_tx_pi_1 \\
         clk_tx_pi_2 \\
         clk_tx_pi_3 \\
-        clk_tx_hr_0 \\
-        clk_tx_hr_1 \\
-        clk_tx_qr_0 \\
-        clk_tx_qr_1 \\
+        clk_tx_hr \\
+        clk_tx_qr \\
     }} \\
     -group {{ clk_retimer clk_main_buf }}
 
@@ -296,10 +280,8 @@ set_max_transition {0.025*time_scale} -clock_path [get_clock clk_tx_pi_0]
 set_max_transition {0.025*time_scale} -clock_path [get_clock clk_tx_pi_1]
 set_max_transition {0.025*time_scale} -clock_path [get_clock clk_tx_pi_2]
 set_max_transition {0.025*time_scale} -clock_path [get_clock clk_tx_pi_3]
-set_max_transition {0.05*time_scale} -clock_path [get_clock clk_tx_hr_0]
-set_max_transition {0.05*time_scale} -clock_path [get_clock clk_tx_hr_1]
-set_max_transition {0.1*time_scale} -clock_path [get_clock clk_tx_qr_0]
-set_max_transition {0.1*time_scale} -clock_path [get_clock clk_tx_qr_1]
+set_max_transition {0.05*time_scale} -clock_path [get_clock clk_tx_hr]
+set_max_transition {0.1*time_scale} -clock_path [get_clock clk_tx_qr]
 
 # Set transition time for high-speed signals monitored from iacore and itx
 # transition time is 10% of a 4 GHz period.
