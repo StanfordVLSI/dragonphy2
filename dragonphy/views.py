@@ -165,6 +165,18 @@ def get_deps_asic(cell_name=None, impl_file=None, process='tsmc16'):
     else:
         raise Exception(f'Unknown process: {process}')
 
+    override = {}
+    if process == 'freepdk-45nm':
+        override['tx_tri_buf'] = 'chip_src_freepdk45'
+        skip.add('TBUF_X4')
+
+    elif process == 'tsmc16':
+        override['tx_tri_buf'] = 'chip_src_tsmc16'
+        skip.add('BUFTD4BWP16P90')
+    else:
+        raise Exception(f'Unknown process: {process}')
+
+
     # Build up the dependency list
     deps = []
     deps += get_deps(

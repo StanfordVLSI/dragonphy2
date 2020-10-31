@@ -149,6 +149,7 @@ assign rstb = ~rst;
 // Data + positive
 hr_16t4_mux_top hr_mux_16t4_0 (
     .clk_hr(clk_halfrate), // This is a divided (by 2) clock from quarter-rate 4 to 1 mux
+    .clk_prbs(clk_prbsgen),
     .din(din_reorder),
     .rst(rst), 
     .dout(qr_data_p)
@@ -162,12 +163,13 @@ qr_4t1_mux_top qr_mux_4t1_0 (
     .clk_IB(clk_interp_slice[3]),
     .din(qr_data_p), // Quarter-rate data from half-rate 16 to 4 mux
     .rst(rst),
-    .data(dout_p) // Final data output + positive Output driver and termination needs to be added 
+    .data(mtb_p) // Final data output + positive Output driver and termination needs to be added 
 );
 
 // Data - negative
 hr_16t4_mux_top hr_mux_16t4_1 (
     .clk_hr(clk_halfrate), // This is a divided (by 2) clock from quarter-rate 4 to 1 mux
+    .clk_prbs(clk_prbsgen),
     .din(~din_reorder), // Inverting the data input for differential output
     .rst(rst),
     .dout(qr_data_n)
@@ -181,7 +183,7 @@ qr_4t1_mux_top qr_mux_4t1_1 (
     .clk_IB(clk_interp_slice[3]),
     .din(qr_data_n), // Quarter-rate data from half-rate 16 to 4 mux
     .rst(rst),
-    .data(dout_n) // Final data output - negative Output driver and termination needs to be added
+    .data(mtb_n) // Final data output - negative Output driver and termination needs to be added
 );
 
 div_b2 div0 (.clkin(clk_interp_slice[3]), .rst(rst), .clkout(clk_halfrate));  // 4GHz to 2GHz, output goes to hr_16t4_mux
@@ -189,7 +191,7 @@ div_b2 div1 (.clkin(clk_halfrate), .rst(rst), .clkout(clk_prbsgen));  // 2GHz to
 
 
 // Instantiate the output buf
-output_buf_tx buf(
+output_buf_tx buf1 (
     .DINN(mtb_n),
     .DINP(mtb_p),
     .CTL_SLICE_N(tx.ctl_buf_n),

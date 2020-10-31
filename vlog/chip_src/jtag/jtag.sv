@@ -330,10 +330,15 @@ module jtag (
     assign tdbg_intf_i.en_inbuf_meas = rjtag_intf_i.tx_en_inbuf_meas;
     assign tdbg_intf_i.sel_del_out_pi = rjtag_intf_i.tx_sel_del_out_pi;
     assign tdbg_intf_i.en_del_out_pi = rjtag_intf_i.tx_en_del_out_pi;
-    assign rjtag_intf_i.tx_pm_out_pi = tdbg_intf_i.pm_out_pi;
+    assign tdbg_intf_i.ctl_buf_n = rjtag_intf_i.tx_ctl_buf_n;
+	assign tdbg_intf_i.ctl_buf_p = rjtag_intf_i.tx_ctl_buf_p;
+	assign rjtag_intf_i.tx_pm_out_pi = tdbg_intf_i.pm_out_pi;
     assign rjtag_intf_i.tx_cal_out_pi = tdbg_intf_i.cal_out_pi;
     assign rjtag_intf_i.tx_Qperi = tdbg_intf_i.Qperi;
     assign rjtag_intf_i.tx_max_sel_mux = tdbg_intf_i.max_sel_mux;
+	
+
+
 
     // Transmitter data generator
     assign odbg_intf_i.tx_data_gen_rst = rjtag_intf_i.tx_data_gen_rst;
