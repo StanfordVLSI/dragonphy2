@@ -1,14 +1,17 @@
-module tx_tri_buf(
+module tx_tri_buf_4(
     input wire logic DIN,
     input wire logic en,
     output wire logic DOUT 
 );
-
-			BUFTD4BWP16P90 tri_buf (
+		generate
+			for (genvar i=0; i<4; i=i+1) begin: iBUF
+			tx_tri_buf tri_buf (
 		        // user-provided signals
 		        .I(DIN), // Input
-		        .Z(DOUT), // Output
+		        .X(DOUT), // Output
 		        .OE(en) 
 	        );
-
+			end
+		endgenerate
+			
 endmodule
