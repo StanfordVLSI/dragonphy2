@@ -48,8 +48,8 @@ interface tx_debug_intf import const_pack::*; (
 		logic inbuf_out_meas;								// to output buffer									
 		
 		// output buffer control
-        logic [7:0] ctl_buf_n;
-		logic [7:0] ctl_buf_p;
+        logic [35:0] ctl_buf_n;
+		logic [35:0] ctl_buf_p;
 
 	modport tx (
 		
