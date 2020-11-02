@@ -7,7 +7,7 @@ module tx_tri_buf(
 BUFTD4BWP16P90 tri_buf (
 		        // user-provided signals
 		        .I(DIN), // Input
-		        .X(DOUT), // Output
+		        .Z(DOUT), // Output
 		        .OE(en) 
 	        );
 

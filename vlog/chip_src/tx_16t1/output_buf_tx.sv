@@ -1,8 +1,10 @@
 module output_buf_tx (
 	input wire logic DINN,
 	input wire logic DINP,
-	input wire logic [7:0] CTL_SLICE_N,
-    input wire logic [7:0] CTL_SLICE_P,
+	input wire logic [17:0] CTL_SLICE_N0,
+    input wire logic [17:0] CTL_SLICE_N1,
+    input wire logic [17:0] CTL_SLICE_P0,
+    input wire logic [17:0] CTL_SLICE_P1,
 	output wire logic DOUTN,
     output wire logic DOUTP
 );
@@ -28,29 +30,57 @@ module output_buf_tx (
 
 
     
-    // instantiate BUFTD +
+    // instantiate BUFTD -
 
     generate 
-        for (genvar i=0; i<8; i=i+1) begin: iBUFN
-	        tx_tri_buf i_tri_buf (
+        
+        for (genvar i=0; i<18; i=i+1) begin: iBUF_N0
+	        tx_tri_buf i_tri_buf_n0 (
 		        // user-provided signals
 		        .DIN(DINN), // Input
-		        .en(CTL_SLICE_N[i]), // Output
+		        .en(CTL_SLICE_N0[i]), // Output
+		        .DOUT(BTN) 
+	        );
+        end
+    endgenerate
+
+    generate 
+        
+        for (genvar ii=0; ii<18; ii=ii+1) begin: iBUF_N1
+	        tx_tri_buf i_tri_buf_n1 (
+		        // user-provided signals
+		        .DIN(DINN), // Input
+		        .en(CTL_SLICE_N1[ii]), // Output
 		        .DOUT(BTN) 
 	        );
         end
     endgenerate
 
 
+    // instantiate BUFTD +
+
     generate 
-        for (genvar j=0; j<8; j=j+1) begin: iBUFP
-	        tx_tri_buf i_tri_buf (
+        for (genvar j=0; j<18; j=j+1) begin: iBUF_P0
+	        tx_tri_buf i_tri_buf_p0 (
 		        // user-provided signals
 		        .DIN(DINP), // Input
-		        .en(CTL_SLICE_P[j]), // Output
+		        .en(CTL_SLICE_P0[j]), // Output
 		        .DOUT(BTP) 
 	        );
         end
     endgenerate
+
+    generate 
+        for (genvar jj=0; jj<18; jj=jj+1) begin: iBUF_P1
+	        tx_tri_buf i_tri_buf_p1 (
+		        // user-provided signals
+		        .DIN(DINP), // Input
+		        .en(CTL_SLICE_P1[jj]), // Output
+		        .DOUT(BTP) 
+	        );
+        end
+    endgenerate
+
+
 
 endmodule
