@@ -194,8 +194,10 @@ div_b2 div1 (.clkin(clk_halfrate), .rst(rst), .clkout(clk_prbsgen));  // 2GHz to
 output_buf_tx buf1 (
     .DINN(mtb_n),
     .DINP(mtb_p),
-    .CTL_SLICE_N(tx.ctl_buf_n),
-    .CTL_SLICE_P(tx.ctl_buf_p),
+    .CTL_SLICE_N0(tx.ctl_buf_n0),
+    .CTL_SLICE_N1(tx.ctl_buf_n1),
+    .CTL_SLICE_P0(tx.ctl_buf_p0),
+    .CTL_SLICE_P1(tx.ctl_buf_p1),
     .DOUTN(dout_n),
     .DOUTP(dout_p)
 );
