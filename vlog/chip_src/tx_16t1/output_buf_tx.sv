@@ -1,8 +1,8 @@
 module output_buf_tx (
 	input wire logic DINN,
 	input wire logic DINP,
-	input wire logic [7:0] CTL_SLICE_N,
-    input wire logic [7:0] CTL_SLICE_P,
+	input wire logic [35:0] CTL_SLICE_N,
+    input wire logic [35:0] CTL_SLICE_P,
 	output wire logic DOUTN,
     output wire logic DOUTP
 );
@@ -31,33 +31,12 @@ module output_buf_tx (
     // instantiate BUFTD -
 
     generate 
-        for (genvar i=0; i<1; i=i+1) begin: iBUFN
-	        tx_tri_buf_2 i_tri_buf (
+        
+        for (genvar i=0; i<36; i=i+1) begin: iBUF_N
+	        tx_tri_buf i_tri_buf_n (
 		        // user-provided signals
 		        .DIN(DINN), // Input
 		        .en(CTL_SLICE_N[i]), // Output
-		        .DOUT(BTN) 
-	        );
-        end
-    endgenerate
-
-    generate 
-        for (genvar i=0; i<4; i=i+1) begin: iBUFN
-	        tx_tri_buf_4 i_tri_buf (
-		        // user-provided signals
-		        .DIN(DINN), // Input
-		        .en(CTL_SLICE_N[2+i]), // Output
-		        .DOUT(BTN) 
-	        );
-        end
-    endgenerate
-
-    generate 
-        for (genvar i=0; i<3; i=i+1) begin: iBUFN
-	        tx_tri_buf_6 i_tri_buf (
-		        // user-provided signals
-		        .DIN(DINN), // Input
-		        .en(CTL_SLICE_N[5+i]), // Output
 		        .DOUT(BTN) 
 	        );
         end
@@ -67,33 +46,11 @@ module output_buf_tx (
     // instantiate BUFTD +
 
     generate 
-        for (genvar i=0; i<1; i=i+1) begin: iBUFP
-	        tx_tri_buf_2 i_tri_buf (
+        for (genvar j=0; j<36; j=j+1) begin: iBUF_P
+	        tx_tri_buf i_tri_buf_p (
 		        // user-provided signals
 		        .DIN(DINP), // Input
-		        .en(CTL_SLICE_P[i]), // Output
-		        .DOUT(BTP) 
-	        );
-        end
-    endgenerate
-
-    generate 
-        for (genvar i=0; i<4; i=i+1) begin: iBUFP
-	        tx_tri_buf_4 i_tri_buf (
-		        // user-provided signals
-		        .DIN(DINP), // Input
-		        .en(CTL_SLICE_P[2+i]), // Output
-		        .DOUT(BTP) 
-	        );
-        end
-    endgenerate
-
-    generate 
-        for (genvar i=0; i<3; i=i+1) begin: iBUFP
-	        tx_tri_buf_6 i_tri_buf (
-		        // user-provided signals
-		        .DIN(DINP), // Input
-		        .en(CTL_SLICE_P[5+i]), // Output
+		        .en(CTL_SLICE_P[j]), // Output
 		        .DOUT(BTP) 
 	        );
         end

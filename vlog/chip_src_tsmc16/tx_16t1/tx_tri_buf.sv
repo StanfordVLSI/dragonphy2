@@ -4,7 +4,7 @@ module tx_tri_buf(
     output wire logic DOUT 
 );
 
-			BUFTD4BWP16P90 tri_buf (
+BUFTD4BWP16P90 tri_buf (
 		        // user-provided signals
 		        .I(DIN), // Input
 		        .Z(DOUT), // Output
