@@ -48,8 +48,10 @@ interface tx_debug_intf import const_pack::*; (
 		logic inbuf_out_meas;								// to output buffer									
 		
 		// output buffer control
-        logic [7:0] ctl_buf_n;
-		logic [7:0] ctl_buf_p;
+        logic [17:0] ctl_buf_n0;
+        logic [17:0] ctl_buf_n1;
+		logic [17:0] ctl_buf_p0;
+        logic [17:0] ctl_buf_p1;
 
 	modport tx (
 		
@@ -84,8 +86,10 @@ interface tx_debug_intf import const_pack::*; (
 		input en_del_out_pi,
 
         // output buf
-        input ctl_buf_n,
-        input ctl_buf_p,
+        input ctl_buf_n0,
+        input ctl_buf_p0,
+        input ctl_buf_n1,
+        input ctl_buf_p1,
         
         // outputs from analog core
        	output del_out,
@@ -132,8 +136,10 @@ interface tx_debug_intf import const_pack::*; (
         output en_del_out_pi,
 
         // output buf ctl
-        output ctl_buf_n,
-        output ctl_buf_p,
+        output ctl_buf_n0,
+        output ctl_buf_p0,
+        output ctl_buf_n1,
+        output ctl_buf_p1,
 
         // outputs from analog core
         input del_out,
