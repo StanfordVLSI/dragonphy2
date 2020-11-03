@@ -14,6 +14,7 @@
     set horiz_pitch [dbGet top.fPlan.coreSite.size_x]
 
 	set sram_FP_adjust [snap_to_grid 350 $horiz_pitch]
+    set tx_FP_adjust [snap_to_grid 250 $horiz_pitch]
     set bottom_y [snap_to_grid 100 $vert_pitch]
 
     set core_margin_t 0;#$vert_pitch
@@ -28,12 +29,22 @@
     set acore_width [dbGet [dbGet -p top.insts.name *iacore*].cell.size_x]
     set acore_height [dbGet [dbGet -p top.insts.name *iacore*].cell.size_y]
 
+    set pi_width [dbGet [lindex [dbGet -p top.insts.name *iPI*] 0].cell.size_x]
+    set pi_height [dbGet [lindex [dbGet -p top.insts.name *iPI*] 0].cell.size_y]
 
+    set indiv_width [dbGet [dbGet -p top.insts.name *indiv*].cell.size_x]
+    set indiv_height [dbGet [dbGet -p top.insts.name *indiv*].cell.size_y]
+    
     set mdll_width [dbGet [dbGet -p top.insts.name *imdll*].cell.size_x]
     set mdll_height [dbGet [dbGet -p top.insts.name *imdll*].cell.size_y]
 
+    set sram_height [dbGet [dbGet -p top.insts.name *errt_i_sram_i_memory*].cell.size_y] 
+    set sram_width  [dbGet [dbGet -p top.insts.name *errt_i_sram_i_memory*].cell.size_x] 
 
-    set FP_width [snap_to_grid [expr 800 + $sram_FP_adjust] $horiz_pitch ]
+    set small_sram_height [dbGet [lindex [dbGet -p top.insts.name *hist_sram_inst_memory*] 0].cell.size_y] 
+    set small_sram_width  [dbGet [lindex [dbGet -p top.insts.name *hist_sram_inst_memory*] 0].cell.size_x] 
+
+    set FP_width [snap_to_grid [expr 800 + $tx_FP_adjust +  $sram_FP_adjust] $horiz_pitch ]
     set FP_height [snap_to_grid 700 $vert_pitch ]
 
     set sram_to_acore_spacing_x [snap_to_grid 40 $horiz_pitch]
@@ -47,7 +58,7 @@
     set sram_vert_spacing [snap_to_grid 200 $vert_pitch]
 
 	
-	set origin_acore_x    [expr 199.98 + $sram_FP_adjust]
+	set origin_acore_x    [expr 199.98 + $tx_FP_adjust]
     set origin_acore_y    [expr 399.744 - $bottom_y]
 
     set origin_sram_ffe_x [expr 15*$blockage_width  + $core_margin_l]
@@ -59,23 +70,29 @@
     set origin_sram_adc_y [expr 6*$blockage_height + $core_margin_b]
     set origin_sram_adc_y2 [expr $FP_height - 6*$blockage_height - $core_margin_t -$sram_height]
 
-    set origin_async_x [expr 43.56 + $sram_FP_adjust]
+    set origin_async_x [expr 43.56 + $tx_FP_adjust]
     set origin_async_y [expr 312.192 - $bottom_y]
 
-    set origin_out_x [expr 555.3 + $sram_FP_adjust]
+    set origin_out_x [expr 555.3 + $tx_FP_adjust]
     set origin_out_y [expr 140.544 - $bottom_y]
 
-    set origin_main_x [expr 373.77 + $sram_FP_adjust]
+    set origin_main_x [expr 373.77 + $tx_FP_adjust]
     set origin_main_y [expr 312.192 - $bottom_y]
 
-    set origin_mdll_x [expr 462.51 + $sram_FP_adjust]
+    set origin_mdll_x [expr 462.51 + $tx_FP_adjust]
     set origin_mdll_y [expr 301.824 - $bottom_y]
 
-    set origin_mon_x [expr 566.82 + $sram_FP_adjust]
+    set origin_mon_x [expr 566.82 + $tx_FP_adjust]
     set origin_mon_y [expr 184.32 - $bottom_y]
 
-    set origin_ref_x [expr 504.09 + $sram_FP_adjust]
+    set origin_ref_x [expr 504.09 + $tx_FP_adjust]
     set origin_ref_y [expr 184.32 - $bottom_y]
+
+    set origin_txpi_x  [snap_to_grid 100 $horiz_pitch]
+    set txpi_x_spacing [snap_to_grid [expr $pi_width + 30] $horiz_pitch]
+    
+    set origin_txpi_y  [snap_to_grid 250 $vert_pitch]
+    set txpi_y_spacing [snap_to_grid [expr $pi_height + 30] $vert_pitch]
 
 createRouteBlk -box \
     [expr $origin_mdll_x-$blockage_width] \
@@ -120,9 +137,16 @@ createRouteBlk -box \
     -name memory_ffe_blk -layer 1
 
 createRouteBlk -box \
+    [expr $origin_sram_ffe_x + 2*$sram_pair_spacing] \
+    [expr $origin_sram_ffe_y2 - $blockage_height] \
+    [expr $origin_sram_ffe_x + 2*$sram_pair_spacing + $small_sram_width + $blockage_width]\
+    [expr $origin_sram_ffe_y2 + 2*$small_sram_height + $blockage_height] \
+    -name memory_hist_blk -layer 1
+
+createRouteBlk -box \
     [expr $origin_sram_adc_x - $blockage_width] \
     [expr $origin_sram_adc_y - $blockage_height] \
-    [expr $origin_sram_adc_x + 2*$sram_pair_spacing + $blockage_width] \
+    [expr $origin_sram_adc_x + 2*$sram_pair_spacing + $sram_width +  $blockage_width] \
     [expr $origin_sram_adc_y + $sram_height         + $blockage_height] \
     -name memory_adc_blk -layer 1
 

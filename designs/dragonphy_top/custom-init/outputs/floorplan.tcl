@@ -42,6 +42,9 @@
     set mdll_width [dbGet [dbGet -p top.insts.name *imdll*].cell.size_x]
     set mdll_height [dbGet [dbGet -p top.insts.name *imdll*].cell.size_y]
 
+    set sram_height [dbGet [dbGet -p top.insts.name *errt_i_sram_i_memory*].cell.size_y] 
+    set sram_width  [dbGet [dbGet -p top.insts.name *errt_i_sram_i_memory*].cell.size_x] 
+    
     set small_sram_height [dbGet [lindex [dbGet -p top.insts.name *hist_sram_inst_memory*] 0].cell.size_y] 
     set small_sram_width  [dbGet [lindex [dbGet -p top.insts.name *hist_sram_inst_memory*] 0].cell.size_x] 
 
@@ -348,7 +351,13 @@
         [expr $origin_acore_y - 3*$blockage_height] \
         [expr $origin_acore_x + 3*$blockage_width] \
         [expr $origin_acore_y + 3* $blockage_height ]
-    
+   
+    createPlaceBlockage -type soft -density 25 -box \
+        [expr $origin_acore_x - 5*$blockage_width] \
+        [expr $origin_mdll_y + $mdll_height -3*$blockage_height] \
+        [expr $origin_acore_x + $acore_width + 5*$blockage_width] \
+        [expr $origin_acore_y]
+
     createPlaceBlockage -box \
         [expr $origin_acore_x - $blockage_width] \
         [expr $origin_acore_y - 1*$blockage_height] \
