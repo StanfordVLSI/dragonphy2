@@ -35,14 +35,20 @@ simulator_name = 'ncsim'
 class dut(m.Circuit):
     name = 'datapath'
     io = m.IO(
-        clk                 = m.ClockIn,
-        rstb                = m.BitIn,
+        clk                          = m.ClockIn,
+        rstb                         = m.BitIn,
         unsigned_adc_codes           = m.In(m.Array[(constant_params['channel_width'], m.SInt[constant_params['code_precision']])]),
         unsigned_estimated_bits_out  = m.In(m.Array[(constant_params['channel_width'], m.SInt[ffe_params['output_precision']])]),
-        sliced_bits_out     = m.In(m.Array[(constant_params['channel_width'], m.SInt[1])]),
+        sliced_bits_out              = m.In(m.Array[(constant_params['channel_width'], m.SInt[1])]),
         unsigned_est_codes_out       = m.In(m.Array[(constant_params['channel_width'], m.SInt[constant_params['code_precision']])]),
         unsigned_est_errors_out      = m.In(m.Array[(constant_params['channel_width'], m.SInt[error_params['est_error_precision']])]),
-        sd_flags            = m.In(m.Array[(constant_params['channel_width'], m.SInt[2])])
+        sd_flags                     = m.In(m.Array[(constant_params['channel_width'], m.SInt[2])]),
+        unsigned_weights             = m.In(m.Array[(ffe_params['length'], m.SInt[ffe_params['weight_precision']])]),
+        unsigned_channel_est         = m.In(m.Array[(channel_params['est_channel_depth'], m.Sint[channel_params['est_channel_precision']])]),
+        ffe_shift                    = m.In(m.Bits[ffe_params['shift_precision']]),
+        unsighed_thresh              = m.In(m.Bits[comp_params['thresh_precision']]),
+        channel_shift                = m.In(m.Bits[channel_params['shift_precision']]),
+        align_pos                    = m.In(m.Bits[4])
     )
 
 
