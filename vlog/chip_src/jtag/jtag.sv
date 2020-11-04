@@ -340,8 +340,10 @@ module jtag (
     assign tdbg_intf_i.en_inbuf_meas = rjtag_intf_i.tx_en_inbuf_meas;
     assign tdbg_intf_i.sel_del_out_pi = rjtag_intf_i.tx_sel_del_out_pi;
     assign tdbg_intf_i.en_del_out_pi = rjtag_intf_i.tx_en_del_out_pi;
-    assign tdbg_intf_i.ctl_buf_n = rjtag_intf_i.tx_ctl_buf_n;
-	assign tdbg_intf_i.ctl_buf_p = rjtag_intf_i.tx_ctl_buf_p;
+    assign tdbg_intf_i.ctl_buf_n0 = rjtag_intf_i.tx_ctl_buf_n0;
+	assign tdbg_intf_i.ctl_buf_n1 = rjtag_intf_i.tx_ctl_buf_n1;
+	assign tdbg_intf_i.ctl_buf_p0 = rjtag_intf_i.tx_ctl_buf_p0;
+	assign tdbg_intf_i.ctl_buf_p1 = rjtag_intf_i.tx_ctl_buf_p1;
 	assign rjtag_intf_i.tx_pm_out_pi = tdbg_intf_i.pm_out_pi;
     assign rjtag_intf_i.tx_cal_out_pi = tdbg_intf_i.cal_out_pi;
     assign rjtag_intf_i.tx_Qperi = tdbg_intf_i.Qperi;
