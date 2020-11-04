@@ -12,7 +12,7 @@ from dragonphy import get_deps_cpu_sim, Configuration
 THIS_DIR = Path(__file__).parent.resolve()
 BUILD_DIR = THIS_DIR / 'build'
 
-system_values       = Configuration('system', path='/sim/zamyers/dragonphy2/config' )
+system_values       = Configuration('system', path_head='/sim/zamyers/dragonphy2/config' )
 ffe_config          = system_values['generic']['ffe']
 constant_config     = system_values['generic']
 comp_config         = system_values['generic']['comp']
