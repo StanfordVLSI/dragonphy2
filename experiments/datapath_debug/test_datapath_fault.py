@@ -50,8 +50,11 @@ class dut(m.Circuit):
 # create tester
 t = fault.Tester(dut, dut.clk)
 
+
 # initialize with the right equation
 t.zero_inputs()
+t.step(10)
+t.poke(dut.rstb, 1)
 
 # run the test
 ext_srcs = get_deps_cpu_sim(impl_file=THIS_DIR / 'datapath.sv')
@@ -60,7 +63,6 @@ t.compile_and_run(
     target='system-verilog',
     simulator=simulator_name,
     ext_srcs=ext_srcs,
-    parameters=parameters,
     ext_model_file=True,
     disp_type='realtime',
     dump_waveforms=dump_waveforms,
