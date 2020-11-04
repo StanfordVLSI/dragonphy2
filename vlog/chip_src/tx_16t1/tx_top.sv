@@ -25,7 +25,6 @@ module tx_top import const_pack::*; #(
 // Instantiate half-rate 16 to 4 mux top
 wire [3:0] qr_data_p;  // Output of 16 to 4 mux, positive
 wire [3:0] qr_data_n;  // Output of 16 to 4 mux, negative
-wire clk_halfrate_n;
 wire clk_halfrate;  // Input clock for 16 to 4 mux
 
 wire [3:0] clk_interp_slice; // Output from the phase interpolator

@@ -17,7 +17,6 @@ logic clk_full; // Full rate clock for prbs_checker 16GBps -> 16GHz
 logic cke;
 logic [9-1:0] ctl_pi[3:0];
 reg clk_2;  // Clock clk_a divided by 2
-logic clk_async;
 wire clk_encoder;
 logic ctl_valid;
 logic clk_oversample;
@@ -105,7 +104,7 @@ tx_top tx_mux (
     .mdll_clk(clk_prbschecker),
     .ext_clk(1'b0),
     .ctl_pi(ctl_pi),
-    .clk_async(clk_async),
+    .clk_async(1'b0),
     .clk_encoder(clk_encoder),
     .ctl_valid(ctl_valid),
     .rst(rst),
