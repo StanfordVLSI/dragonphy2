@@ -12,7 +12,7 @@ from dragonphy import get_deps_cpu_sim, Configuration
 THIS_DIR = Path(__file__).parent.resolve()
 BUILD_DIR = THIS_DIR / 'build'
 
-system_values       = Configuration('system', path_head='/sim/zamyers/dragonphy2/config' )
+system_values       = Configuration('system', path_head='/home/zamyers/dev/dragonphy2/config' )
 ffe_config          = system_values['generic']['ffe']
 constant_config     = system_values['generic']
 comp_config         = system_values['generic']['comp']
@@ -29,25 +29,23 @@ detector_params     = detector_config['parameters']
 
 
 # set defaults
-if simulator_name is None:
-    if shutil.which('iverilog'):
-        simulator_name = 'iverilog'
-    else:
-        simulator_name = 'ncsim'
+simulator_name = 'ncsim'
 
 # declare circuit
 class dut(m.Circuit):
-    name = 'datapath∂'
+    name = 'datapath'
     io = m.IO(
         clk                 = m.ClockIn,
         rstb                = m.BitIn,
-        adc_codes           = m.In(m.Array(m.Bits[constant_params['code_precision']], constant_params['channel_width'])),
-        estimated_bits_out  = m.In(m.Array(m.Bits[ffe_params['output_precision']], constant_params['channel_width'])),
-        sliced_bits_out     = m.In(m.Array(m.Bits[1],   constant_params['channel_width'])),
-        est_codes_out       = m.In(m.Array(m.Bits[constant_params['code_precision']], constant_params['channel_width'])),
-        est_errors_out      = m.In(m.Array(m.Bits[error_params['est_error_precision']], constant_params['channel_width'])),
-        sd_flags            = m.In(m.Array(m.Bits[2], constant_params['channel_width']))
+        adc_codes           = m.In(m.Array[constant_params['channel_width'], m.Bits[constant_params['code_precision']]]),
+        estimated_bits_out  = m.In(m.Array[constant_params['channel_width'], m.Bits[ffe_params['output_precision']]]),
+        sliced_bits_out     = m.In(m.Array[constant_params['channel_width'], m.Bits[1],   constant_params['channel_width']]),
+        est_codes_out       = m.In(m.Array[constant_params['channel_width'], m.Bits[constant_params['code_precision']]]),
+        est_errors_out      = m.In(m.Array[constant_params['channel_width'], m.Bits[error_params['est_error_precision']]]),
+        sd_flags            = m.In(m.Array[constant_params['channel_width'], m.Bits[2]])
     )
+
+
 
 # create tester
 t = fault.Tester(dut, dut.clk)
