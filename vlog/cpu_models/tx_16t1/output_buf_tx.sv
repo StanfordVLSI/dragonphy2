@@ -1,8 +1,10 @@
 module output_buf_tx (
 	input wire logic DINN,
 	input wire logic DINP,
-	input wire logic [7:0] CTL_SLICE_N,
-    input wire logic [7:0] CTL_SLICE_P,
+	input wire logic [17:0] CTL_SLICE_N0,
+	input wire logic [17:0] CTL_SLICE_N1,
+    input wire logic [17:0] CTL_SLICE_P0,
+	input wire logic [17:0] CTL_SLICE_P1,
 	output wire logic DOUTN,
     output wire logic DOUTP
 );
