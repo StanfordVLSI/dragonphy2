@@ -1,3 +1,18 @@
+# Check versions of critical packages
+# TODO: is there a cleaner way to do this?  We currently
+# need to define this in two places -- setup.py and here
+import pkg_resources
+REQUIRED_PACKAGE_VERSIONS = [
+    ('justag', '0.0.4.5'),
+    ('svinst' , '0.1.5')
+]
+for name, version in REQUIRED_PACKAGE_VERSIONS:
+    assert pkg_resources.get_distribution(name).version == version, (
+            f'{name} version does not match {version}.  ' +
+            f'Please use pip install -e . to reinstall DragonPHY, ' +
+            f'and check there are no errors.'
+    )
+
 # Some Quality Of Life Libraries
 from .real_type      import get_dragonphy_real_type, add_placeholder_inputs
 from .sparams        import s4p_to_impulse, s4p_to_step

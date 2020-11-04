@@ -38,7 +38,7 @@ requires_list = [
     'lxml',
     'scikit-rf',
     'BeautifulSoup4',
-    'justag==0.0.4.4',
+    'justag==0.0.4.5',
     # general requirements with special versions to prevent
     # warnings that clutter pytest output
     'jinja2>=2.11.1',
