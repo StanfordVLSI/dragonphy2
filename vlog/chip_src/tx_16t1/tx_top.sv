@@ -156,7 +156,7 @@ hr_16t4_mux_top hr_mux_16t4_0 (
 );
 
 //Instantiate quarter-rate 4 to 1 mux top
-qr_4t1_mux_top qr_mux_4t1_0 (
+qr_4t1_mux_top_2DFF qr_mux_4t1_0 (
     .clk_Q(clk_interp_slice[0]),  // Quarter-rate clock input
     .clk_QB(clk_interp_slice[2]),
     .clk_I(clk_interp_slice[1]),
@@ -176,7 +176,7 @@ hr_16t4_mux_top hr_mux_16t4_1 (
 );
 
 //Instantiate quarter-rate 4 to 1 mux top
-qr_4t1_mux_top qr_mux_4t1_1 (
+qr_4t1_mux_top_2DFF qr_mux_4t1_1 (
     .clk_Q(clk_interp_slice[0]),  // Quarter-rate clock input
     .clk_QB(clk_interp_slice[2]),
     .clk_I(clk_interp_slice[1]),
@@ -186,7 +186,7 @@ qr_4t1_mux_top qr_mux_4t1_1 (
     .data(mtb_n) // Final data output - negative Output driver and termination needs to be added
 );
 
-div_b2 div0 (.clkin(clk_interp_slice[3]), .rst(rst), .clkout(clk_halfrate));  // 4GHz to 2GHz, output goes to hr_16t4_mux
+div_b2 div0 (.clkin(clk_interp_slice[2]), .rst(rst), .clkout(clk_halfrate));  // 4GHz to 2GHz, output goes to hr_16t4_mux
 div_b2 div1 (.clkin(clk_halfrate), .rst(rst), .clkout(clk_prbsgen));  // 2GHz to 1GHz, output goes to prbs_gen
 
 
