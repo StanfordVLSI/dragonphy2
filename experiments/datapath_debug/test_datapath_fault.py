@@ -37,12 +37,12 @@ class dut(m.Circuit):
     io = m.IO(
         clk                 = m.ClockIn,
         rstb                = m.BitIn,
-        adc_codes           = m.In(m.Array[constant_params['channel_width'], m.Bits[constant_params['code_precision']]]),
-        estimated_bits_out  = m.In(m.Array[constant_params['channel_width'], m.Bits[ffe_params['output_precision']]]),
-        sliced_bits_out     = m.In(m.Array[constant_params['channel_width'], m.Bits[1],   constant_params['channel_width']]),
-        est_codes_out       = m.In(m.Array[constant_params['channel_width'], m.Bits[constant_params['code_precision']]]),
-        est_errors_out      = m.In(m.Array[constant_params['channel_width'], m.Bits[error_params['est_error_precision']]]),
-        sd_flags            = m.In(m.Array[constant_params['channel_width'], m.Bits[2]])
+        unsigned_adc_codes           = m.In(m.Array[(constant_params['channel_width'], m.SInt[constant_params['code_precision']])]),
+        unsigned_estimated_bits_out  = m.In(m.Array[(constant_params['channel_width'], m.SInt[ffe_params['output_precision']])]),
+        sliced_bits_out     = m.In(m.Array[(constant_params['channel_width'], m.SInt[1])]),
+        unsigned_est_codes_out       = m.In(m.Array[(constant_params['channel_width'], m.SInt[constant_params['code_precision']])]),
+        unsigned_est_errors_out      = m.In(m.Array[(constant_params['channel_width'], m.SInt[error_params['est_error_precision']])]),
+        sd_flags            = m.In(m.Array[(constant_params['channel_width'], m.SInt[2])])
     )
 
 
@@ -52,6 +52,9 @@ t = fault.Tester(dut, dut.clk)
 
 # initialize with the right equation
 t.zero_inputs()
+t.step(2)
+t.poke(dut.rstb, 1)
+t.poke(dut.unsigned_adc_codes[0], -5)
 
 # run the test
 ext_srcs = get_deps_cpu_sim(impl_file=THIS_DIR / 'datapath.sv')
@@ -60,10 +63,9 @@ t.compile_and_run(
     target='system-verilog',
     simulator=simulator_name,
     ext_srcs=ext_srcs,
-    parameters=parameters,
     ext_model_file=True,
     disp_type='realtime',
-    dump_waveforms=dump_waveforms,
+    dump_waveforms=True,
     directory=BUILD_DIR,
     num_cycles=1e12
 )
