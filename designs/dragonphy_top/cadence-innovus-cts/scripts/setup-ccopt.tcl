@@ -17,6 +17,18 @@ set_ccopt_property sink_type stop -pin iacore/ext_clk
 
 set_ccopt_property -pin iacore/ext_clk  capacitance_override  0.004767
 
+set_ccopt_property -pin itx/indiv/in -delay_corner delay_default capacitance_override 0.1
+set_ccopt_property -pin itx/iPI_0__iPI/clk_encoder -delay_corner delay_default capacitance_override 0.1   
+set_ccopt_property -pin itx/iPI_1__iPI/clk_encoder -delay_corner delay_default capacitance_override 0.1   
+set_ccopt_property -pin itx/iPI_2__iPI/clk_encoder -delay_corner delay_default capacitance_override 0.1   
+set_ccopt_property -pin itx/iPI_3__iPI/clk_encoder -delay_corner delay_default capacitance_override 0.1   
+
+set_ccopt_property -pin itx/indiv/in sink_type stop
+set_ccopt_property -pin itx/iPI_0__iPI/clk_encoder sink_type stop
+set_ccopt_property -pin itx/iPI_1__iPI/clk_encoder sink_type stop
+set_ccopt_property -pin itx/iPI_2__iPI/clk_encoder sink_type stop
+set_ccopt_property -pin itx/iPI_3__iPI/clk_encoder sink_type stop
+
 # Useful skew
 #
 # setOptMode -usefulSkew [ true | false ]
