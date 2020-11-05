@@ -286,51 +286,55 @@ set_max_transition {0.1*time_scale} -clock_path [get_clock clk_tx_qr]
 # Set transition time for high-speed signals monitored from iacore and itx
 # transition time is 10% of a 4 GHz period.
 
-foreach x [get_object_name $adbg_clk_pins] {{
-    set_max_transition {0.025*time_scale} [get_pins $x]
+foreach x $adbg_clk_pins {{
+    set_max_transition {0.025*time_scale} $x
 }}
 
-foreach x [get_object_name $tdbg_clk_pins] {{
-    set_max_transition {0.025*time_scale} [get_pins $x]
+foreach x $tdbg_clk_pins {{
+    set_max_transition {0.025*time_scale} $x
 }}
 
-#######################################################################
-# TODO: The following commented-out lines were used to set the maximum
-# transition for various clock signals in the design.  They may have
-# caused issues with unnecessary buffer insertion, so they are
-# currently disabled.  However, we should review the synthesis and PnR
-# results to see if some of these commands should be re-enabled.
-#######################################################################
+###################################
+# Set transition times at top-level 
+###################################
 
-# # Set transition time for clk_async
-# create_clock -name clk_async_buf -period {1.0*time_scale} [get_pin ibuf_async/clk]
-# set_max_transition {0.1*time_scale} -clock_path [get_clock clk_async_buf]
-#
-# # Set transition time for the 8 GHz output of the main buffer
-# # Note that the period of this clock is declared as 1 GHz due to
-# # limitations in QTMs models mentioned earlier, but the transition
-# # constraint is 10% of an 8 GHz clock (rather than a 1 GHz clock)
-# set_max_transition {0.0125*time_scale} -clock_path [get_clock clk_main_buf]
-#
-# # Set transition time for MDLL reference
-# create_clock -name clk_mdll_refp -period {8.0*time_scale} [get_pin ibuf_mdll_ref/clk]
-# set_max_transition {0.03*time_scale} -clock_path [get_clock clk_mdll_refp]
-# create_clock -name clk_mdll_refn -period {8.0*time_scale} [get_pin ibuf_mdll_ref/clk_b]
-# set_max_transition {0.03*time_scale} -clock_path [get_clock clk_mdll_refn]
-#
-# # Set transition time for MDLL monitor
-# create_clock -name clk_mdll_monp -period {1.0*time_scale} [get_pin ibuf_mdll_mon/clk]
-# set_max_transition {0.1*time_scale} -clock_path [get_clock clk_mdll_monp]
-# create_clock -name clk_mdll_monn -period {1.0*time_scale} [get_pin ibuf_mdll_mon/clk_b]
-# set_max_transition {0.1*time_scale} -clock_path [get_clock clk_mdll_monn]
-#
-# # Set transition time for the MDLL output
-# create_clock -name clk_mdll_out -period {0.25*time_scale} [get_pin imdll/clk_0]
-# set_max_transition {0.03*time_scale} -clock_path [get_clock clk_mdll_out]
-#
-# # Set transition time for the clock going to the CGRA
-# create_clock -name clk_cgra_out -period {1.0*time_scale} [get_pin idcore/clk_cgra]
-# set_max_transition {0.1*time_scale} -clock_path [get_clock clk_cgra_out]
+# clk_async
+set_max_transition {0.1*time_scale} [get_pin ibuf_async/clk]
+
+# clk_main
+set_max_transition {0.0125*time_scale} [get_pin ibuf_main/clk]
+
+# MDLL reference
+set_max_transition {0.025*time_scale} [get_pin ibuf_mdll_ref/clk]
+set_max_transition {0.025*time_scale} [get_pin ibuf_mdll_ref/clk_b]
+
+# MDLL monitor
+set_max_transition {0.1*time_scale} [get_pin ibuf_mdll_mon/clk]
+set_max_transition {0.1*time_scale} [get_pin ibuf_mdll_mon/clk_b]
+
+# MDLL output
+set_max_transition {0.025*time_scale} [get_pin imdll/clk_0]
+
+# Clock going to the CGRA
+set_max_transition {0.1*time_scale} [get_pin idcore/clk_cgra]
+
+#########################################
+# Set transition times in the transmitter
+#########################################
+
+# Mux +
+set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_0/din[0]}}]
+set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_0/din[1]}}]
+set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_0/din[2]}}]
+set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_0/din[3]}}]
+set_max_transition {0.00625*time_scale} [get_pin {{itx/qr_mux_4t1_0/data}}]
+
+# Mux -
+set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_1/din[0]}}]
+set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_1/din[1]}}]
+set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_1/din[2]}}]
+set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_1/din[3]}}]
+set_max_transition {0.00625*time_scale} [get_pin {{itx/qr_mux_4t1_1/data}}]
 
 echo [all_clocks]
 '''
