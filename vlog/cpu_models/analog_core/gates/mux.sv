@@ -1,5 +1,5 @@
 /********************************************************************
-filename: mux_fixed.sv
+filename: mux.sv
 
 Description: 
 a parameterized mux cell 
@@ -10,7 +10,7 @@ Todo:
 
 ********************************************************************/
 
-module mux_fixed #(
+module mux #(
     parameter real td_nom = 15.0e-12,    // nominal delay in sec
     parameter real td_std = 0.0,         // std dev of nominal delay variation in sec
     parameter real rj_rms = 0.0          // rms random jitter in sec

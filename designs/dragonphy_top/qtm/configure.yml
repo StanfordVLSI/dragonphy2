@@ -44,6 +44,12 @@ commands:
     pt_shell -f ../../input_divider.qtm.tcl
     cd ..
 
+    # build termination (for TX) QTM
+    mkdir -p termination
+    cd termination
+    pt_shell -f ../../termination.qtm.tcl
+    cd ..
+
     # link build products into output folder
     cd ../outputs
     ln -s ../build/analog_core/analog_core_lib.db analog_core_lib.db
@@ -58,6 +64,8 @@ commands:
     ln -s ../build/phase_interpolator/phase_interpolator.lib phase_interpolator.lib
     ln -s ../build/input_divider/input_divider_lib.db input_divider_lib.db
     ln -s ../build/input_divider/input_divider.lib input_divider.lib
+    ln -s ../build/termination/termination_lib.db termination_lib.db
+    ln -s ../build/termination/termination.lib termination.lib
 
 inputs:
   - adk
@@ -75,6 +83,8 @@ outputs:
   - phase_interpolator.lib
   - input_divider_lib.db
   - input_divider.lib
+  - termination_lib.db
+  - termination.lib
 
 parameters:
   # Name of the technology library containing ADK_DRIVING_CELL
