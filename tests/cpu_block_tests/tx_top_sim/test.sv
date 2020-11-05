@@ -17,7 +17,6 @@ logic clk_full; // Full rate clock for prbs_checker 16GBps -> 16GHz
 logic cke;
 logic [9-1:0] ctl_pi[3:0];
 reg clk_2;  // Clock clk_a divided by 2
-logic clk_async;
 wire clk_encoder;
 logic ctl_valid;
 logic clk_oversample;
@@ -105,7 +104,7 @@ tx_top tx_mux (
     .mdll_clk(clk_prbschecker),
     .ext_clk(1'b0),
     .ctl_pi(ctl_pi),
-    .clk_async(clk_async),
+    .clk_async(1'b0),
     .clk_encoder(clk_encoder),
     .ctl_valid(ctl_valid),
     .rst(rst),
@@ -254,9 +253,18 @@ initial begin
     error_bits_1 = err_count;
     //store the error count
     prbs_den = 1'b0;
-    #30ns;
+    #300ns;
 
-    
+
+    //Check the error bits number injected by inj_err
+
+    $display("error_bits_1: %0d", error_bits_1);
+ 
+    if (error_bits_1 == 0) begin
+        $display("No error was detected, Success! (case 1)");
+    end else begin
+        $error("Error count incorrect (case 1)");
+    end
     
     // Test Case 2 fixed pattern
     fixed_pa = 16'b1010101010101010;  // 1,0 repetition, asymmetric
@@ -381,15 +389,7 @@ initial begin
         $error("Pattern lost (case 9)");
     end
 
-    //Check the error bits number injected by inj_err
-    #10ns;
-    $display("error_bits_1: %0d", error_bits_1);
- 
-    if (error_bits_1 == 0) begin
-        $display("Exact amount of errors detected, Success! (case 1)");
-    end else begin
-        $error("Error count incorrect (case 1)");
-    end
+
 
     #2ns $finish;
 end
@@ -421,35 +421,35 @@ end
             count_flag[6] <= 8'b0;
             count_flag[7] <= 8'b0;
         end else if (record_flag[0]) begin
-            #0.875ns;  // Manually align the count down with the first bit of the data output, this delay should be fixed if not circuit connection is changed
+            #0.6875ns;  // Manually align the count down with the first bit of the data output, this delay should be fixed if no circuit connection has changed
             count_flag[0] = 8'd16; // determine how many bits to store in the shift reg
             record_flag[0] = 1'b0;
         end else if (record_flag[1]) begin
-            #0.875ns;
+            #0.6875ns;
             count_flag[1] = 8'd16;
             record_flag[1] = 1'b0;
         end else if (record_flag[2]) begin
-            #0.875ns;
+            #0.6875ns;
             count_flag[2] = 8'd16;
             record_flag[2] = 1'b0;
         end else if (record_flag[3]) begin
-            #0.875ns;
+            #0.6875ns;
             count_flag[3] = 8'd16;
             record_flag[3] = 1'b0;
         end else if (record_flag[4]) begin
-            #0.875ns;
+            #0.6875ns;
             count_flag[4] = 8'd16;
             record_flag[4] = 1'b0;
         end else if (record_flag[5]) begin
-            #0.875ns;
+            #0.6875ns;
             count_flag[5] = 8'd16;
             record_flag[5] = 1'b0;
         end else if (record_flag[6]) begin
-            #0.875ns;
+            #0.6875ns;
             count_flag[6] = 8'd16;
             record_flag[6] = 1'b0;
         end else if (record_flag[7]) begin
-            #0.875ns;
+            #0.6875ns;
             count_flag[7] = 8'd16;
             record_flag[7] = 1'b0;
         end

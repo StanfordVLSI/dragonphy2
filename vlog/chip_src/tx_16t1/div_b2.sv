@@ -3,16 +3,17 @@
 module div_b2 (
     input wire logic clkin,
     input wire logic rst,
-    output reg clkout
+    output wire logic clkout
 );
 
-always @(posedge clkin or posedge rst) begin
-    if (rst) begin
-        clkout <= 0;
-    end else begin
-        clkout <= ~clkout;
-    end
-end
+    // use instance of ff_c_rn because it
+    // has a model with timing in cpu_models
+    ff_c_rn ff_i (
+        .D(~clkout),
+        .CP(clkin),
+        .CDN(~rst),
+        .Q(clkout)
+    );
 
 endmodule
 

@@ -1,3 +1,5 @@
+`default_nettype none
+
 module output_buf_tx (
 	input wire logic DINN,
 	input wire logic DINP,
@@ -8,79 +10,59 @@ module output_buf_tx (
 	output wire logic DOUTN,
     output wire logic DOUTP
 );
-	// Internal connections
-    wire logic BTN; // Buffer to Termination -
-    wire logic BTP; // Buffer to Termination +
 
+    //////////////////////////////
+    // Generate control signals //
+    //////////////////////////////
 
-    // Termination 
+    logic [35:0] CTL_SLICE_N; // Control Signal -
+    logic [35:0] CTL_SLICE_P; // Control Signal +
 
-        
-        termination iBUF_n(
-            .VinP(DOUTN),
-            .VinN(DOUTN),
-            .Vcm(BTN)
-        );
+    assign CTL_SLICE_N = {CTL_SLICE_N1, CTL_SLICE_N0};
+    assign CTL_SLICE_P = {CTL_SLICE_P1, CTL_SLICE_P0};
 
-        termination iBUF_p(
-            .VinP(DOUTP),
-            .VinN(DOUTP),
-            .Vcm(BTP)
-        );
+    ///////////////////////////////////
+    // Instantiate tri-state buffers //
+    ///////////////////////////////////
 
+    logic BTN; // Buffer to Termination -
+    logic BTP; // Buffer to Termination +
 
+    genvar i;
+    generate 
+        for (genvar i=0; i<36; i=i+1) begin: iBUF
+            // Buffer -
+            tx_tri_buf i_tri_buf_n (
+                .DIN(DINN),
+                .en(CTL_SLICE_N[i]),
+                .DOUT(BTN) 
+            );
+            
+            // Buffer +
+            tx_tri_buf i_tri_buf_p (
+                .DIN(DINP),
+                .en(CTL_SLICE_P[i]),
+                .DOUT(BTP) 
+            );
+        end
+    endgenerate
+
+    /////////////////
+    // Termination //
+    /////////////////
     
-    // instantiate BUFTD -
+    termination i_term_n (
+        .Vcm(BTN),
+        .VinP(DOUTN),
+        .VinN(DOUTN)
+    );
 
-    generate 
-        
-        for (genvar i=0; i<18; i=i+1) begin: iBUF_N0
-	        tx_tri_buf i_tri_buf_n0 (
-		        // user-provided signals
-		        .DIN(DINN), // Input
-		        .en(CTL_SLICE_N0[i]), // Output
-		        .DOUT(BTN) 
-	        );
-        end
-    endgenerate
-
-    generate 
-        
-        for (genvar ii=0; ii<18; ii=ii+1) begin: iBUF_N1
-	        tx_tri_buf i_tri_buf_n1 (
-		        // user-provided signals
-		        .DIN(DINN), // Input
-		        .en(CTL_SLICE_N1[ii]), // Output
-		        .DOUT(BTN) 
-	        );
-        end
-    endgenerate
-
-
-    // instantiate BUFTD +
-
-    generate 
-        for (genvar j=0; j<18; j=j+1) begin: iBUF_P0
-	        tx_tri_buf i_tri_buf_p0 (
-		        // user-provided signals
-		        .DIN(DINP), // Input
-		        .en(CTL_SLICE_P0[j]), // Output
-		        .DOUT(BTP) 
-	        );
-        end
-    endgenerate
-
-    generate 
-        for (genvar jj=0; jj<18; jj=jj+1) begin: iBUF_P1
-	        tx_tri_buf i_tri_buf_p1 (
-		        // user-provided signals
-		        .DIN(DINP), // Input
-		        .en(CTL_SLICE_P1[jj]), // Output
-		        .DOUT(BTP) 
-	        );
-        end
-    endgenerate
-
-
+    termination i_term_p (
+        .Vcm(BTP),
+        .VinP(DOUTP),
+        .VinN(DOUTP)
+    );
 
 endmodule
+
+`default_nettype wire
