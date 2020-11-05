@@ -4,7 +4,7 @@ module datapath (
 	input logic [ffe_gpack::weight_precision-1:0] unsigned_weights [ffe_gpack::length-1:0],
 	input logic [ffe_gpack::shift_precision-1:0]  ffe_shift,
 
-	input logic [cmp_gpack::thresh_precision-1:0] unsighed_thresh,
+	input logic [cmp_gpack::thresh_precision-1:0] unsigned_thresh,
 
 	input logic [channel_gpack::est_channel_precision-1:0] unsigned_channel_est [channel_gpack::est_channel_depth-1:0],
 	input logic [channel_gpack::shift_precision-1:0] channel_shift,
@@ -27,9 +27,9 @@ module datapath (
     logic signed [constant_gpack::code_precision-1:0]   est_codes_out [constant_gpack::channel_width-1:0];
     logic signed [error_gpack::est_error_precision-1:0] est_errors_out [constant_gpack::channel_width-1:0];
 
-	logic signed [ffe_gpack::weight_precision-1:0] weights [ffe_gpack::length-1:0],
-	logic signed [cmp_gpack::thresh_precision-1:0] thresh,
-	logic signed [channel_gpack::est_channel_precision-1:0] channel_est [channel_gpack::est_channel_depth-1:0],
+	logic signed [ffe_gpack::weight_precision-1:0] weights [ffe_gpack::length-1:0];
+	logic signed [cmp_gpack::thresh_precision-1:0] thresh;
+	logic signed [channel_gpack::est_channel_precision-1:0] channel_est [channel_gpack::est_channel_depth-1:0];
 
 
     integer ii, jj;
