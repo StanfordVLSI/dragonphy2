@@ -274,6 +274,8 @@ for {{set i 0}} {{$i < 2}} {{incr i}} {{
 for {{set i 0}} {{$i < 2}} {{incr i}} {{
     set_dont_touch [get_cells "itx/buf1/iBUF[$i].i_tri_buf_n/tri_buf"]
     set_dont_touch [get_cells "itx/buf1/iBUF[$i].i_tri_buf_p/tri_buf"]
+    set_false_path -through [get_pins -of_objects "itx/buf1/iBUF[$i].i_tri_buf_n/tri_buf"]
+    set_false_path -through [get_pins -of_objects "itx/buf1/iBUF[$i].i_tri_buf_p/tri_buf"]
 }}
 set_dont_touch [get_nets "itx/buf1/BTN"]
 set_dont_touch [get_nets "itx/buf1/BTP"]
@@ -284,6 +286,10 @@ set_dont_touch [get_cells "itx/buf1/i_term_p"]
 # a combinational loop error
 set_false_path -through [get_pins -of_objects "itx/buf1/i_term_n"]
 set_false_path -through [get_pins -of_objects "itx/buf1/i_term_p"]
+
+# Make sure the transmitter is not retimed.  This may already be in
+# the main DC step, but it's not clear that it's being applied.
+set_dont_retime [get_cells itx]
 
 ######
 # MDLL
@@ -383,14 +389,14 @@ set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_0/din[0]}}]
 set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_0/din[1]}}]
 set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_0/din[2]}}]
 set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_0/din[3]}}]
-set_max_transition {0.00625*time_scale} [get_pin {{itx/qr_mux_4t1_0/data}}]
+set_max_transition {0.008*time_scale} [get_pin {{itx/qr_mux_4t1_0/data}}]
 
 # Mux -
 set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_1/din[0]}}]
 set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_1/din[1]}}]
 set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_1/din[2]}}]
 set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_1/din[3]}}]
-set_max_transition {0.00625*time_scale} [get_pin {{itx/qr_mux_4t1_1/data}}]
+set_max_transition {0.008*time_scale} [get_pin {{itx/qr_mux_4t1_1/data}}]
 
 echo [all_clocks]
 '''
