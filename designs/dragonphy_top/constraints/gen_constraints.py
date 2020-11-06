@@ -234,9 +234,6 @@ set_dont_touch_network $tdbg_clk_pins
 # TODO: do we need to set dont_touch through the hierarchy?
 # Or will it be applied automatically to instances within?
 
-# TX top
-set_dont_touch [get_cells itx]
-
 # Phase interpolators
 for {{set i 0}} {{$i < 4}} {{incr i}} {{
     set_dont_touch [get_cells "itx/iPI[$i].iPI"]
@@ -247,21 +244,17 @@ set_dont_touch [get_cells itx/indiv]
 
 # Muxes
 for {{set i 0}} {{$i < 2}} {{incr i}} {{
-    # Half-rate muxes
-    set_dont_touch [get_cells "itx/hr_mux_16t4_$i"]
+    # Half-rate muxes (the mux is intentionally left out because
+    # there is a mapping problem for FreePDK45
     for {{set j 1}} {{$j < 5}} {{incr j}} {{
-        set_dont_touch [get_cells "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1"]
         for {{set k 0}} {{$k < 3}} {{incr k}} {{
-            set_dont_touch [get_cells "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k"]
             set_dont_touch [get_cells "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/dff_0"]
             set_dont_touch [get_cells "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/dff_1"]
             set_dont_touch [get_cells "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/latch_0"]
-            set_dont_touch [get_cells "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/mux_0"]
         }}
     }}
 
     # Quarter-rate muxes
-    set_dont_touch [get_cells "itx/qr_mux_4t1_$i"]
     set_dont_touch [get_cells "itx/qr_mux_4t1_$i/dff_Q0"]
     set_dont_touch [get_cells "itx/qr_mux_4t1_$i/dff_I0"]
     set_dont_touch [get_cells "itx/qr_mux_4t1_$i/dff_QB0"]
@@ -277,11 +270,12 @@ for {{set i 0}} {{$i < 2}} {{incr i}} {{
 }}
 
 # Output buffer
-set_dont_touch [get_cells itx/buf1]
 for {{set i 0}} {{$i < 2}} {{incr i}} {{
     set_dont_touch [get_cells "itx/buf1/iBUF[$i].i_tri_buf_n"]
     set_dont_touch [get_cells "itx/buf1/iBUF[$i].i_tri_buf_p"]
 }}
+set_dont_touch [get_nets itx/buf1/BTN]
+set_dont_touch [get_nets itx/buf1/BTP]
 set_dont_touch [get_cells itx/buf1/i_term_n]
 set_dont_touch [get_cells itx/buf1/i_term_p]
 

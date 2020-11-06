@@ -10,7 +10,6 @@ module hr_2t1_mux_top (
     output wire logic dout
 );
 
-// wire [1:0] din;
 wire D0L; // din[0] wire connection from DFF to D-Latch
 wire D1M; // din[1] wire connection from DFF to MUX
 wire L0M; // din[0] wire connection from D-Latch to MUX
