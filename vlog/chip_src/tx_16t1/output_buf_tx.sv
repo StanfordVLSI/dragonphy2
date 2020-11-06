@@ -52,15 +52,15 @@ module output_buf_tx (
     /////////////////
     
     termination i_term_n (
-        .Vcm(BTN),
-        .VinP(DOUTN),
-        .VinN(DOUTN)
+        .VinP(BTN),
+        .VinN(BTN),
+        .Vcm(DOUTN)
     );
 
     termination i_term_p (
-        .Vcm(BTP),
-        .VinP(DOUTP),
-        .VinN(DOUTP)
+        .VinP(BTP),
+        .VinN(BTP),
+        .Vcm(DOUTP)
     );
 
 endmodule
