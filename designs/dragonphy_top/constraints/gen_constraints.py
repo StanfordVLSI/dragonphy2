@@ -248,20 +248,23 @@ for {{set i 0}} {{$i < 2}} {{incr i}} {{
     # there is a mapping problem for FreePDK45
     for {{set j 1}} {{$j < 5}} {{incr j}} {{
         for {{set k 0}} {{$k < 3}} {{incr k}} {{
-            set_dont_touch [get_cells "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/dff_0"]
-            set_dont_touch [get_cells "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/dff_1"]
-            set_dont_touch [get_cells "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/latch_0"]
-            set_dont_touch [get_cells "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/mux_0"]
+            set_dont_touch [get_pins "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/clk_b"]
+            set_dont_touch [get_pins "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/din"]
+            set_dont_touch [get_pins "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/dout"]
+            set_dont_touch [get_nets "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/D0L"]
+            set_dont_touch [get_nets "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/D1M"]
+            set_dont_touch [get_nets "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/L0M"]
         }}
     }}
 
     # Quarter-rate muxes
-    set_dont_touch [get_cells "itx/qr_mux_4t1_$i/dff_Q0"]
-    set_dont_touch [get_cells "itx/qr_mux_4t1_$i/dff_I0"]
-    set_dont_touch [get_cells "itx/qr_mux_4t1_$i/dff_QB0"]
-    set_dont_touch [get_cells "itx/qr_mux_4t1_$i/dff_QB1"]
-    set_dont_touch [get_cells "itx/qr_mux_4t1_$i/dff_IB0"]
-    set_dont_touch [get_cells "itx/qr_mux_4t1_$i/dff_IB1"]
+    set_dont_touch [get_pins "itx/qr_mux_4t1_$i/clk_Q"]
+    set_dont_touch [get_pins "itx/qr_mux_4t1_$i/clk_QB"]
+    set_dont_touch [get_pins "itx/qr_mux_4t1_$i/clk_I"]
+    set_dont_touch [get_pins "itx/qr_mux_4t1_$i/clk_IB"]
+    set_dont_touch [get_pins "itx/qr_mux_4t1_$i/din"]
+    set_dont_touch [get_pins "itx/qr_mux_4t1_$i/rst"]
+    set_dont_touch [get_pins "itx/qr_mux_4t1_$i/data"]
     set_dont_touch [get_nets "itx/qr_mux_4t1_$i/D0DQ"]
     set_dont_touch [get_nets "itx/qr_mux_4t1_$i/D0DI"]
     set_dont_touch [get_nets "itx/qr_mux_4t1_$i/D0DQB"]
