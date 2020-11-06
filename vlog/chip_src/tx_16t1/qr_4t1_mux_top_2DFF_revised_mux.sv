@@ -12,6 +12,8 @@ module qr_4t1_mux_top_2DFF_revised_mux (
     output logic data
 );
 
+logic[3:0] sel;
+
 // Instantiate the data path for Q clk path, use the Q clock as the reference clock
 wire D0DQ;
 wire D1MQ;
@@ -37,9 +39,14 @@ ff_c dff_IB0 (.D(din[0]), .CP(clk_I), .Q(D0DIB)); // data captured using Q clk a
 ff_c dff_IB1 (.D(D0DIB), .CP(clk_IB), .Q(D1DIB));
 
 // 4 to 1 mux
+assign sel[3] = (clk_Q  & clk_I);
+assign sel[2] = (clk_I  & clk_QB);
+assign sel[1] = (clk_QB & clk_IB);
+assign sel[0] = (clk_IB & clk_Q);
+
 
 always_comb begin
-    case ({(clk_Q  & clk_I), (clk_I  & clk_QB), (clk_QB & clk_IB), (clk_IB & clk_Q)})
+    case (sel)
     4'b0001: data = D1DQB;
     4'b0010: data = D0DI;
     4'b0100: data = D0DQ;
