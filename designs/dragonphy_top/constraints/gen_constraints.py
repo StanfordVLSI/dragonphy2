@@ -213,8 +213,6 @@ set adbg_clk_pins [get_pins {{ \\
     iacore/*pi_out_meas* \\
     iacore/*del_out_rep* \\
     iacore/*inbuf_out_meas* \\
-    iacore/*pfd_inp_meas* \\
-    iacore/*pfd_inn_meas* \\
 }}]
 set_dont_touch_network $adbg_clk_pins
 
@@ -232,6 +230,60 @@ set tdbg_clk_pins [get_pins {{ \\
     itx/*inbuf_out_meas* \\
 }}]
 set_dont_touch_network $tdbg_clk_pins
+
+# TODO: do we need to set dont_touch through the hierarchy?
+# Or will it be applied automatically to instances within?
+
+# TX top
+set_dont_touch [get_cells itx]
+
+# Phase interpolators
+for {{set i 0}} {{$i < 4}} {{incr i}} {{
+    set_dont_touch [get_cells "itx/iPI[$i].iPI"]
+}}
+
+# Input divider
+set_dont_touch [get_cells itx/indiv]
+
+# Muxes
+for {{set i 0}} {{$i < 2}} {{incr i}} {{
+    # Half-rate muxes
+    set_dont_touch [get_cells "itx/hr_mux_16t4_$i"]
+    for {{set j 1}} {{$j < 5}} {{incr j}} {{
+        set_dont_touch [get_cells "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1"]
+        for {{set k 0}} {{$k < 3}} {{incr k}} {{
+            set_dont_touch [get_cells "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k"]
+            set_dont_touch [get_cells "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/dff_0"]
+            set_dont_touch [get_cells "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/dff_1"]
+            set_dont_touch [get_cells "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/latch_0"]
+            set_dont_touch [get_cells "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/mux_0"]
+        }}
+    }}
+
+    # Quarter-rate muxes
+    set_dont_touch [get_cells "itx/qr_mux_4t1_$i"]
+    set_dont_touch [get_cells "itx/qr_mux_4t1_$i/dff_Q0"]
+    set_dont_touch [get_cells "itx/qr_mux_4t1_$i/dff_I0"]
+    set_dont_touch [get_cells "itx/qr_mux_4t1_$i/dff_QB0"]
+    set_dont_touch [get_cells "itx/qr_mux_4t1_$i/dff_QB1"]
+    set_dont_touch [get_cells "itx/qr_mux_4t1_$i/dff_IB0"]
+    set_dont_touch [get_cells "itx/qr_mux_4t1_$i/dff_IB1"]
+    set_dont_touch [get_nets "itx/qr_mux_4t1_$i/D0DQ"]
+    set_dont_touch [get_nets "itx/qr_mux_4t1_$i/D0DI"]
+    set_dont_touch [get_nets "itx/qr_mux_4t1_$i/D0DQB"]
+    set_dont_touch [get_nets "itx/qr_mux_4t1_$i/D1DQB"]
+    set_dont_touch [get_nets "itx/qr_mux_4t1_$i/D0DIB"]
+    set_dont_touch [get_nets "itx/qr_mux_4t1_$i/D1DIB"]
+}}
+
+# Output buffer
+set_dont_touch [get_cells itx/buf1]
+for {{set i 0}} {{$i < 2}} {{incr i}} {{
+    set_dont_touch [get_cells "itx/buf1/iBUF[$i].i_tri_buf_n"]
+    set_dont_touch [get_cells "itx/buf1/iBUF[$i].i_tri_buf_p"]
+}}
+set_dont_touch [get_cells itx/buf1/i_term_n]
+set_dont_touch [get_cells itx/buf1/i_term_p]
 
 ######
 # MDLL
@@ -283,12 +335,13 @@ set_max_transition {0.025*time_scale} -clock_path [get_clock clk_tx_pi_3]
 set_max_transition {0.05*time_scale} -clock_path [get_clock clk_tx_hr]
 set_max_transition {0.1*time_scale} -clock_path [get_clock clk_tx_qr]
 
-# Set transition time for high-speed signals monitored from iacore and itx
-# transition time is 10% of a 4 GHz period.
+# Set transition time for high-speed signals monitored from
+# iacore and itx.  transition time is 10% of a 4 GHz period.
 
-foreach x $adbg_clk_pins {{
-    set_max_transition {0.025*time_scale} $x
-}}
+# TODO: figure out how to set a transition constraint on a black-box pin
+# foreach x $adbg_clk_pins {{
+#     set_max_transition {0.025*time_scale} $x
+# }}
 
 foreach x $tdbg_clk_pins {{
     set_max_transition {0.025*time_scale} $x
@@ -298,22 +351,25 @@ foreach x $tdbg_clk_pins {{
 # Set transition times at top-level 
 ###################################
 
+# TODO: most of these are commented out -- need to figure out
+# how to set a transition constraint on a black-box pin
+
 # clk_async
-set_max_transition {0.1*time_scale} [get_pin ibuf_async/clk]
+# set_max_transition {0.1*time_scale} [get_pin ibuf_async/clk]
 
 # clk_main
-set_max_transition {0.0125*time_scale} [get_pin ibuf_main/clk]
+# set_max_transition {0.0125*time_scale} [get_pin ibuf_main/clk]
 
 # MDLL reference
-set_max_transition {0.025*time_scale} [get_pin ibuf_mdll_ref/clk]
-set_max_transition {0.025*time_scale} [get_pin ibuf_mdll_ref/clk_b]
+# set_max_transition {0.025*time_scale} [get_pin ibuf_mdll_ref/clk]
+# set_max_transition {0.025*time_scale} [get_pin ibuf_mdll_ref/clk_b]
 
 # MDLL monitor
-set_max_transition {0.1*time_scale} [get_pin ibuf_mdll_mon/clk]
-set_max_transition {0.1*time_scale} [get_pin ibuf_mdll_mon/clk_b]
+# set_max_transition {0.1*time_scale} [get_pin ibuf_mdll_mon/clk]
+# set_max_transition {0.1*time_scale} [get_pin ibuf_mdll_mon/clk_b]
 
 # MDLL output
-set_max_transition {0.025*time_scale} [get_pin imdll/clk_0]
+# set_max_transition {0.025*time_scale} [get_pin imdll/clk_0]
 
 # Clock going to the CGRA
 set_max_transition {0.1*time_scale} [get_pin idcore/clk_cgra]
