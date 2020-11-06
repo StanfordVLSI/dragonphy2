@@ -242,15 +242,19 @@ for {{set i 0}} {{$i < 4}} {{incr i}} {{
 # Input divider
 set_dont_touch [get_cells itx/indiv]
 
+# Internal nets
+set_dont_touch [get_nets "itx/qr_data_p"]
+set_dont_touch [get_nets "itx/qr_data_n"]
+set_dont_touch [get_nets "itx/mtb_n"]
+set_dont_touch [get_nets "itx/mtb_p"]
+
 # Muxes
 for {{set i 0}} {{$i < 2}} {{incr i}} {{
     # Half-rate muxes (the mux is intentionally left out because
     # there is a mapping problem for FreePDK45
     for {{set j 1}} {{$j < 5}} {{incr j}} {{
+        set_dont_touch [get_nets "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hd"]
         for {{set k 0}} {{$k < 3}} {{incr k}} {{
-            set_dont_touch [get_pins "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/clk_b"]
-            set_dont_touch [get_pins "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/din"]
-            set_dont_touch [get_pins "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/dout"]
             set_dont_touch [get_nets "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/D0L"]
             set_dont_touch [get_nets "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/D1M"]
             set_dont_touch [get_nets "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/L0M"]
@@ -258,13 +262,6 @@ for {{set i 0}} {{$i < 2}} {{incr i}} {{
     }}
 
     # Quarter-rate muxes
-    set_dont_touch [get_pins "itx/qr_mux_4t1_$i/clk_Q"]
-    set_dont_touch [get_pins "itx/qr_mux_4t1_$i/clk_QB"]
-    set_dont_touch [get_pins "itx/qr_mux_4t1_$i/clk_I"]
-    set_dont_touch [get_pins "itx/qr_mux_4t1_$i/clk_IB"]
-    set_dont_touch [get_pins "itx/qr_mux_4t1_$i/din"]
-    set_dont_touch [get_pins "itx/qr_mux_4t1_$i/rst"]
-    set_dont_touch [get_pins "itx/qr_mux_4t1_$i/data"]
     set_dont_touch [get_nets "itx/qr_mux_4t1_$i/D0DQ"]
     set_dont_touch [get_nets "itx/qr_mux_4t1_$i/D0DI"]
     set_dont_touch [get_nets "itx/qr_mux_4t1_$i/D0DQB"]
@@ -275,13 +272,13 @@ for {{set i 0}} {{$i < 2}} {{incr i}} {{
 
 # Output buffer
 for {{set i 0}} {{$i < 2}} {{incr i}} {{
-    set_dont_touch [get_cells "itx/buf1/iBUF[$i].i_tri_buf_n"]
-    set_dont_touch [get_cells "itx/buf1/iBUF[$i].i_tri_buf_p"]
+    set_dont_touch [get_cells "itx/buf1/iBUF[$i].i_tri_buf_n/tri_buf"]
+    set_dont_touch [get_cells "itx/buf1/iBUF[$i].i_tri_buf_p/tri_buf"]
 }}
-set_dont_touch [get_nets itx/buf1/BTN]
-set_dont_touch [get_nets itx/buf1/BTP]
-set_dont_touch [get_cells itx/buf1/i_term_n]
-set_dont_touch [get_cells itx/buf1/i_term_p]
+set_dont_touch [get_nets "itx/buf1/BTN"]
+set_dont_touch [get_nets "itx/buf1/BTP"]
+set_dont_touch [get_cells "itx/buf1/i_term_n"]
+set_dont_touch [get_cells "itx/buf1/i_term_p"]
 
 ######
 # MDLL
