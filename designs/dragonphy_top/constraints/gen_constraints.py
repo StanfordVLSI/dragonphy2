@@ -251,6 +251,7 @@ for {{set i 0}} {{$i < 2}} {{incr i}} {{
             set_dont_touch [get_cells "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/dff_0"]
             set_dont_touch [get_cells "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/dff_1"]
             set_dont_touch [get_cells "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/latch_0"]
+            set_dont_touch [get_cells "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/mux_0"]
         }}
     }}
 
