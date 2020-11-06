@@ -280,6 +280,11 @@ set_dont_touch [get_nets "itx/buf1/BTP"]
 set_dont_touch [get_cells "itx/buf1/i_term_n"]
 set_dont_touch [get_cells "itx/buf1/i_term_p"]
 
+# Set a false path on the termination resistors to avoid
+# a combinational loop error
+set_false_path -through [get_pins -of_objects "itx/buf1/i_term_n"]
+set_false_path -through [get_pins -of_objects "itx/buf1/i_term_p"]
+
 ######
 # MDLL
 ######
