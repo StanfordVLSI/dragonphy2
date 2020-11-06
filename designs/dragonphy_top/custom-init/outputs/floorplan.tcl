@@ -26,8 +26,8 @@
     set sram_FP_adjust [snap_to_grid 350 $horiz_pitch]
     set bottom_y [snap_to_grid 100 $vert_pitch]
 
-    set output_buffer_width [dbGet [dbGet -p top.insts.name *out_buff_i*].cell.size_x]
-    set output_buffer_height [dbGet [dbGet -p top.insts.name *out_buff_i*].cell.size_y]
+    set output_buffer_width 13.05;# [dbGet [dbGet -p top.insts.name *out_buff_i*].cell.size_x]
+    set output_buffer_height 18.4032; # [dbGet [dbGet -p top.insts.name *out_buff_i*].cell.size_y]
     
     set acore_width [dbGet [dbGet -p top.insts.name *iacore*].cell.size_x]
     set acore_height [dbGet [dbGet -p top.insts.name *iacore*].cell.size_y]

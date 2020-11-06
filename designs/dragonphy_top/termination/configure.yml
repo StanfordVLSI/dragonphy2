@@ -5,7 +5,7 @@ name: termination
 commands:
   - |
     mkdir -p outputs
-    tar -xzvf /home/sjkim85/dragonphy_tarballs/termination-latest.tar.gz -C outputs
+    tar -xvf /home/sjkim85/dragonphy_tarballs/termination-latest.tar.gz -C outputs
 
 outputs:
   - termination.lef

@@ -327,14 +327,14 @@ set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_0/din[0]}}]
 set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_0/din[1]}}]
 set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_0/din[2]}}]
 set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_0/din[3]}}]
-set_max_transition {0.00625*time_scale} [get_pin {{itx/qr_mux_4t1_0/data}}]
+set_max_transition {0.00625*time_scale*1.25} [get_pin {{itx/qr_mux_4t1_0/data}}]
 
 # Mux -
 set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_1/din[0]}}]
 set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_1/din[1]}}]
 set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_1/din[2]}}]
 set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_1/din[3]}}]
-set_max_transition {0.00625*time_scale} [get_pin {{itx/qr_mux_4t1_1/data}}]
+set_max_transition {0.00625*time_scale*1.25} [get_pin {{itx/qr_mux_4t1_1/data}}]
 
 echo [all_clocks]
 '''

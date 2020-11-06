@@ -40,7 +40,7 @@ parameters:
   saif_instance: undefined
   flatten_effort: 2
   retime: 1
-  retime_registers: 1
+  retime_registers: 0
   topographical: True
   nthreads: 16  # multithreading available to the tool
 
