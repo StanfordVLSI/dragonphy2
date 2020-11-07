@@ -65,8 +65,7 @@ qr_mux_fixed mux_4 (
             );
         end
     endgenerate
-
-
+    
 endmodule
 
 `default_nettype wire
