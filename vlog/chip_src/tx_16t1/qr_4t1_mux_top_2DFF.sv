@@ -35,7 +35,7 @@ ff_c dff_IB1 (.D(D0DIB), .CP(clk_IB), .Q(D1DIB));
 // 4 to 1 mux
 
 assign data = ((clk_Q  & clk_I  & D1DIB) |
-               (clk_I  & clk_QB & D0DQ ) |
+               (clk_I  & clk_QB & D0DQ) |
                (clk_QB & clk_IB & D0DI)  |
                (clk_IB & clk_Q  & D1DQB));
 
