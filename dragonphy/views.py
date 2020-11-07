@@ -164,6 +164,10 @@ def get_deps_asic(cell_name=None, impl_file=None, process='tsmc16'):
         override['sram'] = 'chip_src_tsmc16'
         override['sram_small'] = 'chip_src_tsmc16'
         override['tx_tri_buf'] = 'chip_src_tsmc16'
+        override['qr_mux_fixed'] = 'chip_src_tsmc16'
+        override['tx_inv'] = 'chip_src_tsmc16'
+        skip.add('INVD4BWP16P90ULVT')
+        skip.add('MUX4ND4BWP16P90ULVT')
         skip.add('BUFTD4BWP16P90')
         skip.add('TS1N16FFCLLSBLVTC1024X144M4SW')
         skip.add('TS1N16FFCLLSBLVTC256X64M4SW')
