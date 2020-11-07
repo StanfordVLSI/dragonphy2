@@ -9,10 +9,11 @@ module qr_4t1_mux_top_2DFF_revised_mux (
     input wire logic clk_IB, // Four phase clock input from PI+MDLL
     input wire logic [3:0] din,
     input wire logic rst,
-    output logic data
+    output wire logic data
 );
 
-logic[3:0] sel;
+logic mux_out;
+logic mux_out_bar;
 
 // Instantiate the data path for Q clk path, use the Q clock as the reference clock
 wire D0DQ;
@@ -38,21 +39,33 @@ wire D2MIB;
 ff_c dff_IB0 (.D(din[0]), .CP(clk_I), .Q(D0DIB)); // data captured using Q clk and gradually passed to IB clk.
 ff_c dff_IB1 (.D(D0DIB), .CP(clk_IB), .Q(D1DIB));
 
-// 4 to 1 mux
-assign sel[3] = (clk_Q  & clk_I);
-assign sel[2] = (clk_I  & clk_QB);
-assign sel[1] = (clk_QB & clk_IB);
-assign sel[0] = (clk_IB & clk_Q);
+// Instantiate 4 to 1 mux
 
+// E0, E1
+//  0,  0 -> DIN0_BAR
+//  1,  0 -> DIN1_BAR
+//  0,  1 -> DIN2_BAR
+//  1,  1 -> DIN3_BAR
 
-always_comb begin
-    case (sel)
-    4'b0001: data = D1DQB;
-    4'b0010: data = D0DI;
-    4'b0100: data = D0DQ;
-    4'b1000: data = D1DIB;
-    endcase
-end
+qr_mux_fixed mux_4 (
+    .DIN0(D0DI),
+    .DIN1(D1DQB),
+    .DIN2(D0DQ),
+    .DIN3(D1DIB),
+    .E0(clk_Q),
+    .E1(clk_I),
+    .DOUT(mux_out)
+);
+
+    generate
+        for (genvar i=0; i<4; i=i+1) begin : i_INVBUF 
+            tx_inv inv_buf(
+                .DIN(mux_out),
+                .DOUT(data)
+            );
+        end
+    endgenerate
+
 
 endmodule
 
