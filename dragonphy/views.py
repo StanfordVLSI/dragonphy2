@@ -159,7 +159,6 @@ def get_deps_asic(cell_name=None, impl_file=None, process='tsmc16'):
         override['tx_tri_buf'] = 'chip_src_freepdk45'
         override['mux_2'] = 'chip_src_freepdk45'
         override['tx_inv'] = 'chip_src_freepdk45'
-        override['qr_mux_fixed'] = 'chip_src_freepdk45'
         skip.add('INV_X4')
         skip.add('TBUF_X4')
         skip.add('sram_144_1024_freepdk45')
