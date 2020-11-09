@@ -1,15 +1,13 @@
 `default_nettype none
 
-module tx_tri_buf(
+module tx_inv (
     input wire logic DIN,
-    input wire logic en,
     output wire logic DOUT 
 );
 
-    TBUF_X4 tri_buf (
+    INV_X4 inv_4_fixed (
         .A(DIN),  // Input
-        .Z(DOUT), // Output
-        .EN(en) 
+        .ZN(DOUT) // Output
     );
 
 endmodule
