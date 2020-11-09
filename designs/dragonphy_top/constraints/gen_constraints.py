@@ -294,6 +294,14 @@ set_dont_touch [get_nets "itx/buf1/BTP"]
 set_dont_touch [get_cells "itx/buf1/i_term_n"]
 set_dont_touch [get_cells "itx/buf1/i_term_p"]
 
+# Make sure termination resistor is wired up
+set_dont_touch [get_pins -of_objects "itx/buf1/i_term_p"]
+set_dont_touch [get_pins -of_objects "itx/buf1/i_term_n"]
+set_dont_touch [get_pins "itx/buf1/DOUTP"]
+set_dont_touch [get_pins "itx/buf1/DOUTN"]
+set_dont_touch [get_pins "itx/dout_p"]
+set_dont_touch [get_pins "itx/dout_n"]
+
 # Set a false path on the termination resistors to avoid
 # a combinational loop error
 set_false_path -through [get_pins -of_objects "itx/buf1/i_term_n"]
