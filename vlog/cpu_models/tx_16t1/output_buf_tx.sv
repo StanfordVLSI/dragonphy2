@@ -8,12 +8,8 @@ module output_buf_tx (
 	output wire logic DOUTN,
     output wire logic DOUTP
 );
-	// Internal connections
-    // wire logic BTN; // Buffer to Termination -
-    // wire logic BTP; // Buffer to Termination +
 
-assign DOUTN = DINN;
-assign DOUTP = DINP;
-
+    assign DOUTN = DINN;
+    assign DOUTP = DINP;
 
 endmodule
