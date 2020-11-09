@@ -295,8 +295,6 @@ set_dont_touch [get_cells "itx/buf1/i_term_n"]
 set_dont_touch [get_cells "itx/buf1/i_term_p"]
 
 # Make sure termination resistor is wired up
-set_dont_touch [get_pins -of_objects "itx/buf1/i_term_p"]
-set_dont_touch [get_pins -of_objects "itx/buf1/i_term_n"]
 set_dont_touch [get_pins "itx/buf1/DOUTP"]
 set_dont_touch [get_pins "itx/buf1/DOUTN"]
 set_dont_touch [get_pins "itx/dout_p"]
