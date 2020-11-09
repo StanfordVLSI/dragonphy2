@@ -6,7 +6,7 @@ module tx_inv (
 );
 
     INVD4BWP16P90ULVT inv_4_fixed (
-        .I(DIN0), // Input
+        .I(DIN), // Input
         .ZN(DOUT) // Output
     );
 
