@@ -154,27 +154,46 @@ def get_deps_asic(cell_name=None, impl_file=None, process='tsmc16'):
     # Process-dependent stubs
     override = {}
     if process == 'freepdk-45nm':
+        # Large SRAM
         override['sram'] = 'chip_src_freepdk45'
+        skip.add('sram_144_1024_freepdk45')
+        
+        # Small SRAM
         override['sram_small'] = 'chip_src_freepdk45'
+        skip.add('sram_64_256_freepdk45')
+        
+        # TX tristate buffer
         override['tx_tri_buf'] = 'chip_src_freepdk45'
-        override['mux_2'] = 'chip_src_freepdk45'
+        skip.add('TBUF_X4')
+
+        # qr_mux_fixed is just synthesizable RTL,
+        # so there is no "skip" for a cell coming
+        # from *.lib
+        override['qr_mux_fixed'] = 'chip_src_freepdk45'
+        
+        # TX inverter
         override['tx_inv'] = 'chip_src_freepdk45'
         skip.add('INV_X4')
-        skip.add('TBUF_X4')
-        skip.add('sram_144_1024_freepdk45')
-        skip.add('sram_64_256_freepdk45')
-        skip.add('MUX2_X2')
     elif process == 'tsmc16':
+        # Large SRAM
         override['sram'] = 'chip_src_tsmc16'
+        skip.add('TS1N16FFCLLSBLVTC1024X144M4SW')
+        
+        # Small SRAM
         override['sram_small'] = 'chip_src_tsmc16'
+        skip.add('TS1N16FFCLLSBLVTC256X64M4SW')
+        
+        # TX tristate buffer
         override['tx_tri_buf'] = 'chip_src_tsmc16'
+        skip.add('BUFTD4BWP16P90')
+        
+        # 4-input mux
         override['qr_mux_fixed'] = 'chip_src_tsmc16'
+        skip.add('MUX4ND4BWP16P90ULVT')
+        
+        # TX inverter
         override['tx_inv'] = 'chip_src_tsmc16'
         skip.add('INVD4BWP16P90ULVT')
-        skip.add('MUX4ND4BWP16P90ULVT')
-        skip.add('BUFTD4BWP16P90')
-        skip.add('TS1N16FFCLLSBLVTC1024X144M4SW')
-        skip.add('TS1N16FFCLLSBLVTC256X64M4SW')
     else:
         raise Exception(f'Unknown process: {process}')
 
