@@ -155,7 +155,7 @@ hr_16t4_mux_top hr_mux_16t4_0 (
 );
 
 //Instantiate quarter-rate 4 to 1 mux top
-qr_4t1_mux_top_2DFF_revised_mux qr_mux_4t1_0 (
+qr_4t1_mux_top qr_mux_4t1_0 (
     .clk_Q(clk_interp_slice[0]),  // Quarter-rate clock input
     .clk_QB(clk_interp_slice[2]),
     .clk_I(clk_interp_slice[1]),
@@ -175,7 +175,7 @@ hr_16t4_mux_top hr_mux_16t4_1 (
 );
 
 //Instantiate quarter-rate 4 to 1 mux top
-qr_4t1_mux_top_2DFF_revised_mux qr_mux_4t1_1 (
+qr_4t1_mux_top qr_mux_4t1_1 (
     .clk_Q(clk_interp_slice[0]),  // Quarter-rate clock input
     .clk_QB(clk_interp_slice[2]),
     .clk_I(clk_interp_slice[1]),

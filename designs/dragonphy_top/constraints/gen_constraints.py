@@ -269,10 +269,16 @@ for {{set i 0}} {{$i < 2}} {{incr i}} {{
     set_dont_touch [get_nets "itx/qr_mux_4t1_$i/D0DIB"]
     set_dont_touch [get_nets "itx/qr_mux_4t1_$i/D1DIB"]
     set_dont_touch [get_nets "itx/qr_mux_4t1_$i/mux_out"]
-    set_dont_touch [get_nets "itx/qr_mux_4t1_$i/data"]
-    set_dont_touch [get_cells "itx/qr_mux_4t1_$i/mux_4"]
+'''
+
+if os.environ['adk_name'] == 'tsmc16':
+    output += f'''
+    set_dont_touch [get_cells "itx/qr_mux_4t1_$i/mux_4/mux_4_fixed"]
+'''
+
+output += f'''
     for {{set j 0}} {{$j < 4}} {{incr j}} {{
-    set_dont_touch [get_cells "itx/qr_mux_4t1_$i/i_INVBUF[$j].inv_buf/inv_4_fixed"]
+        set_dont_touch [get_cells "itx/qr_mux_4t1_$i/i_INVBUF[$j].inv_buf/inv_4_fixed"]
     }}    
 }}
 
