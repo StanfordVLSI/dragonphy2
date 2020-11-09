@@ -44,6 +44,8 @@
     set sram_height [dbGet [dbGet -p top.insts.name *errt_i_sram_i_memory*].cell.size_y] 
     set sram_width  [dbGet [dbGet -p top.insts.name *errt_i_sram_i_memory*].cell.size_x] 
     
+    set tri_height [dbGet [dbGet -p top.insts.name *iBUF_0__i_tri_buf_p*].cell.size_y]
+    set tri_width [dbGet [dbGet -p top.insts.name *iBUF_0__i_tri_buf_p*].cell.size_x]
     set small_sram_height [dbGet [lindex [dbGet -p top.insts.name *hist_sram_inst_memory*] 0].cell.size_y] 
     set small_sram_width  [dbGet [lindex [dbGet -p top.insts.name *hist_sram_inst_memory*] 0].cell.size_x] 
 
@@ -167,7 +169,35 @@
 
     ###################
     # Place Instances #
-    ###################\
+    ###################
+    placeInstance \
+        itx/buf1/i_term_n \
+        [snap_to_grid 15 $horiz_pitch] \
+        [snap_to_grid 71 $vert_pitch]
+
+    for {set k 0} {$k<6} {incr k} {
+        for {set j 0} {$j<6} {incr j} {
+            placeInstance \
+                itx/buf1/iBUF_[expr ($j) + ($k)*6]\__i_tri_buf_p/tri_buf \
+                [expr 39 + ($k) * ($tri_width*3)] \
+                [expr 115 + ($j) * ($tri_height*3)]
+        }
+    }
+
+    for {set k 0} {$k<6} {incr k} {
+        for {set j 0} {$j<6} {incr j} {
+            placeInstance \
+                itx/buf1/iBUF_[expr ($j) + ($k)*6]\__i_tri_buf_n/tri_buf \
+                [expr 39 + ($k) * ($tri_width*3)] \
+                [expr 95 + ($j) * ($tri_height*3)]
+        }
+    }
+
+    placeInstance \
+        itx/buf1/i_term_p \
+        15 \
+        142
+
 
     placeInstance \
         ibuf_async \

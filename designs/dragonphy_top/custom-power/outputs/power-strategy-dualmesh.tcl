@@ -17,9 +17,9 @@
 	set sram_FP_adjust [snap_to_grid 350 $horiz_pitch]
     set bottom_y [snap_to_grid 100 $vert_pitch]
 
-    set output_buffer_width [dbGet [dbGet -p top.insts.name *out_buff_i*].cell.size_x]
-    set output_buffer_height [dbGet [dbGet -p top.insts.name *out_buff_i*].cell.size_y]
-    
+    set output_buffer_width 13.05;# [dbGet [dbGet -p top.insts.name *out_buff_i*].cell.size_x]
+    set output_buffer_height 18.4032; # [dbGet [dbGet -p top.insts.name *out_buff_i*].cell.size_y]
+
     set acore_width [dbGet [dbGet -p top.insts.name *iacore*].cell.size_x]
     set acore_height [dbGet [dbGet -p top.insts.name *iacore*].cell.size_y]
 
@@ -106,6 +106,8 @@
     set origin_txpi_y  [snap_to_grid 75 $vert_pitch]
     set txpi_y_spacing [snap_to_grid [expr $pi_height + 30] $vert_pitch]
 
+    add_ndr -name tx_out_buf -spacing {M1:M7 0.12} -width {M1:M3 0.12 M4:M7 0.4}
+    setAttribute -net {itx/buf1/BTN itx/buf1/BTP ext_tx_outp ext_tx_outn} -non_default_rule tx_out_buf
 
 
 #	placeInstance \
@@ -343,8 +345,6 @@ editCommitRoute [expr $mdll_x+$mdll_width+10] [expr $mdll_y]
 # ----------------------------------------------------------------------------------------------------
 
 
-
-
 #Routing blockages for input buffers
 createRouteBlk -box $inbuf_async_x $inbuf_async_y [expr $inbuf_async_x+$input_buffer_width] [expr $inbuf_async_y+$input_buffer_height] -layer {7 8 9}
 createRouteBlk -box $inbuf_main_x $inbuf_main_y [expr $inbuf_main_x+$input_buffer_width] [expr $inbuf_main_y+$input_buffer_height] -layer {7 8 9}
@@ -356,9 +356,22 @@ createRouteBlk -box $inbuf_mdll_mon_x $inbuf_mdll_mon_y [expr $inbuf_mdll_mon_x+
 #createRouteBlk -box $inbuf_mdll_ref_x $inbuf_mdll_ref_y [expr $inbuf_mdll_ref_x+$input_buffer_width] [expr $inbuf_mdll_ref_y+$input_buffer_height+10*$cell_height] -layer {7}  -name inbut_mdlll_ref_out_M7_blk
 #createRouteBlk -box $inbuf_mdll_mon_x $inbuf_mdll_mon_y [expr $inbuf_mdll_mon_x+$input_buffer_width] [expr $inbuf_mdll_mon_y+$input_buffer_height+10*$cell_height] -layer {7}  -name inbut_mdll_mon_out_M7_blk
 
+set outbuf_pin_width 4
+set outbuf_pin_height 4
+set outbuf_pin_space 4 
+set outbuf_pin_offset_x [expr $output_buffer_width+3]
+set outbuf_pin_offset_y [expr $outbuf_pin_space]
+
+set pin_tx_outp_x $origin_async_x	
+set pin_tx_outp_y [expr $origin_ref_y+$input_buffer_height-$outbuf_pin_height]
+set pin_tx_outn_x $origin_async_x
+set pin_tx_outn_y [expr $origin_ref_y]
 
 #Routing blockages for output buffers
 createRouteBlk -box [expr $outbuf_x+$output_buffer_width] [expr $outbuf_y-5]  [expr $outbuf_x+$output_buffer_width+10] [expr $outbuf_y+$output_buffer_height+5] -layer {7 8 9} -name blk_outbuf
+
+#Routing blockages for tx_out
+createRouteBlk -box [expr $pin_tx_outp_x-2] [expr $pin_tx_outn_y-2]  [expr $pin_tx_outp_x+$outbuf_pin_width+2] [expr $pin_tx_outp_y+$outbuf_pin_width+2] -layer {7 8 9} -name blk_tx_out
 
 
 # power grid parameters --------------------------------------------------------------------------------
@@ -437,16 +450,6 @@ set inbuf_pin_height 8.1
 set inbuf_pin_offset_x 0.018
 set inbuf_pin_offset_y 3.205
 
-set outbuf_pin_width 4
-set outbuf_pin_height 4
-set outbuf_pin_space 4 
-set outbuf_pin_offset_x [expr $output_buffer_width+3]
-set outbuf_pin_offset_y [expr $outbuf_pin_space]
-
-set pin_tx_outp_x $origin_async_x	
-set pin_tx_outp_y [expr $origin_ref_y+$input_buffer_height-$outbuf_pin_height]
-set pin_tx_outn_x $origin_async_x
-set pin_tx_outn_y [expr $origin_ref_y]
 
 #----------------------------------------------------------------------------------------------------
 
@@ -491,8 +494,6 @@ createPhysicalPin ext_mdll_clk_monp -net ext_mdll_clk_monp -layer 10 -rect [expr
 #[tx_outputs]
 createPhysicalPin ext_tx_outp -net ext_tx_outp -layer 10 -rect $pin_tx_outp_x $pin_tx_outp_y [expr $pin_tx_outp_x+$outbuf_pin_width] [expr $pin_tx_outp_y+$outbuf_pin_height]
 createPhysicalPin ext_tx_outn -net ext_tx_outn -layer 10 -rect $pin_tx_outn_x $pin_tx_outn_y [expr $pin_tx_outn_x+$outbuf_pin_width] [expr $pin_tx_outn_y+$outbuf_pin_height]
-
-
 
 
 
@@ -545,6 +546,7 @@ editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 0 -spreadDirection
 # ----------------------------------------------------------------------------------------------------
 
 deleteRouteBlk -name blk_outbuf
+deleteRouteBlk -name blk_tx_out
 
 
 
