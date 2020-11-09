@@ -5,7 +5,7 @@ module tx_inv(
 
 INV_X4 inv_4_fixed (
 		        // user-provided signals
-		        .A(DIN0), // Input
+		        .A(DIN), // Input
 		        .ZN(DOUT)
 	        );
 
