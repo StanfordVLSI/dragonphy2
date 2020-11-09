@@ -3,12 +3,13 @@ filename: qr_mux_fixed.sv
 
 Description: 
 A 4-input mux with an inverted output
+Corresponding to tsmc 16nm ulvt standard cell
 ********************************************************************/
 
 module qr_mux_fixed #(
     ////////////////////////////////////
     // TODO: update this!             //
-    parameter real td_nom = 0.0e-12,  //
+    parameter real td_nom = 2.3e-11,  //
     ////////////////////////////////////
     parameter real td_std = 0.0,  // std dev of nominal delay variation in sec
     parameter real rj_rms = 0.0   // rms random jitter in sec
