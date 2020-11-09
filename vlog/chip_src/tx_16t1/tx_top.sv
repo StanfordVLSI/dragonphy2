@@ -15,8 +15,8 @@ module tx_top import const_pack::*; #(
     input wire logic ctl_valid,
 
     output wire logic clk_prbsgen,  // Output clock for 16-bit prbs generator
-    output wire logic dout_p, // Data output
-    output wire logic dout_n,
+    inout wire logic dout_p, // Data output
+    inout wire logic dout_n,
     tx_debug_intf.tx tx
 );
 

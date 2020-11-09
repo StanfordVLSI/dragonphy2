@@ -13,8 +13,8 @@ module dragonphy_top import const_pack::*; (
 
     // analog outputs
     // TODO: use pwl_t
-    output wire logic ext_tx_outp,
-    output wire logic ext_tx_outn,
+    inout wire logic ext_tx_outp,
+    inout wire logic ext_tx_outn,
 
 	// clock inputs 
 	input wire logic ext_clk_async_p,
