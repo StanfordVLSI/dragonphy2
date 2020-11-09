@@ -32,10 +32,63 @@ create_clock -name clk_retimer \\
     -period {main_per*time_scale} \\
     -waveform {{0 {0.5*main_per*time_scale}}} \\
     [get_pins iacore/clk_adc]
+    
+#################
+# Input buffers #
+#################
+
+# ibuf_async
+
+create_clock -name clk_async \\
+    -period {main_per*time_scale} \\
+    -waveform {{0 {0.5*main_per*time_scale}}} \\
+    [get_pins ibuf_async/clk]
+
+# ibuf_main already covered above...
+
+# ibuf_mdll_ref
+
+create_clock -name clk_mdll_ref_p \\
+    -period {clk_4x_per} \\
+    -waveform {{0 {0.5*clk_4x_per}}} \\
+    [get_pins ibuf_mdll_ref/clk]
+
+create_clock -name clk_mdll_ref_n \\
+    -period {clk_4x_per} \\
+    -waveform {{0 {0.5*clk_4x_per}}} \\
+    [get_pins ibuf_mdll_ref/clk_b]
+
+# ibuf_mdll_mon
+
+create_clock -name clk_mdll_mon_p \\
+    -period {main_per*time_scale} \\
+    -waveform {{0 {0.5*main_per*time_scale}}} \\
+    [get_pins ibuf_mdll_mon/clk]
+
+create_clock -name clk_mdll_mon_n \\
+    -period {main_per*time_scale} \\
+    -waveform {{0 {0.5*main_per*time_scale}}} \\
+    [get_pins ibuf_mdll_mon/clk_b]
+
+##############
+# MDLL clock #
+##############
+
+create_clock -name clk_mdll \\
+    -period {clk_4x_per} \\
+    -waveform {{0 {0.5*clk_4x_per}}} \\
+    [get_pins imdll/clk_0]
 
 #############
 # TX clocks #
 #############
+
+# Input divider
+
+create_clock -name clk_tx_indiv \\
+    -period {clk_4x_per} \\
+    -waveform {{0 {0.5*clk_4x_per}}} \\
+    [get_pins itx/indiv/out]
 
 # PI outputs
 
@@ -59,7 +112,7 @@ create_clock -name clk_tx_pi_3 \\
     -waveform {{{0.75*clk_4x_per} {1.25*clk_4x_per}}} \\
     [get_pins itx/iPI[3].iPI/clk_out_slice]
 
-# clock dividers
+# Half-rate and quarter-rate clocks
 
 create_generated_clock -name clk_tx_hr \\
     -source [get_pins itx/div0/clkin] \\
@@ -145,8 +198,13 @@ set_clock_groups -asynchronous \\
         clk_tx_hr \\
         clk_tx_qr \\
     }} \\
-    -group {{ clk_retimer clk_main_buf }}
-
+    -group {{ clk_retimer clk_main_buf }} \\
+    -group {{ clk_async }} \\
+    -group {{ clk_mdll_ref_p clk_mdll_ref_n }} \\
+    -group {{ clk_mdll_mon_p clk_mdll_mon_n }} \\
+    -group {{ clk_mdll }} \\
+    -group {{ clk_tx_indiv }}
+ 
 ####################
 # Other external I/O
 ####################
@@ -196,9 +254,9 @@ set_false_path -through [get_ports $ext_false_path_only]
 # IOs are all false paths
 set_false_path -through [get_pins ibuf_*/*]
 
-# Clock IOs should not have buffers added
+# Input buffer inputs (which are external pins)
+# should not have buffers added
 set_dont_touch_network [get_pins ibuf_*/in*]
-set_dont_touch_network [get_pins ibuf_*/clk*]
 
 #############
 # Analog core
@@ -316,8 +374,10 @@ set_dont_retime [get_cells itx]
 # IOs for MDLL are all false paths
 set_false_path -through [get_pins -of_objects imdll]
 
-# Clock IOs should not have buffers added
-set_dont_touch_network [get_pins imdll/clk_*]
+# Unused clock IOs should not have buffers added
+set_dont_touch_network [get_pins imdll/clk_90]
+set_dont_touch_network [get_pins imdll/clk_180]
+set_dont_touch_network [get_pins imdll/clk_270]
 
 ################
 # Output buffer
@@ -352,6 +412,7 @@ set_max_capacitance {1.0*cap_scale} [get_port ext_Vcal]
 # Tighten transition constraint for clocks declared so far
 set_max_transition {0.1*time_scale} -clock_path [get_clock clk_jtag]
 set_max_transition {0.1*time_scale} -clock_path [get_clock clk_retimer]
+set_max_transition {0.025*time_scale} -clock_path [get_clock clk_tx_indiv]
 set_max_transition {0.025*time_scale} -clock_path [get_clock clk_tx_pi_0]
 set_max_transition {0.025*time_scale} -clock_path [get_clock clk_tx_pi_1]
 set_max_transition {0.025*time_scale} -clock_path [get_clock clk_tx_pi_2]
@@ -375,25 +436,22 @@ foreach x $tdbg_clk_pins {{
 # Set transition times at top-level 
 ###################################
 
-# TODO: most of these are commented out -- need to figure out
-# how to set a transition constraint on a black-box pin
-
 # clk_async
-# set_max_transition {0.1*time_scale} [get_pin ibuf_async/clk]
+set_max_transition {0.1*time_scale} -clock_path [get_clock clk_async]
 
 # clk_main
-# set_max_transition {0.0125*time_scale} [get_pin ibuf_main/clk]
+set_max_transition {0.0125*time_scale} -clock_path [get_clock clk_main_buf]
 
 # MDLL reference
-# set_max_transition {0.025*time_scale} [get_pin ibuf_mdll_ref/clk]
-# set_max_transition {0.025*time_scale} [get_pin ibuf_mdll_ref/clk_b]
+set_max_transition {0.025*time_scale} -clock_path [get_clock clk_mdll_ref_p]
+set_max_transition {0.025*time_scale} -clock_path [get_clock clk_mdll_ref_n]
 
 # MDLL monitor
-# set_max_transition {0.1*time_scale} [get_pin ibuf_mdll_mon/clk]
-# set_max_transition {0.1*time_scale} [get_pin ibuf_mdll_mon/clk_b]
+set_max_transition {0.1*time_scale} -clock_path [get_clock clk_mdll_mon_p]
+set_max_transition {0.1*time_scale} -clock_path [get_clock clk_mdll_mon_n]
 
 # MDLL output
-# set_max_transition {0.025*time_scale} [get_pin imdll/clk_0]
+set_max_transition {0.025*time_scale} -clock_path [get_clock clk_mdll]
 
 # Clock going to the CGRA
 set_max_transition {0.1*time_scale} [get_pin idcore/clk_cgra]
