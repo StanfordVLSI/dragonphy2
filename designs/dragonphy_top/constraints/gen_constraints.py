@@ -435,8 +435,8 @@ foreach x [get_object_name $adbg_clk_pins] {{
 # clk_async
 set_max_transition {0.1*time_scale} -clock_path [get_clock clk_async]
 
-# clk_main
-set_max_transition {0.0125*time_scale} -clock_path [get_clock clk_main_buf]
+# clk_main - cant be lower than 0.017!
+set_max_transition {0.017*time_scale} -clock_path [get_clock clk_main_buf]
 
 # MDLL reference
 set_max_transition {0.025*time_scale} -clock_path [get_clock clk_mdll_ref_p]
