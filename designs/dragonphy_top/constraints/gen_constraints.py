@@ -32,10 +32,63 @@ create_clock -name clk_retimer \\
     -period {main_per*time_scale} \\
     -waveform {{0 {0.5*main_per*time_scale}}} \\
     [get_pins iacore/clk_adc]
+    
+#################
+# Input buffers #
+#################
+
+# ibuf_async
+
+create_clock -name clk_async \\
+    -period {main_per*time_scale} \\
+    -waveform {{0 {0.5*main_per*time_scale}}} \\
+    [get_pins ibuf_async/clk]
+
+# ibuf_main already covered above...
+
+# ibuf_mdll_ref
+
+create_clock -name clk_mdll_ref_p \\
+    -period {clk_4x_per} \\
+    -waveform {{0 {0.5*clk_4x_per}}} \\
+    [get_pins ibuf_mdll_ref/clk]
+
+create_clock -name clk_mdll_ref_n \\
+    -period {clk_4x_per} \\
+    -waveform {{0 {0.5*clk_4x_per}}} \\
+    [get_pins ibuf_mdll_ref/clk_b]
+
+# ibuf_mdll_mon
+
+create_clock -name clk_mdll_mon_p \\
+    -period {main_per*time_scale} \\
+    -waveform {{0 {0.5*main_per*time_scale}}} \\
+    [get_pins ibuf_mdll_mon/clk]
+
+create_clock -name clk_mdll_mon_n \\
+    -period {main_per*time_scale} \\
+    -waveform {{0 {0.5*main_per*time_scale}}} \\
+    [get_pins ibuf_mdll_mon/clk_b]
+
+##############
+# MDLL clock #
+##############
+
+create_clock -name clk_mdll \\
+    -period {clk_4x_per} \\
+    -waveform {{0 {0.5*clk_4x_per}}} \\
+    [get_pins imdll/clk_0]
 
 #############
 # TX clocks #
 #############
+
+# Input divider
+
+create_clock -name clk_tx_indiv \\
+    -period {clk_4x_per} \\
+    -waveform {{0 {0.5*clk_4x_per}}} \\
+    [get_pins itx/indiv/out]
 
 # PI outputs
 
@@ -59,7 +112,7 @@ create_clock -name clk_tx_pi_3 \\
     -waveform {{{0.75*clk_4x_per} {1.25*clk_4x_per}}} \\
     [get_pins itx/iPI[3].iPI/clk_out_slice]
 
-# clock dividers
+# Half-rate and quarter-rate clocks
 
 create_generated_clock -name clk_tx_hr \\
     -source [get_pins itx/div0/clkin] \\
@@ -145,8 +198,13 @@ set_clock_groups -asynchronous \\
         clk_tx_hr \\
         clk_tx_qr \\
     }} \\
-    -group {{ clk_retimer clk_main_buf }}
-
+    -group {{ clk_retimer clk_main_buf }} \\
+    -group {{ clk_async }} \\
+    -group {{ clk_mdll_ref_p clk_mdll_ref_n }} \\
+    -group {{ clk_mdll_mon_p clk_mdll_mon_n }} \\
+    -group {{ clk_mdll }} \\
+    -group {{ clk_tx_indiv }}
+ 
 ####################
 # Other external I/O
 ####################
@@ -196,9 +254,9 @@ set_false_path -through [get_ports $ext_false_path_only]
 # IOs are all false paths
 set_false_path -through [get_pins ibuf_*/*]
 
-# Clock IOs should not have buffers added
+# Input buffer inputs (which are external pins)
+# should not have buffers added
 set_dont_touch_network [get_pins ibuf_*/in*]
-set_dont_touch_network [get_pins ibuf_*/clk*]
 
 #############
 # Analog core
@@ -209,14 +267,11 @@ set_false_path -through [get_pins iacore/adbg_intf_i.*]
 
 # Clock outputs in the debug interface should not have buffers added
 set adbg_clk_pins [get_pins {{ \\
-    iacore/*del_out_pi* \\
-    iacore/*pi_out_meas* \\
-    iacore/*del_out_rep* \\
-    iacore/*inbuf_out_meas* \\
-    iacore/*pfd_inp_meas* \\
-    iacore/*pfd_inn_meas* \\
+    iacore/adbg_intf_i.del_out_pi \\
+    iacore/adbg_intf_i.pi_out_meas* \\
+    iacore/adbg_intf_i.del_out_rep* \\
+    iacore/adbg_intf_i.inbuf_out_meas \\
 }}]
-set_dont_touch_network $adbg_clk_pins
 
 #############
 # Transmitter
@@ -233,6 +288,84 @@ set tdbg_clk_pins [get_pins {{ \\
 }}]
 set_dont_touch_network $tdbg_clk_pins
 
+# TODO: do we need to set dont_touch through the hierarchy?
+# Or will it be applied automatically to instances within?
+
+# Phase interpolators
+for {{set i 0}} {{$i < 4}} {{incr i}} {{
+    set_dont_touch [get_cells "itx/iPI[$i].iPI"]
+}}
+
+# Input divider
+set_dont_touch [get_cells itx/indiv]
+
+# Internal nets
+set_dont_touch [get_nets "itx/qr_data_p"]
+set_dont_touch [get_nets "itx/qr_data_n"]
+set_dont_touch [get_nets "itx/mtb_n"]
+set_dont_touch [get_nets "itx/mtb_p"]
+
+# Muxes
+for {{set i 0}} {{$i < 2}} {{incr i}} {{
+    # Half-rate muxes (the mux is intentionally left out because
+    # there is a mapping problem for FreePDK45
+    for {{set j 1}} {{$j < 5}} {{incr j}} {{
+        set_dont_touch [get_nets "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hd"]
+        for {{set k 0}} {{$k < 3}} {{incr k}} {{
+            set_dont_touch [get_nets "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/D0L"]
+            set_dont_touch [get_nets "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/D1M"]
+            set_dont_touch [get_nets "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/L0M"]
+        }}
+    }}
+
+    # Quarter-rate muxes
+    set_dont_touch [get_nets "itx/qr_mux_4t1_$i/D0DQ"]
+    set_dont_touch [get_nets "itx/qr_mux_4t1_$i/D0DI"]
+    set_dont_touch [get_nets "itx/qr_mux_4t1_$i/D0DQB"]
+    set_dont_touch [get_nets "itx/qr_mux_4t1_$i/D1DQB"]
+    set_dont_touch [get_nets "itx/qr_mux_4t1_$i/D0DIB"]
+    set_dont_touch [get_nets "itx/qr_mux_4t1_$i/D1DIB"]
+    set_dont_touch [get_nets "itx/qr_mux_4t1_$i/mux_out"]
+'''
+
+if os.environ['adk_name'] == 'tsmc16':
+    output += f'''
+    set_dont_touch [get_cells "itx/qr_mux_4t1_$i/mux_4/mux_4_fixed"]
+'''
+
+output += f'''
+    for {{set j 0}} {{$j < 4}} {{incr j}} {{
+        set_dont_touch [get_cells "itx/qr_mux_4t1_$i/i_INVBUF[$j].inv_buf/inv_4_fixed"]
+    }}    
+}}
+
+# Output buffer
+for {{set i 0}} {{$i < 2}} {{incr i}} {{
+    set_dont_touch [get_cells "itx/buf1/iBUF[$i].i_tri_buf_n/tri_buf"]
+    set_dont_touch [get_cells "itx/buf1/iBUF[$i].i_tri_buf_p/tri_buf"]
+    set_false_path -through [get_pins -of_objects "itx/buf1/iBUF[$i].i_tri_buf_n/tri_buf"]
+    set_false_path -through [get_pins -of_objects "itx/buf1/iBUF[$i].i_tri_buf_p/tri_buf"]
+}}
+set_dont_touch [get_nets "itx/buf1/BTN"]
+set_dont_touch [get_nets "itx/buf1/BTP"]
+set_dont_touch [get_cells "itx/buf1/i_term_n"]
+set_dont_touch [get_cells "itx/buf1/i_term_p"]
+
+# Make sure termination resistor is wired up
+set_dont_touch [get_pins "itx/buf1/DOUTP"]
+set_dont_touch [get_pins "itx/buf1/DOUTN"]
+set_dont_touch [get_pins "itx/dout_p"]
+set_dont_touch [get_pins "itx/dout_n"]
+
+# Set a false path on the termination resistors to avoid
+# a combinational loop error
+set_false_path -through [get_pins -of_objects "itx/buf1/i_term_n"]
+set_false_path -through [get_pins -of_objects "itx/buf1/i_term_p"]
+
+# Make sure the transmitter is not retimed.  This may already be in
+# the main DC step, but it's not clear that it's being applied.
+set_dont_retime [get_cells itx]
+
 ######
 # MDLL
 ######
@@ -240,18 +373,19 @@ set_dont_touch_network $tdbg_clk_pins
 # IOs for MDLL are all false paths
 set_false_path -through [get_pins -of_objects imdll]
 
-# Clock IOs should not have buffers added
-set_dont_touch_network [get_pins imdll/clk_*]
+# Unused clock IOs should not have buffers added
+set_dont_touch_network [get_pins imdll/clk_90]
+set_dont_touch_network [get_pins imdll/clk_180]
+set_dont_touch_network [get_pins imdll/clk_270]
 
 ################
 # Output buffer
 ################
 
-# IOs for output buffer are all false paths
+# IOs for output buffers are all false paths
 set_false_path -through [get_pins -of_objects idcore/out_buff_i]
 
-# Clock IOs should not have buffers added
-set_dont_touch_network [get_pins idcore/out_buff_i/bufferend_signals]
+# Clock outputs should not have buffers added
 set_dont_touch_network [get_pins idcore/out_buff_i/clock_out_*]
 set_dont_touch_network [get_pins idcore/out_buff_i/trigg_out_*]
 
@@ -276,6 +410,7 @@ set_max_capacitance {1.0*cap_scale} [get_port ext_Vcal]
 # Tighten transition constraint for clocks declared so far
 set_max_transition {0.1*time_scale} -clock_path [get_clock clk_jtag]
 set_max_transition {0.1*time_scale} -clock_path [get_clock clk_retimer]
+set_max_transition {0.025*time_scale} -clock_path [get_clock clk_tx_indiv]
 set_max_transition {0.025*time_scale} -clock_path [get_clock clk_tx_pi_0]
 set_max_transition {0.025*time_scale} -clock_path [get_clock clk_tx_pi_1]
 set_max_transition {0.025*time_scale} -clock_path [get_clock clk_tx_pi_2]
@@ -283,15 +418,14 @@ set_max_transition {0.025*time_scale} -clock_path [get_clock clk_tx_pi_3]
 set_max_transition {0.05*time_scale} -clock_path [get_clock clk_tx_hr]
 set_max_transition {0.1*time_scale} -clock_path [get_clock clk_tx_qr]
 
-# Set transition time for high-speed signals monitored from iacore and itx
-# transition time is 10% of a 4 GHz period.
+# Set transition time for high-speed signals monitored from iacore
+# The transition time is 10% of a 4 GHz period.
 
-foreach x $adbg_clk_pins {{
-    set_max_transition {0.025*time_scale} $x
-}}
-
-foreach x $tdbg_clk_pins {{
-    set_max_transition {0.025*time_scale} $x
+set adbg_count 0
+foreach x [get_object_name $adbg_clk_pins] {{
+    create_clock -name "clk_mon_net_$adbg_count" -period {0.25*time_scale} [get_pin $x]
+    set_max_transition {0.025*time_scale} -clock_path [get_clock "clk_mon_net_$adbg_count"]
+    incr adbg_count
 }}
 
 ###################################
@@ -299,21 +433,21 @@ foreach x $tdbg_clk_pins {{
 ###################################
 
 # clk_async
-set_max_transition {0.1*time_scale} [get_pin ibuf_async/clk]
+set_max_transition {0.1*time_scale} -clock_path [get_clock clk_async]
 
 # clk_main
-set_max_transition {0.0125*time_scale} [get_pin ibuf_main/clk]
+set_max_transition {0.0125*time_scale} -clock_path [get_clock clk_main_buf]
 
 # MDLL reference
-set_max_transition {0.025*time_scale} [get_pin ibuf_mdll_ref/clk]
-set_max_transition {0.025*time_scale} [get_pin ibuf_mdll_ref/clk_b]
+set_max_transition {0.025*time_scale} -clock_path [get_clock clk_mdll_ref_p]
+set_max_transition {0.025*time_scale} -clock_path [get_clock clk_mdll_ref_n]
 
 # MDLL monitor
-set_max_transition {0.1*time_scale} [get_pin ibuf_mdll_mon/clk]
-set_max_transition {0.1*time_scale} [get_pin ibuf_mdll_mon/clk_b]
+set_max_transition {0.1*time_scale} -clock_path [get_clock clk_mdll_mon_p]
+set_max_transition {0.1*time_scale} -clock_path [get_clock clk_mdll_mon_n]
 
 # MDLL output
-set_max_transition {0.025*time_scale} [get_pin imdll/clk_0]
+set_max_transition {0.025*time_scale} -clock_path [get_clock clk_mdll]
 
 # Clock going to the CGRA
 set_max_transition {0.1*time_scale} [get_pin idcore/clk_cgra]
@@ -327,14 +461,14 @@ set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_0/din[0]}}]
 set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_0/din[1]}}]
 set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_0/din[2]}}]
 set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_0/din[3]}}]
-set_max_transition {0.00625*time_scale} [get_pin {{itx/qr_mux_4t1_0/data}}]
+set_max_transition {0.008*time_scale} [get_pin {{itx/qr_mux_4t1_0/data}}]
 
 # Mux -
 set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_1/din[0]}}]
 set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_1/din[1]}}]
 set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_1/din[2]}}]
 set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_1/din[3]}}]
-set_max_transition {0.00625*time_scale} [get_pin {{itx/qr_mux_4t1_1/data}}]
+set_max_transition {0.008*time_scale} [get_pin {{itx/qr_mux_4t1_1/data}}]
 
 echo [all_clocks]
 '''
