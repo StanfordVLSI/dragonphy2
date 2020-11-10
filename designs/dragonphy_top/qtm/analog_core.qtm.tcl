@@ -302,16 +302,16 @@ set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sign_PFD_clk_in_rep[1:0
 
 # setup/hold for ctl_valid
 create_qtm_constraint_arc -setup -edge rise -from ext_clk -to ctl_valid \
-    -value [expr {0.5}]
+    -value [expr {0.400}]
 create_qtm_constraint_arc -hold -edge rise -from ext_clk -to ctl_valid \
-    -value [expr {0.0}]
+    -value [expr {0.100}]
 
 # setup/hold for ctl_pi[35:0]
 for {set idx 0} {$idx < 36} {incr idx} {
     create_qtm_constraint_arc -setup -edge rise -from ext_clk -to "ctl_pi[$idx]" \
-        -value [expr {0.5}]
+        -value [expr {0.400}]
     create_qtm_constraint_arc -hold -edge rise -from ext_clk -to "ctl_pi[$idx]" \
-        -value [expr {0.0}]
+        -value [expr {0.100}]
 }
 
 ## Main ADCs
@@ -324,9 +324,9 @@ for {set adc_idx 0} {$adc_idx < 16} {incr adc_idx} {
 
         # create the delay arcs
         create_qtm_delay_arc -from ext_clk -edge rise -to "adder_out[$flat_idx]" \
-            -value [expr {0.05 * $::env(constr_time_scale)}]
+            -value [expr {0.230 * $::env(constr_time_scale)}]
         create_qtm_delay_arc -from ext_clk -edge rise -to "sign_out[$adc_idx]" \
-            -value [expr {0.05 * $::env(constr_time_scale)}]
+            -value [expr {0.230 * $::env(constr_time_scale)}]
     }
 }
 
@@ -335,13 +335,13 @@ for {set adc_idx 0} {$adc_idx < 16} {incr adc_idx} {
 # adder_out_rep[15:0]
 for {set idx 0} {$idx < 16} {incr idx} {
     create_qtm_delay_arc -from ext_clk -edge rise -to "adder_out_rep[$idx]" \
-        -value [expr {0.05 * $::env(constr_time_scale)}]
+        -value [expr {0.230 * $::env(constr_time_scale)}]
 }
 
 # sign_out_rep[1:0]
 for {set idx 0} {$idx < 2} {incr idx} {
     create_qtm_delay_arc -from ext_clk -edge rise -to "sign_out_rep[$idx]" \
-        -value [expr {0.05 * $::env(constr_time_scale)}]
+        -value [expr {0.230 * $::env(constr_time_scale)}]
 }
 
 ## miscellaneous outputs

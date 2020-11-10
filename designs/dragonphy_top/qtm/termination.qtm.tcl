@@ -12,20 +12,15 @@ set_qtm_technology -library $::env(qtm_tech_lib)
 create_qtm_drive_type -lib_cell $ADK_DRIVING_CELL qtm_drive
 create_qtm_load_type -lib_cell $ADK_DRIVING_CELL qtm_load
 
-# define input(s)
-set input_list { \
+# define inout(s)
+set inout_list { \
     VinP \
     VinN \
-}
-create_qtm_port $input_list -type input
-set_qtm_port_load -type qtm_load -factor 2 $input_list
-
-# define output(s)
-set output_list { \
     Vcm \
 }
-create_qtm_port $output_list -type output
-set_qtm_port_drive -type qtm_drive $output_list
+create_qtm_port $inout_list -type inout
+set_qtm_port_load -type qtm_load -factor 2 $inout_list
+set_qtm_port_drive -type qtm_drive $inout_list
 
 report_qtm_model
 save_qtm_model -format {lib db} -library_cell
