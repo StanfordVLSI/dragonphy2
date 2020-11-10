@@ -14,7 +14,7 @@ module hr_16t4_mux_top (  // The output data rate should be input clock frequenc
 
 genvar i;
 generate  // Instantiate 4 hr_4t1_mux_top to form 16:4 mux
-    for (i=1; i<5; i=i+1) begin
+    for (i=1; i<5; i=i+1) begin : iMUX
         hr_4t1_mux_top mux_4t1 (
             .clk_b(clk_hr),
             .din(din[4*i-1:4*(i-1)]),  // Map 16 bits input to 4 half-rate 4 to 1 mux

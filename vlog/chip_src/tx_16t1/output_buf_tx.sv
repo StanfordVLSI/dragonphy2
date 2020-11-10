@@ -1,13 +1,13 @@
 `default_nettype none
 
 module output_buf_tx (
-	input wire logic DINN,
-	input wire logic DINP,
-	input wire logic [17:0] CTL_SLICE_N0,
+    input wire logic DINN,
+    input wire logic DINP,
+    input wire logic [17:0] CTL_SLICE_N0,
     input wire logic [17:0] CTL_SLICE_N1,
     input wire logic [17:0] CTL_SLICE_P0,
     input wire logic [17:0] CTL_SLICE_P1,
-	output wire logic DOUTN,
+    output wire logic DOUTN,
     output wire logic DOUTP
 );
 
@@ -52,15 +52,15 @@ module output_buf_tx (
     /////////////////
     
     termination i_term_n (
-        .Vcm(BTN),
-        .VinP(DOUTN),
-        .VinN(DOUTN)
+        .VinP(BTN),
+        .VinN(BTN),
+        .Vcm(DOUTN)
     );
 
     termination i_term_p (
-        .Vcm(BTP),
-        .VinP(DOUTP),
-        .VinN(DOUTP)
+        .VinP(BTP),
+        .VinN(BTP),
+        .Vcm(DOUTP)
     );
 
 endmodule
