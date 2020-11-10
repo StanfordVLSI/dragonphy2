@@ -267,12 +267,11 @@ set_false_path -through [get_pins iacore/adbg_intf_i.*]
 
 # Clock outputs in the debug interface should not have buffers added
 set adbg_clk_pins [get_pins {{ \\
-    iacore/*del_out_pi* \\
-    iacore/*pi_out_meas* \\
-    iacore/*del_out_rep* \\
-    iacore/*inbuf_out_meas* \\
+    iacore/adbg_intf_i.del_out_pi \\
+    iacore/adbg_intf_i.pi_out_meas* \\
+    iacore/adbg_intf_i.del_out_rep* \\
+    iacore/adbg_intf_i.inbuf_out_meas \\
 }}]
-set_dont_touch_network $adbg_clk_pins
 
 #############
 # Transmitter
@@ -383,11 +382,10 @@ set_dont_touch_network [get_pins imdll/clk_270]
 # Output buffer
 ################
 
-# IOs for output buffer are all false paths
+# IOs for output buffers are all false paths
 set_false_path -through [get_pins -of_objects idcore/out_buff_i]
 
-# Clock IOs should not have buffers added
-set_dont_touch_network [get_pins idcore/out_buff_i/bufferend_signals]
+# Clock outputs should not have buffers added
 set_dont_touch_network [get_pins idcore/out_buff_i/clock_out_*]
 set_dont_touch_network [get_pins idcore/out_buff_i/trigg_out_*]
 
@@ -420,16 +418,14 @@ set_max_transition {0.025*time_scale} -clock_path [get_clock clk_tx_pi_3]
 set_max_transition {0.05*time_scale} -clock_path [get_clock clk_tx_hr]
 set_max_transition {0.1*time_scale} -clock_path [get_clock clk_tx_qr]
 
-# Set transition time for high-speed signals monitored from
-# iacore and itx.  transition time is 10% of a 4 GHz period.
+# Set transition time for high-speed signals monitored from iacore
+# The transition time is 10% of a 4 GHz period.
 
-# TODO: figure out how to set a transition constraint on a black-box pin
-# foreach x $adbg_clk_pins {{
-#     set_max_transition {0.025*time_scale} $x
-# }}
-
-foreach x $tdbg_clk_pins {{
-    set_max_transition {0.025*time_scale} $x
+set adbg_count 0
+foreach x [get_object_name $adbg_clk_pins] {{
+    create_clock -name "clk_mon_net_$adbg_count" -period {0.25*time_scale} [get_pin $x]
+    set_max_transition {0.025*time_scale} -clock_path [get_clock "clk_mon_net_$adbg_count"]
+    incr adbg_count
 }}
 
 ###################################
