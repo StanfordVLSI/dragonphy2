@@ -10,12 +10,13 @@ module qr_mux_fixed (
     output wire logic DOUT 
 );
 
+
     MUX4ND4BWP16P90ULVT mux_4_fixed (
         .I0(DIN0), // Input
         .I1(DIN1),
         .I2(DIN2),
         .I3(DIN3),
-        .Z(DOUT), // Output
+        .ZN(DOUT), // Output
         .S0(E0),  // Selection
         .S1(E1) 
     );
