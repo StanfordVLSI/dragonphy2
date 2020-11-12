@@ -37,6 +37,10 @@
 
     set small_sram_height [dbGet [lindex [dbGet -p top.insts.name *hist_sram_inst_memory*] 0].cell.size_y] 
     set small_sram_width  [dbGet [lindex [dbGet -p top.insts.name *hist_sram_inst_memory*] 0].cell.size_x] 
+	
+	set term_height [dbGet [lindex [dbGet -p top.insts.name itx/buf1/i_term_p] 0].cell.size_y]
+    set term_width [dbGet [lindex [dbGet -p top.insts.name itx/buf1/i_term_p] 0].cell.size_x]
+
 
     set core_margin_t 0;#$vert_pitch
     set core_margin_b 0;#$vert_pitch 
@@ -105,6 +109,12 @@
     set txpi_x_spacing [snap_to_grid [expr $pi_width + 30] $horiz_pitch]
     set origin_txpi_y  [snap_to_grid 75 $vert_pitch]
     set txpi_y_spacing [snap_to_grid [expr $pi_height + 30] $vert_pitch]
+
+	set origin_term_n_x [snap_to_grid 15 $horiz_pitch]
+    set origin_term_n_y [snap_to_grid 71 $vert_pitch]
+    set origin_term_p_x [snap_to_grid 15 $horiz_pitch]
+    set origin_term_p_y [snap_to_grid 142 $vert_pitch]
+
 
     add_ndr -name tx_out_buf -spacing {M1:M7 0.12} -width {M1:M3 0.12 M4:M7 0.4}
     setAttribute -net {itx/buf1/BTN itx/buf1/BTP ext_tx_outp ext_tx_outn} -non_default_rule tx_out_buf
@@ -223,6 +233,7 @@ set inbuf_mdll_mon_y $origin_mon_y
 set inbuf_mdll_ref_x $origin_ref_x 
 set inbuf_mdll_ref_y $origin_ref_y 
 
+
 # power for inout buffers / MDLL (stretch out M6)-----------------------------------------------------------
 #sroute -connect { blockPin } -inst {ibuf_async ibuf_main ibuf_mdll_ref ibuf_mdll_mon} -layerChangeRange { M6 M6 } -blockPinTarget { boundaryWithPin } -allowJogging 1 -crossoverViaLayerRange { M7 M6 } -nets {DVDD} -allowLayerChange 0 -blockPin useLef -targetViaLayerRange { M7 M6 }
 #sroute -connect { blockPin } -inst {ibuf_async ibuf_main ibuf_mdll_ref ibuf_mdll_mon}  -layerChangeRange { M6 M6 } -blockPinTarget { boundaryWithPin } -allowJogging 1 -crossoverViaLayerRange { M7 M6 } -nets {DVSS} -allowLayerChange 0 -blockPin useLef -targetViaLayerRange { M7 M6 }
@@ -239,6 +250,9 @@ set inbuf_mdll_ref_y $origin_ref_y
 
 createRouteBlk -box $acore_x [expr $acore_y+$acore_height] [expr $acore_x+$acore_width] $FP_height -layer {2 3 4 5 6 7 8 9} -name blk_acore_top
 
+createRouteBlk -box $origin_term_p_x $origin_term_p_y [expr $origin_term_p_x+$term_width] [expr $origin_term_p_y+$term_height] -layer {7 8 9} -name blk_term_p
+createRouteBlk -box $origin_term_n_x $origin_term_n_y [expr $origin_term_n_x+$term_width] [expr $origin_term_n_y+$term_height] -layer {7 8 9} -name blk_term_n
+
 # --------------------------------------------------------------------------------------------------------------
 # # M7 power connections for macros
 # # --------------------------------------------------------------------------------------------------------------
@@ -246,7 +260,6 @@ set inbuf_M7_power_pin_offset1 20.996
 set inbuf_M7_power_pin_offset2 21.104
 set inbuf_M7_power_width 2
 set inbuf_M7_power_space 1
- 
 
 sroute -connect { blockPin } -inst {idcore/out_buff_i} -layerChangeRange { M7 M7 } -blockPinTarget { boundaryWithPin } -allowJogging 1 -crossoverViaLayerRange { M8 M1 } -nets {DVDD DVSS} -allowLayerChange 0 -blockPin useLef -targetViaLayerRange { M8 M1 }
 
@@ -597,6 +610,7 @@ editAddRoute [expr $out_pin_x+$lead_length] [expr $pin_clk_trig_n_y+$outbuf_pin_
 editCommitRoute [expr $pin_clk_trig_n_x+$outbuf_pin_width/2+$add_offset] [expr $pin_clk_trig_n_y+$outbuf_pin_height/2] 
 
 
-
+deleteRouteBlk -name blk_term_p
+deleteRouteBlk -name blk_term_n
 
 

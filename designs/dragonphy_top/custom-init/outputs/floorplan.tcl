@@ -49,6 +49,9 @@
     set small_sram_height [dbGet [lindex [dbGet -p top.insts.name *hist_sram_inst_memory*] 0].cell.size_y] 
     set small_sram_width  [dbGet [lindex [dbGet -p top.insts.name *hist_sram_inst_memory*] 0].cell.size_x] 
 
+    set term_height [dbGet [lindex [dbGet -p top.insts.name itx/buf1/i_term_p] 0].cell.size_y]
+    set term_width [dbGet [lindex [dbGet -p top.insts.name itx/buf1/i_term_p] 0].cell.size_x]
+
     # Make room in the floorplan for the core power ring
 
 
@@ -161,6 +164,13 @@
     set origin_txpi_y  [snap_to_grid 75 $vert_pitch]
     set txpi_y_spacing [snap_to_grid [expr $pi_height + 30] $vert_pitch]
 
+
+	set origin_term_n_x [snap_to_grid 15 $horiz_pitch] 
+	set origin_term_n_y [snap_to_grid 71 $vert_pitch] 
+	set origin_term_p_x [snap_to_grid 15 $horiz_pitch] 
+	set origin_term_p_y [snap_to_grid 142 $vert_pitch] 
+
+
     #set origin_ref_x [expr $FP_width - 6*$blockage_width - $input_buffer_width - $core_margin_l]
     #set origin_ref_y [expr $origin_out_y + $output_buffer_height + $blockage_height + 10*$vert_pitch]
         
@@ -172,15 +182,20 @@
     ###################
     placeInstance \
         itx/buf1/i_term_n \
-        [snap_to_grid 15 $horiz_pitch] \
-        [snap_to_grid 71 $vert_pitch]
+        $origin_term_n_x \
+        $origin_term_n_y 
+    
+	placeInstance \
+        itx/buf1/i_term_p \
+        $origin_term_p_x \
+        $origin_term_p_y 
 
     for {set k 0} {$k<6} {incr k} {
         for {set j 0} {$j<6} {incr j} {
             placeInstance \
                 itx/buf1/iBUF_[expr ($j) + ($k)*6]\__i_tri_buf_p/tri_buf \
-                [expr 39 + ($k) * ($tri_width*3)] \
-                [expr 115 + ($j) * ($tri_height*3)]
+                [snap_to_grid [expr 39 + ($k) * ($tri_width*3)] $horiz_pitch]\
+                [snap_to_grid [expr 115 + ($j) * ($tri_height*3)] $vert_pitch]
         }
     }
 
@@ -188,15 +203,11 @@
         for {set j 0} {$j<6} {incr j} {
             placeInstance \
                 itx/buf1/iBUF_[expr ($j) + ($k)*6]\__i_tri_buf_n/tri_buf \
-                [expr 39 + ($k) * ($tri_width*3)] \
-                [expr 95 + ($j) * ($tri_height*3)]
+                [snap_to_grid [expr 39 + ($k) * ($tri_width*3)] $horiz_pitch] \
+                [snap_to_grid [expr 95 + ($j) * ($tri_height*3)] $vert_pitch]
         }
     }
 
-    placeInstance \
-        itx/buf1/i_term_p \
-        15 \
-        142
 
 
     placeInstance \
