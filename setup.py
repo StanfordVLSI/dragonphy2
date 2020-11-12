@@ -25,7 +25,7 @@ requires_list = [
     'hwtypes==1.4.3',
     'ast_tools==0.0.30',
     'kratos==0.0.31.1',
-    # general requirements
+   # general requirements
     'pyserial',
     'pexpect',
     'pyyaml',

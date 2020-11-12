@@ -298,6 +298,18 @@ set_qtm_port_load -type qtm_load -factor 2 { adbg_intf_i.sign_PFD_clk_in_rep[1:0
 
 ###################### Timing Arcs ######################
 
+## Clock outputs
+
+create_qtm_delay_arc -from ext_clk -edge rise -to clk_adc -value 0
+create_qtm_delay_arc -from ext_clk -edge rise -to adbg_intf_i.del_out_pi -value 0
+create_qtm_delay_arc -from ext_clk -edge rise -to adbg_intf_i.pi_out_meas[0] -value 0
+create_qtm_delay_arc -from ext_clk -edge rise -to adbg_intf_i.pi_out_meas[1] -value 0
+create_qtm_delay_arc -from ext_clk -edge rise -to adbg_intf_i.pi_out_meas[2] -value 0
+create_qtm_delay_arc -from ext_clk -edge rise -to adbg_intf_i.pi_out_meas[3] -value 0
+create_qtm_delay_arc -from ext_clk -edge rise -to adbg_intf_i.del_out_rep[0] -value 0
+create_qtm_delay_arc -from ext_clk -edge rise -to adbg_intf_i.del_out_rep[1] -value 0
+create_qtm_delay_arc -from ext_clk -edge rise -to adbg_intf_i.inbuf_out_meas -value 0
+
 ## PI control signals
 
 # setup/hold for ctl_valid
