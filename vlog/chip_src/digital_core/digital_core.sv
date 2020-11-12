@@ -595,7 +595,7 @@ module digital_core import const_pack::*; (
     assign buffered_signals[4]  = pi_out_meas_2;
     assign buffered_signals[5]  = pi_out_meas_3;
     assign buffered_signals[6]  = adbg_intf_i.del_out_rep[0];
-    assign buffered_signals[7]  = adbg_intf_i.del_out_rep[1];
+    assign buffered_signals[7]  = 0; //adbg_intf_i.del_out_rep[1];
     assign buffered_signals[8]  = adbg_intf_i.inbuf_out_meas;
     assign buffered_signals[9]  = 0;
     assign buffered_signals[10] = 0;

@@ -14,6 +14,13 @@ if {[expr {$ADK_END_CAP_CELL == ""} && {$ADK_WELL_TAP_CELL == ""}]} {
   adk_set_end_cap_mode
   adk_set_well_tap_mode
   adk_add_end_caps
-  adk_add_well_taps
+
+placeInstance \
+  itx/indiv \
+     [expr $origin_txindiv_x-4.5] \
+     [expr $origin_txindiv_y-$vert_pitch] \
+     MX
+ 
+ adk_add_well_taps
 }
 
