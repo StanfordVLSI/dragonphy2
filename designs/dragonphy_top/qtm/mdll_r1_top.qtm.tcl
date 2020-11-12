@@ -9,7 +9,12 @@ set_qtm_global_parameter -param setup -value 0.0
 set_qtm_global_parameter -param hold -value 0.0
 set_qtm_global_parameter -param clk_to_output -value 0.0
 
-create_qtm_drive_type -lib_cell $ADK_DRIVING_CELL qtm_drive
+if { $::env(qtm_tech_lib) == "NangateOpenCellLibrary" } {
+    create_qtm_drive_type -lib_cell $ADK_DRIVING_CELL qtm_drive
+} else {
+    create_qtm_drive_type -lib_cell INVD1BWP16P90 qtm_drive
+}
+
 create_qtm_load_type -lib_cell $ADK_DRIVING_CELL qtm_load
 
 # define clocks
