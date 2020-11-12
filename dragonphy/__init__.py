@@ -22,7 +22,7 @@ from .remap          import remap
 from .cmdparser		 import CmdLineParser
 from .packager       import Packager
 from .config 		 import Configuration
-#from .tester     	 import DragonTester
+from .tester     	 import DragonTester
 from .directory      import Directory
 from .graph.graph    import BuildGraph
 
