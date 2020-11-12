@@ -3,8 +3,8 @@ import re
 
 find_adbg_intf = re.compile(r"\s+(PIN|END)\sadbg_intf_i_(.+)")
 
-with open("analog_core.lef", "r") as fin:
-    with open("analog_core_alt.lef", "w") as fout:
+with open("outputs/analog_core.lef", "r") as fin:
+    with open("outputs/analog_core_alt.lef", "w") as fout:
         for line in fin:
             result = find_adbg_intf.match(line)
             if result:

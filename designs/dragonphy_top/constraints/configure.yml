@@ -18,7 +18,7 @@ parameters:
 
   # Period of the main clock in nanoseconds
   # (will be scaled by constr_time_scale)
-  constr_main_per: 0.9
+  constr_main_per: 0.7
 
   # Scale factor for timing constraints
   constr_time_scale: 1.0

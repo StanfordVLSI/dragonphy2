@@ -24,7 +24,8 @@ def construct():
     parameters = {
         'construct_path': __file__,
         'design_name': 'dragonphy_top',
-        'topographical': True
+        'topographical': True,
+        'hold_target_slack': 0.01
     }
 
     if DRAGONPHY_PROCESS == 'FREEPDK45':
@@ -70,7 +71,7 @@ def construct():
     # custom_lvs = Step(this_dir + '/custom-lvs-rules')
     custom_power = Step(this_dir + '/custom-power')
     custom_geom = Step(this_dir + '/custom-geom')
-
+    custom_route = Step(this_dir + '/custom-route')
     dc = Step(this_dir + '/synopsys-dc-synthesis')
     qtm = Step(this_dir + '/qtm')
     # Block-level designs (only work in TSMC16)
@@ -101,6 +102,7 @@ def construct():
     postcts_hold   = Step( 'cadence-innovus-postcts_hold',   default=True )
     route          = Step( 'cadence-innovus-route',          default=True )
     postroute      = Step( 'cadence-innovus-postroute',      default=True )
+    postroute_hold = Step( 'cadence-innovus-postroute_hold', default=True )
     signoff        = Step( 'cadence-innovus-signoff',        default=True )
     pt_signoff     = Step( 'synopsys-pt-timing-signoff',     default=True )
     genlibdb       = Step( 'synopsys-ptpx-genlibdb',         default=True )
@@ -116,6 +118,8 @@ def construct():
 
     power.extend_inputs(custom_power.all_outputs())
     power.extend_inputs(custom_geom.all_outputs())
+
+    route.extend_inputs(custom_route.all_outputs())
 
     # Add *.db files for macros to downstream nodes
     dbs = [
@@ -210,8 +214,10 @@ def construct():
     g.add_step( place                )
     g.add_step( cts                  )
     g.add_step( postcts_hold         )
+    g.add_step( custom_route         )
     g.add_step( route                )
     g.add_step( postroute            )
+    g.add_step( postroute_hold       )
     g.add_step( signoff              )
     g.add_step( pt_signoff           )
     # g.add_step( genlibdb_constraints )
@@ -304,8 +310,10 @@ def construct():
     g.connect_by_name( place,          cts            )
     g.connect_by_name( cts,            postcts_hold   )
     g.connect_by_name( postcts_hold,   route          )
+    g.connect_by_name( custom_route,   route         )
     g.connect_by_name( route,          postroute      )
-    g.connect_by_name( postroute,      signoff        )
+    g.connect_by_name( postroute,      postroute_hold )
+    g.connect_by_name( postroute_hold, signoff        )
     g.connect_by_name( signoff,        gdsmerge       )
     g.connect_by_name( signoff,        drc            )
     g.connect_by_name( signoff,        lvs            )
@@ -353,6 +361,7 @@ def construct():
     order.insert(0, 'set-geom-vars.tcl')
 
     power.update_params({'order': order})
+    postroute_hold.update_params({'hold_target_slack' : parameters['hold_target_slack']}, allow_new=True) 
 
     return g
 
