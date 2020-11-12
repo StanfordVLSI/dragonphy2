@@ -12,6 +12,16 @@ set_qtm_global_parameter -param clk_to_output -value 0.0
 create_qtm_drive_type -lib_cell $ADK_DRIVING_CELL qtm_drive
 create_qtm_load_type -lib_cell $ADK_DRIVING_CELL qtm_load
 
+# define clocks
+set clock_list { \
+    clk_refp \
+    clk_refn \
+    clk_monp \
+    clk_monn \
+}
+create_qtm_port $clock_list -type clock
+set_qtm_port_load -type qtm_load -factor 2 $clock_list
+
 # define inputs
 set input_list { \
     fb_ndiv_jtag[3:0] \
@@ -25,11 +35,7 @@ set input_list { \
     ctl_dac_bw_thm_jtag[6:0] \
     ctlb_dac_gain_oc_jtag[3:0] \
     jm_sel_clk_jtag[2:0] \
-    clk_refp \
-    clk_refn \
     rstn_jtag \
-    clk_monp \
-    clk_monn \
     en_osc_jtag \
     en_dac_sdm_jtag \
     en_monitor_jtag \
@@ -62,6 +68,13 @@ set output_list { \
 }
 create_qtm_port $output_list -type output
 set_qtm_port_drive -type qtm_drive $output_list
+
+# these arcs are required to cause driver information
+# to be placed in the resulting *.lib file
+create_qtm_delay_arc -from clk_refp -edge rise -to clk_0 -value 0
+create_qtm_delay_arc -from clk_refp -edge rise -to clk_90 -value 0
+create_qtm_delay_arc -from clk_refp -edge rise -to clk_180 -value 0
+create_qtm_delay_arc -from clk_refp -edge rise -to clk_270 -value 0
 
 report_qtm_model
 save_qtm_model -format {lib db} -library_cell
