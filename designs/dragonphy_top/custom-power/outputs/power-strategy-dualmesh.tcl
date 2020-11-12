@@ -116,8 +116,8 @@
     set origin_term_p_y [snap_to_grid 142 $vert_pitch]
 
 
-    add_ndr -name tx_out_buf -spacing {M1:M7 0.12} -width {M1:M3 0.12 M4:M7 0.4}
-    setAttribute -net {itx/buf1/BTN itx/buf1/BTP ext_tx_outp ext_tx_outn} -non_default_rule tx_out_buf
+#    add_ndr -name tx_out_buf -spacing {M1:M7 0.12} -width {M1:M3 0.12 M4:M7 0.4}
+#    setAttribute -net {itx/buf1/BTN itx/buf1/BTP ext_tx_outp ext_tx_outn} -non_default_rule tx_out_buf
 
 
 #	placeInstance \
@@ -612,5 +612,14 @@ editCommitRoute [expr $pin_clk_trig_n_x+$outbuf_pin_width/2+$add_offset] [expr $
 
 deleteRouteBlk -name blk_term_p
 deleteRouteBlk -name blk_term_n
+
+createRouteBlk -box [expr $origin_term_p_x] [expr $origin_term_p_y+$term_height] [expr $origin_term_p_x+$term_width] [expr $origin_term_p_y+$term_height-$cell_height] -layer {1 2 3 4 5 6 7} -name fence_term_p1
+createRouteBlk -box [expr $origin_term_p_x] [expr $origin_term_p_y] [expr $origin_term_p_x+$cell_height] [expr $origin_term_p_y+$term_height] -layer {1 2 3 4 5 6 7} -name fence_term_p2
+createRouteBlk -box [expr $origin_term_p_x+$term_width] [expr $origin_term_p_y] [expr $origin_term_p_x+$term_width-$cell_height] [expr $origin_term_p_y+$term_height] -layer {1 2 3 4 5 6 7} -name fence_term_p3
+
+createRouteBlk -box [expr $origin_term_n_x] [expr $origin_term_n_y] [expr $origin_term_n_x+$term_width] [expr $origin_term_n_y+$cell_height] -layer {1 2 3 4 5 6 7} -name fence_term_n1
+createRouteBlk -box [expr $origin_term_n_x] [expr $origin_term_n_y] [expr $origin_term_n_x+$cell_height] [expr $origin_term_n_y+$term_height] -layer {1 2 3 4 5 6 7} -name fence_term_n2
+createRouteBlk -box [expr $origin_term_n_x+$term_width] [expr $origin_term_n_y] [expr $origin_term_n_x+$term_width-$cell_height] [expr $origin_term_n_y+$term_height] -layer {1 2 3 4 5 6 7} -name fence_term_n3
+
 
 
