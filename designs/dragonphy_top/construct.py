@@ -25,7 +25,7 @@ def construct():
         'construct_path': __file__,
         'design_name': 'dragonphy_top',
         'topographical': True,
-        'hold_target_slack': 0.01
+        'hold_target_slack': 0.05
     }
 
     if DRAGONPHY_PROCESS == 'FREEPDK45':
@@ -253,6 +253,7 @@ def construct():
     g.connect_by_name( adk,            postcts_hold   )
     g.connect_by_name( adk,            route          )
     g.connect_by_name( adk,            postroute      )
+    g.connect_by_name( adk,            postroute_hold )
     g.connect_by_name( adk,            signoff        )
     g.connect_by_name( adk,            gdsmerge       )
     g.connect_by_name( adk,            drc            )
@@ -295,6 +296,7 @@ def construct():
     g.connect_by_name( iflow,          postcts_hold   )
     g.connect_by_name( iflow,          route          )
     g.connect_by_name( iflow,          postroute      )
+    g.connect_by_name( iflow,          postroute_hold )
     g.connect_by_name( iflow,          signoff        )
 
     g.connect_by_name( custom_init,    init           )
