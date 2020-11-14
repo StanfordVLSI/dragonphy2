@@ -186,8 +186,9 @@ qr_4t1_mux_top qr_mux_4t1_1 (
 );
 
 div_b2 div0 (.clkin(clk_interp_slice[2]), .rst(rst), .clkout(clk_halfrate));  // 4GHz to 2GHz, output goes to hr_16t4_mux
-div_b2 div1 (.clkin(clk_halfrate), .rst(rst), .clkout(clk_prbsgen));  // 2GHz to 1GHz, output goes to prbs_gen
-
+wire logic clk_halfrate_n;
+inv clk_inv(.in(clk_halfrate), .out(clk_halfrate_n));
+div_b2 div1 (.clkin(clk_halfrate_n), .rst(rst), .clkout(clk_prbsgen));  // 2GHz to 1GHz, output goes to prbs_gen
 
 // Instantiate the output buf
 output_buf_tx buf1 (
