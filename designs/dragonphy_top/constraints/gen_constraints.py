@@ -311,6 +311,25 @@ for {{set i 0}} {{$i < 2}} {{incr i}} {{
     # there is a mapping problem for FreePDK45
     for {{set j 1}} {{$j < 5}} {{incr j}} {{
         set_dont_touch [get_nets "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hd"]
+
+        # multipath constraint from quarter-rate to half-rate muxes
+        for {{set k 0}} {{$k < 2}} {{incr k}} {{
+            set_multicycle_path \\
+                1 \\
+                -setup \\
+                -end \\
+                -from [get_pins "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/mux_0/sel"] \\
+                -to [get_pins "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_2/dff_$k/D"]
+
+            set_multicycle_path \\
+                0 \\
+                -hold \\
+                -end \\
+                -from [get_pins "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/mux_0/sel"] \\
+                -to [get_pins "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_2/dff_$k/D"]
+        }}
+
+        # dont_touch nets within each 2t1 mux
         for {{set k 0}} {{$k < 3}} {{incr k}} {{
             set_dont_touch [get_nets "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/D0L"]
             set_dont_touch [get_nets "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/D1M"]
