@@ -326,6 +326,77 @@ for {{set i 0}} {{$i < 2}} {{incr i}} {{
     set_dont_touch [get_nets "itx/qr_mux_4t1_$i/D0DIB"]
     set_dont_touch [get_nets "itx/qr_mux_4t1_$i/D1DIB"]
     set_dont_touch [get_nets "itx/qr_mux_4t1_$i/mux_out"]
+
+    ####################
+    # Multicycle paths #
+    ####################
+ 
+    # all are launched on clk_tx_hr, which is
+    # divided by two from clk_tx_pi_2 (QB)
+
+    # din[0]: captured on I @ dff_IB0
+
+    set_multicycle_path \\
+        1 \\
+        -setup \\
+        -end \\
+        -from [get_pins "itx/hr_mux_16t4_$i/iMUX[0].mux_4t1/hr_2t1_mux_2/mux0/sel"] \\
+        -to [get_pins "itx/qr_mux_4t1_$i/dff_IB0/CP"]
+
+    set_multicycle_path \\
+        0 \\
+        -hold \\
+        -end \\
+        -from [get_pins "itx/hr_mux_16t4_$i/iMUX[0].mux_4t1/hr_2t1_mux_2/mux0/sel"] \\
+        -to [get_pins "itx/qr_mux_4t1_$i/dff_IB0/CP"]
+
+    # din[1]: captured on Q @ dff_QB0
+
+    set_multicycle_path \\
+        1 \\
+        -setup \\
+        -end \\
+        -from [get_pins "itx/hr_mux_16t4_$i/iMUX[1].mux_4t1/hr_2t1_mux_2/mux0/sel"] \\
+        -to [get_pins "itx/qr_mux_4t1_$i/dff_QB0/CP"]
+
+    set_multicycle_path \\
+        0 \\
+        -hold \\
+        -end \\
+        -from [get_pins "itx/hr_mux_16t4_$i/iMUX[1].mux_4t1/hr_2t1_mux_2/mux0/sel"] \\
+        -to [get_pins "itx/qr_mux_4t1_$i/dff_QB0/CP"]
+
+    # din[2]: captured on I @ dff_I0
+
+    set_multicycle_path \\
+        1 \\
+        -setup \\
+        -end \\
+        -from [get_pins "itx/hr_mux_16t4_$i/iMUX[2].mux_4t1/hr_2t1_mux_2/mux0/sel"] \\
+        -to [get_pins "itx/qr_mux_4t1_$i/dff_I0/CP"]
+
+    set_multicycle_path \\
+        0 \\
+        -hold \\
+        -end \\
+        -from [get_pins "itx/hr_mux_16t4_$i/iMUX[2].mux_4t1/hr_2t1_mux_2/mux0/sel"] \\
+        -to [get_pins "itx/qr_mux_4t1_$i/dff_I0/CP"]
+
+    # din[3]: captured on Q @ dff_Q0
+
+    set_multicycle_path \\
+        1 \\
+        -setup \\
+        -end \\
+        -from [get_pins "itx/hr_mux_16t4_$i/iMUX[3].mux_4t1/hr_2t1_mux_2/mux0/sel"] \\
+        -to [get_pins "itx/qr_mux_4t1_$i/dff_Q0/CP"]
+
+    set_multicycle_path \\
+        0 \\
+        -hold \\
+        -end \\
+        -from [get_pins "itx/hr_mux_16t4_$i/iMUX[3].mux_4t1/hr_2t1_mux_2/mux0/sel"] \\
+        -to [get_pins "itx/qr_mux_4t1_$i/dff_Q0/CP"]
 '''
 
 if os.environ['adk_name'] == 'tsmc16':
