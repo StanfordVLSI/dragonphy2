@@ -7,24 +7,38 @@ set_driving_cell -no_design_rule \
 
 set_max_fanout 20 $dc_design_name
 
+set T 0.5
+
+set T0 [expr {0.00*$T}]
+set T1 [expr {0.25*$T}]
+set T2 [expr {0.50*$T}]
+set T3 [expr {0.75*$T}]
+set T4 [expr {1.00*$T}]
+set T5 [expr {1.25*$T}]
+
+set TR_4X [expr {0.025*$T}]
+set TR [expr {0.1*$T}]
+set TR_HR [expr {0.2*$T}]
+set TR_QR [expr {0.4*$T}]
+
 create_clock -name clk_tx_pi_0 \
-    -period 1 \
-    -waveform {0 0.5} \
+    -period $T \
+    -waveform "$T0 $T2" \
     [get_ports {clk_interp_slice[0]}]
 
 create_clock -name clk_tx_pi_1 \
-    -period 1 \
-    -waveform {0.25 0.75} \
+    -period $T \
+    -waveform "$T1 $T3" \
     [get_ports {clk_interp_slice[1]}]
 
 create_clock -name clk_tx_pi_2 \
-    -period 1 \
-    -waveform {0.5 1} \
+    -period $T \
+    -waveform "$T2 $T4" \
     [get_ports {clk_interp_slice[2]}]
 
 create_clock -name clk_tx_pi_3 \
-    -period 1 \
-    -waveform {0.75 1.25} \
+    -period $T \
+    -waveform "$T3 $T5" \
     [get_ports {clk_interp_slice[3]}]
 
 # Half-rate and quarter-rate clocks
@@ -159,21 +173,21 @@ for {set i 0} {$i < 2} {incr i} {
 }
 
 # Tighten transition constraint for clocks declared so far
-set_max_transition 0.2 -clock_path [get_clock clk_tx_hr]
-set_max_transition 0.4 -clock_path [get_clock clk_tx_qr]
+set_max_transition $TR_HR -clock_path [get_clock clk_tx_hr]
+set_max_transition $TR_QR -clock_path [get_clock clk_tx_qr]
 
 # Set transition times in the transmitter
 
 # Mux +
-set_max_transition 0.1 [get_pin {qr_mux_4t1_0/din[0]}]
-set_max_transition 0.1 [get_pin {qr_mux_4t1_0/din[1]}]
-set_max_transition 0.1 [get_pin {qr_mux_4t1_0/din[2]}]
-set_max_transition 0.1 [get_pin {qr_mux_4t1_0/din[3]}]
-set_max_transition 0.025 [get_pin {qr_mux_4t1_0/data}]
+set_max_transition $TR [get_pin {qr_mux_4t1_0/din[0]}]
+set_max_transition $TR [get_pin {qr_mux_4t1_0/din[1]}]
+set_max_transition $TR [get_pin {qr_mux_4t1_0/din[2]}]
+set_max_transition $TR [get_pin {qr_mux_4t1_0/din[3]}]
+set_max_transition $TR_4X [get_pin {qr_mux_4t1_0/data}]
 
 # Mux -
-set_max_transition 0.1 [get_pin {qr_mux_4t1_1/din[0]}]
-set_max_transition 0.1 [get_pin {qr_mux_4t1_1/din[1]}]
-set_max_transition 0.1 [get_pin {qr_mux_4t1_1/din[2]}]
-set_max_transition 0.1 [get_pin {qr_mux_4t1_1/din[3]}]
-set_max_transition 0.025 [get_pin {qr_mux_4t1_1/data}]
+set_max_transition $TR [get_pin {qr_mux_4t1_1/din[0]}]
+set_max_transition $TR [get_pin {qr_mux_4t1_1/din[1]}]
+set_max_transition $TR [get_pin {qr_mux_4t1_1/din[2]}]
+set_max_transition $TR [get_pin {qr_mux_4t1_1/din[3]}]
+set_max_transition $TR_4X [get_pin {qr_mux_4t1_1/data}]
