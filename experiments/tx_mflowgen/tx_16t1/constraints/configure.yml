@@ -1,0 +1,10 @@
+# Adapted from Garnet
+
+name: constraints
+
+outputs:
+  - constraints.tcl
+
+parameters:
+  clock_period: 1.0
+  design_name: undefined
