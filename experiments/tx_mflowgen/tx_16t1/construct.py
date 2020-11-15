@@ -38,12 +38,12 @@ def construct():
   # Custom steps
 
   rtl = Step( this_dir + '/rtl' )
-  constraints = Step( tist_dir + '/constraints' )
+  constraints = Step( this_dir + '/constraints' )
+  dc = Step( this_dir + '/synopsys-dc-synthesis' )
 
   # Default steps
 
   info           = Step( 'info',                           default=True )
-  dc             = Step( 'synopsys-dc-synthesis',          default=True )
   iflow          = Step( 'cadence-innovus-flowsetup',      default=True )
   init           = Step( 'cadence-innovus-init',           default=True )
   power          = Step( 'cadence-innovus-power',          default=True )

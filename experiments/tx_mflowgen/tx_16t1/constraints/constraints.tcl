@@ -5,10 +5,39 @@ set_load -pin_load $ADK_TYPICAL_ON_CHIP_LOAD [all_outputs]
 set_driving_cell -no_design_rule \
   -lib_cell $ADK_DRIVING_CELL [all_inputs]
 
-#set_input_delay -clock ${clock_name} [expr ${dc_clock_period}/2.0] [all_inputs]
-#set_output_delay -clock ${clock_name} 0 [all_outputs]
-
 set_max_fanout 20 $dc_design_name
+
+create_clock -name clk_tx_pi_0 \
+    -period 1 \
+    -waveform {0 0.5} \
+    [get_ports {clk_interp_slice[0]}]
+
+create_clock -name clk_tx_pi_1 \
+    -period 1 \
+    -waveform {0.25 0.75} \
+    [get_ports {clk_interp_slice[1]}]
+
+create_clock -name clk_tx_pi_2 \
+    -period 1 \
+    -waveform {0.5 1} \
+    [get_ports {clk_interp_slice[2]}]
+
+create_clock -name clk_tx_pi_3 \
+    -period 1 \
+    -waveform {0.75 1.25} \
+    [get_ports {clk_interp_slice[3]}]
+
+# Half-rate and quarter-rate clocks
+
+create_generated_clock -name clk_tx_hr \
+    -source [get_pins div0/clkin] \
+    -divide_by 2 \
+    [get_pins div0/clkout]
+
+create_generated_clock -name clk_tx_qr \
+    -source [get_pins div1/clkin] \
+    -divide_by 2 \
+    [get_pins div1/clkout]
 
 ###set_max_transition [expr 0.25*${dc_clock_period}] $dc_design_name
 ##

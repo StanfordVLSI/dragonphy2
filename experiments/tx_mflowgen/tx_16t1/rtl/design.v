@@ -1,15 +1,5 @@
 `default_nettype none
 
-module tx_inv (
-    input wire logic DIN,
-    output wire logic DOUT 
-);
-    INV_X4 inv_4_fixed (
-        .A(DIN),
-        .ZN(DOUT)
-    );
-endmodule
-
 module mux (
     input wire logic in0,
     input wire logic in1,
@@ -26,6 +16,21 @@ module ff_c (
 );
     always @(posedge CP) begin
         Q <= D;
+    end
+endmodule
+
+module ff_c_rn (
+    input wire logic D,
+    input wire logic CP,
+    input wire logic CDN,
+    output reg Q
+);
+    always @(posedge CP or negedge CDN) begin
+        if (!CDN) begin
+            Q <= 0;
+        end else begin
+            Q <= D;
+        end
     end
 endmodule
 
@@ -156,7 +161,6 @@ logic D0DIB, D1DIB;
 ff_c dff_IB0 (.D(din[0]), .CP(clk_I), .Q(D0DIB));
 ff_c dff_IB1 (.D(D0DIB), .CP(clk_IB), .Q(D1DIB));
 
-logic mux_out;
 qr_mux_fixed mux_4 (
     .DIN0(D0DI),
     .DIN1(D1DQB),
@@ -164,24 +168,14 @@ qr_mux_fixed mux_4 (
     .DIN3(D1DIB),
     .E0(clk_Q),
     .E1(clk_I),
-    .DOUT(mux_out)
+    .DOUT(data)
 );
-
-genvar i;
-generate
-    for (i=0; i<4; i=i+1) begin : i_INVBUF 
-        tx_inv inv_buf (
-            .DIN(mux_out),
-            .DOUT(data)
-        );
-    end
-endgenerate
 
 endmodule
     
 module tx_top (
     input wire logic [15:0] din,
-    input wire logic [3:0] clk_interp_slice
+    input wire logic [3:0] clk_interp_slice,
     input wire logic rst, 
     output wire logic clk_prbsgen,
     output wire logic dout_p,
@@ -243,8 +237,18 @@ qr_4t1_mux_top qr_mux_4t1_1 (
 );
 
 // clock dividers
-div_b2 div0 (.clkin(clk_interp_slice[2]), .rst(rst), .clkout(clk_halfrate));
-div_b2 div1 (.clkin(clk_halfrate), .rst(rst), .clkout(clk_prbsgen));
+
+div_b2 div0 (
+    .clkin(clk_interp_slice[2]),
+    .rst(rst),
+    .clkout(clk_halfrate)
+);
+
+div_b2 div1 (
+    .clkin(clk_halfrate),
+    .rst(rst),
+    .clkout(clk_prbsgen)
+);
 
 endmodule
 
