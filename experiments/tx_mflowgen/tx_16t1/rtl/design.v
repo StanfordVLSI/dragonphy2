@@ -121,7 +121,6 @@ module hr_16t4_mux_top (
     input wire logic clk_hr,
     input wire logic clk_prbs,
     input wire logic [15:0] din,
-    input wire logic rst,
     output wire logic [3:0] dout
 );
     genvar i;
@@ -143,7 +142,6 @@ module qr_4t1_mux_top (
     input wire logic clk_I,
     input wire logic clk_IB,
     input wire logic [3:0] din,
-    input wire logic rst,
     output wire logic data
 );
 
@@ -201,7 +199,6 @@ hr_16t4_mux_top hr_mux_16t4_0 (
     .clk_hr(clk_halfrate),
     .clk_prbs(clk_prbsgen),
     .din(din),
-    .rst(rst), 
     .dout(qr_data_p)
 );
 
@@ -212,7 +209,6 @@ qr_4t1_mux_top qr_mux_4t1_0 (
     .clk_I(clk_interp_slice[1]),
     .clk_IB(clk_interp_slice[3]),
     .din(qr_data_p),
-    .rst(rst),
     .data(dout_p)
 );
 
@@ -221,7 +217,6 @@ hr_16t4_mux_top hr_mux_16t4_1 (
     .clk_hr(clk_halfrate),
     .clk_prbs(clk_prbsgen),
     .din(~din),
-    .rst(rst),
     .dout(qr_data_n)
 );
 
@@ -232,7 +227,6 @@ qr_4t1_mux_top qr_mux_4t1_1 (
     .clk_I(clk_interp_slice[1]),
     .clk_IB(clk_interp_slice[3]),
     .din(qr_data_n),
-    .rst(rst),
     .data(dout_n)
 );
 

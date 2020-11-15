@@ -39,8 +39,8 @@ create_generated_clock -name clk_tx_qr \
     -divide_by 2 \
     [get_pins div1/clkout]
 
-# External I/O
-set_false_path -through [get_ports {din rst}]
+# External inputs
+set_false_path -through [get_ports {din* rst}]
 
 # Internal nets
 set_dont_touch [get_nets "qr_data_p"]
