@@ -334,7 +334,6 @@ for {{set i 0}} {{$i < 2}} {{incr i}} {{
         for {{set k 0}} {{$k < 3}} {{incr k}} {{
             set_dont_touch [get_nets "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/D0L"]
             set_dont_touch [get_nets "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/D1M"]
-            set_dont_touch [get_nets "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/L0M"]
         }}
     }}
 
