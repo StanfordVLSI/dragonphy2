@@ -194,6 +194,9 @@ def get_deps_asic(cell_name=None, impl_file=None, process='tsmc16'):
         # TX inverter
         override['tx_inv'] = 'chip_src_tsmc16'
         skip.add('INVD4BWP16P90ULVT')
+
+        override['mdll_inv'] = 'chip_src_tsmc16'
+        skip.add('BUFFD2BWP16P90ULVT')
     else:
         raise Exception(f'Unknown process: {process}')
 
