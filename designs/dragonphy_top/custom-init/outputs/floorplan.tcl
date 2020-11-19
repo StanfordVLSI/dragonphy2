@@ -208,7 +208,10 @@
         }
     }
 
-
+    placeInstance \
+    minv_i/inv_1_fixed \
+    [snap_to_grid 520.9] \
+    [snap_to_grid 198.1] \
 
     placeInstance \
         ibuf_async \
