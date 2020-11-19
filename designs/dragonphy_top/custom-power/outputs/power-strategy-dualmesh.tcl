@@ -40,6 +40,10 @@
 	
 	set term_height [dbGet [lindex [dbGet -p top.insts.name itx/buf1/i_term_p] 0].cell.size_y]
     set term_width [dbGet [lindex [dbGet -p top.insts.name itx/buf1/i_term_p] 0].cell.size_x]
+	
+    set tri_height [dbGet [dbGet -p top.insts.name *iBUF_0__i_tri_buf_p*].cell.size_y]
+    set tri_width [dbGet [dbGet -p top.insts.name *iBUF_0__i_tri_buf_p*].cell.size_x]
+
 
 
     set core_margin_t 0;#$vert_pitch
@@ -234,6 +238,119 @@ set inbuf_mdll_ref_x $origin_ref_x
 set inbuf_mdll_ref_y $origin_ref_y 
 
 
+##############################################
+##### Manual Routes for Tx output buffer #####
+##############################################
+##-------------------------------------------------------------------------------------------------------
+set outbuf_pin_width 4
+set outbuf_pin_height 4
+set outbuf_pin_space 4 
+set outbuf_pin_offset_x [expr $output_buffer_width+3]
+set outbuf_pin_offset_y [expr $outbuf_pin_space]
+set pin_tx_outp_x $origin_async_x	
+set pin_tx_outp_y [expr $origin_ref_y+$input_buffer_height-$outbuf_pin_height]
+set pin_tx_outn_x $origin_async_x
+set pin_tx_outn_y [expr $origin_ref_y]
+
+setPtnPinStatus -cell dragonphy_top -pin {*} -status unplaced -silent
+#[tx_outputs]
+createPhysicalPin ext_tx_outp -net ext_tx_outp -layer 10 -rect $pin_tx_outp_x $pin_tx_outp_y [expr $pin_tx_outp_x+$outbuf_pin_width] [expr $pin_tx_outp_y+$outbuf_pin_height]
+createPhysicalPin ext_tx_outn -net ext_tx_outn -layer 10 -rect $pin_tx_outn_x $pin_tx_outn_y [expr $pin_tx_outn_x+$outbuf_pin_width] [expr $pin_tx_outn_y+$outbuf_pin_height]
+
+set term_pin_width 4.93
+set term_pin_height 1.2
+set term_pin_offset_x [expr 15.330+$term_pin_width/2]
+set term_pin_offset_y [expr 0.735+$term_pin_height/2]
+
+createRouteBlk -box $origin_term_p_x $origin_term_p_y [expr $origin_term_p_x+$term_width] [expr $origin_term_p_y+$term_height] -layer {VIA4 VIA5 VIA6 VIA7 VIA8} -name blk_term_p_via
+createRouteBlk -box $origin_term_n_x $origin_term_n_y [expr $origin_term_n_x+$term_width] [expr $origin_term_n_y+$term_height] -layer {VIA4 VIA5 VIA6 VIA7 VIA8} -name blk_term_n_via
+
+setEdit -layer_minimum M1
+setEdit -layer_maximum AP
+setEdit -force_regular 1
+getEdit -snap_to_track_regular
+getEdit -snap_to_pin
+setEdit -force_special 1
+getEdit -snap_to_track
+getEdit -snap_special_wire
+getEdit -align_wire_at_pin
+getEdit -snap_to_row
+getEdit -snap_to_pin
+setViaGenMode -ignore_DRC false
+setViaGenMode -use_fgc 1
+setViaGenMode -use_cce false
+
+setEdit -layer_vertical M9
+setEdit -width_vertical 4
+setEdit -layer_horizontal M9
+setEdit -width_horizontal 4
+
+setEdit -nets ext_tx_outp
+editAddRoute [expr $pin_tx_outp_x] [expr $pin_tx_outp_y+2]
+editCommitRoute [expr $origin_term_p_x+$term_width/2+2] [expr $pin_tx_outp_y+2] 
+editAddRoute [expr $origin_term_p_x+$term_width/2+2] [expr $pin_tx_outp_y+2]
+editCommitRoute [expr $origin_term_p_x+$term_width/2+2] [expr $origin_term_p_y+$term_height] 
+
+setEdit -nets ext_tx_outn
+editAddRoute [expr $pin_tx_outn_x] [expr $pin_tx_outn_y+2]
+editCommitRoute [expr $origin_term_n_x+$term_width/2+2] [expr $pin_tx_outn_y+2] 
+editAddRoute [expr $origin_term_n_x+$term_width/2+2] [expr $pin_tx_outn_y+2]
+editCommitRoute [expr $origin_term_n_x+$term_width/2+2] [expr $origin_term_n_y] 
+
+
+setEdit -layer_horizontal M6
+setEdit -layer_vertical M5
+setEdit -width_horizontal $term_pin_height
+setEdit -width_vertical 1
+
+setEdit -nets itx/buf1/BTP
+editAddRoute [expr $origin_term_p_x+$term_pin_offset_x-$term_pin_width/2] [expr $origin_term_p_y+$term_pin_offset_y]
+editCommitRoute [expr $origin_term_p_x+$term_width-$term_pin_offset_x+$term_pin_width/2] [expr $origin_term_p_y+$term_pin_offset_y] 
+editAddRoute [expr $origin_term_p_x+$term_pin_offset_x] [expr $origin_term_p_y+$term_pin_offset_y]
+editCommitRoute [expr $origin_term_p_x+$term_pin_offset_x] [expr $origin_term_p_y+$term_pin_offset_y-30] 
+editAddRoute [expr $origin_term_p_x+$term_width-$term_pin_offset_x-2] [expr $origin_term_p_y+$term_pin_offset_y]
+editCommitRoute [expr $origin_term_p_x+$term_width-$term_pin_offset_x-2] [expr $origin_term_p_y+$term_pin_offset_y-30] 
+
+setEdit -nets itx/buf1/BTN
+editAddRoute [expr $origin_term_n_x+$term_pin_offset_x-$term_pin_width/2] [expr $origin_term_n_y+$term_pin_offset_y]
+editCommitRoute [expr $origin_term_n_x+$term_width-$term_pin_offset_x+$term_pin_width/2] [expr $origin_term_n_y+$term_pin_offset_y] 
+editAddRoute [expr $origin_term_n_x+$term_pin_offset_x] [expr $origin_term_n_y+$term_pin_offset_y]
+editCommitRoute [expr $origin_term_n_x+$term_pin_offset_x] [expr $origin_term_n_y+$term_pin_offset_y+$term_height+30-2*$term_pin_offset_y] 
+editAddRoute [expr $origin_term_n_x+$term_width-$term_pin_offset_x-2] [expr $origin_term_n_y+$term_pin_offset_y]
+editCommitRoute [expr $origin_term_n_x+$term_width-$term_pin_offset_x-2] [expr $origin_term_n_y+$term_pin_offset_y+$term_height+30-2*$term_pin_offset_y] 
+
+setEdit -layer_horizontal M4
+setEdit -layer_vertical M3
+setEdit -width_horizontal 1
+setEdit -width_vertical 0.4
+
+setEdit -nets itx/buf1/BTP
+for {set k 0} {$k<6} {incr k} {
+editAddRoute [expr 39 + (3*$k+1)*($tri_width)+0.4] [expr 115-$cell_height]
+editCommitRoute [expr 39 + (3*$k+1)*($tri_width)+0.4] [expr 115 + 6*($tri_height*3)-$cell_height]
+}
+editAddRoute [expr $origin_term_p_x+$term_pin_offset_x] [expr 115 + 3*($tri_height*3)-$cell_height]
+editCommitRoute [expr $origin_term_p_x+$term_width-$term_pin_offset_x] [expr 115 + 3*($tri_height*3)-$cell_height] 
+
+setEdit -nets itx/buf1/BTN
+for {set k 0} {$k<6} {incr k} {
+editAddRoute [expr 39 + (3*$k+1)*($tri_width)+0.4] [expr 95-$cell_height]
+editCommitRoute [expr 39 + (3*$k+1)*($tri_width)+0.4] [expr 95 + 6*($tri_height*3)-$cell_height]
+}
+editAddRoute [expr $origin_term_p_x+$term_pin_offset_x] [expr 95 + 3*($tri_height*3)-$cell_height]
+editCommitRoute [expr $origin_term_p_x+$term_width-$term_pin_offset_x] [expr 95 + 3*($tri_height*3)-$cell_height] 
+
+
+deleteRouteBlk -name blk_term_p_via
+deleteRouteBlk -name blk_term_n_via
+
+##-------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
 # power for inout buffers / MDLL (stretch out M6)-----------------------------------------------------------
 #sroute -connect { blockPin } -inst {ibuf_async ibuf_main ibuf_mdll_ref ibuf_mdll_mon} -layerChangeRange { M6 M6 } -blockPinTarget { boundaryWithPin } -allowJogging 1 -crossoverViaLayerRange { M7 M6 } -nets {DVDD} -allowLayerChange 0 -blockPin useLef -targetViaLayerRange { M7 M6 }
 #sroute -connect { blockPin } -inst {ibuf_async ibuf_main ibuf_mdll_ref ibuf_mdll_mon}  -layerChangeRange { M6 M6 } -blockPinTarget { boundaryWithPin } -allowJogging 1 -crossoverViaLayerRange { M7 M6 } -nets {DVSS} -allowLayerChange 0 -blockPin useLef -targetViaLayerRange { M7 M6 }
@@ -249,7 +366,6 @@ set inbuf_mdll_ref_y $origin_ref_y
 #--------------------------------------------------------------------------------------------------------------
 
 createRouteBlk -box $acore_x [expr $acore_y+$acore_height] [expr $acore_x+$acore_width] $FP_height -layer {2 3 4 5 6 7 8 9} -name blk_acore_top
-
 createRouteBlk -box $origin_term_p_x $origin_term_p_y [expr $origin_term_p_x+$term_width] [expr $origin_term_p_y+$term_height] -layer {7 8 9} -name blk_term_p
 createRouteBlk -box $origin_term_n_x $origin_term_n_y [expr $origin_term_n_x+$term_width] [expr $origin_term_n_y+$term_height] -layer {7 8 9} -name blk_term_n
 
@@ -349,7 +465,6 @@ setViaGenMode -ignore_DRC false
 setViaGenMode -use_fgc 1
 setViaGenMode -use_cce false
 
-
 setEdit -layer_vertical M10
 setEdit -width_vertical $M10_power_width
 setEdit -nets CVDD
@@ -369,16 +484,6 @@ createRouteBlk -box $inbuf_mdll_mon_x $inbuf_mdll_mon_y [expr $inbuf_mdll_mon_x+
 #createRouteBlk -box $inbuf_mdll_ref_x $inbuf_mdll_ref_y [expr $inbuf_mdll_ref_x+$input_buffer_width] [expr $inbuf_mdll_ref_y+$input_buffer_height+10*$cell_height] -layer {7}  -name inbut_mdlll_ref_out_M7_blk
 #createRouteBlk -box $inbuf_mdll_mon_x $inbuf_mdll_mon_y [expr $inbuf_mdll_mon_x+$input_buffer_width] [expr $inbuf_mdll_mon_y+$input_buffer_height+10*$cell_height] -layer {7}  -name inbut_mdll_mon_out_M7_blk
 
-set outbuf_pin_width 4
-set outbuf_pin_height 4
-set outbuf_pin_space 4 
-set outbuf_pin_offset_x [expr $output_buffer_width+3]
-set outbuf_pin_offset_y [expr $outbuf_pin_space]
-
-set pin_tx_outp_x $origin_async_x	
-set pin_tx_outp_y [expr $origin_ref_y+$input_buffer_height-$outbuf_pin_height]
-set pin_tx_outn_x $origin_async_x
-set pin_tx_outn_y [expr $origin_ref_y]
 
 #Routing blockages for output buffers
 createRouteBlk -box [expr $outbuf_x+$output_buffer_width] [expr $outbuf_y-5]  [expr $outbuf_x+$output_buffer_width+10] [expr $outbuf_y+$output_buffer_height+5] -layer {7 8 9} -name blk_outbuf
@@ -467,7 +572,6 @@ set inbuf_pin_offset_y 3.205
 #----------------------------------------------------------------------------------------------------
 
 
-setPtnPinStatus -cell dragonphy_top -pin {*} -status unplaced -silent
 #----------------------------------------------------------------------------------------------------
 # Assigning Analog signal pins ----------------------------------------------------------------------
 #----------------------------------------------------------------------------------------------------
@@ -504,9 +608,6 @@ createPhysicalPin ext_mdll_clk_monn -net ext_mdll_clk_monn -layer 10 -rect [expr
 createPhysicalPin ext_mdll_clk_monp -net ext_mdll_clk_monp -layer 10 -rect [expr $inbuf_mdll_mon_x+$input_buffer_width-($inbuf_pin_offset_x)] [expr $inbuf_mdll_mon_y+$inbuf_pin_offset_y] [expr $inbuf_mdll_mon_x+$input_buffer_width-($inbuf_pin_width)] [expr $inbuf_mdll_mon_y+$inbuf_pin_offset_y+$inbuf_pin_height]
 
 
-#[tx_outputs]
-createPhysicalPin ext_tx_outp -net ext_tx_outp -layer 10 -rect $pin_tx_outp_x $pin_tx_outp_y [expr $pin_tx_outp_x+$outbuf_pin_width] [expr $pin_tx_outp_y+$outbuf_pin_height]
-createPhysicalPin ext_tx_outn -net ext_tx_outn -layer 10 -rect $pin_tx_outn_x $pin_tx_outn_y [expr $pin_tx_outn_x+$outbuf_pin_width] [expr $pin_tx_outn_y+$outbuf_pin_height]
 
 
 
@@ -613,13 +714,12 @@ editCommitRoute [expr $pin_clk_trig_n_x+$outbuf_pin_width/2+$add_offset] [expr $
 deleteRouteBlk -name blk_term_p
 deleteRouteBlk -name blk_term_n
 
-createRouteBlk -box [expr $origin_term_p_x] [expr $origin_term_p_y+$term_height] [expr $origin_term_p_x+$term_width] [expr $origin_term_p_y+$term_height-$cell_height] -layer {1 2 3 4 5 6 7} -name fence_term_p1
-createRouteBlk -box [expr $origin_term_p_x] [expr $origin_term_p_y] [expr $origin_term_p_x+$cell_height] [expr $origin_term_p_y+$term_height] -layer {1 2 3 4 5 6 7} -name fence_term_p2
-createRouteBlk -box [expr $origin_term_p_x+$term_width] [expr $origin_term_p_y] [expr $origin_term_p_x+$term_width-$cell_height] [expr $origin_term_p_y+$term_height] -layer {1 2 3 4 5 6 7} -name fence_term_p3
-
-createRouteBlk -box [expr $origin_term_n_x] [expr $origin_term_n_y] [expr $origin_term_n_x+$term_width] [expr $origin_term_n_y+$cell_height] -layer {1 2 3 4 5 6 7} -name fence_term_n1
-createRouteBlk -box [expr $origin_term_n_x] [expr $origin_term_n_y] [expr $origin_term_n_x+$cell_height] [expr $origin_term_n_y+$term_height] -layer {1 2 3 4 5 6 7} -name fence_term_n2
-createRouteBlk -box [expr $origin_term_n_x+$term_width] [expr $origin_term_n_y] [expr $origin_term_n_x+$term_width-$cell_height] [expr $origin_term_n_y+$term_height] -layer {1 2 3 4 5 6 7} -name fence_term_n3
+#createRouteBlk -box [expr $origin_term_p_x] [expr $origin_term_p_y+$term_height] [expr $origin_term_p_x+$term_width] [expr $origin_term_p_y+$term_height-$cell_height] -layer {1 2 3 4 5 6 7} -name fence_term_p1
+#createRouteBlk -box [expr $origin_term_p_x] [expr $origin_term_p_y] [expr $origin_term_p_x+$cell_height] [expr $origin_term_p_y+$term_height] -layer {1 2 3 4 5 6 7} -name fence_term_p2
+#createRouteBlk -box [expr $origin_term_p_x+$term_width] [expr $origin_term_p_y] [expr $origin_term_p_x+$term_width-$cell_height] [expr $origin_term_p_y+$term_height] -layer {1 2 3 4 5 6 7} -name fence_term_p3
+#createRouteBlk -box [expr $origin_term_n_x] [expr $origin_term_n_y] [expr $origin_term_n_x+$term_width] [expr $origin_term_n_y+$cell_height] -layer {1 2 3 4 5 6 7} -name fence_term_n1
+#createRouteBlk -box [expr $origin_term_n_x] [expr $origin_term_n_y] [expr $origin_term_n_x+$cell_height] [expr $origin_term_n_y+$term_height] -layer {1 2 3 4 5 6 7} -name fence_term_n2
+#createRouteBlk -box [expr $origin_term_n_x+$term_width] [expr $origin_term_n_y] [expr $origin_term_n_x+$term_width-$cell_height] [expr $origin_term_n_y+$term_height] -layer {1 2 3 4 5 6 7} -name fence_term_n3
 
 
 

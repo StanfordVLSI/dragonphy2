@@ -5,6 +5,23 @@
 # Date   : March 26, 2018
 
 # Allow clock gate cloning and merging
+for {set i 0} {$i < 2} {incr i} {
+    # 2-input muxes
+    for {set j 1} {$j < 5} {incr j} {
+        for {set k 0} {$k < 3} {incr k} {
+            set this_pin_name "itx/hr_mux_16t4_$i/iMUX_$j\__mux_4t1_hr_2t1_mux_$k/mux_0/U1/S"
+            set_ccopt_property -pin $this_pin_name -delay_corner delay_default capacitance_override 0.01
+            set_ccopt_property -pin $this_pin_name sink_type stop
+        }
+    }
+    
+    # 4-input muxes
+    for {set j 0} {$j < 2} {incr j} {
+        set this_pin_name "itx/qr_mux_4t1_$i/mux_4/mux_4_fixed/S$j"
+        set_ccopt_property -pin $this_pin_name -delay_corner delay_default capacitance_override 0.01
+        set_ccopt_property -pin $this_pin_name sink_type stop
+    }
+}
 
 set_ccopt_property clone_clock_gates true
 set_ccopt_property clone_clock_logic true
