@@ -11,6 +11,8 @@ name: custom-init
 outputs:
   - add-endcaps-welltaps.tcl
   - floorplan.tcl
+  - outbuf_route.tcl
+  - tx_MS_routes.tcl
 
 parameters:
   num_mem_tiles: 4

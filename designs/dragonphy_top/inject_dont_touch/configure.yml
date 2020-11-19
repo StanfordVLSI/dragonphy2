@@ -1,0 +1,15 @@
+# Adapted from Garnet and ButterPHY
+
+name: inject_dont_touch
+
+commands:
+  - |
+    mkdir -p outputs
+    python create_dont_touch.py dont_touch.tcl
+    cat inputs/design.sdc dont_touch.tcl > outputs/design.sdc
+
+inputs:
+  - design.sdc
+
+outputs:
+  - design.sdc

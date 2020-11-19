@@ -49,7 +49,7 @@ parameters:
   #
   # - Path to hcells file if required
   #
-  lvs_hcells_file: ""
+  lvs_hcells_file: "lvs_hcells.tcl"
   #
   # lvs_connect_names:
   #

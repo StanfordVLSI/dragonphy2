@@ -14,6 +14,7 @@ output = ''
 output += f'''
 # Modified from ButterPHY and Garnet constraints
 
+
 ############
 # Main clock
 ############
@@ -77,7 +78,7 @@ create_clock -name clk_mdll_mon_n \\
 create_clock -name clk_mdll \\
     -period {clk_4x_per} \\
     -waveform {{0 {0.5*clk_4x_per}}} \\
-    [get_pins imdll/clk_0]
+    [get_pins minv_i/DOUT]
 
 #############
 # TX clocks #
@@ -311,10 +312,28 @@ for {{set i 0}} {{$i < 2}} {{incr i}} {{
     # there is a mapping problem for FreePDK45
     for {{set j 1}} {{$j < 5}} {{incr j}} {{
         set_dont_touch [get_nets "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hd"]
+
+        # multipath constraint from quarter-rate to half-rate muxes
+        for {{set k 0}} {{$k < 2}} {{incr k}} {{
+            set_multicycle_path \\
+                1 \\
+                -setup \\
+                -end \\
+                -from [get_pins "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/mux_0/sel"] \\
+                -to [get_pins "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_2/dff_$k/D"]
+
+            set_multicycle_path \\
+                0 \\
+                -hold \\
+                -end \\
+                -from [get_pins "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/mux_0/sel"] \\
+                -to [get_pins "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_2/dff_$k/D"]
+        }}
+
+        # dont_touch nets within each 2t1 mux
         for {{set k 0}} {{$k < 3}} {{incr k}} {{
             set_dont_touch [get_nets "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/D0L"]
             set_dont_touch [get_nets "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/D1M"]
-            set_dont_touch [get_nets "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/L0M"]
         }}
     }}
 
@@ -326,6 +345,77 @@ for {{set i 0}} {{$i < 2}} {{incr i}} {{
     set_dont_touch [get_nets "itx/qr_mux_4t1_$i/D0DIB"]
     set_dont_touch [get_nets "itx/qr_mux_4t1_$i/D1DIB"]
     set_dont_touch [get_nets "itx/qr_mux_4t1_$i/mux_out"]
+
+    ####################
+    # Multicycle paths #
+    ####################
+ 
+    # all are launched on clk_tx_hr, which is
+    # divided by two from clk_tx_pi_2 (QB)
+
+    # din[0]: captured on I @ dff_IB0
+
+    set_multicycle_path \\
+        1 \\
+        -setup \\
+        -end \\
+        -from [get_pins "itx/hr_mux_16t4_$i/iMUX[1].mux_4t1/hr_2t1_mux_2/mux_0/sel"] \\
+        -to [get_pins "itx/qr_mux_4t1_$i/dff_IB0/D"]
+
+    set_multicycle_path \\
+        0 \\
+        -hold \\
+        -end \\
+        -from [get_pins "itx/hr_mux_16t4_$i/iMUX[1].mux_4t1/hr_2t1_mux_2/mux_0/sel"] \\
+        -to [get_pins "itx/qr_mux_4t1_$i/dff_IB0/D"]
+
+    # din[1]: captured on Q @ dff_QB0
+
+    set_multicycle_path \\
+        1 \\
+        -setup \\
+        -end \\
+        -from [get_pins "itx/hr_mux_16t4_$i/iMUX[2].mux_4t1/hr_2t1_mux_2/mux_0/sel"] \\
+        -to [get_pins "itx/qr_mux_4t1_$i/dff_QB0/D"]
+
+    set_multicycle_path \\
+        0 \\
+        -hold \\
+        -end \\
+        -from [get_pins "itx/hr_mux_16t4_$i/iMUX[2].mux_4t1/hr_2t1_mux_2/mux_0/sel"] \\
+        -to [get_pins "itx/qr_mux_4t1_$i/dff_QB0/D"]
+
+    # din[2]: captured on I @ dff_I0
+
+    set_multicycle_path \\
+        1 \\
+        -setup \\
+        -end \\
+        -from [get_pins "itx/hr_mux_16t4_$i/iMUX[3].mux_4t1/hr_2t1_mux_2/mux_0/sel"] \\
+        -to [get_pins "itx/qr_mux_4t1_$i/dff_I0/D"]
+
+    set_multicycle_path \\
+        0 \\
+        -hold \\
+        -end \\
+        -from [get_pins "itx/hr_mux_16t4_$i/iMUX[3].mux_4t1/hr_2t1_mux_2/mux_0/sel"] \\
+        -to [get_pins "itx/qr_mux_4t1_$i/dff_I0/D"]
+
+    # din[3]: captured on Q @ dff_Q0
+
+    set_multicycle_path \\
+        1 \\
+        -setup \\
+        -end \\
+        -from [get_pins "itx/hr_mux_16t4_$i/iMUX[4].mux_4t1/hr_2t1_mux_2/mux_0/sel"] \\
+        -to [get_pins "itx/qr_mux_4t1_$i/dff_Q0/D"]
+
+    set_multicycle_path \\
+        0 \\
+        -hold \\
+        -end \\
+        -from [get_pins "itx/hr_mux_16t4_$i/iMUX[4].mux_4t1/hr_2t1_mux_2/mux_0/sel"] \\
+        -to [get_pins "itx/qr_mux_4t1_$i/dff_Q0/D"]
 '''
 
 if os.environ['adk_name'] == 'tsmc16':
@@ -374,6 +464,13 @@ set_dont_retime [get_cells itx]
 set_false_path -through [get_pins -of_objects imdll]
 
 # Unused clock IOs should not have buffers added
+set_dont_touch_network [get_pins imdll/clk_0]
+'''
+if os.environ['adk_name'] == 'tsmc16':
+    output += f'''
+set_dont_touch [get_cells "minv_i/inv_1_fixed"]
+'''
+output += f'''
 set_dont_touch_network [get_pins imdll/clk_90]
 set_dont_touch_network [get_pins imdll/clk_180]
 set_dont_touch_network [get_pins imdll/clk_270]
@@ -470,7 +567,10 @@ set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_1/din[2]}}]
 set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_1/din[3]}}]
 set_max_transition {0.008*time_scale} [get_pin {{itx/qr_mux_4t1_1/data}}]
 
+
 echo [all_clocks]
+
+
 '''
 
 # process-specific constraints
