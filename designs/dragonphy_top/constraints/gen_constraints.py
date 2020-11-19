@@ -466,7 +466,12 @@ set_false_path -through [get_pins -of_objects imdll]
 
 # Unused clock IOs should not have buffers added
 set_dont_touch_network [get_pins imdll/clk_0]
+'''
+if os.environ['adk_name'] == 'tsmc16':
+    output += f'''
 set_dont_touch [get_cells "minv_i/inv_1_fixed"]
+'''
+output += f'''
 set_dont_touch_network [get_pins imdll/clk_90]
 set_dont_touch_network [get_pins imdll/clk_180]
 set_dont_touch_network [get_pins imdll/clk_270]
