@@ -14,6 +14,7 @@ output = ''
 output += f'''
 # Modified from ButterPHY and Garnet constraints
 
+
 ############
 # Main clock
 ############
@@ -77,7 +78,7 @@ create_clock -name clk_mdll_mon_n \\
 create_clock -name clk_mdll \\
     -period {clk_4x_per} \\
     -waveform {{0 {0.5*clk_4x_per}}} \\
-    [get_pins imdll/clk_0]
+    [get_pins minv_i/DOUT]
 
 #############
 # TX clocks #
@@ -333,7 +334,6 @@ for {{set i 0}} {{$i < 2}} {{incr i}} {{
         for {{set k 0}} {{$k < 3}} {{incr k}} {{
             set_dont_touch [get_nets "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/D0L"]
             set_dont_touch [get_nets "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/D1M"]
-            set_dont_touch [get_nets "itx/hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/L0M"]
         }}
     }}
 
@@ -464,6 +464,13 @@ set_dont_retime [get_cells itx]
 set_false_path -through [get_pins -of_objects imdll]
 
 # Unused clock IOs should not have buffers added
+set_dont_touch_network [get_pins imdll/clk_0]
+'''
+if os.environ['adk_name'] == 'tsmc16':
+    output += f'''
+set_dont_touch [get_cells "minv_i/inv_1_fixed"]
+'''
+output += f'''
 set_dont_touch_network [get_pins imdll/clk_90]
 set_dont_touch_network [get_pins imdll/clk_180]
 set_dont_touch_network [get_pins imdll/clk_270]
@@ -560,7 +567,10 @@ set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_1/din[2]}}]
 set_max_transition {0.025*time_scale} [get_pin {{itx/qr_mux_4t1_1/din[3]}}]
 set_max_transition {0.008*time_scale} [get_pin {{itx/qr_mux_4t1_1/data}}]
 
+
 echo [all_clocks]
+
+
 '''
 
 # process-specific constraints

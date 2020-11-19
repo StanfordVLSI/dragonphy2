@@ -118,6 +118,7 @@ module dragonphy_top import const_pack::*; (
 
     // MDLL outputs
     logic mdll_clk_out;
+    logic mdll_clk_0;
     logic mdll_jm_clk_fb_out;
 
     // PI control signals
@@ -272,7 +273,7 @@ module dragonphy_top import const_pack::*; (
         .jm_sel_clk_jtag(mdbg_intf_i.jm_sel_clk_jtag),
         .jm_bb_out_pol_jtag(mdbg_intf_i.jm_bb_out_pol_jtag),
 
-        .clk_0(mdll_clk_out),
+        .clk_0(mdll_clk_0),
         .clk_90(),
         .clk_180(),
         .clk_270(),
@@ -283,6 +284,8 @@ module dragonphy_top import const_pack::*; (
         .jm_clk_fb_out(mdll_jm_clk_fb_out),
         .jm_cdf_out_2jtag(mdbg_intf_i.jm_cdf_out_2jtag)
 	);
+
+    mdll_inv minv_i (.DIN(mdll_clk_0), .DOUT(mdll_clk_out));
 
 endmodule
 

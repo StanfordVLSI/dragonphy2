@@ -170,6 +170,11 @@ def get_deps_asic(cell_name=None, impl_file=None, process='tsmc16'):
         # so there is no "skip" for a cell coming
         # from *.lib
         override['qr_mux_fixed'] = 'chip_src_freepdk45'
+
+        # mdll_inv is just synthesizable RTL,
+        # so there is no "skip" for a cell coming
+        # from *.lib
+        override['mdll_inv'] = 'chip_src_freepdk45'
         
         # TX inverter
         override['tx_inv'] = 'chip_src_freepdk45'
@@ -194,6 +199,10 @@ def get_deps_asic(cell_name=None, impl_file=None, process='tsmc16'):
         # TX inverter
         override['tx_inv'] = 'chip_src_tsmc16'
         skip.add('INVD4BWP16P90ULVT')
+
+        # Manually-added buffer for MDLL
+        override['mdll_inv'] = 'chip_src_tsmc16'
+        skip.add('BUFFD2BWP16P90ULVT')
     else:
         raise Exception(f'Unknown process: {process}')
 
