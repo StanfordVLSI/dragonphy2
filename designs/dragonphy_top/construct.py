@@ -25,7 +25,7 @@ def construct():
         'construct_path': __file__,
         'design_name': 'dragonphy_top',
         'topographical': True,
-        'hold_target_slack': 0.01
+        'hold_target_slack': 0.05
     }
 
     if DRAGONPHY_PROCESS == 'FREEPDK45':
@@ -71,8 +71,9 @@ def construct():
     # custom_lvs = Step(this_dir + '/custom-lvs-rules')
     custom_power = Step(this_dir + '/custom-power')
     custom_geom = Step(this_dir + '/custom-geom')
-    custom_route = Step(this_dir + '/custom-route')
+   # custom_route = Step(this_dir + '/custom-route')
     dc = Step(this_dir + '/synopsys-dc-synthesis')
+    dt = Step(this_dir + '/inject_dont_touch')
     qtm = Step(this_dir + '/qtm')
     # Block-level designs (only work in TSMC16)
     blocks = []
@@ -91,7 +92,10 @@ def construct():
 
     init = Step(this_dir + '/cadence-innovus-init')
     cts  = Step(this_dir + '/cadence-innovus-cts')
+    prelvs = Step(this_dir + '/prelvs_fix')
     lvs  = Step(this_dir + '/mentor-calibre-lvs')
+    gdsmerge       = Step(this_dir +  '/mentor-calibre-gdsmerge')
+    fill           = Step(this_dir + '/mentor-calibre-fill')
     # Default steps
     info           = Step( 'info',                           default=True )
     iflow          = Step( 'cadence-innovus-flowsetup',      default=True )
@@ -106,7 +110,9 @@ def construct():
     signoff        = Step( 'cadence-innovus-signoff',        default=True )
     pt_signoff     = Step( 'synopsys-pt-timing-signoff',     default=True )
     genlibdb       = Step( 'synopsys-ptpx-genlibdb',         default=True )
-    gdsmerge       = Step( 'mentor-calibre-gdsmerge',        default=True )
+#    gdsmerge       = Step( 'mentor-calibre-gdsmerge',        default=True )
+    merge_fill     = Step( 'mentor-calibre-gdsmerge-child',  default=True )
+#    fill           = Step( 'mentor-calibre-fill',             default=True )
     drc            = Step( 'mentor-calibre-drc',             default=True )
     #lvs            = Step( 'mentor-calibre-lvs',             default=True )
     debugcalibre   = Step( 'cadence-innovus-debug-calibre',  default=True )
@@ -119,7 +125,7 @@ def construct():
     power.extend_inputs(custom_power.all_outputs())
     power.extend_inputs(custom_geom.all_outputs())
 
-    route.extend_inputs(custom_route.all_outputs())
+    #route.extend_inputs(custom_route.all_outputs())
 
     # Add *.db files for macros to downstream nodes
     dbs = [
@@ -206,6 +212,7 @@ def construct():
     g.add_step( gen_sram_small       )
     g.add_step( constraints          )
     g.add_step( dc                   )
+    g.add_step( dt                   )
     g.add_step( iflow                )
     g.add_step( init                 )
     g.add_step( custom_init          )
@@ -214,7 +221,7 @@ def construct():
     g.add_step( place                )
     g.add_step( cts                  )
     g.add_step( postcts_hold         )
-    g.add_step( custom_route         )
+    #g.add_step( custom_route         )
     g.add_step( route                )
     g.add_step( postroute            )
     g.add_step( postroute_hold       )
@@ -224,6 +231,9 @@ def construct():
     g.add_step( genlibdb             )
     g.add_step( gdsmerge             )
     g.add_step( drc                  )
+    g.add_step( fill                 )
+    g.add_step( merge_fill           )
+    g.add_step( prelvs               )
     g.add_step( lvs                  )
     # g.add_step( custom_lvs           )
     g.add_step( debugcalibre         )
@@ -253,8 +263,10 @@ def construct():
     g.connect_by_name( adk,            postcts_hold   )
     g.connect_by_name( adk,            route          )
     g.connect_by_name( adk,            postroute      )
+    g.connect_by_name( adk,            postroute_hold )
     g.connect_by_name( adk,            signoff        )
     g.connect_by_name( adk,            gdsmerge       )
+    g.connect_by_name( adk,            fill           )
     g.connect_by_name( adk,            drc            )
     g.connect_by_name( adk,            lvs            )
     g.connect_by_name( adk,            qtm            )
@@ -277,16 +289,24 @@ def construct():
         g.connect_by_name(block, pt_signoff)
         g.connect_by_name(block, gdsmerge)
         g.connect_by_name(block, drc)
+        g.connect_by_name(block, fill)
         g.connect_by_name(block, lvs)
 
     g.connect_by_name( rtl,            dc             )
     g.connect_by_name( constraints,    dc             )
+    
+    g.connect_by_name(dc, dt)
 
     g.connect_by_name( dc,             iflow          )
     g.connect_by_name( dc,             init           )
     g.connect_by_name( dc,             power          )
     g.connect_by_name( dc,             place          )
     g.connect_by_name( dc,             cts            )
+    g.connect_by_name( dt,             iflow          )
+    g.connect_by_name( dt,             init           )
+    g.connect_by_name( dt,             power          )
+    g.connect_by_name( dt,             place          )
+    g.connect_by_name( dt,             cts            )
 
     g.connect_by_name( iflow,          init           )
     g.connect_by_name( iflow,          power          )
@@ -295,6 +315,7 @@ def construct():
     g.connect_by_name( iflow,          postcts_hold   )
     g.connect_by_name( iflow,          route          )
     g.connect_by_name( iflow,          postroute      )
+    g.connect_by_name( iflow,          postroute_hold )
     g.connect_by_name( iflow,          signoff        )
 
     g.connect_by_name( custom_init,    init           )
@@ -310,15 +331,19 @@ def construct():
     g.connect_by_name( place,          cts            )
     g.connect_by_name( cts,            postcts_hold   )
     g.connect_by_name( postcts_hold,   route          )
-    g.connect_by_name( custom_route,   route         )
+#    g.connect_by_name( custom_route,   route         )
     g.connect_by_name( route,          postroute      )
     g.connect_by_name( postroute,      postroute_hold )
     g.connect_by_name( postroute_hold, signoff        )
     g.connect_by_name( signoff,        gdsmerge       )
     g.connect_by_name( signoff,        drc            )
-    g.connect_by_name( signoff,        lvs            )
-    g.connect_by_name( gdsmerge,       drc            )
-    g.connect_by_name( gdsmerge,       lvs            )
+    g.connect_by_name( signoff,        prelvs         )
+    g.connect_by_name( prelvs,         lvs            )
+    g.connect_by_name( gdsmerge, fill)
+    g.connect_by_name( fill, merge_fill)
+    g.connect_by_name( gdsmerge, merge_fill) 
+    g.connect_by_name( merge_fill,           lvs            )
+    g.connect_by_name( merge_fill,           drc            )
 
     g.connect_by_name( signoff,        genlibdb       )
     g.connect_by_name( adk,            genlibdb       )
@@ -328,9 +353,9 @@ def construct():
     g.connect_by_name( signoff,        pt_signoff     )
 
     g.connect_by_name( adk,            debugcalibre   )
-    g.connect_by_name( dc,             debugcalibre   )
+    g.connect_by_name( dt,             debugcalibre   )
     g.connect_by_name( iflow,          debugcalibre   )
-    g.connect_by_name( signoff,        debugcalibre   )
+    g.connect_by_name( prelvs,        debugcalibre   )
     g.connect_by_name( drc,            debugcalibre   )
     g.connect_by_name( lvs,            debugcalibre   )
 
@@ -361,6 +386,10 @@ def construct():
     order.insert(0, 'set-geom-vars.tcl')
 
     power.update_params({'order': order})
+    
+    #order = route.get_param('order')
+    #order.insert(0, 'route-settings.tcl')
+    power.update_params({'order':order})
     postroute_hold.update_params({'hold_target_slack' : parameters['hold_target_slack']}, allow_new=True) 
 
     return g
