@@ -1,0 +1,16 @@
+# Adapted from Garnet and ButterPHY
+
+name: prelvs_fix
+
+commands:
+  - |
+    mkdir -p outputs
+    python fix_adbg_intf_i.py inputs/design.lvs.v
+    python fix_term_vss.py    inputs/design_alt.lvs.v
+    mv inputs/design_alt_alt.lvs.v outputs/design.lvs.v
+
+inputs:
+  - design.lvs.v
+
+outputs:
+  - design.lvs.v

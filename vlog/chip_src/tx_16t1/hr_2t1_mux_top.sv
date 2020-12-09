@@ -12,13 +12,13 @@ module hr_2t1_mux_top (
 
 wire D0L; // din[0] wire connection from DFF to D-Latch
 wire D1M; // din[1] wire connection from DFF to MUX
-wire L0M; // din[0] wire connection from D-Latch to MUX
+
 
 //Instantiate the DFF, latch and MUX
 ff_c dff_0 (.D(din[0]), .CP(clk_b), .Q(D0L)); // DFF on din[0] path
 ff_c dff_1 (.D(din[1]), .CP(clk_b), .Q(D1M)); // DFF on din[0] path
-dlatch_n latch_0 (.clk(clk_b), .din(D0L), .dout(L0M)); // D-Latch after din[0]
-mux mux_0 (.in0(L0M), .in1(D1M), .sel(clk_b), .out(dout));
+
+mux mux_0 (.in0(D0L), .in1(D1M), .sel(clk_b), .out(dout));
 
 endmodule
 
