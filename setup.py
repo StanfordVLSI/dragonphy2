@@ -13,8 +13,8 @@ with open('README.md', 'r') as fh:
 requires_list = [
     # anasymod ecosystem
     'svreal==0.2.7',
-    'msdsl==0.3.5',
-    'anasymod==0.3.6.dev3',
+    'msdsl==0.3.6.dev2',
+    'anasymod==0.3.6.dev4',
     # system-verilog parser
     'svinst==0.1.5',
    # magma ecosystem dependencies
