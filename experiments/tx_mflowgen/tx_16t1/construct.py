@@ -12,8 +12,8 @@ def construct():
   # Parameters
   #-----------------------------------------------------------------------
 
-  adk_name = 'freepdk-45nm'
-  adk_view = 'view-standard'
+  adk_name = 'tsmc16'
+  adk_view = 'stdview'
 
   parameters = {
     'construct_path' : __file__,
