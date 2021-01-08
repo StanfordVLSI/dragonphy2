@@ -191,3 +191,12 @@ set_max_transition $TR [get_pin {qr_mux_4t1_1/din[1]}]
 set_max_transition $TR [get_pin {qr_mux_4t1_1/din[2]}]
 set_max_transition $TR [get_pin {qr_mux_4t1_1/din[3]}]
 set_max_transition $TR_4X [get_pin {qr_mux_4t1_1/data}]
+
+
+# Mux to Buffer
+set_max_transition $TR_4X [get_pin {buf1/DINN}]
+set_max_transition $TR_4X [get_pin {buf1/DINP}]
+
+#Buffer
+set_max_transition $TR_4X [get_pin {buf1/DOUTN}]
+set_max_transition $TR_4X [get_pin {buf1/DOUTP}]
