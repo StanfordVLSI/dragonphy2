@@ -192,8 +192,8 @@ set_max_transition $TR [get_pin {qr_mux_4t1_1/din[2]}]
 set_max_transition $TR [get_pin {qr_mux_4t1_1/din[3]}]
 set_max_transition $TR_4X [get_pin {qr_mux_4t1_1/data}]
 
-#Buffer
-set_max_transition $TR_4X [get_pin {buf1/i_term_n/VinP}]
-set_max_transition $TR_4X [get_pin {buf1/i_term_n/VinN}]
-set_max_transition $TR_4X [get_pin {buf1/i_term_p/VinP}]
-set_max_transition $TR_4X [get_pin {buf1/i_term_p/VinN}]
+# #Buffer
+# set_max_transition $TR_4X [get_pin {buf1/i_term_n/VinP}]
+# set_max_transition $TR_4X [get_pin {buf1/i_term_n/VinN}]
+# set_max_transition $TR_4X [get_pin {buf1/i_term_p/VinP}]
+# set_max_transition $TR_4X [get_pin {buf1/i_term_p/VinN}]
