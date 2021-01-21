@@ -1,5 +1,13 @@
 name: rtl
 
-outputs:
-  - design.v
+commands:
+  - |
+    mkdir -p outputs
+    python gen_tcl.py
 
+outputs:
+  - read_design.tcl
+
+parameters:
+  adk_name: "tsmc16"
+  design_name: None

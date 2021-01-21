@@ -1,0 +1,15 @@
+# Adapted from Garnet and ButterPHY
+
+name: output_buffer
+
+commands:
+  - |
+    mkdir -p outputs
+    tar -xzvf /home/sjkim85/dragonphy_tarballs/output_buffer-latest.tar.gz -C outputs
+    python comment_fill_bound_tap.py outputs/output_buffer.lvs.v
+    mv outputs/output_buffer_alt.lvs.v outputs/output_buffer.lvs.v
+outputs:
+  - output_buffer.lef
+  - output_buffer.gds
+  - output_buffer.lvs.v
+  - output_buffer.version

@@ -1,0 +1,98 @@
+# Adapted from Garnet and ButterPHY
+
+name: qtm
+
+commands:
+  - |
+    mkdir -p build
+    mkdir -p outputs
+    cd build
+
+    # build analog_core QTM
+    mkdir -p analog_core
+    cd analog_core
+    pt_shell -f ../../analog_core.qtm.tcl
+    cd ..
+
+    # build input_buffer QTM
+    mkdir -p input_buffer
+    cd input_buffer
+    pt_shell -f ../../input_buffer.qtm.tcl
+    cd ..
+
+    # build output_buffer QTM
+    mkdir -p output_buffer
+    cd output_buffer
+    pt_shell -f ../../output_buffer.qtm.tcl
+    cd ..
+
+    # build mdll_r1_top QTM
+    mkdir -p mdll_r1_top
+    cd mdll_r1_top
+    pt_shell -f ../../mdll_r1_top.qtm.tcl
+    cd ..
+    
+    # build PI (for TX) QTM
+    mkdir -p phase_interpolator
+    cd phase_interpolator
+    pt_shell -f ../../phase_interpolator.qtm.tcl
+    cd ..
+    
+    # build input divider (for TX) QTM
+    mkdir -p input_divider
+    cd input_divider
+    pt_shell -f ../../input_divider.qtm.tcl
+    cd ..
+
+    # build termination (for TX) QTM
+    mkdir -p termination
+    cd termination
+    pt_shell -f ../../termination.qtm.tcl
+    cd ..
+
+    # link build products into output folder
+    cd ../outputs
+    ln -s ../build/analog_core/analog_core_lib.db analog_core_lib.db
+    ln -s ../build/analog_core/analog_core.lib analog_core.lib
+    ln -s ../build/input_buffer/input_buffer_lib.db input_buffer_lib.db
+    ln -s ../build/input_buffer/input_buffer.lib input_buffer.lib
+    ln -s ../build/output_buffer/output_buffer_lib.db output_buffer_lib.db
+    ln -s ../build/output_buffer/output_buffer.lib output_buffer.lib
+    ln -s ../build/mdll_r1_top/mdll_r1_top_lib.db mdll_r1_top_lib.db
+    ln -s ../build/mdll_r1_top/mdll_r1_top.lib mdll_r1_top.lib
+    ln -s ../build/phase_interpolator/phase_interpolator_lib.db phase_interpolator_lib.db
+    ln -s ../build/phase_interpolator/phase_interpolator.lib phase_interpolator.lib
+    ln -s ../build/input_divider/input_divider_lib.db input_divider_lib.db
+    ln -s ../build/input_divider/input_divider.lib input_divider.lib
+    ln -s ../build/termination/termination_lib.db termination_lib.db
+    ln -s ../build/termination/termination.lib termination.lib
+
+inputs:
+  - adk
+
+outputs:
+  - analog_core_lib.db
+  - analog_core.lib
+  - input_buffer_lib.db
+  - input_buffer.lib
+  - output_buffer_lib.db
+  - output_buffer.lib
+  - mdll_r1_top_lib.db
+  - mdll_r1_top.lib
+  - phase_interpolator_lib.db
+  - phase_interpolator.lib
+  - input_divider_lib.db
+  - input_divider.lib
+  - termination_lib.db
+  - termination.lib
+
+parameters:
+  # Name of the technology library containing ADK_DRIVING_CELL
+  qtm_tech_lib: tcbn16ffcllbwp16p90tt0p8v25c
+
+  # Period of the main clock in nanoseconds
+  # (will be scaled by constr_time_scale)
+  constr_main_per: 0.7
+
+  # Scale factor for timing constraints
+  constr_time_scale: 1.0

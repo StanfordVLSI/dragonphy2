@@ -24,22 +24,22 @@ set TR_QR [expr {0.4*$T}]
 create_clock -name clk_tx_pi_0 \
     -period $T \
     -waveform "$T0 $T2" \
-    [get_ports {clk_interp_slice[0]}]
+    [get_pins iPI[0].iPI/clk_out_slice]
 
 create_clock -name clk_tx_pi_1 \
     -period $T \
     -waveform "$T1 $T3" \
-    [get_ports {clk_interp_slice[1]}]
+    [get_pins iPI[1].iPI/clk_out_slice]
 
 create_clock -name clk_tx_pi_2 \
     -period $T \
     -waveform "$T2 $T4" \
-    [get_ports {clk_interp_slice[2]}]
+    [get_pins iPI[2].iPI/clk_out_slice]
 
 create_clock -name clk_tx_pi_3 \
     -period $T \
     -waveform "$T3 $T5" \
-    [get_ports {clk_interp_slice[3]}]
+    [get_pins iPI[3].iPI/clk_out_slice]
 
 # Half-rate and quarter-rate clocks
 
@@ -88,17 +88,21 @@ for {set i 0} {$i < 2} {incr i} {
         for {set k 0} {$k < 3} {incr k} {
             set_dont_touch [get_nets "hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/D0L"]
             set_dont_touch [get_nets "hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/D1M"]
-            set_dont_touch [get_nets "hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/L0M"]
+        #   set_dont_touch [get_nets "hr_mux_16t4_$i/iMUX[$j].mux_4t1/hr_2t1_mux_$k/L0M"]
         }
     }
 
-    # Quarter-rate muxes
+    # Quarter-rate muxes internal nets
     set_dont_touch [get_nets "qr_mux_4t1_$i/D0DQ"]
     set_dont_touch [get_nets "qr_mux_4t1_$i/D0DI"]
     set_dont_touch [get_nets "qr_mux_4t1_$i/D0DQB"]
     set_dont_touch [get_nets "qr_mux_4t1_$i/D1DQB"]
     set_dont_touch [get_nets "qr_mux_4t1_$i/D0DIB"]
     set_dont_touch [get_nets "qr_mux_4t1_$i/D1DIB"]
+    
+    # Quarter-rate muxes output nets
+    set_dont_touch [get_pins "qr_mux_4t1_$i/data"]
+
 
     ####################
     # Multicycle paths #

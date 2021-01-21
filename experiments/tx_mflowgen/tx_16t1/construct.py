@@ -6,6 +6,11 @@ from mflowgen.components import Graph, Step
 
 def construct():
 
+  if 'DRAGONPHY_PROCESS' in os.environ:
+      DRAGONPHY_PROCESS = os.environ['DRAGONPHY_PROCESS']
+  else:
+      DRAGONPHY_PROCESS = 'TSMC16'
+
   g = Graph()
 
   #-----------------------------------------------------------------------
@@ -40,8 +45,22 @@ def construct():
   rtl = Step( this_dir + '/rtl' )
   constraints = Step( this_dir + '/constraints' )
   dc = Step( this_dir + '/synopsys-dc-synthesis' )
+  qtm = Step(this_dir + '/qtm')
+  # Define blocks function
 
-  # Default steps
+  blocks = []
+
+  # Added steps for blackbox
+
+  if DRAGONPHY_PROCESS == 'TSMC16':
+      blocks += [
+          Step( this_dir + '/output_buffer'     ),
+          Step( this_dir + '/phase_interpolator'),
+          Step( this_dir + '/termination'       ),
+          Step( this_dir + '/input_divider'     ),
+      ]
+
+ # Default steps
 
   info           = Step( 'info',                           default=True )
   iflow          = Step( 'cadence-innovus-flowsetup',      default=True )
@@ -60,7 +79,14 @@ def construct():
   lvs            = Step( 'mentor-calibre-lvs',             default=True )
   debugcalibre   = Step( 'cadence-innovus-debug-calibre',  default=True )
 
-  #-----------------------------------------------------------------------
+  dbs = [
+        'output_buffer_lib.db',
+        'phase_interpolator_lib.db',
+        'termination_lib.db',
+        'input_divider_lib.db'
+  ]
+  dc.extend_inputs(dbs)
+#-----------------------------------------------------------------------
   # Graph -- Add nodes
   #-----------------------------------------------------------------------
 
@@ -84,6 +110,10 @@ def construct():
   g.add_step( lvs            )
   g.add_step( debugcalibre   )
 
+  for block in blocks:
+    g.add_step ( block )
+
+  g.add_step( qtm )
   #-----------------------------------------------------------------------
   # Graph -- Add edges
   #-----------------------------------------------------------------------
@@ -104,6 +134,21 @@ def construct():
   g.connect_by_name( adk,            gdsmerge       )
   g.connect_by_name( adk,            drc            )
   g.connect_by_name( adk,            lvs            )
+  g.connect_by_name( adk, 	     qtm            )
+
+  for block in blocks + [qtm]:
+    g.connect_by_name(block, dc)
+    g.connect_by_name(block, iflow)
+    g.connect_by_name(block, init)
+    g.connect_by_name(block, power)
+    g.connect_by_name(block, place)
+    g.connect_by_name(block, cts)
+    g.connect_by_name(block, postcts_hold)
+    g.connect_by_name(block, route)
+    g.connect_by_name(block, postroute)
+    g.connect_by_name(block, signoff)
+
+
 
   g.connect_by_name( rtl,            dc             )
   g.connect_by_name( constraints,    dc             )
