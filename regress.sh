@@ -18,6 +18,9 @@ export PATH="$GENESIS_HOME/gui/bin:$PATH"
 git clone --single-branch --branch pwl_cos https://github.com/StanfordVLSI/DaVE.git
 export mLINGUA_DIR=`realpath DaVE/mLingua`
 
+# temporary fix
+pip install cvxpy==1.1.7
+
 # install dragonphy
 pip install -e .
 
