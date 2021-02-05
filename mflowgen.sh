@@ -9,6 +9,9 @@ export PATH="$GENESIS_HOME/bin:$PATH"
 export PATH="$GENESIS_HOME/gui/bin:$PATH"
 /bin/rm -rf $GENESIS_HOME/PerlLibs/ExtrasForOldPerlDistributions/Compress
 
+# temporary fix
+pip install cvxpy==1.1.7
+
 # install mflowgen
 git clone https://github.com/cornell-brg/mflowgen
 cd mflowgen
