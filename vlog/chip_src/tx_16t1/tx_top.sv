@@ -82,37 +82,36 @@ assign rstb = ~rst;
                 .ctl(ctl_pi[k]),
                 .ctl_valid(ctl_valid),
                 // portion 2 checked | Yes
-                .en_gf(tx.en_gf),
-                .en_arb(tx.en_arb_pi[k]),
-                .en_delay(tx.en_delay_pi[k]),
-                .en_ext_Qperi(tx.en_ext_Qperi[k]),
-                .en_pm(tx.en_pm_pi[k]),
-                .en_cal(tx.en_cal_pi[k]),
+                .en_gf(1'b0),
+                .en_arb(4'hf),
+                .en_delay(4'hf),
+                .en_ext_Qperi(4'h0),
+                .en_pm(4'h0),
+                .en_cal(4'h0),
 
-                .en_unit(en_unit_pi[k]), // en_unit_pi added
+                .en_unit(32'hffffffff), // en_unit_pi added
 
-                .ext_Qperi(tx.ext_Qperi[k]),
-                .sel_pm_sign(tx.sel_pm_sign_pi[k]),
-                .inc_del(tx.del_inc[k]),
-                .ctl_dcdl_slice(tx.ctl_dcdl_slice[k]),
-                .ctl_dcdl_sw(tx.ctl_dcdl_sw[k]),
-                .ctl_dcdl_clk_encoder(tx.ctl_dcdl_clk_encoder[k]),
-                .disable_state(tx.disable_state[k]),
-                .en_clk_sw(tx.en_clk_sw[k]),
+                .ext_Qperi(5'b10001),
+                .sel_pm_sign(2'b00),
+                .inc_del(32'h0),
+                .ctl_dcdl_slice(2'b00),
+                .ctl_dcdl_sw(2'b00),
+                .ctl_dcdl_clk_encoder(2'b00),
+                .disable_state(4'h0),
+                .en_clk_sw(4'hf),
                 // portion 3 checked | Yes
                 //outputs
                 .clk_out_slice(clk_interp_slice[k]),
-                .clk_out_sw(clk_interp_sw[k]),
-                .Qperi(tx.Qperi[k]),
-                .cal_out(tx.cal_out_pi[k]),
-                .del_out(inv_del_out_pi[k]),
-                .pm_out(tx.pm_out_pi[k]),
-                .max_sel_mux(tx.max_sel_mux[k]),
-                .cal_out_dmm()
+//                .clk_out_sw(clk_interp_sw[k]),
+//                .cal_out(tx.cal_out_pi[k]),
+//                .del_out(inv_del_out_pi[k]),
+//                .pm_out(tx.pm_out_pi[k]),
+//                .max_sel_mux(tx.max_sel_mux[k]),
+//                .cal_out_dmm()
             );
             // portion 4 checked | Yes
-            assign tx.pi_out_meas[k] = (tx.sel_meas_pi[k] ? clk_interp_slice[k] : clk_interp_sw[k]) & tx.en_meas_pi[k];
-            assign en_unit_pi[k] = ~tx.enb_unit_pi[k];  
+        //   assign tx.pi_out_meas[k] = (tx.sel_meas_pi[k] ? clk_interp_slice[k] : clk_interp_sw[k]) & tx.en_meas_pi[k];
+        //    assign en_unit_pi[k] = ~tx.enb_unit_pi[k];  
         end
     endgenerate
 
