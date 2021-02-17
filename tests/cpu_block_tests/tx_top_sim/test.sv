@@ -158,50 +158,50 @@ initial begin
     tx_intf.sel_del_out_pi = 1'b0;
     tx_intf.en_del_out_pi = 1'b0;
     // Phase interpoator
-    tx_intf.en_gf = 1'b0;
-    tx_intf.en_arb_pi = 4'hf;
-    tx_intf.en_delay_pi = 4'hf;
-    tx_intf.en_ext_Qperi = 4'h0;
-    tx_intf.en_pm_pi = 4'h0;
-    tx_intf.en_cal_pi = 4'h0;
-    tx_intf.en_clk_sw = 4'hf;
-    tx_intf.en_meas_pi = 4'h0;
+    // tx_intf.en_gf = 1'b0;
+    // tx_intf.en_arb_pi = 4'hf;
+    // tx_intf.en_delay_pi = 4'hf;
+    // tx_intf.en_ext_Qperi = 4'h0;
+    // tx_intf.en_pm_pi = 4'h0;
+    // tx_intf.en_cal_pi = 4'h0;
+    // tx_intf.en_clk_sw = 4'hf;
+    // tx_intf.en_meas_pi = 4'h0;
     
-    ctl_valid = 0;
+    // ctl_valid = 0;
 
-    tx_intf.ext_Qperi[0] = 5'b10001;
-    tx_intf.ext_Qperi[1] = 5'b10001;
-    tx_intf.ext_Qperi[2] = 5'b10001;
-    tx_intf.ext_Qperi[3] = 5'b10001;
+    // tx_intf.ext_Qperi[0] = 5'b10001;
+    // tx_intf.ext_Qperi[1] = 5'b10001;
+    // tx_intf.ext_Qperi[2] = 5'b10001;
+    // tx_intf.ext_Qperi[3] = 5'b10001;
 
-    tx_intf.sel_pm_sign_pi[0] = 2'b00;
-    tx_intf.sel_pm_sign_pi[1] = 2'b00;
-    tx_intf.sel_pm_sign_pi[2] = 2'b00;
-    tx_intf.sel_pm_sign_pi[3] = 2'b00;
-    tx_intf.del_inc[0] = 32'h0;
-    tx_intf.del_inc[1] = 32'h0;
-    tx_intf.del_inc[2] = 32'h0;
-    tx_intf.del_inc[3] = 32'h0;
-    tx_intf.enb_unit_pi[0] = 32'h0;
-    tx_intf.enb_unit_pi[1] = 32'h0;
-    tx_intf.enb_unit_pi[2] = 32'h0;
-    tx_intf.enb_unit_pi[3] = 32'h0;
-    tx_intf.disable_state = 4'h0; 
-    tx_intf.sel_meas_pi = 4'h0;
+    // tx_intf.sel_pm_sign_pi[0] = 2'b00;
+    // tx_intf.sel_pm_sign_pi[1] = 2'b00;
+    // tx_intf.sel_pm_sign_pi[2] = 2'b00;
+    // tx_intf.sel_pm_sign_pi[3] = 2'b00;
+    // tx_intf.del_inc[0] = 32'h0;
+    // tx_intf.del_inc[1] = 32'h0;
+    // tx_intf.del_inc[2] = 32'h0;
+    // tx_intf.del_inc[3] = 32'h0;
+    // tx_intf.enb_unit_pi[0] = 32'h0;
+    // tx_intf.enb_unit_pi[1] = 32'h0;
+    // tx_intf.enb_unit_pi[2] = 32'h0;
+    // tx_intf.enb_unit_pi[3] = 32'h0;
+    // tx_intf.disable_state = 4'h0; 
+    // tx_intf.sel_meas_pi = 4'h0;
 
 
-    tx_intf.ctl_dcdl_slice[0] = 2'b00; 
-    tx_intf.ctl_dcdl_slice[1] = 2'b00;
-    tx_intf.ctl_dcdl_slice[2] = 2'b00; 
-    tx_intf.ctl_dcdl_slice[3] = 2'b00;
-    tx_intf.ctl_dcdl_sw[0] = 2'b00;
-    tx_intf.ctl_dcdl_sw[1] = 2'b00;
-    tx_intf.ctl_dcdl_sw[2] = 2'b00;
-    tx_intf.ctl_dcdl_sw[3] = 2'b00;
-    tx_intf.ctl_dcdl_clk_encoder[0] = 2'b00;
-    tx_intf.ctl_dcdl_clk_encoder[1] = 2'b00;
-    tx_intf.ctl_dcdl_clk_encoder[2] = 2'b00;
-    tx_intf.ctl_dcdl_clk_encoder[3] = 2'b00;
+    // tx_intf.ctl_dcdl_slice[0] = 2'b00; 
+    // tx_intf.ctl_dcdl_slice[1] = 2'b00;
+    // tx_intf.ctl_dcdl_slice[2] = 2'b00; 
+    // tx_intf.ctl_dcdl_slice[3] = 2'b00;
+    // tx_intf.ctl_dcdl_sw[0] = 2'b00;
+    // tx_intf.ctl_dcdl_sw[1] = 2'b00;
+    // tx_intf.ctl_dcdl_sw[2] = 2'b00;
+    // tx_intf.ctl_dcdl_sw[3] = 2'b00;
+    // tx_intf.ctl_dcdl_clk_encoder[0] = 2'b00;
+    // tx_intf.ctl_dcdl_clk_encoder[1] = 2'b00;
+    // tx_intf.ctl_dcdl_clk_encoder[2] = 2'b00;
+    // tx_intf.ctl_dcdl_clk_encoder[3] = 2'b00;
 
     tx_intf.sel_clk_source = 1'b1;
     tx_intf.bypass_inbuf_div = 1'b1;
@@ -231,7 +231,7 @@ initial begin
     #5ns;
     // Phase interpoator
     $display("Enable phase interpolator...");
-    tx_intf.en_gf = 1'b1;
+//    tx_intf.en_gf = 1'b1;
     #5ns;
     $display("Release prbs generator reset..."); // The reset of the prbs must hold unit valid clock are generated and fed into TX
     rst_prbs = 1'b0;  // Otherwise the initall value will not be loaded

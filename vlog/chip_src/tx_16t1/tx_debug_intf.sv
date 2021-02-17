@@ -3,23 +3,23 @@ interface tx_debug_intf import const_pack::*; (
 	// inputs to analog core
 		//TX 16 to 1
 		//PI
-		logic en_gf;										// 
-        logic [Nout-1:0] en_arb_pi;							// 
-        logic [Nout-1:0] en_delay_pi;						// 
-        logic [Nout-1:0] en_ext_Qperi;						// 
-        logic [Nout-1:0] en_pm_pi;							// 
-        logic [Nout-1:0] en_cal_pi;							// 
-        logic [$clog2(Nunit_pi)-1:0] ext_Qperi[Nout-1:0];	// from JTAG (all 17)x
-        logic [1:0] sel_pm_sign_pi[Nout-1:0];				// from JTAG (all 0)x
-        logic [Nunit_pi-1:0] del_inc[Nout-1:0];				// from JTAG (all 0) x
-        logic [Nunit_pi-1:0] enb_unit_pi[Nout-1:0];			// from JTAG (all 0) x
-        logic [1:0] ctl_dcdl_slice[Nout-1:0];				// from JTAG (all 0) x
-        logic [1:0] ctl_dcdl_sw[Nout-1:0];					// from JTAG (all 0) x
-        logic [1:0] ctl_dcdl_clk_encoder[Nout-1:0];			// from JTAG (all 0) x
-        logic [Nout-1:0] disable_state;						// from JTAG (all 0) x
-        logic [Nout-1:0] en_clk_sw;							// from JTAG (all 1) x
-        logic [Nout-1:0] en_meas_pi;						// from JTAG (all 0) x
-        logic [Nout-1:0] sel_meas_pi;						// from JTAG (all 0) x
+	//	logic en_gf;										// 
+    //    logic [Nout-1:0] en_arb_pi;							// 
+    //    logic [Nout-1:0] en_delay_pi;						// 
+    //    logic [Nout-1:0] en_ext_Qperi;						// 
+    //    logic [Nout-1:0] en_pm_pi;							// 
+    //    logic [Nout-1:0] en_cal_pi;							// 
+    //    logic [$clog2(Nunit_pi)-1:0] ext_Qperi[Nout-1:0];	// from JTAG (all 17)x
+    //    logic [1:0] sel_pm_sign_pi[Nout-1:0];				// from JTAG (all 0)x
+    //    logic [Nunit_pi-1:0] del_inc[Nout-1:0];				// from JTAG (all 0) x
+    //    logic [Nunit_pi-1:0] enb_unit_pi[Nout-1:0];			// from JTAG (all 0) x
+    //    logic [1:0] ctl_dcdl_slice[Nout-1:0];				// from JTAG (all 0) x
+    //    logic [1:0] ctl_dcdl_sw[Nout-1:0];					// from JTAG (all 0) x
+    //    logic [1:0] ctl_dcdl_clk_encoder[Nout-1:0];			// from JTAG (all 0) x
+    //    logic [Nout-1:0] disable_state;						// from JTAG (all 0) x
+    //    logic [Nout-1:0] en_clk_sw;							// from JTAG (all 1) x
+    //    logic [Nout-1:0] en_meas_pi;						// from JTAG (all 0) x
+    //    logic [Nout-1:0] sel_meas_pi;						// from JTAG (all 0) x
 
 		//input clock buffer
 		logic en_inbuf;										// xfrom JTAG (1)
@@ -55,23 +55,23 @@ interface tx_debug_intf import const_pack::*; (
 
 	modport tx (
 		
-		input en_gf,
-        input en_arb_pi,
-        input en_delay_pi,
-        input en_ext_Qperi,
-        input en_pm_pi,
-        input en_cal_pi,
-        input ext_Qperi,
-        input sel_pm_sign_pi,
-        input del_inc,
-        input enb_unit_pi,
-        input ctl_dcdl_slice,
-        input ctl_dcdl_sw,
-        input ctl_dcdl_clk_encoder,
-        input disable_state,
-        input en_clk_sw,
-        input en_meas_pi,
-        input sel_meas_pi,
+		// input en_gf,
+        // input en_arb_pi,
+        // input en_delay_pi,
+        // input en_ext_Qperi,
+        // input en_pm_pi,
+        // input en_cal_pi,
+        // input ext_Qperi,
+        // input sel_pm_sign_pi,
+        // input del_inc,
+        // input enb_unit_pi,
+        // input ctl_dcdl_slice,
+        // input ctl_dcdl_sw,
+        // input ctl_dcdl_clk_encoder,
+        // input disable_state,
+        // input en_clk_sw,
+        // input en_meas_pi,
+        // input sel_meas_pi,
 
 		//Input of the phase interpolator
 		input en_inbuf,
@@ -104,23 +104,23 @@ interface tx_debug_intf import const_pack::*; (
 
     modport dcore (
         
-        output en_gf,
-        output en_arb_pi,
-        output en_delay_pi,
-        output en_ext_Qperi,
-        output en_pm_pi,
-        output en_cal_pi,
-        output ext_Qperi,
-        output sel_pm_sign_pi,
-        output del_inc,
-        output enb_unit_pi,
-        output ctl_dcdl_slice,
-        output ctl_dcdl_sw,
-        output ctl_dcdl_clk_encoder,
-        output disable_state,
-        output en_clk_sw,
-        output en_meas_pi,
-        output sel_meas_pi,
+        // output en_gf,
+        // output en_arb_pi,
+        // output en_delay_pi,
+        // output en_ext_Qperi,
+        // output en_pm_pi,
+        // output en_cal_pi,
+        // output ext_Qperi,
+        // output sel_pm_sign_pi,
+        // output del_inc,
+        // output enb_unit_pi,
+        // output ctl_dcdl_slice,
+        // output ctl_dcdl_sw,
+        // output ctl_dcdl_clk_encoder,
+        // output disable_state,
+        // output en_clk_sw,
+        // output en_meas_pi,
+        // output sel_meas_pi,
         
 
         output en_inbuf,
