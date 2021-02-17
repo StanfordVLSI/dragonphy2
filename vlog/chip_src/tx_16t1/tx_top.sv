@@ -82,9 +82,9 @@ assign rstb = ~rst;
                 .ctl(ctl_pi[k]),
                 .ctl_valid(ctl_valid),
                 // portion 2 checked | Yes
-                .en_gf(1'b0),
-                .en_arb(4'hf),
-                .en_delay(4'hf),
+                .en_gf(1'b0), // 
+                .en_arb(4'hf), // 
+                .en_delay(4'hf), //
                 .en_ext_Qperi(4'h0),
                 .en_pm(4'h0),
                 .en_cal(4'h0),

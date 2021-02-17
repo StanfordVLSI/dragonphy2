@@ -4,37 +4,37 @@ module phase_interpolator #(
     parameter Nunit = 32,
     parameter Nblender = 4
 )(
-    input rstb,
-    input clk_in,
-    input clk_async,
-    input clk_encoder,
-    input disable_state,
-    input en_arb,
-    input en_cal,
-    input en_clk_sw,
-    input en_delay,
-    input en_ext_Qperi,
-    input en_gf,
-    input ctl_valid,
-    input [Nbit-1:0]  ctl,
-    input [Nctl_dcdl-1:0]  ctl_dcdl_sw,
-    input [Nctl_dcdl-1:0]  ctl_dcdl_slice,
-    input [Nctl_dcdl-1:0]  ctl_dcdl_clk_encoder,
-    input [Nunit-1:0]  inc_del,
-    input [Nunit-1:0]  en_unit,
-    input [$clog2(Nunit)-1:0]  ext_Qperi,
-    input [1:0] sel_pm_sign,
-    input en_pm,
+    input rstb, // Reset
+    input clk_in, // Input clk
+    input clk_async, // For Linearity measurement of the PI, 0 for unuse
+    input clk_encoder, // Control logic clk input, must have (any clock signal)
+    input disable_state, // GND it for TX
+    input en_arb, // GND it for TX
+    input en_cal, // Calibration for non-monotonic transfer characteristic
+    input en_clk_sw, // Enable for ADC interleaving switch, same as the clk_out_slice, can be grounded if no need
+    input en_delay, // Always on, enable to delay chain, for power measurement puropose
+    input en_ext_Qperi, // External quantization period
+    input en_gf, // enable for Glitch free operation of PI
+    input ctl_valid, // a valid window singal to avoid glitches
+    input [Nbit-1:0]  ctl, // output phase control
+    input [Nctl_dcdl-1:0]  ctl_dcdl_sw, // final dealy fine tuneing for clk_sw
+    input [Nctl_dcdl-1:0]  ctl_dcdl_slice, // final dealy fine tuneing for clk_slice
+    input [Nctl_dcdl-1:0]  ctl_dcdl_clk_encoder, // Prevention for meta-stability of code transition
+    input [Nunit-1:0]  inc_del, // calibrate the delay mismatch
+    input [Nunit-1:0]  en_unit, // AND gate delay cell, for power saving
+    input [$clog2(Nunit)-1:0]  ext_Qperi, // External quantized period, GND it if not used
+    input [1:0] sel_pm_sign, // Phase Monitor rising edge to falling edge or vice versa
+    input en_pm, // Enable the phase monitor
 
-    output cal_out,
-    output clk_out_slice,
-    output clk_out_sw,
-    output del_out,
+    output cal_out, // No need for TX, floating 
+    output clk_out_slice, // Main clk out
+    output clk_out_sw, // Secondary clk out
+    output del_out, // Monitor for rising/falling (nmos/pmos) mismatch
 
-    output [$clog2(Nunit)-1:0]  Qperi,
-    output [$clog2(Nunit)-1:0]  max_sel_mux,
-    output cal_out_dmm,
-    output [19:0]  pm_out
+    output [$clog2(Nunit)-1:0]  Qperi, // No need for TX, floating
+    output [$clog2(Nunit)-1:0]  max_sel_mux, // No need for TX, floating
+    output cal_out_dmm, // No need for TX, floating
+    output [19:0]  pm_out // No need for TX, floating
 );
 
 	//synopsys dc_script_begin
