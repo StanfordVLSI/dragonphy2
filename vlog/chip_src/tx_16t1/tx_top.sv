@@ -101,7 +101,7 @@ assign rstb = ~rst;
                 .en_clk_sw(4'hf),
                 // portion 3 checked | Yes
                 //outputs
-                .clk_out_slice(clk_interp_slice[k]),
+                .clk_out_slice(clk_interp_slice[k])
 //                .clk_out_sw(clk_interp_sw[k]),
 //                .cal_out(tx.cal_out_pi[k]),
 //                .del_out(inv_del_out_pi[k]),
