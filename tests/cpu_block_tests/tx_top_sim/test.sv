@@ -231,7 +231,7 @@ initial begin
     #5ns;
     // Phase interpoator
     $display("Enable phase interpolator...");
-    // tx_intf.en_gf = 1'b1;
+//    tx_intf.en_gf = 1'b1;
     #5ns;
     $display("Release prbs generator reset..."); // The reset of the prbs must hold unit valid clock are generated and fed into TX
     rst_prbs = 1'b0;  // Otherwise the initall value will not be loaded
@@ -421,35 +421,35 @@ end
             count_flag[6] <= 8'b0;
             count_flag[7] <= 8'b0;
         end else if (record_flag[0]) begin
-            #0.75ns;  // Manually align the count down with the first bit of the data output, this delay should be fixed if no circuit connection has changed
+            #0.5ns;  // Manually align the count down with the first bit of the data output, this delay should be fixed if no circuit connection has changed
             count_flag[0] = 8'd16; // determine how many bits to store in the shift reg
             record_flag[0] = 1'b0;
         end else if (record_flag[1]) begin
-            #0.75ns;
+            #0.5ns;
             count_flag[1] = 8'd16;
             record_flag[1] = 1'b0;
         end else if (record_flag[2]) begin
-            #0.75ns;
+            #0.5ns;
             count_flag[2] = 8'd16;
             record_flag[2] = 1'b0;
         end else if (record_flag[3]) begin
-            #0.75ns;
+            #0.5ns;
             count_flag[3] = 8'd16;
             record_flag[3] = 1'b0;
         end else if (record_flag[4]) begin
-            #0.75ns;
+            #0.5ns;
             count_flag[4] = 8'd16;
             record_flag[4] = 1'b0;
         end else if (record_flag[5]) begin
-            #0.75ns;
+            #0.5ns;
             count_flag[5] = 8'd16;
             record_flag[5] = 1'b0;
         end else if (record_flag[6]) begin
-            #0.75ns;
+            #0.5ns;
             count_flag[6] = 8'd16;
             record_flag[6] = 1'b0;
         end else if (record_flag[7]) begin
-            #0.75ns;
+            #0.5ns;
             count_flag[7] = 8'd16;
             record_flag[7] = 1'b0;
         end

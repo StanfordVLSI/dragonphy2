@@ -17,7 +17,7 @@ requires_list = [
     'anasymod==0.3.5',
     # system-verilog parser
     'svinst==0.1.5',
-    # magma ecosystem dependencies
+   # magma ecosystem dependencies
     'fault==3.0.36',
     'magma-lang==2.1.17',
     'coreir==2.0.120',

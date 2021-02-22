@@ -6,7 +6,7 @@ commands:
   - |
     mkdir -p outputs
     tar -xvf /home/sjkim85/dragonphy_tarballs/analog_core-latest.tar.gz -C outputs
-    mv outputs/analog_core-0.8.0/* outputs/
+    mv outputs/analog_core-0.9.0/* outputs/
     python alt.py
     mv outputs/analog_core_alt.lef outputs/analog_core.lef
 

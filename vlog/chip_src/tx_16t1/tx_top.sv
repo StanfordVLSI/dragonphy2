@@ -26,6 +26,7 @@ module tx_top import const_pack::*; #(
 wire [3:0] qr_data_p;  // Output of 16 to 4 mux, positive
 wire [3:0] qr_data_n;  // Output of 16 to 4 mux, negative
 wire clk_halfrate;  // Input clock for 16 to 4 mux
+wire logic clk_halfrate_n;
 
 wire [3:0] clk_interp_slice; // Output from the phase interpolator
 wire [3:0] clk_interp_sw; //
@@ -102,7 +103,8 @@ assign rstb = ~rst;
                 // portion 3 checked | Yes
                 //outputs
                 .clk_out_slice(clk_interp_slice[k])
-//                .clk_out_sw(clk_interp_sw[k]),
+//                .clk_out_sw(clk_interp_sw[k])
+//                .Qperi(tx.Qperi[k]),
 //                .cal_out(tx.cal_out_pi[k]),
 //                .del_out(inv_del_out_pi[k]),
 //                .pm_out(tx.pm_out_pi[k]),
@@ -110,8 +112,8 @@ assign rstb = ~rst;
 //                .cal_out_dmm()
             );
             // portion 4 checked | Yes
-        //   assign tx.pi_out_meas[k] = (tx.sel_meas_pi[k] ? clk_interp_slice[k] : clk_interp_sw[k]) & tx.en_meas_pi[k];
-        //    assign en_unit_pi[k] = ~tx.enb_unit_pi[k];  
+//            assign tx.pi_out_meas[k] = (tx.sel_meas_pi[k] ? clk_interp_slice[k] : clk_interp_sw[k]) & tx.en_meas_pi[k];
+//            assign en_unit_pi[k] = ~tx.enb_unit_pi[k];  
         end
     endgenerate
 
@@ -185,8 +187,8 @@ qr_4t1_mux_top qr_mux_4t1_1 (
 );
 
 div_b2 div0 (.clkin(clk_interp_slice[2]), .rst(rst), .clkout(clk_halfrate));  // 4GHz to 2GHz, output goes to hr_16t4_mux
-div_b2 div1 (.clkin(clk_halfrate), .rst(rst), .clkout(clk_prbsgen));  // 2GHz to 1GHz, output goes to prbs_gen
-
+inv clk_inv(.in(clk_halfrate), .out(clk_halfrate_n));
+div_b2 div1 (.clkin(clk_halfrate_n), .rst(rst), .clkout(clk_prbsgen));  // 2GHz to 1GHz, output goes to prbs_gen
 
 // Instantiate the output buf
 output_buf_tx buf1 (
