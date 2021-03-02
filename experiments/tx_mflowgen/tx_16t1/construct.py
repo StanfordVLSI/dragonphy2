@@ -41,8 +41,13 @@ def construct():
   adk = g.get_adk_step()
 
   # Custom steps
-
+  
   rtl = Step( this_dir + '/rtl' )
+  custom_init = Step(this_dir + '/custom-init')
+  custom_power = Step( this_dir + '/custom-power')
+  custom_geom = Step(this_dir + '/custom-geom')
+
+
   constraints = Step( this_dir + '/constraints' )
   dc = Step( this_dir + '/synopsys-dc-synthesis' )
   qtm = Step(this_dir + '/qtm')
@@ -59,15 +64,17 @@ def construct():
           Step( this_dir + '/termination'       ),
           Step( this_dir + '/input_divider'     ),
       ]
+  init = Step(this_dir + '/cadence-innovus-init')
+  cts  = Step(this_dir + '/cadence-innovus-cts')
 
  # Default steps
 
   info           = Step( 'info',                           default=True )
   iflow          = Step( 'cadence-innovus-flowsetup',      default=True )
-  init           = Step( 'cadence-innovus-init',           default=True )
+#  init           = Step( 'cadence-innovus-init',           default=True )
   power          = Step( 'cadence-innovus-power',          default=True )
   place          = Step( 'cadence-innovus-place',          default=True )
-  cts            = Step( 'cadence-innovus-cts',            default=True )
+#  cts            = Step( 'cadence-innovus-cts',            default=True )
   postcts_hold   = Step( 'cadence-innovus-postcts_hold',   default=True )
   route          = Step( 'cadence-innovus-route',          default=True )
   postroute      = Step( 'cadence-innovus-postroute',      default=True )
@@ -79,6 +86,16 @@ def construct():
   lvs            = Step( 'mentor-calibre-lvs',             default=True )
   debugcalibre   = Step( 'cadence-innovus-debug-calibre',  default=True )
 
+  # Add extra inputs to innovus init and power steps
+  init.extend_inputs(custom_init.all_outputs())
+  init.extend_inputs(custom_geom.all_outputs())
+  power.extend_inputs(custom_power.all_outputs())
+  power.extend_inputs(custom_geom.all_outputs())
+
+
+
+
+  # Add *.db of macros for downstream nodes 
   dbs = [
         'output_buffer_lib.db',
         'phase_interpolator_lib.db',
@@ -86,6 +103,35 @@ def construct():
         'input_divider_lib.db'
   ]
   dc.extend_inputs(dbs)
+#  pt_signoff.extend_inputs(dbs)
+#  genlibdb.extend_inputs(dbs)
+  
+   # These steps need timing and lef info for black boxes
+  libs = [
+        'output_buffer.lib',
+        'input_divider.lib',
+        'phase_interpolator.lib',
+        'termination.lib'
+  ]
+
+  # lefs
+  lefs = [
+        'output_buffer.lef',
+        'input_divider.lef',
+        'phase_interpolator.lef',
+        'termination.lef'
+  ]
+
+  lib_lef_steps = \
+      [iflow, init, power, place, cts, postcts_hold, route, postroute, signoff]
+  for step in lib_lef_steps:
+      step.extend_inputs(libs + lefs)
+
+   # gds_list needed for gds_merge step
+
+   # spi_list or verilog netlists needed for blackbox LVS
+
+
 #-----------------------------------------------------------------------
   # Graph -- Add nodes
   #-----------------------------------------------------------------------
@@ -109,11 +155,16 @@ def construct():
   g.add_step( drc            )
   g.add_step( lvs            )
   g.add_step( debugcalibre   )
+  g.add_step( custom_geom    )
+  g.add_step( custom_init    )
+  g.add_step( custom_power   )
 
   for block in blocks:
     g.add_step ( block )
 
   g.add_step( qtm )
+
+  #g.add_step( custom_geom )
   #-----------------------------------------------------------------------
   # Graph -- Add edges
   #-----------------------------------------------------------------------
@@ -148,6 +199,11 @@ def construct():
     g.connect_by_name(block, postroute)
     g.connect_by_name(block, signoff)
 
+  g.connect_by_name( custom_init,    init           )
+  g.connect_by_name( custom_geom,    init           )
+
+  g.connect_by_name( custom_power,   power          )
+  g.connect_by_name( custom_geom,    power          )
 
 
   g.connect_by_name( rtl,            dc             )
@@ -200,6 +256,38 @@ def construct():
   #-----------------------------------------------------------------------
 
   g.update_params( parameters )
+
+
+  #-----------------------------------------------------------------------
+  # Order definition
+  #-----------------------------------------------------------------------
+
+  
+  order = init.get_param('order')  # get the default script run order
+
+  # Add 'set-geom-vars.tcl' at the beginning
+  order.insert(0, 'set-geom-vars.tcl')
+
+  init.update_params({'order': order})
+
+
+  #insert variable definition infront of the power planning
+
+  order = power.get_param('order')  # get the default script run order
+
+    # Add 'set-geom-vars.tcl' at the beginning
+  order.insert(0, 'set-geom-vars.tcl')
+
+  power.update_params({'order': order})
+
+  #order = route.get_param('order')
+  #order.insert(0, 'route-settings.tcl')
+  power.update_params({'order':order})
+#  postroute_hold.update_params({'hold_target_slack' : parameters['hold_target_slack']}, allow_new=True)
+
+
+
+
 
   return g
 
