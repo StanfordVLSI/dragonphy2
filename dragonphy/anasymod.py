@@ -4,7 +4,7 @@ import yaml
 DEF_DT_WIDTH = 25
 
 class AnasymodProjectConfig:
-    def __init__(self, fpga_sim_ctrl='UART_ZYNQ'):
+    def __init__(self, fpga_sim_ctrl='UART_ZYNQ', custom_zynq_firmware=True):
         # validate input
         assert fpga_sim_ctrl in {'UART_ZYNQ', 'VIVADO_VIO'}, 'Invalid setting.'
 
@@ -23,7 +23,8 @@ class AnasymodProjectConfig:
             },
             'FPGA_TARGET': {
                 'fpga': {
-                    'fpga_sim_ctrl': fpga_sim_ctrl
+                    'fpga_sim_ctrl': fpga_sim_ctrl,
+                    'custom_zynq_firmware': custom_zynq_firmware
                 }
             }
         }
@@ -55,6 +56,9 @@ class AnasymodProjectConfig:
 
     def set_emu_clk_freq(self, value):
         self.config['PROJECT']['emu_clk_freq'] = value
+
+    def set_custom_zynq_firmware(self, value):
+        self.config['FPGA_TARGET']['fpga']['custom_zynq_firmware'] = value
 
     def write_to_file(self, fname):
         with open(fname, 'w') as f:
