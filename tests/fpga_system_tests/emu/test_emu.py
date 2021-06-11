@@ -108,19 +108,7 @@ def test_3():
     ana.set_target(target_name='fpga')
     ana.build()
 
-def test_4():
-    # build ELF
-    ana = Analysis(input=str(THIS_DIR))
-    ana.set_target(target_name='fpga')
-    ana.build_firmware()
-
-def test_5():
-    # download program
-    ana = Analysis(input=str(THIS_DIR))
-    ana.set_target(target_name='fpga')
-    ana.program_firmware()
-
-def test_6(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
+def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
     # read ffe_length
     SYSTEM = yaml.load(open(get_file('config/system.yml'), 'r'), Loader=yaml.FullLoader)
     ffe_length = SYSTEM['generic']['ffe']['parameters']['length']
