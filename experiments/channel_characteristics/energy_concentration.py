@@ -23,6 +23,7 @@ for ii, sparam_file in enumerate(sparam_file_list):
     im_idx = np.argmax(imp)
     t_max = t[im_idx]
 
+
     chan = Channel(channel_type='s4p', sampl_rate=10e12, resp_depth=200000,
                        s4p=file_name, zs=50, zl=50)
 
@@ -62,7 +63,7 @@ for ii, sparam_file in enumerate(sparam_file_list):
         else:
             post_idx += 1
             partial_energy = partial_energy + next_pst_ener
-        finished = partial_energy >= 0.80*total_energy
+        finished = partial_energy >= 0.999*total_energy
 
     print(pre_idx, post_idx, partial_energy/total_energy)
     name = sparam_file.split('.')[0]

@@ -1,8 +1,11 @@
 from dragonphy import *
 import numpy as np
 import matplotlib.pyplot as plt
+from rich.progress import Progress
+
 class FFEHelper:
-    def __init__(self, config, chan, cursor_pos=2, sampl_rate=1e9, t_max=0, iterations=200000, blind=False):
+    def __init__(self, config, chan, step_size=1, cursor_pos=2, sampl_rate=1e9, t_max=0, iterations=200000, blind=False, quant=False):
+        self.step_size = step_size
         self.config = config
         self.channel = chan
         self.qc = Quantizer(width=self.config["parameters"]["input_precision"], signed=True)
@@ -12,11 +15,11 @@ class FFEHelper:
         self.cursor_pos = cursor_pos
         self.iterations = iterations
         self.blind=blind
+        self.quant=quant
 
         self.ideal_codes= self.__random_ideal_codes()
         self.channel_output = self.__random_codes()
-
-        self.quantized_channel_output = self.qc.quantize_2s_comp(self.channel_output)
+        self.quantized_channel_output = self.qc.quantize_2s_comp(self.channel_output) if self.quant else self.channel_output
 
         self.weights = self.calculate_ffe_coefficients(initial=True)
         self.filt    = self.generate_ffe(self.weights)
@@ -32,22 +35,25 @@ class FFEHelper:
         self.ideal_codes = __random_codes();
         self.channel_output = self.channel(self.ideal_codes)
 
-    def calculate_ffe_coefficients(self, mu=0.1, initial=False,blind=None):
+    def calculate_ffe_coefficients(self, mu=0.1, initial=False, blind=None):
         if blind == None:
             blind = self.blind
 
         ffe_length =  self.config['parameters']['length']
-        ffe_adapt_mu = 0.1
+        ffe_adapt_mu = self.step_size
 
         if initial:
-            adapt = Wiener(step_size = ffe_adapt_mu, num_taps = ffe_length, cursor_pos=int(ffe_length/2))
+            adapt = Wiener(step_size = ffe_adapt_mu, num_taps = ffe_length, cursor_pos=0)#int(ffe_length/2))
         else:
-            adapt = Wiener(step_size = ffe_adapt_mu, num_taps = ffe_length, cursor_pos=int(ffe_length/2), weights=self.weights)
+            adapt = Wiener(step_size = ffe_adapt_mu, num_taps = ffe_length, weights=self.weights, cursor_pos=0)#int(ffe_length/2))
         
-        st_idx = self.cursor_pos + int(ffe_length/2)
+        st_idx = self.cursor_pos#+ int(ffe_length/2)
 
-        for i in range(st_idx, self.iterations):
-            adapt.find_weights_pulse(self.ideal_codes[i-st_idx], self.channel_output[i], blind=blind)
+        with Progress() as progress:
+            ffe_task = progress.add_task("[red]FFE: ", total=self.iterations)
+            for i in range(st_idx, self.iterations):
+                adapt.find_weights_pulse(self.ideal_codes[i-st_idx], self.channel_output[i], blind=blind)
+                progress.update(ffe_task, advance=1)
         return self.qw.quantize_2s_comp(adapt.weights)
 
     def generate_ffe(self, weights):
