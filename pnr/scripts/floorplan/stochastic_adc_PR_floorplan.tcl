@@ -39,6 +39,9 @@ set TDC_ff_PR_width [expr round($TDC_ff_PR_area/$cell_height/$cell_grid)*$cell_g
 set TDC_xnor_area [get_property [get_cells idchain/iTDC_delay_unit_dont_touch_0_/ix_nor/U1] area] 
 set TDC_xnor_width [expr round($TDC_xnor_area/$cell_height/$cell_grid)*$cell_grid]
 
+set PFD_in_mux_area [get_property [get_cells imux_PFD_TinP_dont_touch] area] 
+set PFD_in_mux_width [expr round($PFD_in_mux_area/$cell_height/$cell_grid)*$cell_grid]
+
 
 set delay_chain_width [expr (1*($TDC_inv_width+$TDC_ff_width)+$TDC_ff_PR_width+$TDC_xnor_width)*($TDC_Nwidth)+$welltap_width]
 #set delay_chain_width [expr (2*($TDC_inv_width+$TDC_ff_width))*($TDC_Nwidth)+$welltap_width]
@@ -55,7 +58,8 @@ set routing_height [expr 4*$cell_height]
 ##############
 
 set FP_height [expr 2*($boundary_height+$blockage_height+$V2T_height+$cell_height)+$V2T_clock_gen_height]
-set FP_width [expr ceil(($boundary_width+$V2T_width+$digital_width+$blockage_width+4*$welltap_width+2*$DB_width+$delay_chain_width+$routing_width)/$cell_grid)*$cell_grid]
+#set FP_width [expr ceil(($boundary_width+$V2T_width+$digital_width+$blockage_width+4*$welltap_width+2*$DB_width+$delay_chain_width+$routing_width)/$cell_grid)*$cell_grid]
+set FP_width [expr ceil(($boundary_width+$V2T_width+$blockage_width+$delay_chain_width)/$cell_grid)*$cell_grid]
 
 floorPlan -site core -s $FP_width  $FP_height 0 0 0 0 
 
@@ -176,11 +180,11 @@ sroute -connect { blockPin } -layerChangeRange { M7 M7 } -blockPinTarget { block
 sroute -connect { blockPin } -layerChangeRange { M7 M7 } -blockPinTarget { boundaryWithPin } -allowJogging 0 -crossoverViaLayerRange { M7 M7 } -nets { Vcal } -allowLayerChange 0 -blockPin useLef -targetViaLayerRange { M7 M7 }
 
 
-set Vcal_M7_offset [get_property [get_ports Vcal] x_coordinate] 
 set VinP_M8_offset [get_property [get_pins iV2Tp_dont_touch/Vin] y_coordinate] 
 set VinN_M8_offset [get_property [get_pins iV2Tn_dont_touch/Vin] y_coordinate] 
 
 addWellTap -cell TAPCELLBWP16P90 -inRowOffset $Vcal_M7_offset -cellInterval $FP_width -prefix WELLTAP
+addWellTap -cell TAPCELLBWP16P90 -inRowOffset [expr 2*$Vcal_M7_offset] -cellInterval $FP_width -prefix WELLTAP
 addWellTap -cell TAPCELLBWP16P90 -inRowOffset [expr ($origin1_x+$V2T_width+$blockage_width+$DB_width)+($FP_width-($origin1_x+$V2T_width+$blockage_width+$DB_width))/3]  -cellInterval [expr ($FP_width-($origin1_x+$V2T_width+$blockage_width+$DB_width))/3] -prefix WELLTAP
 
 addWellTap -cell TAPCELLBWP16P90 -inRowOffset 0 -cellInterval [expr 2*$FP_width] -prefix WELLTAP
@@ -229,12 +233,12 @@ addWellTap -cell TAPCELLBWP16P90 -inRowOffset 0 -cellInterval [expr 2*$FP_width]
 # NDR #
 #######
 #add_ndr -name NDR_2W1S -spacing {M1:M2 0.05 M3 0.05 M4:M7 0.05} -width {M1:M2 0.64 M3 0.76 M4:M7 0.08} 
-#add_ndr -name NDR_3W1S -spacing {M1:M2 0.05 M3 0.05 M4:M7 0.05} -width {M1:M2 0.12 M3 0.12 M4:M7 0.12} 
-add_ndr -name NDR_4W4S -spacing {M1:M2 0.04 M3 0.16 M4:M7 0.16} -width {M1:M2 0.12 M3 0.16 M4:M7 0.16} 
+#add_ndr -name NDR_4W4S -spacing {M1:M2 0.04 M3 0.16 M4:M7 0.16} -width {M1:M2 0.12 M3 0.16 M4:M7 0.16} 
 #add_ndr -name NDR_5W2S -spacing {M1:M2 0.05 M3 0.05 M4:M7 0.05} -width {M1:M2 0.18 M3 0.18 M4:M7 0.2} 
 #add_ndr -name NDR_WIDE -spacing {M1:M2 0.2 M3 0.2 M4:M7 0.2 M9 0.2} -width {M1:M2 1 M3 1 M4:M7 1.2 M8 1.3} 
 
-setAttribute -net {clk_v2t*} -non_default_rule NDR_4W4S
+add_ndr -name NDR_3W3S -spacing {M1:M2 0.12 M3 0.12 M4:M7 0.12} -width {M1:M2 0.12 M3 0.12 M4:M7 0.12} 
+setAttribute -net {clk_v2t*} -non_default_rule NDR_3W3S
 
 #foreach_in_collection i [get_nets *CLK*] {
 #        setAttribute -net [get_object_name $i] -non_default_rule NDR_3W1S
@@ -268,11 +272,9 @@ setAttribute -net {clk_v2t*} -non_default_rule NDR_4W4S
 
 set V2T_clock_gen_width $Vcal_M7_offset
 
-set PM_area [get_property [get_cells iPM] area]
-set PM_width [expr ceil(($PM_area/$V2T_height*1.2)/$cell_grid)*$cell_grid]
-
-set PM_area [get_property [get_cells iPM] area]
-set PM_width [expr ceil(10/$cell_grid)*$cell_grid]
+#set PM_area [get_property [get_cells iPM] area]
+#set PM_width [expr ceil(($PM_area/$V2T_height*1.2)/$cell_grid)*$cell_grid]
+set PM_width 0
 
 createInstGroup grp0 -region 0 [expr $FP_height/2-$V2T_clock_gen_height/2] $V2T_clock_gen_width [expr $FP_height/2+$V2T_clock_gen_height/2]
 addInstToInstGroup grp0 {iV2T_clock_gen}
@@ -283,17 +285,17 @@ addInstToInstGroup grp1 {idchain}
 createInstGroup grp2 -region [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width+$PM_width] 0 $FP_width $origin2_y 
 addInstToInstGroup grp2 {iadder}
 
-createInstGroup grp3 -region [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width] [expr $FP_height/2+$V2T_clock_gen_height/2] [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width+$PM_width] $FP_height
+createInstGroup grp3 -region [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width] [expr $FP_height/2+$V2T_clock_gen_height/2+10*$cell_height] [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width+10] [expr $FP_height/2-$V2T_clock_gen_height/2-10*$cell_height] 
 addInstToInstGroup grp3 {idcdl_coarse/* ib2t_tdc/*}
 
-createInstGroup grp5 -region $V2T_clock_gen_width [expr $FP_height/2-$V2T_clock_gen_height/2] [expr $origin1_x+$V2T_width] [expr $FP_height/2+$V2T_clock_gen_height/2]
-addInstToInstGroup grp5 {iPM/iPM_sub/* ipm_mux*} 
+#createInstGroup grp5 -region $V2T_clock_gen_width [expr $FP_height/2-$V2T_clock_gen_height/2] [expr $origin1_x+$V2T_width] [expr $FP_height/2+$V2T_clock_gen_height/2]
+#addInstToInstGroup grp5 {iPM/iPM_sub/* ipm_mux*} 
 
-createInstGroup grp4 -region [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width] 0 [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width+$PM_width] [expr $FP_height/2-$V2T_clock_gen_height/2] 
-addInstToInstGroup grp4 {iPM/*}
+#createInstGroup grp4 -region [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width] 0 [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width+$PM_width] [expr $FP_height/2-$V2T_clock_gen_height/2] 
+#addInstToInstGroup grp4 {iPM/*}
 
-createInstGroup grp6 -region [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width] [expr $FP_height/2+$V2T_clock_gen_height/2] [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width+$PM_width] [expr $FP_height/2-$V2T_clock_gen_height/2] 
-addInstToInstGroup grp6 {iPFD/*}
+#createInstGroup grp6 -region [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width] [expr $FP_height/2+$V2T_clock_gen_height/2] [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width+$PM_width] [expr $FP_height/2-$V2T_clock_gen_height/2] 
+#addInstToInstGroup grp6 {iPFD/*}
 
 
 
@@ -344,28 +346,41 @@ editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MIC
 editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection clockwise -edge 0 -layer 2 -spreadType start -spacing $metal_space -offsetStart [expr $FP_height/2-$cell_height] -pin en_sync_in
 editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection clockwise -edge 0 -layer 2 -spreadType start -spacing $metal_space -offsetStart [expr $FP_height/2+$cell_height] -pin en_sync_out
 
+#clk_adder
+editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection clockwise -edge 0 -layer 2 -spreadType start -spacing $metal_space -offsetStart [expr $FP_height/2-3*$cell_height] -pin clk_adder
+
 #clk_async
-editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection clockwise -edge 0 -layer 2 -spreadType start -spacing $metal_space -offsetStart [expr $FP_height/2-4*$cell_height] -pin clk_async
+#editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection clockwise -edge 0 -layer 2 -spreadType start -spacing $metal_space -offsetStart [expr $FP_height/2-2*$cell_height] -pin clk_async
+
+#clk_retimer
+editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection clockwise -edge 0 -layer 2 -spreadType start -spacing $metal_space -offsetStart [expr $FP_height/2-2*$cell_height] -pin clk_retimer
 
 #rstb
-editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection clockwise -edge 0 -layer 2 -spreadType start -spacing $metal_space -offsetStart [expr $FP_height/2+4*$cell_height] -pin rstb
+editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection clockwise -edge 0 -layer 2 -spreadType start -spacing $metal_space -offsetStart [expr $FP_height/2+2*$cell_height] -pin rstb
 
-#PM outputs
-editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 2 -layer 2 -spreadType start -spacing [expr 4*$metal_space] -offsetStart [expr $boundary_height+2*$cell_height] -pin {ctl_v2t_p* pm_out*}
+#en_TDC_phase_reverse
+editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection clockwise -edge 0 -layer 2 -spreadType start -spacing $metal_space -offsetStart [expr $FP_height/2+3*$cell_height] -pin en_TDC_phase_reverse
+
 
 #adder outputs
-editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 2 -layer 2 -spreadType start -spacing [expr 8*$metal_space] -offsetStart [expr $boundary_height+32*(4*$metal_space+$pin_width)] -pin {adder_out* sign_out clk_adder}
+editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 2 -layer 2 -spreadType start -spacing [expr 8*$metal_space] -offsetStart [expr $boundary_height+32*(4*$metal_space+$pin_width)] -pin {adder_out* sign_out}
 
 # controls
-editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection clockwise -edge 2 -layer 2 -spreadType start -spacing [expr 4*$metal_space] -offsetStart [expr $boundary_height+2*$cell_height] -pin {ctl_v2t_n* ctl_dcdl* sel* alws_on del_out en_pm en_slice init* en_TDC_phase_reverse}
+editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection clockwise -edge 2 -layer 2 -spreadType start -spacing [expr 6*$metal_space] -offsetStart [expr $boundary_height+$cell_height] -pin {del_out}
+
+editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 2 -layer 2 -spreadType start -spacing [expr 6*$metal_space] -offsetStart [expr $boundary_height+4*$cell_height] -pin {ctl_v2t_p* retimer_mux* sign_PFD_clk_in init* alws_on en_slice}
+
+editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection clockwise -edge 2 -layer 2 -spreadType start -spacing [expr 6*$metal_space] -offsetStart [expr $boundary_height+4*$cell_height] -pin {ctl_v2t_n* sel* ctl_dcdl*}
 
 saveIoFile -locations ${ioDir}/${DesignName}.io
 
 #place PFD input FFs
-placeInstance iPFD/TinN_sampled_reg [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width] [expr $FP_height/2]
-placeInstance iPFD/TinP_sampled_reg [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width] [expr $FP_height/2-$cell_height]
+placeInstance imux_PFD_TinN_dont_touch/IMUX2 [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width] [expr $FP_height/2+$cell_height] -fixed
+placeInstance imux_PFD_TinP_dont_touch/IMUX2 [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width] [expr $FP_height/2-2*$cell_height] -fixed 
+ 
+placeInstance iPFD/TinN_sampled_reg [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width+$PFD_in_mux_width] [expr $FP_height/2+$cell_height] -fixed
+placeInstance iPFD/TinP_sampled_reg [expr $origin1_x+$V2T_width+$blockage_width+$DB_width+$welltap_width+$PFD_in_mux_width] [expr $FP_height/2-2*$cell_height] -fixed 
 
-setInstancePlacement -name {iPFD/TinN_sampled_reg iPFD/TinP_sampled_reg  } -status softFixed
 
 
 ##-----------------------
@@ -438,12 +453,11 @@ set RUN_LAYOUT_ONLY 0
 set fid [open "${pnrDir}/pnr_vars.txt" a]
 puts -nonewline $fid "${DesignName}_width:$FP_width\n"
 puts -nonewline $fid "${DesignName}_height:$FP_height\n"
-puts -nonewline $fid "Vcal_M7_offset:$Vcal_M7_offset\n"
 puts -nonewline $fid "VinP_M8_offset:$VinP_M8_offset\n"
 puts -nonewline $fid "VinN_M8_offset:$VinN_M8_offset\n"
 close $fid
 
-saveDesign ${saveDir}/${vars(db_name)}.enc
+#saveDesign ${saveDir}/${vars(db_name)}.enc
 
 
 ##---------------------------------------------------------

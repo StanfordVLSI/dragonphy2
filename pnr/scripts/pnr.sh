@@ -1,5 +1,9 @@
 #!/bin/sh
-#
+
+## --------------------------------
+# pnr (by sjkim)
+## ---------------------------------
+
 DESIGN=$1
 aprDir=$PWD/../..
 pnrDir="${aprDir}/pnr_dragonphy"
@@ -20,7 +24,7 @@ fi
 #-----------------------------
 # check macro definition
 #-----------------------------
-if [ $DESIGN == "V2T" ] || [ $DESIGN == "biasgen" ] || [ $DESIGN == "stochastic_adc_PR" ] || [ $DESIGN == "PI_delay_chain" ] || [ $DESIGN == "phase_interpolator" ] || [ $DESIGN == "analog_core" ] 
+if [ $DESIGN == "V2T" ] || [ $DESIGN == "biasgen" ] || [ $DESIGN == "stochastic_adc_PR" ] || [ $DESIGN == "PI_delay_chain" ] || [ $DESIGN == "phase_interpolator" ] || [ $DESIGN == "analog_core" ] || [ $DESIGN == "dragonphy_top" ] 
   then
 	HAS_MACRO=1
 	if [ ! -e ${pnrDir}/scripts/floorplan/${DESIGN}_macro_def.tcl ]
@@ -44,7 +48,7 @@ fi
 #-----------------------------
 # check multiple power domain
 #-----------------------------
-if [ $DESIGN == "V2T" ] || [ $DESIGN == "biasgen" ] || [ $DESIGN == "stochastic_adc_PR" ] || [ $DESIGN == "analog_core" ]
+if [ $DESIGN == "V2T" ] || [ $DESIGN == "biasgen" ] || [ $DESIGN == "stochastic_adc_PR" ] || [ $DESIGN == "analog_core" ] || [ $DESIGN == "dragonphy_top" ]
   then
 	MULTIPLE_POWER=1
 	if [ ! -e ${pnrDir}/scripts/floorplan/${DESIGN}_addFiller.tcl ]
@@ -67,7 +71,7 @@ if [ $DESIGN == "V2T" ] || [ $DESIGN == "biasgen" ] || [ $DESIGN == "stochastic_
 		POWER_NAME="{AVDD DVDD}"
 		GROUND_NAME="{AVSS DVSS}"
 	fi
-	if [ $DESIGN == "analog_core" ]
+	if [ $DESIGN == "analog_core" ] || [ $DESIGN == "dragonphy_top" ]
 	  then
 		POWER_NAME="{AVDD DVDD CVDD}"
 		GROUND_NAME="{AVSS DVSS CVSS}"
@@ -80,13 +84,21 @@ fi
 # check top metal bloackage layer
 #-----------------------------------
 TOP_BLK_LAYER="M7"
-if [ $DESIGN == "V2T" ] 
+if [ $DESIGN == "V2T" ] || [ $DESIGN == "analog_core" ] 
   then
     TOP_BLK_LAYER="M9"
 fi
 if [ $DESIGN == "mux4_gf" ] 
   then
     TOP_BLK_LAYER="M4"
+fi
+if [ $DESIGN == "input_divider" ] 
+  then
+    TOP_BLK_LAYER="M6"
+fi
+if [ $DESIGN == "dragonphy_top" ] 
+  then
+    TOP_BLK_LAYER="M3"
 fi
 
 

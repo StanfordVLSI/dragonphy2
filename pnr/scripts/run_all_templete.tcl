@@ -1,5 +1,6 @@
 
 set aprDir /aha/sjkim85/apr_flow
+set data_dragonphy_top /aha/sjkim85/apr_flow/pnr_dragonphy/data/data_dragonphy_top
 
 ## macro definition (sub-modules)
 if { ${HAS_MACRO} == 1 } {

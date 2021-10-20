@@ -195,14 +195,14 @@ placeInstance iphase_blender_dont_touch/iout_buf2_dont_touch/U1  [expr $origin1_
 createInstGroup grp0 -region [expr $origin1_x+$PI_delay_unit_width+$routing_space1+$routing_space2+$mux4_gf_width] [expr $origin1_y+$delay_Nunit/2*$PI_delay_unit_height-4*$cell_height] [expr $FP_width-$boundary_width-$mux_blender_width] [expr $origin1_y+$delay_Nunit/2*$PI_delay_unit_height+4*$cell_height] 
 addInstToInstGroup grp0 {iarbiter iinv_chain ia_nd_ph_out}
 
-createInstGroup grp1 -region  [expr $FP_width-$boundary_width-3*$welltap_width-3] [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height-4*$cell_height] [expr $FP_width-$boundary_width-3*$welltap_width]  [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height+4*$cell_height] 
+createInstGroup grp1 -region  [expr $FP_width-$boundary_width-3*$welltap_width-3] [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height-$cell_height] [expr $FP_width-$boundary_width-3*$welltap_width]  [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height+7*$cell_height] 
 addInstToInstGroup grp1 {idcdl_fine0 idcdl_fine1}
 
 createInstGroup grp2 -region [expr $origin1_x+$PI_delay_unit_width] [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height] [expr $FP_width-$boundary_width-3*$welltap_width] [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height+2*$cell_height] 
 addInstToInstGroup grp2 {iPM/iPM_sub/*}
 
 createInstGroup grp3 -region [expr $origin1_x] [expr $boundary_height] [expr $origin1_x+$PI_delay_unit_width] [expr $origin1_y] 
-addInstToInstGroup grp3 {ia_nd_clk_in iinv_buff*}
+addInstToInstGroup grp3 {iinv_buff*}
 
 #createRouteBlk -box [expr $FP_width-$boundary_width-3*$welltap_width-3] [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height] [expr $FP_width-$boundary_width-3*$welltap_width]  [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height+8*$cell_height] 
 
@@ -272,29 +272,37 @@ editCommitRoute [expr $origin1_x+$PI_delay_unit_width+$ff_pm_width] [expr $origi
 
 setPinAssignMode -pinEditInBatch true
 
-editPin -pinWidth [expr 4*$pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 3 -layer 3 -spreadType start -spacing [expr $metal_space] -offsetStart [expr $origin1_x+$PI_delay_unit_width/2] -pin {clk_in}
+#clk_in
+editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 3 -layer 3 -spreadType start -spacing [expr $metal_space] -offsetStart [expr $origin1_x+$PI_delay_unit_width/2] -pin {clk_in}
 
-editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 3 -layer 3 -spreadType start -spacing [expr 16*$metal_space] -offsetStart [expr $origin1_x-3] -pin {clk_cdr en_delay en_arb }
-
+#controls (delay_chain/mux_network)
+editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 3 -layer 3 -spreadType start -spacing [expr 16*$metal_space] -offsetStart [expr $origin1_x-6.5] -pin {clk_encoder en_delay en_arb ctl_valid ctl_dcdl_clk_encoder*}
 editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 3 -layer 3 -spreadType start -spacing [expr 16*$metal_space] -offsetStart [expr $origin1_x+$PI_delay_unit_width+3] -pin {en_gf en_cal cal_out cal_out_dmm}
 
 
-editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 0 -layer 2 -spreadType start -spacing [expr 4*$metal_space] -offsetStart [expr $boundary_height+$cell_height] -pin {pm_out* en_pm sel_pm* clk_async ctl_dcdl* disable_state rstb del_out en_clk_sw} 
+#outputs
+editPin -pinWidth [expr $pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 2 -layer 4 -spreadType start -spacing [expr 16*$metal_space] -offsetStart [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height+$cell_height] -pin {clk_out_slice clk_out_sw }
 
-editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 1 -spreadDirection counterclockwise -edge 0 -layer 2 -spreadType range -offsetEnd [expr $origin1_y] -offsetStart [expr $FP_height-($origin1_y+$delay_Nunit*$PI_delay_unit_height)] -pin {inc_del* } 
+#controls (others)
+editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 0 -layer 2 -spreadType start -spacing [expr 4*$metal_space] -offsetStart [expr $boundary_height+$cell_height] -pin {pm_out* en_pm sel_pm* clk_async ctl_dcdl_sw* ctl_dcdl_slice*  disable_state rstb del_out en_clk_sw} 
 
+createRouteBlk -box 0 0 $FP_width $origin1_y -layer {1 2 3 4 5 6 7 8 9}
+assignIoPins -align -pin  {inc_del* en_unit*}
+deleteRouteBlk -all
+
+#editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 1 -spreadDirection counterclockwise -edge 0 -layer 2 -spreadType range -offsetEnd [expr $origin1_y] -offsetStart [expr $FP_height-($origin1_y+$delay_Nunit*$PI_delay_unit_height)] -pin {inc_del* } 
+#editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 1 -spreadDirection counterclockwise -edge 0 -layer 2 -spreadType range -offsetEnd [expr $origin1_y] -offsetStart [expr $FP_height-($origin1_y+$delay_Nunit*$PI_delay_unit_height)] -pin {en_unit* } 
+
+assignIoPins -pin {*Qperi* max_sel_mux* ctl[* }
 editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 1 -spreadDirection counterclockwise -edge 0 -layer 2 -spreadType range -offsetEnd [expr $origin1_y] -offsetStart [expr $FP_height-($origin1_y+$delay_Nunit*$PI_delay_unit_height)] -pin {*Qperi* max_sel_mux* ctl[* } 
-
-
-editPin -pinWidth [expr 4*$pin_width] -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 2 -layer 4 -spreadType start -spacing [expr 16*$metal_space] -offsetStart [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height] -pin {clk_out_slice clk_out_sw }
 
 
 
 saveIoFile -locations ${ioDir}/${DesignName}.io
 
 
+createRouteBlk -box [expr $origin1_x+0.2] [expr $origin1_y] [expr $origin1_x+$PI_delay_unit_width] [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height] -layer {2}
 createRouteBlk -box [expr $origin1_x] [expr $origin1_y] [expr $origin1_x+$PI_delay_unit_width] [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height] -layer {5 7 8}
-#createRouteBlk -box [expr $origin1_x] [expr $origin1_y+$cell_height] [expr $origin1_x+$PI_delay_unit_width] [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height-$cell_height] -layer {3 5}
 
 placeInstance iPM/iPM_sub/ff_ref_reg/Q_reg [expr $origin1_x+$PI_delay_unit_width] [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height] R180
 placeInstance iPM/iPM_sub/ff_in_reg/Q_reg [expr $origin1_x+$PI_delay_unit_width+$ff_pm_width] [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height] 
@@ -306,6 +314,9 @@ placeInstance iPM/iPM_sub/uXOR0/U1 [expr $origin1_x+$PI_delay_unit_width+$ff_pm_
 # analog routes
 ##-----------------------
 routeMixedSignal -constraintFile ${scrDir}/floorplan/${DesignName}_MS_routes.tcl -deleteExistingRoutes
+
+
+createPlaceBlockage -box [expr $origin1_x-$DB_width] $origin1_y [expr $origin1_x+$PI_delay_unit_width] [expr $origin1_y+$delay_Nunit*$PI_delay_unit_height+$cell_height]
 
 
 #------------------------------------------------------

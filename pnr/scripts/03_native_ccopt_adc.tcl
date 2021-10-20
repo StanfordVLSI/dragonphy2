@@ -54,7 +54,6 @@ if { ${RUN_LAYOUT_ONLY} == 0 } {
   set_ccopt_mode -cts_clock_gating_cells {CKLNQD*LVT}
 
 
-
   #set_ccopt_mode -cts_target_skew 0.01
   set_ccopt_mode -cts_target_slew 0.1
   set_ccopt_mode -cts_target_nonleaf_slew 0.1
@@ -115,29 +114,10 @@ if { ${RUN_LAYOUT_ONLY} == 0 } {
   #create_ccopt_clock_tree_spec -immediate
   create_ccopt_clock_tree_spec -file ./CTS.spec 
   source ./CTS.spec 
- 
-  #set_ccopt_property sink_type -pin iV2T_clock_gen/count_reg_1_/D ignore 
-  #set_ccopt_property sink_type_reasons -pin iV2T_clock_gen/count_reg_1_/D user 
-  #set_ccopt_property sink_type -pin iV2T_clock_gen/clk_div_sampled_reg/D ignore 
-  #set_ccopt_property sink_type_reasons -pin iV2T_clock_gen/clk_div_sampled_reg/D user 
-  
 
 
-  #set_ccopt_property sink_type -pin {idchain/iTDC_delay_unit_*_/ff_out_reg/CP} ignore 
-
-
-
-  #set_ccopt_property sink_type_reasons -pin idchain/iTDC_delay_unit_dont_touch_*_/ff_out_reg/CP user 
-  
-  #set_ccopt_property sink_type -pin iV2T_clock_gen/in_or1_dont_touch/U1/A2 stop 
-  #set_ccopt_property sink_type -pin iV2T_clock_gen/in_or1_dont_touch/U1/A2 ignore 
-  #set_ccopt_property sink_type_reasons -pin iV2T_clock_gen/in_or1_dont_touch/U1/A2 user 
-
-
-  #set_ccopt_property inverter_cells -clock_tree clk_in [ list CKND*LVT]
-  #set_ccopt_property buffer_cells -clock_tree clk_in [ list CKBD*LVT ]
-  #set_ccopt_property -skew_group clk_out/func -max_buffer_depth 3
-
+  set_ccopt_property sink_type ignore -pin en_TDC_phase_reverse_sampled_reg/CP
+  set_ccopt_property sink_type ignore -pin clk_TDC_phase_reverse_reg/CP
 
  
   source ${scrDir}/path_groups.tcl

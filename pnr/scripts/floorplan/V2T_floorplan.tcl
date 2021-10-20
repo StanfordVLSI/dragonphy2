@@ -32,7 +32,7 @@ set group3_height [expr $SW_height]
 # Floor Plan #
 ##############
 set FP_height [expr 2*$SW_height+$CS_array_height*$CS_cell_height+2*$boundary_height+2*$cell_height]
-set FP_width [expr ceil([expr ($origin2_x+$group3_width+3*$M9_width+2*$M9_space+$DB_width)/$cell_grid])*$cell_grid ]
+set FP_width [expr ceil([expr ($origin2_x+$group3_width+7*$M9_width+6*$M9_space+$DB_width)/$cell_grid])*$cell_grid ]
 
 floorPlan -site core -s $FP_width $FP_height 0 0 0 0 
 
@@ -184,7 +184,7 @@ addStripe -pin_layer M1   \
 deleteInst WELL*
 
 addEndCap
-gui_select -rect {26.383 -0.820 29.966 1.319}
+gui_select -rect [expr $FP_width -5] 0 [expr $FP_width] 5
 deleteSelectedFromFPlan
 addEndCap
 
@@ -309,14 +309,15 @@ deletePlaceBlockage welltap_blk
 ################
 
 add_ndr -name NDR_2W1S -spacing {M1:M2 0.032 M3 0.038 M4:M7 0.04} -width {M1:M2 0.064 M3 0.076 M4:M7 0.08} 
+add_ndr -name NDR_3W3S -spacing {M1:M2 0.04 M3 0.12 M4:M7 0.12} -width {M1:M2 0.04 M3 0.12 M4:M7 0.12} 
 add_ndr -name NDR_WIDE -spacing {M1:M2 0.2 M1 0.2 M4:M7 0.2 M8 0.2} -width {M1:M2 1 M1 1 M4:M7 1.2 M8 1.3} 
 
 setAttribute -net Vin -non_default_rule NDR_WIDE
 setAttribute -net Vcal -non_default_rule NDR_WIDE
-setAttribute -net v2t_out -non_default_rule NDR_5W2S
+setAttribute -net v2t_out -non_default_rule NDR_3W3S
 
 foreach_in_collection i [get_nets *v2t*] {
-        setAttribute -net [get_object_name $i] -non_default_rule NDR_2W1S
+        setAttribute -net [get_object_name $i] -non_default_rule NDR_3W3S
 }
 
 
@@ -374,26 +375,26 @@ for {set k 0} {$k <($CS_array_height)} {incr k} {
 setEdit -width_vertical $Vcal_decap_power_ver
 set Nstrip [expr floor(($FP_width-$DB_width-($origin1_x+$group1_width+$blockage_width+$CS_cell_dmm_width+$DB_width))/(2*$Vcal_decap_power_ver))] 
 for {set k 0} {$k < $Nstrip} {incr k} {
-	editAddRoute [expr $origin1_x+$group1_width+$blockage_width+$CS_cell_dmm_width+$DB_width+$Vcal_decap_power_ver/2+2*$Vcal_decap_power_ver*$k] 0
+	editAddRoute [expr $origin1_x+$group1_width+$blockage_width+$CS_cell_dmm_width+$DB_width+$Vcal_decap_power_ver/2+2*$Vcal_decap_power_ver*$k] $cell_height
 	editCommitRoute [expr $origin1_x+$group1_width+$blockage_width+$CS_cell_dmm_width+$DB_width+$Vcal_decap_power_ver/2+2*$Vcal_decap_power_ver*$k] [expr $origin1_y+$CS_array_height*$CS_cell_height]
 }	
 
 ## Vcal M7
-addStripe -nets {Vcal} \
-  -layer M7 -direction vertical -width $AVDD_M7_width -spacing $FP_width -start_offset $Vcal_M7_offset -set_to_set_distance $FP_width -start_from left -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit M7 -padcore_ring_bottom_layer_limit M4 -block_ring_top_layer_limit M1 -block_ring_bottom_layer_limit M1 -use_wire_group 0 -snap_wire_center_to_grid None -skip_via_on_pin {standardcell} -skip_via_on_wire_shape {  noshape } -extend_to design_boundary -create_pins 1
+addStripe -nets {Vcal Vcal Vcal} \
+  -layer M7 -direction vertical -width $AVDD_M7_width -spacing $AVDD_M7_space -start_offset $Vcal_M7_offset -set_to_set_distance $FP_width -start_from left -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit M7 -padcore_ring_bottom_layer_limit M4 -block_ring_top_layer_limit M1 -block_ring_bottom_layer_limit M1 -use_wire_group 0 -snap_wire_center_to_grid None -skip_via_on_pin {standardcell} -skip_via_on_wire_shape {  noshape } -extend_to design_boundary -create_pins 1
 
 
 ########### skewed inverter
-set skewed_inv_x [expr ceil(($Vcal_M7_offset+$AVDD_M7_width+$AVDD_M7_space/2)/$cell_grid)*$cell_grid]
+set skewed_inv_x [expr ceil(($Vcal_M7_offset-1)/$cell_grid)*$cell_grid]
 set skewed_inv_y [expr $origin2_y+$SW_height]
-#placeInstance iinv_skewed $skewed_inv_x $skewed_inv_y
+placeInstance iinv_skewed/U1 $skewed_inv_x $skewed_inv_y
 
 
 
 ##--------------------------------------------
 # power routing
 ##--------------------------------------------
-set AVSS_M7_offset [expr  $Vcal_M7_offset+$AVDD_M7_width+$AVDD_M7_space+$skewed_inv_width] 
+set AVSS_M7_offset [expr  $Vcal_M7_offset+3*$AVDD_M7_width+3*$AVDD_M7_space+$skewed_inv_width] 
 
 #M7 (VDD)
 addStripe -nets {VSS VDD} \
@@ -411,33 +412,59 @@ set AVDD_M8_offset [expr $FP_height-($origin2_y+1.5*$SW_height)-$AVDD_M8_width/2
 
 
 
-createRouteBlk -box 0 0 $FP_width $FP_height -layer M6 
+createRouteBlk -box [expr $origin2_x+$group3_width-$SW_width/2] 0 $FP_width $FP_height -layer M6  
 
 addStripe -nets {VDD VSS} \
-  -layer M8 -direction horizontal -width $AVDD_M8_width -spacing $AVDD_M8_space -start_offset [expr $AVDD_M8_offset] -set_to_set_distance [expr 2*($AVDD_M8_width+$AVDD_M8_space)] -start_from top -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit M7 -padcore_ring_bottom_layer_limit M7 -block_ring_top_layer_limit M7 -block_ring_bottom_layer_limit M1 -use_wire_group 0 -snap_wire_center_to_grid None -create_pins 1  -skip_via_on_pin {} -skip_via_on_wire_shape {  noshape }  
+  -layer M8 -direction horizontal -width $AVDD_M8_width -spacing $AVDD_M8_space -start_offset [expr $AVDD_M8_offset] -set_to_set_distance [expr 2*($AVDD_M8_width+$AVDD_M8_space)] -start_from top -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit M7 -padcore_ring_bottom_layer_limit M7 -block_ring_top_layer_limit M7 -block_ring_bottom_layer_limit M1 -use_wire_group 0 -snap_wire_center_to_grid None -create_pins 1  -skip_via_on_wire_shape {  noshape }  
 
-deleteRouteBlk -name M8_blk*
+deleteRouteBlk -name  M8_blk1
 
 addStripe -nets {VDD} \
   -layer M8 -direction horizontal -width $AVDD_M8_width -spacing $AVDD_M8_space -start_offset $cell_height -set_to_set_distance $FP_height -start_from top -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit M8 -padcore_ring_bottom_layer_limit M1 -block_ring_top_layer_limit M1 -block_ring_bottom_layer_limit M1 -use_wire_group 0 -snap_wire_center_to_grid None -skip_via_on_pin {standardcell} -skip_via_on_wire_shape {  noshape } -create_pins 1 -extend_to design_boundary
 
+
+setEdit -layer_vertical M7
+setEdit -width_vertical $SW_pin_width
+setEdit -layer_horizontal M8
+setEdit -width_horizontal $SW_pin_length
+
+
+setEdit -nets vch
+editAddRoute [expr $origin2_x+$SW_width-($SW_pin_depth-$SW_pin_width/2)] [expr $origin2_y+$SW_height/2]
+editCommitRoute [expr $origin2_x+$SW_width-($SW_pin_depth-$SW_pin_width/2)] [expr $origin2_y+3*$SW_height/2]
+
+setEdit -nets vdch
+editAddRoute [expr $origin2_x+$SW_width+$MOMcap_width+($SW_pin_depth-$SW_pin_width/2)] [expr $origin2_y+$SW_height/2]
+editCommitRoute [expr $origin2_x+$SW_width+$MOMcap_width+($SW_pin_depth-$SW_pin_width/2)] [expr $origin2_y+3*$SW_height/2]
+
+## switch ground
+setEdit -nets VSS
+editAddRoute 0 [expr $origin2_y+1.5*$SW_height-$SW_pin_width/2]
+editCommitRoute [expr $origin2_x+$SW_pin_depth]  [expr $origin2_y+1.5*$SW_height-$SW_pin_width/2]
+
+## Vin
+setEdit -nets Vin
+editAddRoute 0 $Vin_M8_offset
+editCommitRoute [expr $origin2_x+$SW_pin_depth] $Vin_M8_offset
+
+
+
+## switch VDD
+setEdit -width_vertical [expr 2*$SW_pin_depth]
+setEdit -nets VDD
+editAddRoute [expr $origin2_x+2*$SW_width+$MOMcap_width-$SW_pin_depth/2] [expr $origin2_y+$SW_height+$cell_height]
+editCommitRoute [expr $origin2_x+2*$SW_width+$MOMcap_width-$SW_pin_depth/2] [expr $FP_height-$cell_height]
+editAddRoute [expr $origin2_x+$group2_width-$SW_pin_depth+$SW_pin_width/2] [expr $origin2_y+2*$SW_height]
+editCommitRoute [expr $origin2_x+$group2_width-$SW_pin_depth+$SW_pin_width/2]  [expr $origin2_y+$cell_height]
+
+
+
 deleteRouteBlk -all
 
-
-#M9 (VDD)
-set AVSS_M9_offset $DB_width
-set AVDD_M9_offset [expr $origin2_x+$group3_width]
-
-createRouteBlk -box 0 0 $FP_width $FP_height -layer M7 
-
-addStripe -nets {VSS} \
-  -layer M9 -direction vertical -width $M9_width -spacing $M9_space -start_offset $AVSS_M9_offset -set_to_set_distance $FP_width -start_from left -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit AP -padcore_ring_bottom_layer_limit M9 -block_ring_top_layer_limit M9 -block_ring_bottom_layer_limit M9 -use_wire_group 0 -snap_wire_center_to_grid None -skip_via_on_pin {standardcell} -skip_via_on_wire_shape {  noshape } -extend_to design_boundary -create_pins 1
-
-addStripe -nets {VDD VSS VDD} \
-  -layer M9 -direction vertical -width $M9_width -spacing $M9_space -start_offset $AVDD_M9_offset -set_to_set_distance $FP_width -start_from left -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit AP -padcore_ring_bottom_layer_limit M9 -block_ring_top_layer_limit M9 -block_ring_bottom_layer_limit M9 -use_wire_group 0 -snap_wire_center_to_grid None -skip_via_on_pin {standardcell} -skip_via_on_wire_shape {  noshape } -extend_to design_boundary -create_pins 1
-
-
-deleteRouteBlk -all
+## drain node of currnet source
+setEdit -nets cs_drn
+editAddRoute [expr $origin2_x+2*$SW_width+$MOMcap_width] [expr $origin2_y+$SW_height-$cell_height]
+editCommitRoute [expr $origin2_x+2*$SW_width+$MOMcap_width] [expr $boundary_height-$cell_height]
 
 
 
@@ -454,49 +481,32 @@ setEdit -nets vdch
 editAddRoute [expr $origin2_x+$SW_width+$MOMcap_width-$MOMcap_pin_depth] [expr $origin2_y+$SW_height]
 editCommitRoute [expr $skewed_inv_x] [expr $origin2_y+$SW_height]
 
-setEdit -layer_vertical M7
-setEdit -width_vertical $SW_pin_width
-setEdit -layer_horizontal M8
-setEdit -width_horizontal $SW_pin_length
-
-setEdit -nets vch
-editAddRoute [expr $origin2_x+$SW_width-($SW_pin_depth-$SW_pin_width/2)] [expr $origin2_y+$SW_height/2]
-editCommitRoute [expr $origin2_x+$SW_width-($SW_pin_depth-$SW_pin_width/2)] [expr $origin2_y+3*$SW_height/2]
-
-setEdit -nets vdch
-editAddRoute [expr $origin2_x+$SW_width+$MOMcap_width+($SW_pin_depth-$SW_pin_width/2)] [expr $origin2_y+$SW_height/2]
-editCommitRoute [expr $origin2_x+$SW_width+$MOMcap_width+($SW_pin_depth-$SW_pin_width/2)] [expr $origin2_y+3*$SW_height/2]
-
-## switch supply
-setEdit -nets VDD
-editAddRoute [expr $origin2_x+$group3_width-$SW_pin_depth] [expr $origin2_y+1.5*$SW_height-$SW_pin_width/2]
-editCommitRoute [expr $origin2_x+$group2_width+$blockage_width+$DB_width]  [expr $origin2_y+1.5*$SW_height-$SW_pin_width/2]
 
 
-## switch ground
-setEdit -nets VSS
-editAddRoute 0 [expr $origin2_y+1.5*$SW_height-$SW_pin_width/2]
-editCommitRoute [expr $origin2_x+$SW_pin_depth]  [expr $origin2_y+1.5*$SW_height-$SW_pin_width/2]
 
-## Vin
-setEdit -nets Vin
-editAddRoute 0 $Vin_M8_offset
-editCommitRoute [expr $origin2_x+$SW_pin_depth] $Vin_M8_offset
 
-## drain node of currnet source
-setEdit -width_vertical [expr 2*$SW_pin_depth]
-setEdit -nets cs_drn
-editAddRoute [expr $origin2_x+2*$SW_width+$MOMcap_width] [expr $origin2_y+$SW_height-$cell_height]
-editCommitRoute [expr $origin2_x+2*$SW_width+$MOMcap_width] [expr $boundary_height-$cell_height]
 
-createRouteBlk -box 0 0 $FP_width $FP_height
-## switch VDD
-setEdit -nets VDD
-editAddRoute [expr $origin2_x+$group2_width-$SW_pin_depth+$SW_pin_width/2] [expr $origin2_y+2*$SW_height]
-editCommitRoute [expr $origin2_x+$group2_width-$SW_pin_depth+$SW_pin_width/2]  [expr $origin2_y+$cell_height]
-#editAddRoute [expr $origin2_x+$group3_width-$SW_pin_depth] [expr $origin2_y+1.5*$SW_height-$SW_pin_width/2]
-#editCommitRoute [expr $origin2_x+$group2_width-$SW_pin_depth+$SW_pin_width/2+$AVDD_M7_width]  [expr $origin2_y+1.5*$SW_height-$SW_pin_width/2]
+
+
+#M9 (VDD)
+set AVSS_M9_offset $DB_width
+set AVDD_M9_offset [expr $origin2_x+$group3_width]
+
+createRouteBlk -box 0 0 $FP_width $FP_height -layer M7 
+
+addStripe -nets {VSS} \
+  -layer M9 -direction vertical -width $M9_width -spacing $M9_space -start_offset $AVSS_M9_offset -set_to_set_distance $FP_width -start_from left -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit AP -padcore_ring_bottom_layer_limit M9 -block_ring_top_layer_limit M9 -block_ring_bottom_layer_limit M9 -use_wire_group 0 -snap_wire_center_to_grid None -skip_via_on_pin {standardcell} -skip_via_on_wire_shape {  noshape } -extend_to design_boundary -create_pins 1
+
+
+addStripe -nets {VDD VSS} \
+  -layer M9 -direction vertical -width $M9_width -spacing $M9_space -start_offset $AVDD_M9_offset -set_to_set_distance [expr 2*($M9_width+$M9_space)] -start_from left -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit AP -padcore_ring_bottom_layer_limit M9 -block_ring_top_layer_limit M9 -block_ring_bottom_layer_limit M9 -use_wire_group 0 -snap_wire_center_to_grid None -skip_via_on_pin {standardcell} -skip_via_on_wire_shape {  noshape } -extend_to design_boundary -create_pins 1
+
 deleteRouteBlk -all
+
+
+
+
+
 
 
 ##--------------------------------------------
@@ -516,12 +526,12 @@ editPin -pinWidth [expr 3*$pin_width] -pinDepth $welltap_width -fixOverlap 0 -un
 editPin -pinWidth $SW_pin_length -pinDepth $welltap_width -fixOverlap 0 -unit MICRON -spreadDirection clockwise -edge 0 -layer 8 -spreadType start -spacing $metal_space -offsetStart [expr $Vin_M8_offset] -pin Vin
 
 
-set V2T_clk_pin_offset1 [expr $origin2_x-$DB_width-$blockage_width]
-set V2T_clk_pin_offset2 [expr $origin2_x+1.5*$SW_width+$MOMcap_width]
+set V2T_clk_pin_offset1 [expr $origin2_x-2*$DB_width]
+set V2T_clk_pin_offset2 [expr $origin2_x+$MOMcap_width+$SW_width-$DB_width]
 
-editPin -pinWidth [expr 4*$pin_width] -pinDepth [expr 2*$pin_depth] -fixOverlap 0 -unit MICRON -spreadDirection clockwise -edge 1 -layer 5 -spreadType start -spacing [expr $SW_width/3] -offsetStart $V2T_clk_pin_offset1 -pin {clk_v2tb clk_v2t clk_v2tb_gated clk_v2t_gated}
+editPin -pinWidth [expr 3*$pin_width] -pinDepth [expr 2*$pin_depth] -fixOverlap 0 -unit MICRON -spreadDirection clockwise -edge 1 -layer 5 -spreadType start -spacing [expr $SW_width/3] -offsetStart $V2T_clk_pin_offset1 -pin {clk_v2tb clk_v2t clk_v2tb_gated clk_v2t_gated}
 
-editPin -pinWidth [expr 4*$pin_width] -pinDepth [expr 2*$pin_depth] -fixOverlap 0 -unit MICRON -spreadDirection clockwise -edge 1 -layer 5 -spreadType start -spacing [expr $SW_width/3] -offsetStart $V2T_clk_pin_offset2 -pin {clk_v2t_eb clk_v2t_e clk_v2t_lb clk_v2t_l}
+editPin -pinWidth [expr 3*$pin_width] -pinDepth [expr 2*$pin_depth] -fixOverlap 0 -unit MICRON -spreadDirection clockwise -edge 1 -layer 5 -spreadType start -spacing [expr $SW_width/3] -offsetStart $V2T_clk_pin_offset2 -pin {clk_v2t_eb clk_v2t_e clk_v2t_lb clk_v2t_l}
 
 
 saveIoFile -locations ${ioDir}/${DesignName}.io
@@ -531,6 +541,7 @@ saveIoFile -locations ${ioDir}/${DesignName}.io
 # analog routes
 ##-----------------------
 routeMixedSignal -constraintFile ${scrDir}/floorplan/${DesignName}_MS_routes.tcl -deleteExistingRoutes
+
 
 
 ##------------------------------------------------------

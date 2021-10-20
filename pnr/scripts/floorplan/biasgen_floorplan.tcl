@@ -170,25 +170,24 @@ setViaGenMode -use_cce false
 setEdit -layer_horizontal M6
 setEdit -width_horizontal $SW_pin_length
 
+createRouteBlk -box 0 0 $VDD_region $FP_height -layer {VIA5 VIA6} 
+
 setEdit -nets Vbias
 editAddRoute [expr $VDD_region-$welltap_width-2*$DB_width-2*$blockage_width-$SW_pin_depth] [expr $FP_height/2-$cell_height+$SW_height/2]
-editCommitRoute [expr $Vcal_M7_offset+$AVDD_M7_width]  [expr $FP_height/2-$cell_height+$SW_height/2]
+editCommitRoute [expr $FP_width-$boundary_width-2*$AVDD_M7_width-1.5*$AVDD_M7_space]  [expr $FP_height/2-$cell_height+$SW_height/2]
+deleteRouteBlk -all
 
 
 #M7 Vbias grid
-addStripe -nets {Vbias} \
-  -layer M7 -direction vertical -width $AVDD_M7_width -spacing $AVDD_M7_space  -start_offset [expr $Vcal_M7_offset-$AVDD_M7_width/2] -set_to_set_distance $FP_width -start_from left -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit M7 -padcore_ring_bottom_layer_limit M1 -block_ring_top_layer_limit M1 -block_ring_bottom_layer_limit M1 -use_wire_group 0 -snap_wire_center_to_grid None -skip_via_on_pin {standardcell} -skip_via_on_wire_shape {  noshape } -extend_to design_boundary -create_pins 1
+addStripe -nets {Vbias Vbias Vbias} \
+  -layer M7 -direction vertical -width $AVDD_M7_width -spacing $AVDD_M7_space  -start_offset [expr $Vcal_M7_offset] -set_to_set_distance $FP_width -start_from left -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit M7 -padcore_ring_bottom_layer_limit M1 -block_ring_top_layer_limit M1 -block_ring_bottom_layer_limit M1 -use_wire_group 0 -snap_wire_center_to_grid None -skip_via_on_pin {standardcell} -skip_via_on_wire_shape {  noshape } -extend_to design_boundary -create_pins 1
 
 createRouteBlk -box 0 0 $FP_width $cell_height -name M7_blk_bot -layer 7
-createRouteBlk -box 0 $FP_height $FP_width [expr $FP_height-$cell_height] -name M7_blk_bot -layer 7
+createRouteBlk -box 0 $FP_height $FP_width [expr $FP_height-$cell_height] -name M7_blk_top -layer 7
 
-
-
-#addStripe -nets {VSS Vbias} \
-#  -layer M7 -direction vertical -width $AVDD_M7_width -spacing [expr 2*$AVDD_M7_space]  -start_offset $Vbias_region -stop_offset [expr $FP_width-$Vcal_M7_offset-$AVDD_M7_width/2] -set_to_set_distance [expr ($AVDD_M7_width+2*$AVDD_M7_space)*2] -start_from left -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit M7 -padcore_ring_bottom_layer_limit M1 -block_ring_top_layer_limit M1 -block_ring_bottom_layer_limit M1 -use_wire_group 0 -snap_wire_center_to_grid None -skip_via_on_pin {standardcell} -skip_via_on_wire_shape {  noshape }  
 
 addStripe -nets {VSS Vbias} \
-  -layer M7 -direction vertical -width $AVDD_M7_width -spacing [expr 2*$AVDD_M7_space]  -start_offset [expr $Vcal_M7_offset-$AVDD_M7_width/2] -set_to_set_distance [expr ($AVDD_M7_width+2*$AVDD_M7_space)*2] -start_from left -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit M7 -padcore_ring_bottom_layer_limit M1 -block_ring_top_layer_limit M1 -block_ring_bottom_layer_limit M1 -use_wire_group 0 -snap_wire_center_to_grid None -skip_via_on_pin {standardcell} -skip_via_on_wire_shape {  noshape }  
+  -layer M7 -direction vertical -width $AVDD_M7_width -spacing [expr 2*$AVDD_M7_space]  -start_offset [expr $Vcal_M7_offset+3*($AVDD_M7_width+$AVDD_M7_space)] -set_to_set_distance [expr ($AVDD_M7_width+2*$AVDD_M7_space)*2] -start_from left -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit M7 -padcore_ring_bottom_layer_limit M1 -block_ring_top_layer_limit M1 -block_ring_bottom_layer_limit M1 -use_wire_group 0 -snap_wire_center_to_grid None -skip_via_on_pin {standardcell} -skip_via_on_wire_shape {  noshape }  
 
 
 #M7 VDD gird
@@ -202,7 +201,6 @@ addStripe -nets {VDD} \
 addStripe -nets {VSS} \
   -layer M3 -direction vertical -width $DB_width -spacing $AVDD_M7_space -start_offset $Vbias_region -set_to_set_distance $FP_width -start_from left -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit AP -padcore_ring_bottom_layer_limit M3 -block_ring_top_layer_limit M3 -block_ring_bottom_layer_limit M3 -use_wire_group 0 -snap_wire_center_to_grid None -skip_via_on_pin {standardcell} -skip_via_on_wire_shape {  noshape } -extend_to design_boundary -create_pins 1
 
-
 #M8
 addStripe -nets {VSS Vbias VDD} \
   -layer M8 -direction horizontal -width $AVDD_M8_width -spacing $AVDD_M8_space -start_offset $cell_height -set_to_set_distance [expr ($AVDD_M8_width+$AVDD_M8_space)*3]  -start_from top -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit M8 -padcore_ring_bottom_layer_limit M1 -block_ring_top_layer_limit M1 -block_ring_bottom_layer_limit M1 -use_wire_group 0 -snap_wire_center_to_grid None -skip_via_on_pin {standardcell} -skip_via_on_wire_shape {  noshape }
@@ -213,17 +211,20 @@ createRouteBlk -box 0 0 $FP_width $FP_height -layer 7
 addStripe -nets {VSS} \
   -layer M9 -direction vertical -width $M9_width -spacing $M9_space -start_offset $AVSS_M9_offset -set_to_set_distance $FP_width -start_from left -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit AP -padcore_ring_bottom_layer_limit M9 -block_ring_top_layer_limit M9 -block_ring_bottom_layer_limit M9 -use_wire_group 0 -snap_wire_center_to_grid None -skip_via_on_pin {standardcell} -skip_via_on_wire_shape {  noshape } -extend_to design_boundary -create_pins 1
 
-addStripe -nets {VDD VSS VDD} \
+addStripe -nets {VDD VSS VDD VSS VDD VSS VDD} \
   -layer M9 -direction vertical -width $M9_width -spacing $M9_space -start_offset $AVDD_M9_offset -set_to_set_distance $FP_width -start_from left -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit AP -padcore_ring_bottom_layer_limit M9 -block_ring_top_layer_limit M9 -block_ring_bottom_layer_limit M9 -use_wire_group 0 -snap_wire_center_to_grid None -skip_via_on_pin {standardcell} -skip_via_on_wire_shape {  noshape } -extend_to design_boundary -create_pins 1
 
 
-deleteRouteBlk -all
+
+
+
+
 
 #######
 # NDR #
 #######
-add_ndr -name NDR_5W2S -spacing {M1:M2 0.05 M3 0.05 M4:M7 0.05} -width {M1:M2 0.18 M3 0.18 M4:M7 0.2}
-setAttribute -net net_tied -non_default_rule NDR_5W2S
+add_ndr -name NDR_3W1S -spacing {M1:M2 0.05 M3 0.05 M4:M7 0.05} -width {M1:M2 0.12 M3 0.12 M4:M7 0.12}
+setAttribute -net net_tied -non_default_rule NDR_3W1S
 
 
 globalNetConnect VDD -type pgpin -pin VDD -inst * -override

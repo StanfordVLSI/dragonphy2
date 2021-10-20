@@ -56,7 +56,7 @@ if { ${RUN_LAYOUT_ONLY} == 0 } {
 
 
   #set_ccopt_mode -cts_target_skew 0.01
-  set_ccopt_mode -cts_target_slew 0.1
+  set_ccopt_mode -cts_target_slew 0.05
   set_ccopt_mode -cts_target_nonleaf_slew 0.1
   #set_ccopt_mode -cts_use_inverters false
   set_ccopt_mode -cts_use_inverters true

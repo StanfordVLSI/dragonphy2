@@ -25,8 +25,8 @@ set resDir  ./results
 set tlef ${procDir}/N16_Encounter_9M_2Xa1Xd3Xe2Z_UTRDL_9T_PODE_1.2a.tlef
 set lef [list ${procDir}/tcbn16ffcllbwp16p90.lef ${procDir}/tcbn16ffcllbwp16p90lvt.lef ${procDir}/tcbn16ffcllbwp16p90ulvt.lef]
 
-set wc_lib [list ${procDir}/tcbn16ffcllbwp16p90ssgnp0p72v125c_ecsm.lib ${procDir}/tcbn16ffcllbwp16p90lvtssgnp0p72v125c_ecsm.lib ${procDir}/tcbn16ffcllbwp16p90ulvtssgnp0p72v125c_ecsm.lib ${libDir}/PI_delay_unit.lib ${libDir}/V2T.lib ${libDir}/SW.lib ${libDir}/input_buffer.lib ${libDir}/biasgen.lib ]
-set bc_lib [list ${procDir}/tcbn16ffcllbwp16p90ffgnp0p88v0c_ecsm.lib ${procDir}/tcbn16ffcllbwp16p90lvtffgnp0p88v0c_ecsm.lib ${procDir}/tcbn16ffcllbwp16p90ulvtffgnp0p88v0c_ecsm.lib ${libDir}/PI_delay_unit.lib ${libDir}/V2T.lib ${libDir}/SW.lib ${libDir}/input_buffer.lib ${libDir}/biasgen.lib]
+set wc_lib [list ${procDir}/tcbn16ffcllbwp16p90ssgnp0p72v125c_ecsm.lib ${procDir}/tcbn16ffcllbwp16p90lvtssgnp0p72v125c_ecsm.lib ${procDir}/tcbn16ffcllbwp16p90ulvtssgnp0p72v125c_ecsm.lib ${libDir}/PI_delay_unit.lib ${libDir}/V2T.lib ${libDir}/SW.lib ${libDir}/mux4_gf.lib ${libDir}/biasgen.lib ]
+set bc_lib [list ${procDir}/tcbn16ffcllbwp16p90ffgnp0p88v0c_ecsm.lib ${procDir}/tcbn16ffcllbwp16p90lvtffgnp0p88v0c_ecsm.lib ${procDir}/tcbn16ffcllbwp16p90ulvtffgnp0p88v0c_ecsm.lib ${libDir}/PI_delay_unit.lib ${libDir}/V2T.lib ${libDir}/SW.lib ${libDir}/mux4_gf.lib ${libDir}/biasgen.lib]
 set qrc_cworst_CC ${procDir}/qrcTechFile_cworst_CC
 set qrc_rcworst_CC ${procDir}/qrcTechFile_rcworst_CC
 set qrc_cbest_CC ${procDir}/qrcTechFile_cbest_CC
@@ -44,8 +44,12 @@ set DB_width 0.36
 set pin_width 0.038
 set pin_depth 0.194
 set metal_space 0.08
-set V2T_MS_net_width 0.16
+set V2T_MS_net_width 0.12
 set PI_MS_net_width 0.064
+set bump_size 89.04
+set bump_pitch 84.43
+
+
 
 #-----------------------------------------------------------------------
 # add macro lef/gds
@@ -115,5 +119,4 @@ set DVDD_M8_space 1.0
 
 set M9_width 4.0
 set M9_space 2.0
-
 

@@ -58,15 +58,12 @@ if { ${RUN_LAYOUT_ONLY} == 0 } {
   set_ccopt_mode -cts_target_skew 0.01
   set_ccopt_mode -cts_target_slew 0.1
   set_ccopt_mode -cts_target_nonleaf_slew 0.1
-  #set_ccopt_mode -cts_use_inverters false
   set_ccopt_mode -cts_use_inverters true
   set_ccopt_mode -ccopt_auto_limit_insertion_delay_factor 1.2
- 
   set_ccopt_mode -cts_opt_priority insertion_delay 	 
   #set_ccopt_mode -cts_opt_priority power 	 
   
   #set_clock_latency -max 0.02 [get_pins */CPN]
-
   #set_ccopt_property insertion_delay -max -pin iadder/*CP
   #set_ccopt_property insertion_delay -max -pin count_reg_0_/CPN 0.05
   #set_ccopt_property insertion_delay -max -pin count_reg_1_/CPN 0.05
@@ -114,7 +111,7 @@ if { ${RUN_LAYOUT_ONLY} == 0 } {
   delete_ccopt_clock_tree_spec
   #create_ccopt_clock_tree_spec -immediate
   create_ccopt_clock_tree_spec -file ./CTS.spec 
-  source ./CTS.spec 
+  source ./acore_CTS.spec 
  
   #set_ccopt_property inverter_cells -clock_tree clk_in [ list CKND*LVT]
   #set_ccopt_property buffer_cells -clock_tree clk_in [ list CKBD*LVT ]
@@ -122,19 +119,18 @@ if { ${RUN_LAYOUT_ONLY} == 0 } {
 
   #set_ccopt_property -pin iADC_*/iV2T_clock_gen/*/CPN sink_type stop 
   #set_ccopt_property -pin iADCrep*/iV2T_clock_gen/*/CPN sink_type ignore
-  #set_ccopt_property -pin iADC*/ipm_mux0_dont_touch/I0 sink_type ignore
-  #set_ccopt_property -pin iPI_*/CTS_ccl_a_INV_clk_in_G0_L1_1/I sink_type stop 
+  #set_ccopt_property -pin iADC*/ipm_mux0_dont_touch/IMUX2/I0 sink_type ignore
+  #set_ccopt_property -pin iPI_*/ia_nd_clk_in/U1/I sink_type stop 
   #set_ccopt_property -pin */iPM/*/CP sink_type ignore 
  
- 
-  #create_ccopt_skew_group -name pi_0_clk/merged -balance_skew_group {pi_0_clk_slice/func pi_0_clk_sw/func} -target_skew 0.005 
-  #create_ccopt_skew_group -name pi_1_clk/merged -balance_skew_group {pi_1_clk_slice/func pi_1_clk_sw/func} -target_skew 0.005 
-  #create_ccopt_skew_group -name pi_2_clk/merged -balance_skew_group {pi_2_clk_slice/func pi_2_clk_sw/func} -target_skew 0.005 
-  #create_ccopt_skew_group -name pi_3_clk/merged -balance_skew_group {pi_3_clk_slice/func pi_3_clk_sw/func} -target_skew 0.005 
+  #create_ccopt_skew_group -name pi_clk_0/merged -balance_skew_group {clk_slice_0/func clk_sw_0/func} -target_skew 0.005 
+  #create_ccopt_skew_group -name pi_clk_1/merged -balance_skew_group {clk_slice_1/func clk_sw_1/func} -target_skew 0.005 
+  #create_ccopt_skew_group -name pi_clk_2/merged -balance_skew_group {clk_slice_2/func clk_sw_2/func} -target_skew 0.005 
+  #create_ccopt_skew_group -name pi_clk_3/merged -balance_skew_group {clk_slice_3/func clk_sw_3/func} -target_skew 0.005 
 
   source ${scrDir}/path_groups.tcl
  
-  source ${scrDir}/floorplan/clk_tree_acore.tcl 
+  #source ${scrDir}/floorplan/clk_tree_acore.tcl 
   ccopt_design 
   
   saveDesign ${saveDir}/${vars(db_name)}.enc

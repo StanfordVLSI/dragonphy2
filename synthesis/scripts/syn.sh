@@ -1,8 +1,13 @@
 
 #!/bin/sh
 
+## --------------------------------
+# synthesis (by sjkim)
+## ---------------------------------
+
+
+
 DESIGN=$1
-srcDir="/aha/sjkim85/github_repo/dragonphy/vlog/new_chip_src/analog_core"
 aprDir="/aha/sjkim85/apr_flow"
 synDir="${aprDir}/synthesis_dragonphy"
 resultDir="${synDir}/${DESIGN}/DC_WORK/${DESIGN}/results"
@@ -20,7 +25,7 @@ fi
 #-----------------------------
 # check constraints file
 #-----------------------------
-if [ $DESIGN == "phase_blender" ] || [ $DESIGN == "mux4_gf" ] || [ $DESIGN  == "V2T" ] || [ $DESIGN == "gate_size_test" ] || [ $DESIGN == "stochastic_adc_PR" ] || [ $DESIGN == "phase_interpolator" ] || [ $DESIGN == "input_divider" ] || [ $DESIGN == "analog_core" ] 
+if [ $DESIGN == "phase_blender" ] || [ $DESIGN == "mux4_gf" ] || [ $DESIGN  == "V2T" ] || [ $DESIGN == "gate_size_test" ] || [ $DESIGN == "stochastic_adc_PR" ] || [ $DESIGN == "phase_interpolator" ] || [ $DESIGN == "input_divider" ] || [ $DESIGN == "analog_core" ] || [ $DESIGN = "new_adc" ] 
   then
     NEED_CONSTRAINTS=1
     if [ ! -e ${synDir}/scripts/constraints/${DESIGN}_constraints.tcl ]

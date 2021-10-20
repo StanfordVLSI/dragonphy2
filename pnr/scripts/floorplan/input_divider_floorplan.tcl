@@ -18,8 +18,8 @@ foreach block_data $pnr_data {
 #---------------------------------------------------------
 floorPlan -site core -r 1 0.5 0 0 0 0
 set raw_area [dbGet top.fPlan.area]
-set FP_height [expr 10*$cell_height]
-set FP_width [expr ($raw_area/$FP_height/$cell_grid)*$cell_grid+4*($DB_width+$welltap_width)]
+set FP_height [expr 8*$cell_height]
+set FP_width [expr ceil(($raw_area/$FP_height+4*($DB_width+$welltap_width))/$welltap_width)*$welltap_width]
 floorPlan -site core -s $FP_width $FP_height 0 0 0 0
 
 
@@ -87,9 +87,13 @@ addStripe -pin_layer M1   \
 
 deleteInst WELL*
 
-addEndCap -coreBoundaryOnly
+#addEndCap -coreBoundaryOnly
+
 addWellTap -cell TAPCELLBWP16P90 -cellInterval $FP_width -prefix WELLTAP
-       
+
+createPlaceBlockage -box 0 $cell_height $FP_width [expr $FP_height-$cell_height]       
+addWellTap -cell TAPCELLBWP16P90 -cellInterval $welltap_width -prefix WELLTAP
+deletePlaceBlockage *
 
 
 #######
@@ -121,7 +125,7 @@ editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -sp
 
 editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 1 -layer 3 -spreadType center -spacing $metal_space -pin out
 
-editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 2 -layer 6 -spreadType center -spacing $metal_space -pin out_meas
+editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 2 -layer 4 -spreadType center -spacing $metal_space -pin out_meas
 
 editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 3 -layer 3 -spreadType range -spacing $metal_space -offsetStart [expr $welltap_width+$DB_width] -offsetEnd [expr $FP_width-($FP_width/2-$welltap_width)] -pin {bypass_div bypass_div2 en sel_clk_source} 
 
@@ -129,17 +133,10 @@ editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -sp
 
 
 
-
-
-##------------------------------------------------------
-set RUN_LAYOUT_ONLY 0
-##------------------------------------------------------
-
-
 #########################
 ## vertical power strip #
 #########################
-createRouteBlk -box 0 0 $FP_width [expr $cell_height/4] -name M7_blk_bot -layer 7
+createRouteBlk -box 0 0 $FP_width [expr $cell_height/2] -name M7_blk_bot -layer 5
 #createRouteBlk -box 0 $FP_height $FP_width [expr $FP_height-$cell_height/2] -name M7_blk_bot -layer 7
 
 
@@ -156,12 +153,33 @@ addStripe -nets {VSS VDD} \
 
 deleteRouteBlk -all
 
-addStripe -nets {VDD} \
-  -layer M8 -direction horizontal -width $AVDD_M8_width -spacing $FP_height -start_offset [expr $cell_height] -set_to_set_distance $FP_width  -start_from top -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit AP -padcore_ring_bottom_layer_limit M1 -block_ring_top_layer_limit M7 -block_ring_bottom_layer_limit M1 -use_wire_group 0 -snap_wire_center_to_grid None -extend_to design_boundary -create_pins 1  
+#addStripe -nets {VDD} \
+#  -layer M8 -direction horizontal -width $AVDD_M8_width -spacing $FP_height -start_offset [expr $cell_height] -set_to_set_distance $FP_width  -start_from top -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit AP -padcore_ring_bottom_layer_limit M1 -block_ring_top_layer_limit M7 -block_ring_bottom_layer_limit M1 -use_wire_group 0 -snap_wire_center_to_grid None -extend_to design_boundary -create_pins 1  
+#addStripe -nets {VSS} \
+#  -layer M8 -direction horizontal -width $AVDD_M8_width -spacing $FP_height -start_offset [expr $cell_height] -set_to_set_distance $FP_width  -start_from bottom -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit AP -padcore_ring_bottom_layer_limit M1 -block_ring_top_layer_limit M7 -block_ring_bottom_layer_limit M1 -use_wire_group 0 -snap_wire_center_to_grid None -extend_to design_boundary -create_pins 1  
 
 
-addStripe -nets {VSS} \
-  -layer M8 -direction horizontal -width $AVDD_M8_width -spacing $FP_height -start_offset [expr $cell_height] -set_to_set_distance $FP_width  -start_from bottom -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit AP -padcore_ring_bottom_layer_limit M1 -block_ring_top_layer_limit M7 -block_ring_bottom_layer_limit M1 -use_wire_group 0 -snap_wire_center_to_grid None -extend_to design_boundary -create_pins 1  
+
+#------------------------------------------------------
+set RUN_LAYOUT_ONLY 0
+#------------------------------------------------------
+
+#------------------------------------------------------
+# pnr variable file-out ##
+#------------------------------------------------------
+set fid [open "${pnrDir}/pnr_vars.txt" a]
+puts -nonewline $fid "${DesignName}_width:$FP_width\n"
+puts -nonewline $fid "${DesignName}_height:$FP_height\n"
+puts -nonewline $fid "${DesignName}_power_M7_width:$DVDD_M7_width\n"
+puts -nonewline $fid "${DesignName}_power_M7_space:$AVDD_M7_space\n"
+puts -nonewline $fid "${DesignName}_power_M7_offset1:$DB_width\n"
+puts -nonewline $fid "${DesignName}_power_M7_offset2:[expr $FP_width/2-$DVDD_M7_width-$AVDD_M7_space/2]\n"
+puts -nonewline $fid "${DesignName}_power_M7_offset3:[expr $FP_width-$DB_width-2*$DVDD_M7_width-$AVDD_M7_space]\n"
+puts -nonewline $fid "${DesignName}_power_M8_width:$AVDD_M8_width\n"
+puts -nonewline $fid "${DesignName}_VSS_M8_offset:$cell_height\n"
+puts -nonewline $fid "${DesignName}_VDD_M8_offset:[expr $FP_height-$cell_height-$AVDD_M8_width]\n"
+
+close $fid
 
 
 

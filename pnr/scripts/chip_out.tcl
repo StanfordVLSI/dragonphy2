@@ -11,9 +11,10 @@ saveNetlist ${resDir}/${DesignName}.lvs.v -includePowerGround -excludeLeafCell -
 saveNetlist ${resDir}/${DesignName}.pnr.v 
 
 ##### GDS out ##
-streamOut ${resDir}/${DesignName}.gds -uniquifyCellNames -mode ALL -merge ${gds_files} -mapFile ${procDir}/gdsout_2Xa1Xd_h_3Xe_vhv_2Z_1.2a.map -outputMacros -units 1000
+#streamOut ${resDir}/${DesignName}.gds -uniquifyCellNames -mode ALL -merge ${gds_files} -mapFile ${procDir}/gdsout_2Xa1Xd_h_3Xe_vhv_2Z_1.2a.map -outputMacros -units 1000
+streamOut ${resDir}/${DesignName}.gds -mode ALL -merge ${gds_files} -mapFile ${procDir}/gdsout_2Xa1Xd_h_3Xe_vhv_2Z_1.2a.map -outputMacros -units 1000
 ##### LEF out ##
-write_lef_abstract ${resDir}/${DesignName}.lef -specifyTopLayer ${TOP_BLK_LAYER}
+write_lef_abstract ${resDir}/${DesignName}.lef -specifyTopLayer ${TOP_BLK_LAYER}  
 ##### SDF out ##
 write_sdf ${resDir}/${DesignName}.sdf -max_view setup_rcworst_CC -min_view hold_rcbest_CC
 
@@ -29,4 +30,11 @@ saveModel -dir ${resDir}/${DesignName}_Model -ilm -spef
 puts "============="
 puts " PnR is done "
 puts "============="
+
+set procDir /aha/sjkim85/apr_flow/pnr_dragonphy/data/process
+set macro_gds [list {../29-mentor-calibre-gdsmerge/inputs/*.gds}]
+set gds_files [list ${procDir}/tcbn16ffcllbwp16p90.gds ${procDir}/tcbn16ffcllbwp16p90lvt.gds ${procDir}/tcbn16ffcllbwp16p90ulvt.gds $macro_gds]
+
+streamOut power.gds -mode ALL -merge ${gds_files} -mapFile ${procDir}/gdsout_2Xa1Xd_h_3Xe_vhv_2Z_1.2a.map -outputMacros -units 1000
+
 

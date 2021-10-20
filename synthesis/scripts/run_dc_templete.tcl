@@ -10,7 +10,7 @@ set suppress_errors WL-40
 #############################
 # Read designs
 #############################
-set search_path {$GITDIR/inc/new_asic}
+set search_path $GITDIR/inc/new_asic
 
 ## TODO ---------------------------------------------------------------
 analyze -format sverilog [list ${mappedDIR}/mux_fixed.mapped.v]
@@ -19,43 +19,41 @@ analyze -format sverilog [list ${mappedDIR}/inv_bld_1_fixed.mapped.v]
 analyze -format sverilog [list ${mappedDIR}/inv_bld_2_fixed.mapped.v]
 analyze -format sverilog [list ${mappedDIR}/inv_bld_3_fixed.mapped.v]
 analyze -format sverilog [list ${mappedDIR}/mux_bld_fixed.mapped.v]
-analyze -format sverilog [list ${mappedDIR}/n_and4.sv]
+analyze -format sverilog [list ${mappedDIR}/n_and4_fixed.mapped.v]
 
 ## --------------------------------------------------------------------
 
 if { ${DESIGN_TARGET} == "gate_size_test" } {
-analyze -format sverilog [list ${RTLDIR}/inv.sv]
-analyze -format sverilog [list ${RTLDIR}/inv_0_fixed.sv]
-analyze -format sverilog [list ${RTLDIR}/inv_1_fixed.sv]
-analyze -format sverilog [list ${RTLDIR}/inv_2_fixed.sv]
-analyze -format sverilog [list ${RTLDIR}/inv_3_fixed.sv]
-analyze -format sverilog [list ${RTLDIR}/inv_4_fixed.sv]
-analyze -format sverilog [list ${RTLDIR}/inv_5_fixed.sv]
-analyze -format sverilog [list ${RTLDIR}/inv_arb_fixed.sv]
-analyze -format sverilog [list ${RTLDIR}/inv_PI_1_fixed.sv]
-analyze -format sverilog [list ${RTLDIR}/inv_PI_2_fixed.sv]
-analyze -format sverilog [list ${RTLDIR}/del_PI.sv]
-analyze -format sverilog [list ${RTLDIR}/tri_buff_fixed.sv]
-analyze -format sverilog [list ${RTLDIR}/n_or_fixed.sv]
-analyze -format sverilog [list ${RTLDIR}/n_and_arb_fixed.sv]
-analyze -format sverilog [list ${RTLDIR}/ff_cn_sn_rn_fixed.sv]
-#analyze -format sverilog [list ${RTLDIR}/mux_fixed.sv]
-#analyze -format sverilog [list ${RTLDIR}/mux4_fixed.sv]
+analyze -format sverilog [list ${RTLDIR}/gates/inv.sv]
+analyze -format sverilog [list ${RTLDIR}/gates/inv_v2t_0_fixed.sv]
+analyze -format sverilog [list ${RTLDIR}/gates/inv_v2t_1_fixed.sv]
+analyze -format sverilog [list ${RTLDIR}/gates/inv_v2t_2_fixed.sv]
+analyze -format sverilog [list ${RTLDIR}/gates/inv_v2t_3_fixed.sv]
+analyze -format sverilog [list ${RTLDIR}/gates/inv_v2t_4_fixed.sv]
+analyze -format sverilog [list ${RTLDIR}/gates/inv_v2t_5_fixed.sv]
+analyze -format sverilog [list ${RTLDIR}/gates/inv_arb_fixed.sv]
+analyze -format sverilog [list ${RTLDIR}/gates/inv_PI_1_fixed.sv]
+analyze -format sverilog [list ${RTLDIR}/gates/inv_PI_2_fixed.sv]
+analyze -format sverilog [list ${RTLDIR}/gates/tri_buff_fixed.sv]
+analyze -format sverilog [list ${RTLDIR}/gates/n_or_v2t_fixed.sv]
+analyze -format sverilog [list ${RTLDIR}/gates/n_and_arb_fixed.sv]
+analyze -format sverilog [list ${RTLDIR}/gates/inv_arb_fixed.sv]
+analyze -format sverilog [list ${RTLDIR}/gates/ff_cn_sn_rn_fixed.sv]
+analyze -format sverilog [list ${RTLDIR}/gates/n_and_PI_1_fixed.sv]
+#analyze -format sverilog [list ${RTLDIR}/gates/mux_fixed.sv]
+#analyze -format sverilog [list ${RTLDIR}/gates/mux4_fixed.sv]
 } else {
-#------------------------------------------------------------
-analyze -format sverilog [list ${RTLDIR}/tiel.sv]
-analyze -format sverilog [list ${RTLDIR}/inv.sv]
-analyze -format sverilog [list ${RTLDIR}/a_nd.sv]
-analyze -format sverilog [list ${RTLDIR}/o_r.sv]
-analyze -format sverilog [list ${RTLDIR}/n_and.sv]
-#analyze -format sverilog [list ${RTLDIR}/n_and4.sv]
-analyze -format sverilog [list ${RTLDIR}/n_or.sv]
-analyze -format sverilog [list ${RTLDIR}/x_or.sv]
-analyze -format sverilog [list ${RTLDIR}/x_nor.sv]
-analyze -format sverilog [list ${RTLDIR}/mux.sv]
-analyze -format sverilog [list ${RTLDIR}/ff_c.sv]
-analyze -format sverilog [list ${RTLDIR}/ff_c_rn.sv]
-analyze -format sverilog [list ${RTLDIR}/ff_c_sn.sv]
+#common modules------------------------------------------------------
+analyze -format sverilog [list ${RTLDIR}/gates/inv.sv]
+analyze -format sverilog [list ${RTLDIR}/gates/n_or.sv]
+analyze -format sverilog [list ${RTLDIR}/gates/x_nor.sv]
+analyze -format sverilog [list ${RTLDIR}/gates/ff_c.sv]
+analyze -format sverilog [list ${RTLDIR}/gates/ff_c_sn.sv]
+analyze -format sverilog [list ${RTLDIR}/gates/o_r.sv]
+analyze -format sverilog [list ${RTLDIR}/gates/n_and.sv]
+analyze -format sverilog [list ${RTLDIR}/gates/x_or.sv]
+analyze -format sverilog [list ${RTLDIR}/gates/ff_c_rn.sv]
+analyze -format sverilog [list ${RTLDIR}/gates/a_nd.sv]
 analyze -format sverilog [list ${RTLDIR}/inv_chain.sv]
 analyze -format sverilog [list ${RTLDIR}/arbiter.sv]
 analyze -format sverilog [list ${RTLDIR}/dcdl_fine.sv]
@@ -66,7 +64,6 @@ analyze -format sverilog [list ${PNR_RESULTS}/gate_size_test/results/gate_size_t
 #------------------------------------------------------------
 switch ${DESIGN_TARGET} {
 "stochastic_adc_PR" {
-#analyze -format sverilog [list ${RTLDIR}/iotype.sv]
 analyze -format sverilog [list ${PNR_RESULTS}/V2T/results/V2T.pnr.v]
 analyze -format sverilog [list ${RTLDIR}/V2T_clock_gen_S2D.sv]
 analyze -format sverilog [list ${RTLDIR}/V2T_buffer.sv]
@@ -74,31 +71,41 @@ analyze -format sverilog [list ${RTLDIR}/V2T_clock_gen.sv]
 analyze -format sverilog [list ${RTLDIR}/PFD.sv]
 analyze -format sverilog [list ${RTLDIR}/dcdl_coarse.sv]
 #analyze -format sverilog [list ${RTLDIR}/TDC_delay_unit_PR.sv]
-analyze -format sverilog [list /aha/sjkim85/apr_flow/synthesis_dragonphy/TDC_delay_unit_PR/DC_WORK/TDC_delay_unit_PR/results/TDC_delay_unit_PR.mapped.v]
+analyze -format sverilog [list ${SYNTH_HOME}/TDC_delay_unit_PR/DC_WORK/TDC_delay_unit_PR/results/TDC_delay_unit_PR.mapped.v]
 analyze -format sverilog [list ${RTLDIR}/TDC_delay_chain_PR.sv]
 analyze -format sverilog [list ${RTLDIR}/wallace_adder.sv]
+analyze -format sverilog [list ${RTLDIR}/adc_retimer.sv]
 }
 "phase_interpolator" {
 analyze -format sverilog [list ${PNR_RESULTS}/PI_delay_unit/results/PI_delay_unit.pnr.v]
 analyze -format sverilog [list ${RTLDIR}/PI_delay_chain.sv]
 analyze -format sverilog [list ${PNR_RESULTS}/mux4_gf/results/mux4_gf.pnr.v]
 analyze -format sverilog [list ${RTLDIR}/mux_network.sv]
-analyze -format sverilog [list ${PNR_RESULTS}/phase_blender/results/phase_blender.pnr.v]
+analyze -format sverilog [list ${RTLDIR}/phase_blender.sv]
 analyze -format sverilog [list ${RTLDIR}/PI_local_encoder.sv]
 }
 "analog_core" {
-analyze -format sverilog [list ${GITDIR}/vlog/new_pack/const_pack.sv]
-#analyze -format sverilog [list ${RTLDIR}/iotype.sv]
+analyze -format sverilog [list ${GITDIR}/vlog/pack/const_pack.sv]
 analyze -format sverilog [list ${RTLDIR}/acore_debug_intf.sv]
 analyze -format sverilog [list ${RTLDIR}/snh.sv]
 analyze -format sverilog [list ${STUBDIR}/SW.sv]
 analyze -format sverilog [list ${STUBDIR}/termination.sv]
-analyze -format sverilog [list ${PNR_RESULTS}/stochastic_adc_PR/results/stochastic_adc_PR.pnr.v]
-analyze -format sverilog [list ${PNR_RESULTS}/phase_interpolator/results/phase_interpolator.pnr.v]
-analyze -format sverilog [list ${PNR_RESULTS}/biasgen/results/biasgen.pnr.v]
-analyze -format sverilog [list ${PNR_RESULTS}/input_divider/results/input_divider.pnr.v]
+analyze -format sverilog [list ${PNR_RESULTS}/stochastic_adc_PR/results/stochastic_adc_PR.pnr.prefix.v]
+analyze -format sverilog [list ${PNR_RESULTS}/new_adc/results/new_adc.pnr.prefix.v]
+analyze -format sverilog [list ${PNR_RESULTS}/phase_interpolator/results/phase_interpolator.pnr.prefix.v]
+analyze -format sverilog [list ${PNR_RESULTS}/biasgen/results/biasgen.pnr.prefix.v]
+analyze -format sverilog [list ${PNR_RESULTS}/input_divider/results/input_divider.pnr.prefix.v]
+}
+"new_adc" {
+analyze -format sverilog [list ${PNR_RESULTS}/V2T/results/V2T.pnr.v]
+analyze -format sverilog [list ${RTLDIR}/V2T_clock_gen_S2D.sv]
+analyze -format sverilog [list ${RTLDIR}/V2T_buffer.sv]
+analyze -format sverilog [list ${RTLDIR}/V2T_clock_gen.sv]
+analyze -format sverilog [list ${RTLDIR}/dcdl_coarse.sv]
+analyze -format sverilog [list ${STUBDIR}/new_tdc.sv]
 }
 default {
+## For sub modules -------------------------------------
 analyze -format sverilog [list ${STUBDIR}/SW.sv]
 analyze -format sverilog [list ${STUBDIR}/MOMcap.sv]
 analyze -format sverilog [list ${STUBDIR}/CS_cell.sv]
@@ -106,11 +113,12 @@ analyze -format sverilog [list ${STUBDIR}/CS_cell_dmm.sv]
 analyze -format sverilog [list ${RTLDIR}/del_PI.sv]
 analyze -format sverilog [list ${RTLDIR}/phase_blender_1b.sv]
 analyze -format sverilog [list ${RTLDIR}/inc_delay.sv]
+analyze -format sverilog [list ${RTLDIR}/gates/inv_gf.sv]
 #analyze -format sverilog [list ${RTLDIR}/inv_bld_1_fixed.sv]
 #analyze -format sverilog [list ${RTLDIR}/inv_bld_2_fixed.sv]
 #analyze -format sverilog [list ${RTLDIR}/inv_bld_3_fixed.sv]
 #analyze -format sverilog [list ${RTLDIR}/mux_bld_fixed.sv]
-analyze -format sverilog [list ${RTLDIR}/sync_divider.sv]
+#------------------------------------------------------------
 }
 }
 }
@@ -132,6 +140,7 @@ current_design $DESIGN_TARGET
 link
 
 check_design
+
 
 #DONT TOUCH INSTANCE
 set_dont_touch [get_cells -hierarchical *dont_touch*]
@@ -209,4 +218,3 @@ write -format verilog -hierarchy -output ${SYNTH_RESULTS}/${DCRM_FINAL_VERILOG_O
 write_sdc -nosplit ${SYNTH_RESULTS}/${DCRM_FINAL_SDC_OUTPUT_FILE}
 
 exit
-

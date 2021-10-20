@@ -6,8 +6,8 @@ set raw_area [dbGet top.fPlan.area]
 set FP_height [expr 2*$cell_height]
 set FP_width [expr ($raw_area/$FP_height/$cell_grid)*$cell_grid]
 
-floorPlan -site core -s $FP_width $FP_height 0 0 0 0 
 
+floorPlan -site core -s $FP_width $FP_height 0 0 0 0
 
 set ff_area [get_property [get_cells arb_out_reg] area]
 set ff_width [expr round($ff_area/$cell_height/$cell_grid)*$cell_grid]
@@ -92,7 +92,7 @@ deleteInst WELL*
 addWellTap -cell TAPCELLBWP16P90 -cellInterval $FP_width -prefix WELLTAP
 
 placeInstance arb_out_reg $welltap_width 0 R180
-placeInstance idel_PI/iinv_PI1_dont_touch/U1 [expr $welltap_width+$ff_width] 0 
+placeInstance idel_PI/in_and_PI1_dont_touch/U1 [expr $welltap_width+$ff_width] 0 
 placeInstance idel_PI/iinv_PI2_dont_touch/U1 [expr $welltap_width+$ff_width] $cell_height 
 
 placeInstance iblender_1b/IMUX0_dont_touch/IMUX2 [expr $FP_width-$welltap_width-$buft_width-$mux_width] 0
@@ -103,17 +103,45 @@ placeInstance iinc_delay/itri_buff2_dont_touch/u__tmp100 [expr $FP_width-$wellta
 
 
 
-createRouteBlk -box 0 $FP_height $FP_width [expr $FP_height-$cell_height/2] -layer 6
+
 #########################
 ## vertical power strip #
 #########################
-addStripe -nets {VDD} \
-  -layer M7 -direction vertical -width [expr $AVDD_M7_width/2] -spacing [expr $AVDD_M7_width/2] -start_offset [expr $welltap_width/2] -set_to_set_distance $FP_width -start_from left -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit AP -padcore_ring_bottom_layer_limit M1 -block_ring_top_layer_limit M7 -block_ring_bottom_layer_limit M1 -use_wire_group 0 -snap_wire_center_to_grid None -skip_via_on_pin {standardcell} -skip_via_on_wire_shape {  noshape }  -extend_to all_domains -create_pins 1 
+#addStripe -nets {VDD} \
+  -layer M7 -direction vertical -width [expr $AVDD_M7_width/2] -spacing [expr $AVDD_M7_width/2] -start_offset [expr $welltap_width/2] -set_to_set_distance $FP_width -start_from left -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit AP -padcore_ring_bottom_layer_limit M1 -block_ring_top_layer_limit M7 -block_ring_bottom_layer_limit M1 -use_wire_group 0 -snap_wire_center_to_grid None -skip_via_on_pin {standardcell} -skip_via_on_wire_shape {  noshape }  -extend_to design_boundary -create_pins 0 
 
-addStripe -nets {VSS} \
-  -layer M7 -direction vertical -width [expr $AVDD_M7_width/2] -spacing [expr $AVDD_M7_width/2] -start_offset [expr $welltap_width/2] -set_to_set_distance $FP_width -start_from right -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit AP -padcore_ring_bottom_layer_limit M7 -block_ring_top_layer_limit M7 -block_ring_bottom_layer_limit M7 -use_wire_group 0 -snap_wire_center_to_grid None -skip_via_on_pin {standardcell} -skip_via_on_wire_shape {  noshape } -extend_to all_domains -create_pins 1 
+#addStripe -nets {VSS} \
+  -layer M7 -direction vertical -width [expr $AVDD_M7_width/2] -spacing [expr $AVDD_M7_width/2] -start_offset [expr $welltap_width/2] -set_to_set_distance $FP_width -start_from right -switch_layer_over_obs false -max_same_layer_jog_length 2 -padcore_ring_top_layer_limit AP -padcore_ring_bottom_layer_limit M7 -block_ring_top_layer_limit M7 -block_ring_bottom_layer_limit M7 -use_wire_group 0 -snap_wire_center_to_grid None -skip_via_on_pin {standardcell} -skip_via_on_wire_shape {  noshape } -extend_to design_boundary -create_pins 0 
 
-deleteRouteBlk -all
+#deleteRouteBlk -all
+
+uiSetTool addWire
+setEdit -layer_minimum M1
+setEdit -layer_maximum AP
+setEdit -force_regular 1
+getEdit -snap_to_track_regular
+getEdit -snap_to_pin
+setEdit -force_special 1
+getEdit -snap_to_track
+getEdit -snap_special_wire
+getEdit -align_wire_at_pin
+getEdit -snap_to_row
+getEdit -snap_to_pin
+setViaGenMode -ignore_DRC false
+setViaGenMode -use_fgc 1
+setViaGenMode -use_cce false
+setEdit -layer_vertical M7
+setEdit -width_vertical [expr $AVDD_M7_width/2] 
+
+
+setEdit -nets VDD
+editAddRoute [expr $welltap_width/2+$AVDD_M7_width/4] 0
+editCommitRoute [expr $welltap_width/2+$AVDD_M7_width/4] $FP_height
+
+setEdit -nets VSS
+editAddRoute [expr $FP_width-($welltap_width/2+$AVDD_M7_width/4)] 0
+editCommitRoute [expr $FP_width-($welltap_width/2+$AVDD_M7_width/4)] $FP_height
+
 
 
 ##--------------------------------------------
@@ -133,7 +161,7 @@ editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -sp
 
 editPin -pinWidth $PI_MS_net_width -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 2 -layer 2 -spreadType center -spacing $metal_space -pin buf_out
 
-editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 0 -layer 2 -spreadType center -spacing [expr 2*$metal_space] -pin {arb_out en_mixer inc_del en_arb}
+editPin -pinWidth $pin_width -pinDepth $pin_depth -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 0 -layer 2 -spreadType center -spacing [expr 2*$metal_space] -pin {arb_out en_mixer inc_del en_arb en_unit}
 
 editPin -pinWidth [expr $arb_in_width] -pinDepth [expr $FP_height] -fixOverlap 0 -unit MICRON -spreadDirection counterclockwise -edge 3 -layer 5 -spreadType start -spacing [expr 2*$metal_space] -offsetStart [expr $FP_width/2] -pin arb_in
 
