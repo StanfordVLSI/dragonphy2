@@ -1,0 +1,16 @@
+name: ams_flow
+
+inputs: 
+
+  
+
+commands: 
+  - |
+  - cp -sr /aha/canswang/apr_flow ./inputs/
+  - cp ./inputs/synthesis_dragonphy/scripts/block_name_swap.py ./inputs/
+  - cat ./inputs/synthesis_dragonphy/scripts/library_TSMC16.csh ./inputs/synthesis_dragonphy/scripts/setup_tool.csh > ./inputs/setup.sh
+  - sed -i -e '$a./inputs/synthesis_dragonphy/scripts/syn.sh gate_size_test' ./inputs/setup.sh
+  - tcsh ./inputs/setup.sh 
+
+
+
