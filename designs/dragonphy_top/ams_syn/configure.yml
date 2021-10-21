@@ -1,0 +1,6 @@
+name: ams_syn
+
+
+outputs:
+  - synthesis_dragonphy
+

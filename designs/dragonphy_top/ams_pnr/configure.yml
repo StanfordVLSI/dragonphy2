@@ -1,0 +1,6 @@
+name: ams_pnr
+
+
+outputs:
+  - pnr_dragonphy
+
