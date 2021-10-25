@@ -89,6 +89,16 @@ def construct():
             Step( this_dir + '/termination' ),
             Step( this_dir + '/mdll_r1' )
         ]
+    
+    ##################################################
+    # AMS flow steps, build before the dragonphy_top #
+    ##################################################
+
+    ams_syn_script = Step(this_dir + '/ams_syn_script')
+    ams_pnr_script = Step(this_dir + '/ams_pnr_script')
+
+
+
 
     init = Step(this_dir + '/cadence-innovus-init')
     cts  = Step(this_dir + '/cadence-innovus-cts')
@@ -205,6 +215,13 @@ def construct():
     #-----------------------------------------------------------------------
     # Graph -- Add nodes
     #-----------------------------------------------------------------------
+
+    # add ams steps 
+    g.add_step( ams_syn_script       )
+    g.add_step( ams_pnr_script       )
+
+
+
 
     g.add_step( info                 )
     g.add_step( rtl                  )
