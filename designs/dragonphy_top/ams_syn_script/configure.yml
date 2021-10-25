@@ -1,9 +1,5 @@
 name: ams_syn_script
 
-inputs:
-
-  - 
-
 outputs:
   - synthesis_dragonphy
 
