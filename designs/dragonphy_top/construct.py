@@ -93,10 +93,13 @@ def construct():
     ##################################################
     # AMS flow steps, build before the dragonphy_top #
     ##################################################
-
+    
+    # prepare the flow script
     ams_syn_script = Step(this_dir + '/ams_syn_script')
     ams_pnr_script = Step(this_dir + '/ams_pnr_script')
 
+    # submodule syn and pnr steps 
+    ams_gst = Step(this_dir + '/ams_gate_size_test' )
 
 
 
@@ -219,7 +222,7 @@ def construct():
     # add ams steps 
     g.add_step( ams_syn_script       )
     g.add_step( ams_pnr_script       )
-
+    g.add_step( ams_gst              )
 
 
 
@@ -375,6 +378,16 @@ def construct():
     g.connect_by_name( prelvs,        debugcalibre   )
     g.connect_by_name( drc,            debugcalibre   )
     g.connect_by_name( lvs,            debugcalibre   )
+
+    #-----------------------------------------------------------------------
+    # AMS build map
+    #-----------------------------------------------------------------------
+
+    g.connect_by_name(ams_syn_script, ams_gst)
+    
+
+
+
 
     #-----------------------------------------------------------------------
     # Parameterize
