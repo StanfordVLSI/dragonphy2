@@ -23,7 +23,7 @@ requires_list = [
     'coreir==2.0.120',
     'mantle==2.0.10',
     'hwtypes==1.4.3',
-    'ast_tools==0.0.30',
+    'ast_tools==0.1.8',
     'kratos==0.0.31.1',
    # general requirements
     'pyserial',
