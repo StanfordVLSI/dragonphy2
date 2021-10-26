@@ -2,10 +2,11 @@
 ################ Makefile Definitions
 ################################################################################
 # This little trick finds where the makefile exists
-aprDir := /aha/sjkim85/apr_flow
+aprDir := /aha/canswang/apr_flow
 
 SYNTH_HOME := ${aprDir}/synthesis_dragonphy
-DESIGN_HOME := ${SYNTH_HOME}/DesignName
+# DESIGN_HOME = ${SYNTH_HOME}/DesignName
+DESIGN_HOME = .
 GIT_REPO := /aha/sjkim85/github_repo/dragonphy2
 SRC_PATH   	:= $(GIT_REPO)/vlog/chip_src/analog_core
 STUB_PATH 	:= $(GIT_REPO)/vlog/chip_stubs
@@ -20,7 +21,8 @@ RUNDIR := $(DESIGN_HOME)
 # define folders
 DESIGN_TARGET	= DesignName
 SYNTH_DIR_NAME 	= $(DESIGN_TARGET)
-SYNTH_SCRIPT	= $(SYNTH_HOME)/scripts
+# SYNTH_SCRIPT	= $(SYNTH_HOME)/scripts
+SYNTH_SCRIPT	= ../../inputs/synthesis_dragonphy/scripts
 SYNTH_RUNDIR	= $(RUNDIR)/DC_WORK/$(SYNTH_DIR_NAME)
 SYNTH_LOGS		= $(SYNTH_RUNDIR)/log
 SYNTH_RESULTS	= $(SYNTH_RUNDIR)/results
@@ -29,7 +31,8 @@ PNR_RESULTS 	= $(aprDir)/pnr_dragonphy
 
 # define input files
 DC_HEAD_SCRIPT = $(SYNTH_SCRIPT)/header.tcl
-DC_MAIN_SCRIPT = $(DESIGN_HOME)/run_dc.tcl
+DC_MAIN_SCRIPT = ./run_dc.tcl
+DC_MAIN_SCRIPT_OFFSET = ../../run_dc.tcl
 
 # define output files
 DC_NETLIST	= $(DESIGN_TARGET).mapped.v
@@ -54,7 +57,7 @@ SET_SYNTH_PARAMS = 	set DESIGN_TARGET $(DESIGN_TARGET); 	\
 			set NEED_CONSTRAINTS NEED_SDC; \
 			set CLK_PERIOD 0.25;\
 			set CLK_DIV_PERIOD 1.0;
-DC_COMMAND_STRING = "$(SET_SYNTH_PARAMS) source -echo -verbose $(DC_MAIN_SCRIPT)"
+DC_COMMAND_STRING = "$(SET_SYNTH_PARAMS) source -echo -verbose $(DC_MAIN_SCRIPT_OFFSET)"
 DC_LOAD_COMMAND_STRING = "$(SET_SYNTH_PARAMS) source -echo -verbose $(DC_HEAD_SCRIPT)"
 
 ######## END OF FLAGS FOR SYNOPSYS DC-SHELL #####

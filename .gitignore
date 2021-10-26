@@ -76,3 +76,5 @@ build/
 
 HardFloat-1/
 install_hardfloat.sh
+library_TSMC16.csh
+load_tsmc16.tcl

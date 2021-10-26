@@ -8,8 +8,8 @@
 
 
 DESIGN=$1
-aprDir="/aha/sjkim85/apr_flow"
-synDir="${aprDir}/synthesis_dragonphy"
+aprDir="/aha/canswang/apr_flow"
+synDir="./synthesis_dragonphy"
 resultDir="${synDir}/${DESIGN}/DC_WORK/${DESIGN}/results"
 pnrDir="${aprDir}/pnr_dragonphy"
 
@@ -39,22 +39,30 @@ fi
 
 
 mkdir -p $synDir/$DESIGN
-\cp Makefile_templete ${synDir}/$DESIGN/Makefile
-\cp run_dc_templete.tcl ${synDir}/$DESIGN/run_dc.tcl
-cd $synDir/$DESIGN
+mkdir -p ./outputs/$DESIGN
+
+\cp ./inputs/synthesis_dragonphy/scripts/Makefile_templete ./outputs/$DESIGN/Makefile
+\cp ./inputs/synthesis_dragonphy/scripts/run_dc_templete.tcl ./outputs/$DESIGN/run_dc.tcl
+echo "I am a the first occurrance!"
+cd ./outputs/$DESIGN
 sed -i s,source_path,${SRC_PATH}, Makefile
 sed -i s,DesignName,${DESIGN}, Makefile
 sed -i s,NEED_SDC,${NEED_CONSTRAINTS}, Makefile
 
 #sed -i '3 a set mvt_target_libs [concat $ulvt_slow_db]' run_dc.tcl
 
-
+echo "Required file has been prepared"
+echo "Now, Let's throw the dice!"
 
 make cleanall > clean.log
 make
 
+echo "Build finishes..."
+echo "Exporting synthesized file to PnR stage..."
+
 \cp ${resultDir}/${DESIGN}.mapped.v ${pnrDir}/data/mapped_verilog/ 
 \cp ${resultDir}/${DESIGN}.mapped.sdc ${pnrDir}/data/sdc/ 
 sed -i '1i source '"${pnrDir}"'/scripts/floorplan/'"${DESIGN}"'_dont_touch.tcl' ${pnrDir}/data/sdc/${DESIGN}.mapped.sdc
+
 
 
