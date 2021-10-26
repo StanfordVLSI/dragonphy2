@@ -78,3 +78,4 @@ HardFloat-1/
 install_hardfloat.sh
 library_TSMC16.csh
 load_tsmc16.tcl
+designs/dragonphy_top/ams_syn_script/outputs/synthesis_dragonphy/scripts/library_TSMC16.csh
