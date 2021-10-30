@@ -16,7 +16,7 @@ from dragonphy import *
 from dragonphy.git_util import get_git_hash_short
 
 THIS_DIR = Path(__file__).resolve().parent
-CFG = yaml.load(open(get_file('config/fpga/analog_slice_cfg.yml'), 'r'))
+CFG = yaml.load(open(get_file('config/fpga/analog_slice_cfg.yml'), 'r'), Loader=yaml.SafeLoader)
 
 def test_1(board_name, emu_clk_freq, fpga_sim_ctrl):
     ########################

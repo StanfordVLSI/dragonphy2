@@ -18,7 +18,7 @@ from dragonphy import get_file
 BUILD_DIR = Path(__file__).resolve().parent / 'build'
 
 # read YAML file that was used to configure the generated model
-CFG = yaml.load(open(get_file('config/fpga/rx_adc.yml'), 'r'))
+CFG = yaml.load(open(get_file('config/fpga/rx_adc.yml'), 'r'), Loader=yaml.SafeLoader)
 
 def model(in_):
     # determine sign
