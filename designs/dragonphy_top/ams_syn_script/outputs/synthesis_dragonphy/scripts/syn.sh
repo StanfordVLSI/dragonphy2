@@ -9,7 +9,7 @@
 
 DESIGN=$1
 aprDir="/aha/canswang/apr_flow"
-synDir="./synthesis_dragonphy"
+synDir="./inputs/synthesis_dragonphy"
 resultDir="${synDir}/${DESIGN}/DC_WORK/${DESIGN}/results"
 pnrDir="${aprDir}/pnr_dragonphy"
 
@@ -59,9 +59,11 @@ make
 
 echo "Build finishes..."
 echo "Exporting synthesized file to PnR stage..."
+current_dir=$(pwd)
+echo $current_dir
 
-\cp ${resultDir}/${DESIGN}.mapped.v ${pnrDir}/data/mapped_verilog/ 
-\cp ${resultDir}/${DESIGN}.mapped.sdc ${pnrDir}/data/sdc/ 
+\cp ./DC_WORK/gate_size_test/DC_WORK/gate_size_test/results/${DESIGN}.mapped.v ../${DESIGN}.mapped.v 
+\cp ./DC_WORK/gate_size_test/DC_WORK/gate_size_test/results/${DESIGN}.mapped.sdc ../${DESIGN}.mapped.sdc 
 sed -i '1i source '"${pnrDir}"'/scripts/floorplan/'"${DESIGN}"'_dont_touch.tcl' ${pnrDir}/data/sdc/${DESIGN}.mapped.sdc
 
 

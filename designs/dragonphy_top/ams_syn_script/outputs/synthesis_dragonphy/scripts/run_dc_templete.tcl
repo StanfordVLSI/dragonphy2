@@ -1,5 +1,11 @@
 # Load header
-source $SYNTH_HOME/scripts/header.tcl
+set runDir [pwd]
+
+puts $runDir
+
+source ../../../../inputs/synthesis_dragonphy/scripts/header.tcl
+
+puts $SYNTH_HOME
 
 # DUMP SVF file for primetime
 set_svf ${SYNTH_RESULTS}/${DCRM_SVF_OUTPUT_FILE}

@@ -2,10 +2,13 @@ name: ams_gate_size_test
 
 inputs: 
   - synthesis_dragonphy
+  - adk
+
+
 
 commands:
-  - cat ./inputs/synthesis_dragonphy/scripts/library_TSMC16.csh ./inputs/synthesis_dragonphy/scripts/setup_tool.csh > ./setup.sh
-  - sed -i -e '$a./inputs/synthesis_dragonphy/scripts/syn.sh gate_szie_test' ./setup.sh
+  - cat ./inputs/synthesis_dragonphy/scripts/load_adk.csh ./inputs/synthesis_dragonphy/scripts/setup_tool.csh > ./setup.sh
+  - sed -i -e '$a./inputs/synthesis_dragonphy/scripts/syn.sh gate_size_test' ./setup.sh
   - tcsh ./setup.sh
 
 outputs:

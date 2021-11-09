@@ -1,9 +1,9 @@
 
 # load library
-source $SYNTH_HOME/scripts/load_tsmc16.tcl
+source ../../../../inputs/synthesis_dragonphy/scripts/load_tech.tcl
 
 # Load dc files names
-source $SYNTH_HOME/scripts/dc_setup_filenames.tcl
+source ../../../../inputs/synthesis_dragonphy/scripts/dc_setup_filenames.tcl
 
 # other settings
 if {![info exists nCores]} {

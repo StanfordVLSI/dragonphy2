@@ -290,6 +290,7 @@ def construct():
     g.connect_by_name( adk,            drc            )
     g.connect_by_name( adk,            lvs            )
     g.connect_by_name( adk,            qtm            )
+    g.connect_by_name( adk,            ams_gst        )
 
     # Connect up blocks like analog_core, input_buffer, etc.
     # The QTM step is also included here because it provides
