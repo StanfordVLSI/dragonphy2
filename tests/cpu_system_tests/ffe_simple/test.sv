@@ -2,6 +2,7 @@
 
 `define FORCE_JTAG(name, value) force top_i.idcore.jtag_i.rjtag_intf_i.``name`` = ``value``
 
+
 `ifndef ADC_TXT
     `define ADC_TXT
 `endif
@@ -137,10 +138,19 @@ module test;
 		.en(should_record)
 	);
    
+
+    logic signed [7:0] estimated_bits [15:0];
+    genvar gi;
+    generate
+        for(gi = 0; gi < 16; gi = gi + 1) begin
+            assign estimated_bits[gi] = top_i.idcore.estimated_bits[gi][7:0];
+        end
+    endgenerate
+
 	 ti_adc_recorder #(
         .filename(`FFE_TXT)
     ) ffe_recorder_i (
-		.in(top_i.idcore.trunc_est_bits[15:0]),
+		.in(estimated_bits),
 		.clk(recording_clk),
 		.en(should_record)
 	);
@@ -228,15 +238,14 @@ module test;
         $display("Loading FFE weights");
         // Load new FFE weights
         for(ii = 0; ii < width; ii = ii + 1) begin
-            load(9, ii, 4);
+            load(9, ii, 1);
             $display("\tFinished %d of %d", ii+1, width);
         end
 
 
 		// Wait some time initially
 		$display("Initial delay of 50 ns...");
-		#(100ns);
-
+		#(120ns);
 		// Then record for awhile
         record_bits();
 
@@ -246,7 +255,11 @@ module test;
             load(8, ii, -4);
             $display("\tFinished %d of %d", ii+1, width);
         end
-
+        for (int idx=0; idx <Nti; idx=idx+1) begin
+            // shift of 2+5 is divide by 128
+            tmp_ffe_shift[idx] = 2;
+        end
+        `FORCE_JTAG(ffe_shift, tmp_ffe_shift);
 		// Then record for awhile
         record_bits();
 
@@ -268,7 +281,7 @@ module test;
 
         for (int idx=0; idx <Nti; idx=idx+1) begin
             // shift of 2+5 is divide by 128
-            tmp_ffe_shift[idx] = 5;
+            tmp_ffe_shift[idx] = 7;
         end
         `FORCE_JTAG(ffe_shift, tmp_ffe_shift);
 

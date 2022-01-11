@@ -8,24 +8,26 @@ from dragonphy import *
 THIS_DIR = Path(__file__).parent.resolve()
 BUILD_DIR = THIS_DIR / 'build'
 
-def test_sim(dump_waveforms):
-    deps = get_deps_cpu_sim(impl_file=THIS_DIR / 'test.sv')
-    print(deps)
+def test_sim(dump_waveforms, run=True):
 
-    def qwrap(s):
-        return f'"{s}"'
+    if run:
+        deps = get_deps_cpu_sim(impl_file=THIS_DIR / 'test.sv')
+        print(deps)
 
-    defines = {
-        'TI_ADC_TXT': qwrap(BUILD_DIR / 'ti_adc.txt'),
-        'FFE_TXT': qwrap(BUILD_DIR / 'ffe.txt')
-    }
+        def qwrap(s):
+            return f'"{s}"'
 
-    DragonTester(
-        ext_srcs=deps,
-        directory=BUILD_DIR,
-        defines=defines,
-        dump_waveforms=dump_waveforms
-    ).run()
+        defines = {
+            'TI_ADC_TXT': qwrap(BUILD_DIR / 'ti_adc.txt'),
+            'FFE_TXT': qwrap(BUILD_DIR / 'ffe.txt')
+        }
+
+        DragonTester(
+            ext_srcs=deps,
+            directory=BUILD_DIR,
+            defines=defines,
+            dump_waveforms=dump_waveforms
+        ).run()
 
     # We won't be looking at the transmitted bits
     #tx = np.loadtxt(BUILD_DIR / 'tx_output.txt', dtype=int, delimiter=',')
@@ -41,28 +43,34 @@ def test_sim(dump_waveforms):
     N = 16 * 100
 
     # latency from adc datapoint to equivalent ffe datapoint
-    FFE_LATENCY = 16 * 5
+    FFE_LATENCY = 16 * 1 + 9 # 9 accomodates the FFE delay!
 
     # warmup time before ffe has expected output
     STARTUP = 16 * 3
 
     def test_response(adc, ffe, resp, div):
         end = len(adc) - len(resp) - FFE_LATENCY
+
         for i in range(STARTUP, end):
             res = sum(adc[i+j] * resp[j] for j in range(len(resp)))
             res = res // div
             ffe_res = ffe[i+FFE_LATENCY]
 
-            #assert ffe_res == res
             if ffe_res != res:
                 print('expected', res, 'got', ffe_res)
 
-    test_response(adc[:N], ffe[:N], [4], 4)
+            #assert ffe_res == res
+        
+
+    test_response(adc[:N], ffe[:N], [1], 1)
     print('Passed identity test')
 
-    test_response(adc[N:2*N], ffe[N:2*N], [4, -4], 4)
+    test_response(adc[N:2*N], ffe[N:2*N], [1, -4], 4)
     print('Passed diff test')
 
     temp = [10, 8, -12, 10, 3, -7, 3, -12, -2, 1]
     test_response(adc[2*N:3*N], ffe[2*N:3*N], temp, 2**(2+5))
     print('Passed deep test')
+
+if __name__ == "__main__":
+    test_sim(dump_waveforms=True, run=False)
