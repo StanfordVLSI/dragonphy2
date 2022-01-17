@@ -3,7 +3,7 @@
 # need to define this in two places -- setup.py and here
 import pkg_resources
 REQUIRED_PACKAGE_VERSIONS = [
-    ('justag', '0.0.4.5'),
+    ('justag', '0.0.4.6'),
     ('svinst' , '0.1.5')
 ]
 for name, version in REQUIRED_PACKAGE_VERSIONS:
