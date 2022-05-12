@@ -113,7 +113,7 @@ def test_analog_slice(simulator_name, slice_offset, dump_waveforms, num_tests=10
             noise_rms=fault.RealIn,
             wdata0=m.In(m.Bits[func_widths[0]]),
             wdata1=m.In(m.Bits[func_widths[1]]),
-            waddr=m.In(m.Bits[9]),
+            waddr=m.In(m.Bits[11]),
             we=m.BitIn
         )
 

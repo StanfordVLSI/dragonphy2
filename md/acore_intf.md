@@ -63,6 +63,3 @@
 | sel_PFD_in_rep             |         | 1:0	                | 1:0          | Test         | out      | 0                  |
 | sign_PFD_clk_in_rep        |         | 1:0	                |              | Test         | out      | 0                  |
 
-
-
-

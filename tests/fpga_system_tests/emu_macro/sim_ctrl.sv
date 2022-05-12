@@ -35,7 +35,7 @@ module sim_ctrl(
     output reg [31:0] prbs_eqn,
     output reg [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_0,
     output reg [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_1,
-    output reg [8:0] chan_waddr,
+    output reg [10:0] chan_waddr,
     output reg chan_we,
     input wire tdo
 );
@@ -51,8 +51,8 @@ module sim_ctrl(
     import constant_gpack::channel_width;
 
     // function parameters
-    localparam real dt_samp=1.0e-9/511.0;
-    localparam integer numel=512;
+    localparam real dt_samp=4.0e-9/(2048.0-1);
+    localparam integer numel=2048;
     localparam real chan_delay=10.0*dt_samp;
 
     // calculate FFE coefficients
@@ -118,7 +118,7 @@ module sim_ctrl(
 
         // update the step response function
         chan_we = 1'b1;
-        for (int idx=0; idx<512; idx=idx+1) begin
+        for (int idx=0; idx<numel; idx=idx+1) begin
              if ((idx % 16) == 0) begin
                 $display("Updating function coefficients %0d/32", idx/16);
              end

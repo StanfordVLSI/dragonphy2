@@ -61,7 +61,7 @@ module analog_core import const_pack::*; #(
     (* dont_touch = "true" *) logic [10:0] noise_rms_int;
     (* dont_touch = "true" *) logic [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_0;
     (* dont_touch = "true" *) logic [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_1;
-    (* dont_touch = "true" *) logic [8:0] chan_waddr;
+    (* dont_touch = "true" *) logic [10:0] chan_waddr;
     (* dont_touch = "true" *) logic chan_we;
 
     // convert noise / jitter to svreal types
