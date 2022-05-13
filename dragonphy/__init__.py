@@ -3,8 +3,8 @@
 # need to define this in two places -- setup.py and here
 import pkg_resources
 REQUIRED_PACKAGE_VERSIONS = [
-    ('justag', '0.0.4.5'),
-    ('svinst' , '0.1.5')
+    ('justag', '0.0.4.6'),
+    ('svinst' , '0.1.8')
 ]
 for name, version in REQUIRED_PACKAGE_VERSIONS:
     assert pkg_resources.get_distribution(name).version == version, (

@@ -13,10 +13,10 @@ with open('README.md', 'r') as fh:
 requires_list = [
     # anasymod ecosystem
     'svreal==0.2.7',
-    'msdsl==0.3.6',
-    'anasymod==0.3.6',
+    'msdsl==0.3.8',
+    'anasymod==0.4.0',
     # system-verilog parser
-    'svinst==0.1.5',
+    'svinst==0.1.8',
    # magma ecosystem dependencies
     'fault==3.0.36',
     'magma-lang==2.1.17',
@@ -38,7 +38,7 @@ requires_list = [
     'lxml',
     'scikit-rf',
     'BeautifulSoup4',
-    'justag==0.0.4.5',
+    'justag==0.0.4.6',
     # general requirements with special versions to prevent
     # warnings that clutter pytest output
     'jinja2>=2.11.1',
