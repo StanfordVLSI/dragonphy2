@@ -6,6 +6,8 @@ import yaml
 import numpy as np
 from pathlib import Path
 from math import exp, ceil, log2
+from scipy import linalg
+
 import matplotlib.pyplot as plt
 
 from svreal import (RealType, DEF_HARD_FLOAT_WIDTH,
@@ -23,7 +25,7 @@ from dragonphy.git_util import get_git_hash_short
 THIS_DIR = Path(__file__).resolve().parent
 CFG = yaml.load(open(get_file('config/fpga/analog_slice_cfg.yml'), 'r'))
 
-def get_real_channel_step(s4p_file, f_sig=8e9, mm_lock_pos=0, numel=2048, domain=[0, 4e-9]):
+def get_real_channel_step(s4p_file, f_sig=16e9, mm_lock_pos=0, numel=2048, domain=[0, 4e-9]):
     file_name = str(get_file(f'data/channel_sparam/{s4p_file}'))
 
     step_size = domain[1]/(numel-1)
@@ -129,7 +131,7 @@ def test_2(simulator_name):
     # run simulation
     ana = Analysis(input=str(THIS_DIR), simulator_name=simulator_name)
     ana.set_target(target_name='sim')
-    ana.simulate(convert_waveform=False)
+    ana.simulate(convert_waveform=True)
 
 def test_3():
     # build bitstream
@@ -138,6 +140,7 @@ def test_3():
     ana.build()
 
 def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
+    chan_tau = chan_tau*10
     # read ffe_length
     SYSTEM = yaml.load(open(get_file('config/system.yml'), 'r'), Loader=yaml.FullLoader)
     ffe_length = SYSTEM['generic']['ffe']['parameters']['length']
@@ -211,7 +214,8 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
 
     def shift_dr(val, width):
         ser.write(f'SDR {val} {width}\n'.encode('utf-8'))
-        return int(ser.readline().strip())
+        ret = ser.readline().strip()
+        return int(ret)#int(ser.readline().strip())
 
     def write_tc_reg(name, val):
         # specify address
@@ -300,6 +304,22 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
         # stall until confirmation is received
         assert ser.readline().decode('utf-8').strip() == 'OK', 'Serial error'
 
+    def read_memory():
+        data = []
+        for ii in range(100):
+            write_tc_reg('in_addr_multi', ii)
+            for jj in range(16):
+                data += [read_sc_reg(f'out_data_multi[{jj}]')]
+        return data
+
+    def read_memory_ffe():
+        data = []
+        for ii in range(100):
+            write_tc_reg('in_addr_multi_ffe', ii)
+            for jj in range(16):
+                data += [read_sc_reg(f'out_data_multi_ffe[{jj}]')]
+        return data
+
     # Initialize
     set_sleep(1)
     do_init()
@@ -328,6 +348,8 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
                                       numel=CFG['func_numel'], coeff_widths=CFG['func_widths'],
                                       coeff_exps=CFG['func_exps'], real_type=get_dragonphy_real_type())
     chan_func = lambda t_vec: (1-np.exp(-(t_vec-chan_delay)/chan_tau))*np.heaviside(t_vec-chan_delay, 0)
+    coeffs_bin_old = placeholder.get_coeffs_bin_fmt(chan_func)
+    coeffs_bin = placeholder.get_coeffs_bin_fmt(chan_func)
 
 #    chan_func_values = get_real_channel_step("Case4_FM_13SI_20_T_D13_L6.s4p", domain=CFG['func_domain'], numel=CFG['func_numel'])
 #    chan_func_values = chan_func_values.clip(0)
@@ -354,9 +376,30 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
 
 #    coeffs_bin = retval_2
 
-    coeffs_bin = placeholder.get_coeffs_bin_fmt(chan_func)
-#    plt.plot(coeffs_bin[0])
-#    plt.show()
+    plt.plot(coeffs_bin[0])
+#    plt.plot(coeffs_bin_old[0])
+#    plt.plot([0]*128 + coeffs_bin[0][:-128])
+    plt.show()
+    pulse = (np.array(coeffs_bin[0]) - np.array([0]*128 + coeffs_bin[0][:-128]))[::128]
+    plt.plot(pulse)
+    plt.show()
+
+
+    chan_mat = linalg.convolution_matrix(pulse, 10)
+
+    imp = np.zeros((len(pulse) + 10 - 1, 1))
+    imp[1] = 1
+
+    zf_taps = np.reshape(np.linalg.pinv(chan_mat) @ imp, (10,))
+    zf_taps = zf_taps / np.max(np.abs(zf_taps)) * 127
+    plt.plot(zf_taps)
+    plt.show()
+
+
+    plt.plot(np.convolve(pulse, zf_taps))
+    plt.show()
+
+#    zf_taps = [1,0,0,0,0,0,0,0,0,0]
     coeff_tuples = list(zip(*coeffs_bin))
     chunk_size = 32
     for k in range(len(coeff_tuples)//chunk_size):
@@ -397,20 +440,24 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
     dt=1.0/(16.0e9)
     coeff0 = 128.0/(1.0-exp(-dt/chan_tau))
     coeff1 = -128.0*exp(-dt/chan_tau)/(1.0-exp(-dt/chan_tau))
+    print(chan_tau)
+
+    #zf_taps[0] =coeff0
+    #zf_taps[1] =coeff1
 
     #coeff0  = 1
     #coeff1  = 0
 
     for loop_var in range(16):
         for loop_var2 in range(ffe_length):
-            if (loop_var2 == 0):
-                # The argument order for load() is depth, width, value
-                load_weight(loop_var2, loop_var, int(round(coeff0)))
-            elif (loop_var2 == 1):
-                load_weight(loop_var2, loop_var, int(round(coeff1)))
-            else:
-                load_weight(loop_var2, loop_var, 0)
-        write_tc_reg(f'ffe_shift[{loop_var}]', 4)
+            #if (loop_var2 == 0):
+            #    # The argument order for load() is depth, width, value
+            #    load_weight(loop_var2, loop_var, int(round(coeff0)))
+            #elif (loop_var2 == 1):
+            #    load_weight(loop_var2, loop_var, int(round(coeff1)))
+            #else:
+            load_weight(loop_var2, loop_var, int(round(zf_taps[loop_var2])))
+        write_tc_reg(f'ffe_shift[{loop_var}]', 7)
 
     # Configure the CDR offsets
     print('Configure the CDR offsets')
@@ -447,6 +494,8 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
     # (i.e., seems that it must be set to zero while configuring CDR parameters
     print('Wait for the CDR to lock')
     write_tc_reg('cdr_rstb', 1)
+    write_tc_reg('en_int_dump_start', 1)
+    write_tc_reg('int_dump_start', 1)
     time.sleep(1.0)
 
     # Run PRBS test.  In order to get a conservative estimate for the throughput, the
@@ -482,7 +531,9 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
     print(f'total_bits: {total_bits}')
 
     BER = err_bits/total_bits
-
+    plt.plot(read_memory())
+    plt.plot(read_memory_ffe())
+    plt.show()
     print(f'BER: {BER:e}')
 
     # check results
