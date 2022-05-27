@@ -16,6 +16,14 @@
     `define NUM_CHUNKS 4
 `endif
 
+`ifndef NUMEL
+    `define NUMEL 512
+`endif
+
+`ifndef UPPER_BOUND
+    `define UPPER_BOUND 1e-9
+`endif
+
 // macro to delay for slightly more than one "tick" of emu_clk
 `define EMU_CLK_DLY #((1.1/(`EMU_CLK_FREQ))*1s)
 
@@ -35,7 +43,7 @@ module sim_ctrl(
     output reg [31:0] prbs_eqn,
     output reg [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_0,
     output reg [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_1,
-    output reg [10:0] chan_waddr,
+    output reg [8:0] chan_waddr,
     output reg chan_we,
     input wire tdo
 );
@@ -51,13 +59,13 @@ module sim_ctrl(
     import constant_gpack::channel_width;
 
     // function parameters
-    localparam real dt_samp=4.0e-9/(2048.0-1);
-    localparam integer numel=2048;
+    localparam real dt_samp=`UPPER_BOUND/(`NUMEL-1);
+    localparam integer numel=`NUMEL;
     localparam real chan_delay=10.0*dt_samp;
 
     // calculate FFE coefficients
     localparam real dt=1.0/(16.0e9);
-    localparam real tau=100.0e-12 / 4;
+    localparam real tau=100.0e-12 ;
     localparam integer coeff0 = 128.0/(1.0-$exp(-dt/tau));
     localparam integer coeff1 = -128.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
 
@@ -178,9 +186,9 @@ module sim_ctrl(
             for (loop_var2=0; loop_var2<ffe_gpack::length; loop_var2=loop_var2+1) begin
                 if (loop_var2 == 0) begin
                     // The argument order for load() is depth, width, value
-                    load_weight(loop_var2, loop_var, 128);//$signed(coeff0));
+                    load_weight(loop_var2, loop_var, $signed(coeff0));
                 end else if (loop_var2 == 1) begin
-                    load_weight(loop_var2, loop_var, 0);//$signed(coeff1));
+                    load_weight(loop_var2, loop_var, $signed(coeff1));
                 end else begin
                     load_weight(loop_var2, loop_var, 0);
                 end

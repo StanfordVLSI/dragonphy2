@@ -2,6 +2,7 @@
 from pathlib import Path
 from math import log2, ceil
 import numpy as np
+import matplotlib.pyplot as plt
 
 # FPGA-specific imports
 from msdsl import MixedSignalModel, VerilogGenerator, sum_op, clamp_op, to_uint, to_sint

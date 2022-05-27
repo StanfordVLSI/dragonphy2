@@ -376,7 +376,7 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
 
 #    coeffs_bin = retval_2
 
-    plt.plot(coeffs_bin[0])
+    plt.plot(coeffs_bin[0] / (0.4) * 255)
 #    plt.plot(coeffs_bin_old[0])
 #    plt.plot([0]*128 + coeffs_bin[0][:-128])
     plt.show()
