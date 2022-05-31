@@ -340,8 +340,8 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
 
     # Set up the FFE
     dt=1.0/(16.0e9)
-    coeff0 = 128.0/(1.0-exp(-dt/chan_tau))
-    coeff1 = -128.0*exp(-dt/chan_tau)/(1.0-exp(-dt/chan_tau))
+    coeff0 = 64.0/(1.0-exp(-dt/chan_tau))
+    coeff1 = -64.0*exp(-dt/chan_tau)/(1.0-exp(-dt/chan_tau))
     for loop_var in range(16):
         for loop_var2 in range(ffe_length):
             if (loop_var2 == 0):

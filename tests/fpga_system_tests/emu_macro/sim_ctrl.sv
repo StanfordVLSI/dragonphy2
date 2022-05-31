@@ -16,6 +16,14 @@
     `define NUM_CHUNKS 4
 `endif
 
+`ifndef TC
+    `define TC 4e-9
+`endif
+
+`ifndef NUMEL
+    `define NUMEL 2048
+`endif
+
 // macro to delay for slightly more than one "tick" of emu_clk
 `define EMU_CLK_DLY #((1.1/(`EMU_CLK_FREQ))*1s)
 
@@ -35,7 +43,7 @@ module sim_ctrl(
     output reg [31:0] prbs_eqn,
     output reg [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_0,
     output reg [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_1,
-    output reg [8:0] chan_waddr,
+    output reg [$clog2(`NUMEL)-1:0] chan_waddr,
     output reg chan_we,
     input wire tdo
 );
@@ -51,15 +59,15 @@ module sim_ctrl(
     import constant_gpack::channel_width;
 
     // function parameters
-    localparam real dt_samp=1.0e-9/511.0;
-    localparam integer numel=512;
+    localparam real dt_samp= `TC/(`NUMEL - 1);
+    localparam integer numel=`NUMEL;
     localparam real chan_delay=10.0*dt_samp;
 
     // calculate FFE coefficients
     localparam real dt=1.0/(16.0e9);
-    localparam real tau=100.0e-12;
-    localparam integer coeff0 = 128.0/(1.0-$exp(-dt/tau));
-    localparam integer coeff1 = -128.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
+    localparam real tau=400.0e-12;
+    localparam integer coeff0 = 64.0/(1.0-$exp(-dt/tau));
+    localparam integer coeff1 = -64.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
 
     logic [Nadc-1:0] tmp_ext_pfd_offset [Nti-1:0];
     logic [Npi-1:0] tmp_ext_pi_ctl_offset [Nout-1:0];
@@ -74,9 +82,10 @@ module sim_ctrl(
     task load_weight(
         input logic [$clog2(length)-1:0] d_idx,
         logic [$clog2(channel_width)-1:0] w_idx,
-        logic [weight_precision-1:0] value
+        logic [weight_precision-1:0] value,
+        integer int_val
     );
-        $display("Loading weight d_idx=%0d, w_idx=%0d with value %0d", d_idx, w_idx, value);
+        $display("Loading weight d_idx=%0d, w_idx=%0d with value %0d, %0d", d_idx, w_idx, value, int_val);
         `FORCE_JTAG(wme_ffe_inst, {1'b0, w_idx, d_idx});
         `FORCE_JTAG(wme_ffe_data, value);
         `CLK_ADC_DLY;
@@ -118,7 +127,7 @@ module sim_ctrl(
 
         // update the step response function
         chan_we = 1'b1;
-        for (int idx=0; idx<512; idx=idx+1) begin
+        for (int idx=0; idx<numel; idx=idx+1) begin
              if ((idx % 16) == 0) begin
                 $display("Updating function coefficients %0d/32", idx/16);
              end
@@ -178,11 +187,11 @@ module sim_ctrl(
             for (loop_var2=0; loop_var2<ffe_gpack::length; loop_var2=loop_var2+1) begin
                 if (loop_var2 == 0) begin
                     // The argument order for load() is depth, width, value
-                    load_weight(loop_var2, loop_var, coeff0);
+                    load_weight(loop_var2, loop_var, coeff0, coeff0);
                 end else if (loop_var2 == 1) begin
-                    load_weight(loop_var2, loop_var, coeff1);
+                    load_weight(loop_var2, loop_var, coeff1, coeff1);
                 end else begin
-                    load_weight(loop_var2, loop_var, 0);
+                    load_weight(loop_var2, loop_var, 0,0);
                 end
             end
             tmp_ffe_shift[loop_var] = 7;
@@ -213,9 +222,9 @@ module sim_ctrl(
         // Configure the CDR
         $display("Configuring the CDR...");
         `FORCE_JTAG(Kp, 18);
-        `FORCE_JTAG(Ki, 0);
+        `FORCE_JTAG(Ki, 1);
         `FORCE_JTAG(invert, 1);
-        `FORCE_JTAG(en_freq_est, 0);
+        `FORCE_JTAG(en_freq_est, 1);
         `FORCE_JTAG(en_ext_pi_ctl, 0);
         `FORCE_JTAG(sel_inp_mux, 1); // "0": use ADC output, "1": use FFE output
         `CLK_ADC_DLY;

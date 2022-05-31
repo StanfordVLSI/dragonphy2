@@ -13,6 +13,10 @@
     `define NUM_CHUNKS 4
 `endif
 
+`ifndef NUMEL
+    `define NUMEL 2048
+`endif
+
 module analog_core import const_pack::*; #(
     parameter integer chunk_width=`CHUNK_WIDTH,
     parameter integer num_chunks=`NUM_CHUNKS
@@ -61,7 +65,7 @@ module analog_core import const_pack::*; #(
     (* dont_touch = "true" *) logic [10:0] noise_rms_int;
     (* dont_touch = "true" *) logic [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_0;
     (* dont_touch = "true" *) logic [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_1;
-    (* dont_touch = "true" *) logic [8:0] chan_waddr;
+    (* dont_touch = "true" *) logic [$clog2(`NUMEL)-1:0] chan_waddr;
     (* dont_touch = "true" *) logic chan_we;
 
     // convert noise / jitter to svreal types

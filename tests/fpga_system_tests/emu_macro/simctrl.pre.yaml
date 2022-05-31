@@ -50,7 +50,7 @@ digital_ctrl_inputs:
     init_value: 0
   chan_waddr:
     abspath: 'tb_i.top_i.iacore.chan_waddr'
-    width: 9
+    width: 11
     init_value: 0
   chan_we:
     abspath: 'tb_i.top_i.iacore.chan_we'
