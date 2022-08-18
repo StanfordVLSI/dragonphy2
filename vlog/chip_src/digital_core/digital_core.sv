@@ -66,13 +66,22 @@ module digital_core import const_pack::*; (
     wire logic prbs_gen_rstb;
     wire logic signed [Nadc-1:0] adcout_unfolded [Nti+Nti_rep-1:0];
     wire logic [Nti-1:0] prbs_flags;
+    wire logic [7:0] prbs_flags_delay;
+    wire logic [Nti-1:0] prbs_flags_trigger;
+    wire logic [7:0] prbs_flags_trigger_delay;
+    wire logic packed_prbs_flags [Nti-1:0];
+
     wire logic        sliced_bits [Nti-1:0];
-    wire logic signed [channel_gpack::est_channel_precision-1:0] est_codes [Nti-1:0];
+
     wire logic signed [error_gpack::est_error_precision-1:0] est_errors [Nti-1:0];
     wire logic        [1:0] sd_flags [Nti-1:0];
-
-
+    wire logic signed [ffe_gpack::weight_precision-1:0] init_weights [constant_gpack::channel_width-1:0][9:0];
     wire logic signed [ffe_gpack::output_precision-1:0] estimated_bits [constant_gpack::channel_width-1:0];
+
+    wire logic signed [ffe_gpack::weight_precision-1:0] single_init_weights   [9:0];
+    wire logic signed [ffe_gpack::weight_precision-1:0] single_weights   [9:0];
+
+
     wire logic signed [7:0] trunc_est_bits [Nti+Nti_rep-1:0];
 
     //Sample the FFE output
@@ -329,7 +338,7 @@ module digital_core import const_pack::*; (
         .clk(clk_adc),
         .rstb(rstb),
         .read_reg(wdbg_intf_i.wme_ffe_read),
-        .weights (dsp_dbg_intf_i.weights)
+        .weights (init_weights)
     );
 
     weight_manager #(
@@ -346,24 +355,132 @@ module digital_core import const_pack::*; (
         .weights (dsp_dbg_intf_i.channel_est)
     );
 
-    datapath_core #(
-        .ffe_pipeline_depth                    (constant_gpack::ffe_pipeline_depth),
-        .channel_pipeline_depth                (constant_gpack::chan_pipeline_depth),
-        .error_output_pipeline_depth           (constant_gpack::err_out_pipeline_depth),
-        .sliding_detector_output_pipeline_depth(constant_gpack::sld_dtct_out_pipeline_depth)
-    ) datapath_i (
+
+    logic [7:0] checked_bits_delay;
+    logic [7:0] est_errors_delay;
+    logic [7:0] sliced_bits_delay;
+    logic [7:0] sd_flags_delay;
+
+    datapath_core datapath_i (
         .adc_codes(adcout_unfolded_non_rep),
         .clk(clk_adc),
         .rstb(rstb),
 
-        .estimated_bits_out(estimated_bits),
-        .sliced_bits_out(sliced_bits),
-        .est_codes_out(est_codes),
-        .est_errors_out(est_errors),
-        .sd_flags(sd_flags),
+        //Stage 1
+        .stage1_est_bits_out(estimated_bits),
+        .stage1_sliced_bits_out(),
+
+        //Stage 2
+        .stage2_res_errors_out  (),
+        .stage2_sliced_bits_out (),
+
+        // Stage 3
+        .stage3_sd_flags_ener   (),
+        .stage3_sd_flags        (),
+
+        // Stage 4
+        .stage4_sliced_bits_out (),
+        .stage4_res_errors_out  (),
+
+        // Stage 5
+        .stage5_sd_flags_ener   (),
+        .stage5_sd_flags        (),
+
+        // Stage 6
+        .stage6_sliced_bits_out (),
+        .stage6_res_errors_out  (),
+
+        //Aligned to Stage 6:
+        .stage8_aligned_stage2_res_errors_out(est_errors),
+        .stage8_aligned_stage2_sliced_bits_out(sliced_bits),
+        .stage8_aligned_stage5_sd_flags(sd_flags),
+
+        .stage6_sliced_bits_out_delay(),
+        .stage8_aligned_stage2_res_errors_out_delay(est_errors_delay),
+        .stage8_aligned_stage2_sliced_bits_out_delay(sliced_bits_delay),
+        .stage8_aligned_stage5_sd_flags_delay(sd_flags_delay),
+
+        .stage7_sd_flags_ener                       (),
+        .stage7_sd_flags                            (),
+
+        .stage8_sliced_bits_out                     (checked_bits),
+        .stage8_res_errors_out                      (),
+         
+        .stage8_sliced_bits_out_delay (checked_bits_delay),
 
         .dsp_dbg_intf_i(dsp_dbg_intf_i)
     );
+
+
+    logic signed [Nadc-1:0] delayed_adc_codes_1 [Nti-1:0];
+    logic signed [Nadc-1:0] delayed_adc_codes_2 [Nti-1:0];
+
+    generate
+        for(gj=0; gj < 10; gj = gj + 1) begin
+            assign single_init_weights[gj] = init_weights[0][gj];
+            for(gi=0; gi<channel_gpack::width; gi = gi + 1) begin
+                always_ff @(posedge clk_adc or negedge rstb) begin 
+                    if(~rstb) begin
+                        delayed_adc_codes_1[gi] <= 0;
+                        delayed_adc_codes_2[gi] <= 0;
+                    end else begin
+                        delayed_adc_codes_1[gi] <= adcout_unfolded_non_rep[gi];
+                        delayed_adc_codes_2[gi] <= delayed_adc_codes_1[gi];
+                    end
+                end
+                assign dsp_dbg_intf_i.weights[gi][gj] = single_weights[gj];
+            end
+        end
+    endgenerate
+
+    logic signed [ffe_gpack::output_precision-1:0] estimated_bits_buffer [constant_gpack::channel_width-1:0][1:0];
+    
+    signed_buffer #(
+        .numChannels(constant_gpack::channel_width),
+        .bitwidth   (ffe_gpack::output_precision),
+        .depth      (1)
+    ) est_bits_buff_i (
+        .in (estimated_bits),
+        .clk(clk_adc),
+        .rstb(rstb),
+        .buffer(estimated_bits_buffer)
+    );
+
+
+    logic signed [ffe_gpack::output_precision-1:0] flat_estimated_bits [constant_gpack::channel_width*2-1:0];
+    signed_flatten_buffer #(
+        .numChannels(constant_gpack::channel_width),
+        .bitwidth   (ffe_gpack::output_precision),
+        .depth (1)
+    ) est_bits_fb_i (
+        .buffer    (estimated_bits_buffer),
+        .flat_buffer(flat_estimated_bits)
+    );
+
+    fir_adapter #(
+        .codeBitwidth(ffe_gpack::input_precision),
+        .estBitwidth(ffe_gpack::output_precision),
+        .weightBitwidth(ffe_gpack::weight_precision),
+        .gainBitwidth(6),
+        .ffeDepth(ffe_gpack::length),
+        .numChannels(Nti)
+    ) fir_adapt_i (
+        .clk(clk_adc), 
+        .rst_n(rstb), 
+        .adc_codes(delayed_adc_codes_1), 
+        .est_bits(flat_estimated_bits), 
+        .gain(ddbg_intf_i.adapt_gain), 
+        .target_level(ddbg_intf_i.target_level), 
+        .cur_pos(ddbg_intf_i.align_pos), 
+        .weights(single_weights),
+        .init_weights(single_init_weights),
+        .use_init_weights (ddbg_intf_i.use_init_weights),
+        .load_init_weights(ddbg_intf_i.load_init_weights)
+    );
+    
+    initial begin
+        $dumpvars(0, fir_adapt_i);
+    end
 
     // SRAM
 
@@ -404,7 +521,16 @@ module digital_core import const_pack::*; (
     // TODO: mux PRBS input between ADC, FFE, and MLSD
 
     logic [Nti-1:0]   mux_prbs_rx_bits [3:0];
+    logic [7:0]   mux_prbs_rx_bits_delay [3:0];
+
     logic [(Nti-1):0] prbs_rx_bits;
+    logic [7:0] prbs_rx_bits_delay;
+
+    logic [Nti-1:0]   mux_prbs_trig_rx_bits [3:0];
+    logic [7:0]   mux_prbs_trig_rx_bits_delay [3:0];
+
+    logic [(Nti-1):0] prbs_trig_rx_bits;
+    logic [7:0] prbs_trig_rx_bits_delay;
 
     logic bits_adc [Nti-1:0];
     logic bits_ffe [Nti-1:0];
@@ -417,13 +543,7 @@ module digital_core import const_pack::*; (
         .bit_out   (bits_adc)
     );
 
-    comb_comp #(.numChannels(16), .inputBitwidth(ffe_gpack::output_precision), .thresholdBitwidth(ffe_gpack::output_precision)) dig_comp_ffe_i (
-        .codes     (estimated_bits),
-        .thresh    (ddbg_intf_i.ffe_thresh),
-        .clk       (clk_adc),
-        .rstb      (rstb),
-        .bit_out   (bits_ffe)
-    );
+
 
 
     logic [Nti-1:0] bits_adc_r;
@@ -436,16 +556,35 @@ module digital_core import const_pack::*; (
     assign mux_prbs_rx_bits[2] = bits_mlsd_r;
     assign mux_prbs_rx_bits[3] = {Nti{bit_bist_r}};
 
+    assign mux_prbs_rx_bits_delay[0] = 0;
+    assign mux_prbs_rx_bits_delay[1] = sliced_bits_delay;
+    assign mux_prbs_rx_bits_delay[2] = checked_bits_delay;
+    assign mux_prbs_rx_bits_delay[3] = 0;
+
+
+    assign mux_prbs_trig_rx_bits[0] = bits_adc_r;
+    assign mux_prbs_trig_rx_bits[1] = bits_ffe_r;
+    assign mux_prbs_trig_rx_bits[2] = bits_mlsd_r;
+    assign mux_prbs_trig_rx_bits[3] = {Nti{bit_bist_r}};
+
+    assign mux_prbs_trig_rx_bits_delay[0] = 0;
+    assign mux_prbs_trig_rx_bits_delay[1] = sliced_bits_delay;
+    assign mux_prbs_trig_rx_bits_delay[2] = checked_bits_delay;
+    assign mux_prbs_trig_rx_bits_delay[3] = 0;
+
     generate
         for (k=0; k<Nti; k=k+1) begin
             assign bits_adc_r[k] = bits_adc[k];
-            assign bits_ffe_r[k] = bits_ffe[k];
+            assign bits_ffe_r[k] = sliced_bits[k];
             assign bits_mlsd_r[k] = checked_bits[k];
         end
     endgenerate
 
-    assign prbs_rx_bits = mux_prbs_rx_bits[ddbg_intf_i.sel_prbs_mux];
+    assign prbs_rx_bits       = mux_prbs_rx_bits      [ddbg_intf_i.sel_prbs_mux];
+    assign prbs_rx_bits_delay = mux_prbs_rx_bits_delay[ddbg_intf_i.sel_prbs_mux];
 
+    assign prbs_trig_rx_bits       = mux_prbs_trig_rx_bits      [ddbg_intf_i.sel_trig_prbs_mux];
+    assign prbs_trig_rx_bits_delay = mux_prbs_trig_rx_bits_delay[ddbg_intf_i.sel_trig_prbs_mux];
     // PRBS generator for BIST
 
     prbs_generator_syn #(
@@ -470,13 +609,13 @@ module digital_core import const_pack::*; (
 
     // PRBS checker
 
-    logic [63:0] prbs_err_bits;
-    assign pdbg_intf_i.prbs_err_bits_upper = prbs_err_bits[63:32];
-    assign pdbg_intf_i.prbs_err_bits_lower = prbs_err_bits[31:0];
+    logic [63:0] prbs_err_bits, prbs_err_bits_trigger;
+    assign pdbg_intf_i.prbs_err_bits_upper = ddbg_intf_i.sel_prbs_bits ? prbs_err_bits_trigger[63:32] : prbs_err_bits[63:32];
+    assign pdbg_intf_i.prbs_err_bits_lower = ddbg_intf_i.sel_prbs_bits ? prbs_err_bits_trigger[31:0] : prbs_err_bits[31:0];
 
-    logic [63:0] prbs_total_bits;
-    assign pdbg_intf_i.prbs_total_bits_upper = prbs_total_bits[63:32];
-    assign pdbg_intf_i.prbs_total_bits_lower = prbs_total_bits[31:0];
+    logic [63:0] prbs_total_bits, prbs_total_bits_trigger;
+    assign pdbg_intf_i.prbs_total_bits_upper = ddbg_intf_i.sel_prbs_bits ? prbs_total_bits_trigger[63:32] : prbs_total_bits[63:32];
+    assign pdbg_intf_i.prbs_total_bits_lower = ddbg_intf_i.sel_prbs_bits ? prbs_total_bits_trigger[31:0] : prbs_total_bits[31:0];
 
 
     prbs_checker #(
@@ -496,23 +635,59 @@ module digital_core import const_pack::*; (
         .inv_chicken(pdbg_intf_i.prbs_inv_chicken),
         // recovered data from ADC, FFE, MLSD, etc.
         .rx_bits(prbs_rx_bits),
+        .rx_bits_delay(prbs_rx_bits_delay),
         // checker mode
         .checker_mode(pdbg_intf_i.prbs_checker_mode),
         // outputs
         .err_bits(prbs_err_bits),
         .total_bits(prbs_total_bits),
-        .prbs_flags(prbs_flags)
+        .prbs_flags(prbs_flags),
+        .prbs_flags_delay(prbs_flags_delay)
     );
+
+    prbs_checker #(
+        .n_prbs(Nprbs),
+        .n_channels(Nti)
+    ) prbs_checker_trigger_i (
+        // clock and reset
+        .clk(clk_adc),
+        .rst(~prbs_rstb),
+        // clock gating
+        .cke(pdbg_intf_i.prbs_cke),
+        // define the PRBS equation
+        .eqn(pdbg_intf_i.prbs_eqn),
+        // bits for selecting / de-selecting certain channels from the PRBS test
+        .chan_sel(pdbg_intf_i.prbs_chan_sel),
+        // "chicken" bits for flipping the sign of various bits
+        .inv_chicken(pdbg_intf_i.prbs_inv_chicken),
+        // recovered data from ADC, FFE, MLSD, etc.
+        .rx_bits(prbs_trig_rx_bits),
+        .rx_bits_delay(prbs_trig_rx_bits_delay),
+        // checker mode
+        .checker_mode(pdbg_intf_i.prbs_checker_mode),
+        // outputs
+        .err_bits(prbs_err_bits_trigger),
+        .total_bits(prbs_total_bits_trigger),
+        .prbs_flags(prbs_flags_trigger),
+        .prbs_flags_delay(prbs_flags_trigger_delay)
+    );
+
 
     error_tracker #(
         .width(Nti),
         .error_bitwidth(error_gpack::est_error_precision),
         .addrwidth(10)
     ) errt_i (
+        .prbs_flags_trigger(prbs_flags_trigger),
+        .prbs_flags_trigger_delay(prbs_flags_trigger_delay),
         .prbs_flags(prbs_flags),
+        .prbs_flags_delay(prbs_flags_delay),
         .est_error(est_errors),
+        .est_error_delay(est_errors_delay),
         .sliced_bits(sliced_bits),
+        .sliced_bits_delay(sliced_bits_delay),
         .sd_flags(sd_flags),
+        .sd_flags_delay(sd_flags_delay),
         .clk(clk_adc),
         .rstb(rstb),
         .errt_dbg_intf_i(edbg_intf_i)

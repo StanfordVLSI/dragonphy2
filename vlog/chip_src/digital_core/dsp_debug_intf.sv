@@ -1,4 +1,4 @@
-interface dsp_debug_intf import const_pack::*; ();
+interface dsp_debug_intf ();
 
     logic signed [ffe_gpack::weight_precision-1:0] weights [constant_gpack::channel_width-1:0][ffe_gpack::length-1:0];
     logic [ffe_gpack::shift_precision-1:0] ffe_shift [constant_gpack::channel_width-1:0];

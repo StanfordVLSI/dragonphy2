@@ -1,0 +1,1 @@
+xrun error_checker_datapath.sv ../../../build/chip_src/adapt_fir/*_gpack.sv  ../flat_buffer/buffer.sv ../flat_buffer/flatten_buffer*.sv ../flat_buffer/signed_buffer.sv ../flat_buffer/signed_flatten_buffer*.sv  ../channel_filter/channel_filter.sv ../sliding_detector/*.sv 

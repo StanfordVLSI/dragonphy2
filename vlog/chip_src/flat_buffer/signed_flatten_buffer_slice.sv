@@ -3,10 +3,14 @@ module signed_flatten_buffer_slice #(
     parameter integer bitwidth    = 8,
     parameter integer buff_depth  = 5,
     parameter integer slice_depth = 3,
-    parameter integer start       = 0
+    parameter integer start       = 0,
+    parameter integer delay_width = 4,
+    parameter integer width_width = 4
 ) (
     buffer,
-    flat_slice
+    buffer_delay,
+    flat_slice,
+    flat_slice_delay
 );
 
 
@@ -16,6 +20,13 @@ module signed_flatten_buffer_slice #(
 
     logic signed [bitwidth-1:0] buffer_slice [numChannels-1:0][slice_depth:0];
 
+    input logic [delay_width+width_width-1:0] buffer_delay[buff_depth:0];
+
+    output logic [delay_width+width_width-1:0] flat_slice_delay;
+
+    logic [delay_width+width_width-1:0] buffer_slice_delay [slice_depth:0];
+
+
 
 genvar gi, gj;
 generate
@@ -23,6 +34,8 @@ generate
         for(gj=0; gj<numChannels; gj=gj+1) begin
             assign buffer_slice[gj][gi] = buffer[gj][gi + start]; 
         end
+        assign buffer_slice_delay[gi] = buffer_delay[gi+start];
+
     end
 endgenerate
 
@@ -32,7 +45,9 @@ signed_flatten_buffer #(
     .depth      (slice_depth)
 ) flat_buff_i (
     .buffer     (buffer_slice),
-    .flat_buffer(flat_slice)
+    .buffer_delay ( buffer_slice_delay),
+    .flat_buffer(flat_slice),
+    .flat_buffer_delay(flat_slice_delay)
 );
 
 endmodule : signed_flatten_buffer_slice

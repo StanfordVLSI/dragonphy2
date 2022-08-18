@@ -40,6 +40,10 @@ digital_ctrl_inputs:
     abspath: 'tb_i.prbs_eqn'
     width: 32
     init_value: 1048578 # hex value: 0x100002
+#  inp_sel:
+#    abspath: 'tb_i.inp_sel'
+#    width: 1
+#    init_value: 0 # hex value: 0x100002
   chan_wdata_0:
     abspath: 'tb_i.top_i.iacore.chan_wdata_0'
     width: 18
@@ -88,6 +92,22 @@ digital_probes:
     abspath: 'tb_i.top_i.idcore.estimated_bits[0]'
     width: 10
     signed: 1
+  est_error_0:
+    abspath: 'tb_i.top_i.idcore.est_errors[0]'
+    width: 8
+    signed: 1
+  est_codes_0:
+    abspath: 'tb_i.top_i.idcore.datapath_i.res_err_stage_2_i.end_buffer_est_codes[0]'
+    width: 8
+    signed: 1
+  codes_0:
+    abspath: 'tb_i.top_i.idcore.datapath_i.res_err_stage_2_i.end_buffer_adc_codes[0]'
+    width: 8
+    signed: 1
+  sd_flags_0:
+    abspath: 'tb_i.top_i.idcore.errt_i.delayed_trigger'
+    width: 8
+    signed: 1  
 
   # handling of rare cases in analog_slice
 #  t_samp_idx_0:
@@ -151,67 +171,127 @@ digital_probes:
 #    width: 9
 
   # extra adcout_unfolded signals
-#  adcout_unfolded_1:
-#    abspath: 'tb_i.top_i.idcore.adcout_unfolded[1]'
-#    width: 8
-#    signed: 1
-#  adcout_unfolded_2:
-#    abspath: 'tb_i.top_i.idcore.adcout_unfolded[2]'
-#    width: 8
-#    signed: 1
-#  adcout_unfolded_3:
-#    abspath: 'tb_i.top_i.idcore.adcout_unfolded[3]'
-#    width: 8
-#    signed: 1
-#  adcout_unfolded_4:
-#    abspath: 'tb_i.top_i.idcore.adcout_unfolded[4]'
-#    width: 8
-#    signed: 1
-#  adcout_unfolded_5:
-#    abspath: 'tb_i.top_i.idcore.adcout_unfolded[5]'
-#    width: 8
-#    signed: 1
-#  adcout_unfolded_6:
-#    abspath: 'tb_i.top_i.idcore.adcout_unfolded[6]'
-#    width: 8
-#    signed: 1
-#  adcout_unfolded_7:
-#    abspath: 'tb_i.top_i.idcore.adcout_unfolded[7]'
-#    width: 8
-#    signed: 1
-#  adcout_unfolded_8:
-#    abspath: 'tb_i.top_i.idcore.adcout_unfolded[8]'
-#    width: 8
-#    signed: 1
-#  adcout_unfolded_9:
-#    abspath: 'tb_i.top_i.idcore.adcout_unfolded[9]'
-#    width: 8
-#    signed: 1
-#  adcout_unfolded_10:
-#    abspath: 'tb_i.top_i.idcore.adcout_unfolded[10]'
-#    width: 8
-#    signed: 1
-#  adcout_unfolded_11:
-#    abspath: 'tb_i.top_i.idcore.adcout_unfolded[11]'
-#    width: 8
-#    signed: 1
-#  adcout_unfolded_12:
-#    abspath: 'tb_i.top_i.idcore.adcout_unfolded[12]'
-#    width: 8
-#    signed: 1
-#  adcout_unfolded_13:
-#    abspath: 'tb_i.top_i.idcore.adcout_unfolded[13]'
-#    width: 8
-#    signed: 1
-#  adcout_unfolded_14:
-#    abspath: 'tb_i.top_i.idcore.adcout_unfolded[14]'
-#    width: 8
-#    signed: 1
-#  adcout_unfolded_15:
-#    abspath: 'tb_i.top_i.idcore.adcout_unfolded[15]'
-#    width: 8
-#    signed: 1
+  adcout_unfolded_1:
+    abspath: 'tb_i.top_i.idcore.adcout_unfolded[1]'
+    width: 8
+    signed: 1
+  adcout_unfolded_2:
+    abspath: 'tb_i.top_i.idcore.adcout_unfolded[2]'
+    width: 8
+    signed: 1
+  adcout_unfolded_3:
+    abspath: 'tb_i.top_i.idcore.adcout_unfolded[3]'
+    width: 8
+    signed: 1
+  adcout_unfolded_4:
+    abspath: 'tb_i.top_i.idcore.adcout_unfolded[4]'
+    width: 8
+    signed: 1
+  adcout_unfolded_5:
+    abspath: 'tb_i.top_i.idcore.adcout_unfolded[5]'
+    width: 8
+    signed: 1
+  adcout_unfolded_6:
+    abspath: 'tb_i.top_i.idcore.adcout_unfolded[6]'
+    width: 8
+    signed: 1
+  adcout_unfolded_7:
+    abspath: 'tb_i.top_i.idcore.adcout_unfolded[7]'
+    width: 8
+    signed: 1
+  adcout_unfolded_8:
+    abspath: 'tb_i.top_i.idcore.adcout_unfolded[8]'
+    width: 8
+    signed: 1
+  adcout_unfolded_9:
+    abspath: 'tb_i.top_i.idcore.adcout_unfolded[9]'
+    width: 8
+    signed: 1
+  adcout_unfolded_10:
+    abspath: 'tb_i.top_i.idcore.adcout_unfolded[10]'
+    width: 8
+    signed: 1
+  adcout_unfolded_11:
+    abspath: 'tb_i.top_i.idcore.adcout_unfolded[11]'
+    width: 8
+    signed: 1
+  adcout_unfolded_12:
+    abspath: 'tb_i.top_i.idcore.adcout_unfolded[12]'
+    width: 8
+    signed: 1
+  adcout_unfolded_13:
+    abspath: 'tb_i.top_i.idcore.adcout_unfolded[13]'
+    width: 8
+    signed: 1
+  adcout_unfolded_14:
+    abspath: 'tb_i.top_i.idcore.adcout_unfolded[14]'
+    width: 8
+    signed: 1
+  adcout_unfolded_15:
+    abspath: 'tb_i.top_i.idcore.adcout_unfolded[15]'
+    width: 8
+    signed: 1
 
+  est_codes_1:
+    abspath: 'tb_i.top_i.idcore.datapath_i.res_err_stage_2_i.end_buffer_est_codes[1]'
+    width: 8
+    signed: 1
+  est_codes_2:
+    abspath: 'tb_i.top_i.idcore.datapath_i.res_err_stage_2_i.end_buffer_est_codes[2]'
+    width: 8
+    signed: 1
+  est_codes_3:
+    abspath: 'tb_i.top_i.idcore.datapath_i.res_err_stage_2_i.end_buffer_est_codes[3]'
+    width: 8
+    signed: 1
+  est_codes_4:
+    abspath: 'tb_i.top_i.idcore.datapath_i.res_err_stage_2_i.end_buffer_est_codes[4]'
+    width: 8
+    signed: 1
+  est_codes_5:
+    abspath: 'tb_i.top_i.idcore.datapath_i.res_err_stage_2_i.end_buffer_est_codes[5]'
+    width: 8
+    signed: 1
+  est_codes_6:
+    abspath: 'tb_i.top_i.idcore.datapath_i.res_err_stage_2_i.end_buffer_est_codes[6]'
+    width: 8
+    signed: 1
+  est_codes_7:
+    abspath: 'tb_i.top_i.idcore.datapath_i.res_err_stage_2_i.end_buffer_est_codes[7]'
+    width: 8
+    signed: 1
+  est_codes_8:
+    abspath: 'tb_i.top_i.idcore.datapath_i.res_err_stage_2_i.end_buffer_est_codes[8]'
+    width: 8
+    signed: 1
+  est_codes_9:
+    abspath: 'tb_i.top_i.idcore.datapath_i.res_err_stage_2_i.end_buffer_est_codes[9]'
+    width: 8
+    signed: 1
+  est_codes_10:
+    abspath: 'tb_i.top_i.idcore.datapath_i.res_err_stage_2_i.end_buffer_est_codes[10]'
+    width: 8
+    signed: 1
+  est_codes_11:
+    abspath: 'tb_i.top_i.idcore.datapath_i.res_err_stage_2_i.end_buffer_est_codes[11]'
+    width: 8
+    signed: 1
+  est_codes_12:
+    abspath: 'tb_i.top_i.idcore.datapath_i.res_err_stage_2_i.end_buffer_est_codes[12]'
+    width: 8
+    signed: 1
+  est_codes_13:
+    abspath: 'tb_i.top_i.idcore.datapath_i.res_err_stage_2_i.end_buffer_est_codes[13]'
+    width: 8
+    signed: 1
+  est_codes_14:
+    abspath: 'tb_i.top_i.idcore.datapath_i.res_err_stage_2_i.end_buffer_est_codes[14]'
+    width: 8
+    signed: 1
+  est_codes_15:
+    abspath: 'tb_i.top_i.idcore.datapath_i.res_err_stage_2_i.end_buffer_est_codes[15]'
+    width: 8
+    signed: 1
   # extra estimated_bits signals
 #  estimated_bits_1:
 #    abspath: 'tb_i.top_i.idcore.estimated_bits[1]'

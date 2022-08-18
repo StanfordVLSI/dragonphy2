@@ -6,16 +6,26 @@ module comb_ffe #(
 	parameter integer ffeDepth=5,
 	parameter integer numChannels=16,
 	parameter integer numBuffers=2,
-	parameter integer t0_buff=1
+	parameter integer t0_buff=1,
+    parameter integer delay_width=4,
+    parameter integer width_width=4
 ) (
 	input wire logic signed [weightBitwidth-1:0] weights [ffeDepth-1:0][numChannels-1:0],
 	input wire logic signed [codeBitwidth-1:0] flat_codes [numBuffers*numChannels-1:0],
+	input logic [delay_width+width_width-1:0] flat_codes_delay,
 	input wire logic [shiftBitwidth-1:0] shift_index [numChannels-1:0],
 	input wire logic disable_product [ffeDepth-1:0][numChannels-1:0],
 
-	output logic signed [resultBitwidth-1:0] estimated_bits [numChannels-1:0]
+	input logic [delay_width+width_width-1:0] curs_pos,
+
+	output logic signed [resultBitwidth-1:0] estimated_bits [numChannels-1:0],
+	output logic [delay_width+width_width-1:0] estimated_bits_delay
+
 );
 
+// synthesis translate_off
+assign estimated_bits_delay = flat_codes_delay + curs_pos;
+// synthesis translate_on
 localparam productBitwidth   = codeBitwidth + weightBitwidth;
 localparam sumBitwidth	 = $clog2(ffeDepth) + productBitwidth;
 localparam idx = t0_buff * numChannels;

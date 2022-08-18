@@ -22,6 +22,7 @@ module prbs_checker #(
 
     // recovered data from ADC, FFE, MLSD, etc.
     input wire logic [(n_channels-1):0] rx_bits,
+    input wire logic [7:0] rx_bits_delay,
 
     // checker mode:
     // 2'b00: RESET
@@ -33,8 +34,11 @@ module prbs_checker #(
     // outputs
     output wire logic [63:0] err_bits,
     output wire logic [63:0] total_bits,
-    output wire logic [n_channels-1:0] prbs_flags
+    output wire logic [n_channels-1:0] prbs_flags,
+    output wire logic [7:0] prbs_flags_delay
 );
+
+    assign prbs_flags_delay = rx_bits_delay + 32;
     // TODO: consider using enum here
     localparam logic [1:0]  RESET = 2'b00;
     localparam logic [1:0]  ALIGN = 2'b01;

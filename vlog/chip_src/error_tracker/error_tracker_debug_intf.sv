@@ -12,11 +12,13 @@ interface error_tracker_debug_intf #(
 	logic enable;
 
 	logic [31:0] output_data_frame[4:0];
+	logic [1:0] mode;
 
 	modport tracker (
 		input addr,
 		input read,
 		input enable,
+		input mode,
 		output output_data_frame,
 		output number_stored_frames
 	);
@@ -25,6 +27,7 @@ interface error_tracker_debug_intf #(
 	 output addr,
 	 output read,
 	 output enable,
+	 output mode,
 	 input output_data_frame,
 	 input number_stored_frames
 	);

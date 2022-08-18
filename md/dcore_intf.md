@@ -44,12 +44,18 @@
 | bypass_trig				 | 		   |     					|				   | Test		  | out 	 |   1		 |
 | ffe_shift                  |         | 4:0                    | Nti-1:0          | Test         | out      |   0       |
 | channel_shift              |         | 3:0                    | Nti-1:0          | Test         | out      |   0       |
-| align_pos					 |  	   | 3:0					| 				   | Test 		  | out 	 |   0 		 |
+| align_pos		             |         | 3:0			        | 		           | Test 	      | out      |   0 	     |
+| load_init_weights          |         |                        |                  | Test         | out      |   1       |
+| use_init_weights           |         |                        |                  | Test         | out      |   1       |
+| adapt_gain                 |         | 5:0                    |                  | Test         | out      |   0       |
+| target_level               |         | 9:0                    |                  | Test         | out      |   'd150   |
 | cmp_thresh                 |   yes   | 9:0                    | Nti-1:0          | Test         | out      |   0       |
 | disable_product            |         | Nti-1:0                | 9:0              | Test         | out      |   0       |
 | ffe_thresh                 |   yes   | 9:0                    | Nti-1:0          | Test         | out      |   0       |
 | adc_thresh                 |   yes   | 7:0                    | Nti-1:0          | Test         | out      |   0       |
 | sel_prbs_mux               |         | 1:0                    |                  | System       | out      |   0       |
+| sel_trig_prbs_mux          |         | 1:0                    |                  | System       | out      |   0       |
+| sel_prbs_bits              |         |                        |                  | System       | out      |   0       |
 | en_cgra_clk                |         |                        |                  | Test         | out      |   0       |
 | pfd_cal_ext_ave            | yes     | Nadc-1:0               |                  | Test         | out      |   0       |
 | pfd_cal_flip_feedback      |         |                        |                  | Test         | out      |   0       |

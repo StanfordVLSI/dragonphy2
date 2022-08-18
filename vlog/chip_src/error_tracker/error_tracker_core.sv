@@ -1,20 +1,22 @@
 module error_tracker_core #(
 	parameter integer width=16,
 	parameter integer error_bitwidth=8,
-	parameter integer addrwidth= 12
+	parameter integer addrwidth= 12,
+	parameter integer flag_width=2
 )(
 	input logic trigger,
 	
 	input logic signed [error_bitwidth-1:0] errors [width*3-1:0],
 	input logic [width*3-1:0] prbs_flags,
 	input logic [width*3-1:0] bitstream,
-	input logic [1:0] sd_flags [width*3-1:0],
+	input logic [flag_width-1:0] sd_flags [width*3-1:0],
 
 	input logic clk,
 	input logic rstb,
 
 	error_tracker_debug_intf.tracker errt_dbg_intf_i
 );
+
 
 	localparam [addrwidth-1:0] max_addr = {addrwidth{1'b1}};
 	localparam halfwidth = 8;// width >> 1;
@@ -55,11 +57,21 @@ module error_tracker_core #(
 				assign next_data_frames[gi][(gj+1)*error_bitwidth-1:gj*error_bitwidth] = $unsigned(errors[gj + width*gi]);
 			end
 		end
-		//Concatenate and store the PRBS flags, the bistream and the sliding detector outputs
-		assign next_data_frames[3][width*3-1:0] 	     = prbs_flags;
-		assign next_data_frames[3][width*6-1:width*3] = bitstream;
-		for(gi = 0; gi < width + halfwidth ; gi = gi + 1 ) begin
-			assign next_data_frames[3][width*6 + (gi+1) * 2 - 1: width*6 + gi*2] = sd_flags[gi + halfwidth];
+
+		if(flag_width == 2) begin
+			//Concatenate and store the PRBS flags, the bistream and the sliding detector outputs
+			assign next_data_frames[3][width*3-1:0] 	  = prbs_flags;
+			assign next_data_frames[3][width*6-1:width*3] = bitstream ;
+			for(gi = 0; gi < width + halfwidth ; gi = gi + 1 ) begin
+				assign next_data_frames[3][width*6 + (gi+1) * 2 - 1: width*6 + gi*2] = sd_flags[gi + halfwidth];
+			end
+		end else if(flag_width== 3) begin
+			//Concatenate and store the PRBS flags, the bistream and the sliding detector outputs
+			assign next_data_frames[3][width+halfwidth-1:0] 	  = prbs_flags[width*2+halfwidth/2-1:width-halfwidth/2];
+			assign next_data_frames[3][width*3-1:width+halfwidth] = bitstream [width*2+halfwidth/2-1:width-halfwidth/2];
+			for(gi = 0; gi < width + halfwidth ; gi = gi + 1 ) begin
+				assign next_data_frames[3][width*3 + (gi+1) * 3 - 1: width*3 + gi*3] = sd_flags[gi + halfwidth];
+			end
 		end
 	endgenerate
 

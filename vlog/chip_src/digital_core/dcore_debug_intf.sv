@@ -56,10 +56,17 @@ interface dcore_debug_intf import const_pack::*; (
     	logic signed [Nadc-1:0] adc_thresh [constant_gpack::channel_width-1:0];
 		logic signed [ffe_gpack::output_precision-1:0] ffe_thresh [constant_gpack::channel_width-1:0];
 		logic [1:0] sel_prbs_mux;
+		logic [1:0] sel_trig_prbs_mux;
+		logic sel_prbs_bits;
+
         logic en_cgra_clk;
         logic pfd_cal_flip_feedback;
         logic en_pfd_cal_ext_ave;
-        logic align_pos;
+        logic [$clog2(constant_gpack::channel_width)-1:0] align_pos;
+        logic load_init_weights;
+        logic use_init_weights;
+        logic [5:0] adapt_gain;
+        logic [9:0] target_level;
         logic signed [Nadc-1:0] pfd_cal_ext_ave;
         logic en_int_dump_start;
         logic int_dump_start;
@@ -115,11 +122,17 @@ interface dcore_debug_intf import const_pack::*; (
 		input adc_thresh,
 		input ffe_thresh,
 		input sel_prbs_mux,
+		input sel_trig_prbs_mux,
+		input sel_prbs_bits,
         input en_cgra_clk,
         input pfd_cal_flip_feedback,
         input en_pfd_cal_ext_ave,
         input pfd_cal_ext_ave,
         input align_pos,
+        input load_init_weights,
+        input use_init_weights,
+        input adapt_gain,
+        input target_level,
 
         input en_int_dump_start,
         input int_dump_start,
@@ -184,6 +197,8 @@ interface dcore_debug_intf import const_pack::*; (
 		output adc_thresh,
 		output ffe_thresh,
 		output sel_prbs_mux,
+		output sel_trig_prbs_mux,
+		output sel_prbs_bits,
         output en_cgra_clk,
         output pfd_cal_flip_feedback,
         output en_pfd_cal_ext_ave,
@@ -198,6 +213,10 @@ interface dcore_debug_intf import const_pack::*; (
         output tx_bypass_pi_ctl,
         output tx_rst,
         output tx_ctl_valid,
+        output load_init_weights,
+        output use_init_weights,
+        output adapt_gain,
+        output target_level,
 
 		input adcout_avg ,
 		input adcout_sum,

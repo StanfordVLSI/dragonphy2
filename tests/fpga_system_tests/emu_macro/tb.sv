@@ -50,8 +50,11 @@ module tb;
     ////////////////
 	// Top module //
 	////////////////
+    logic inp_sel;
 
     logic [(Nti-1):0] data_rx_i;
+    logic [(Nti-1):0] puls_out;
+    logic [(Nti-1):0] prbs_out;
 
 	(* dont_touch = "true" *) dragonphy_top top_i (
 	    // analog inputs
@@ -110,9 +113,27 @@ module tb;
     assign prbs_init_vals[14] = 32'h07ff5566;
     assign prbs_init_vals[15] = 32'h7f8afccf;
 
+    localparam integer pulse_width_period = 200;
+
+    logic [pulse_width_period-1:0] puls_count;
+    always_ff @(posedge emu_clk or negedge rstb) begin
+        if(~rstb) begin
+            puls_count <= 1;
+        end else begin
+            puls_count <= {puls_count[0], puls_count[pulse_width_period-1:1]};
+        end
+    end
+
     genvar i;
     generate
         for(i=0; i<Nti; i=i+1) begin
+            if (i != 10) begin    
+                assign puls_out[i]  = 0;
+            end else begin
+                assign puls_out[i]  = |puls_count[63:58];
+            end
+            assign data_rx_i[i] = prbs_out[i];
+
             prbs_generator_syn #(
                 .n_prbs(32)
             ) prbs_generator_syn_i (
@@ -123,8 +144,11 @@ module tb;
                 .eqn(prbs_eqn),
                 .inj_err(1'b0),
                 .inv_chicken(2'b00),
-                .out(data_rx_i[i])
+                .out(prbs_out[i])
+                //.out(data_rx_i[i])
             );
         end
     endgenerate
+
+
 endmodule

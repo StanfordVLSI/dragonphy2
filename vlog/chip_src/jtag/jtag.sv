@@ -193,7 +193,13 @@ module jtag (
 	assign ddbg_intf_i.ffe_thresh		= rjtag_intf_i.ffe_thresh;
 	assign ddbg_intf_i.adc_thresh		= rjtag_intf_i.adc_thresh;
 	assign ddbg_intf_i.sel_prbs_mux		= rjtag_intf_i.sel_prbs_mux;
+	assign ddbg_intf_i.sel_trig_prbs_mux		= rjtag_intf_i.sel_trig_prbs_mux;
+	assign ddbg_intf_i.sel_prbs_bits 	= rjtag_intf_i.sel_prbs_bits;
 	assign ddbg_intf_i.align_pos 		= rjtag_intf_i.align_pos;
+	assign ddbg_intf_i.load_init_weights = rjtag_intf_i.load_init_weights;
+	assign ddbg_intf_i.use_init_weights  = rjtag_intf_i.use_init_weights;
+	assign ddbg_intf_i.target_level      = rjtag_intf_i.target_level;
+	assign ddbg_intf_i.adapt_gain        = rjtag_intf_i.adapt_gain;
 
     assign ddbg_intf_i.en_cgra_clk = rjtag_intf_i.en_cgra_clk;
 
@@ -230,8 +236,10 @@ module jtag (
 	assign edbg_intf_i.addr   = rjtag_intf_i.addr_errt;
 	assign edbg_intf_i.read   = rjtag_intf_i.read_errt;
 	assign edbg_intf_i.enable = rjtag_intf_i.enable_errt;
+	assign edbg_intf_i.mode   = rjtag_intf_i.mode_errt;
 	//Error Tracker Output
 	assign rjtag_intf_i.output_data_frame_errt = edbg_intf_i.output_data_frame;
+	assign rjtag_intf_i.number_stored_frames_errt = edbg_intf_i.number_stored_frames;
 
 	//SRAM Input
 	assign sdbg1_intf_i.in_addr = rjtag_intf_i.in_addr_multi;

@@ -52,6 +52,9 @@ def pytest_addoption(parser):
     parser.addoption(
         '--chan_delay', default=31.25e-12, type=float, help='Delay of channel used in emulation (seconds).'
     )
+    parser.addoption(
+        '--channel_number', default=0, type=int, help='Which Channel Model to use in emulation.'
+    )
 
 @pytest.fixture
 def dump_waveforms(request):
@@ -104,3 +107,7 @@ def chan_tau(request):
 @pytest.fixture
 def chan_delay(request):
     return request.config.getoption('--chan_delay')
+
+@pytest.fixture
+def channel_number(request):
+    return request.config.getoption('--channel_number')

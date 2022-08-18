@@ -3,14 +3,21 @@ module channel_filter #(
     parameter integer depth        = 30,
     parameter integer est_channel_bitwidth = 8,
     parameter integer est_code_bitwidth    = 8,
-    parameter integer shift_bitwidth = 2
+    parameter integer shift_bitwidth = 2,
+    parameter integer delay_width=4,
+    parameter integer width_width=4
 ) (
     input logic bitstream [(depth-1)+width-1:0],
+    input logic [delay_width+width_width-1:0] bitstream_delay,
     
     input logic signed [est_channel_bitwidth-1:0] channel [width-1:0][depth-1:0],
     input logic [shift_bitwidth-1:0] shift[width-1:0],
-    output logic signed [est_code_bitwidth-1:0] est_code [width-1:0]
+
+    output logic signed [est_code_bitwidth-1:0] est_code [width-1:0],
+    output logic [delay_width+width_width-1:0] est_code_delay
 );
+
+    assign est_code_delay = bitstream_delay;
 
     localparam idx = depth - 1;
 

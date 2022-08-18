@@ -4,11 +4,21 @@ import json
 import re
 import yaml
 import numpy as np
+from datetime import datetime
+from tqdm import tqdm
+
 from pathlib import Path
 from math import exp, ceil, log2
+from scipy import linalg
+
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+
+from scipy.interpolate import interp1d
+
 
 from svreal import (RealType, DEF_HARD_FLOAT_WIDTH,
-                    get_hard_float_sources, get_hard_float_headers)
+                    get_hard_float_sources, get_hard_float_headers, real2fixed)
 from msdsl.function import PlaceholderFunction
 from anasymod.analysis import Analysis
 
@@ -17,6 +27,45 @@ from dragonphy.git_util import get_git_hash_short
 
 THIS_DIR = Path(__file__).resolve().parent
 CFG = yaml.load(open(get_file('config/fpga/analog_slice_cfg.yml'), 'r'))
+
+real_channels = ["Case4_FM_13SI_20_T_D13_L6.s4p", 
+ "peters_01_0605_B12_thru.s4p", 
+ "peters_01_0605_B1_thru.s4p",
+ "peters_01_0605_T20_thru.s4p",
+ "TEC_Whisper42p8in_Meg6_THRU_C8C9.s4p",
+ "TEC_Whisper42p8in_Nelco6_THRU_C8C9.s4p",]
+
+def get_real_channel_step(s4p_file, f_sig=16e9, mm_lock_pos=2e-12, numel=2048, domain=[0, 4e-9]):
+    file_name = str(get_file(f'data/channel_sparam/{s4p_file}'))
+
+    step_size = domain[1]/(numel-1)
+
+    t, imp = s4p_to_impulse(str(file_name), step_size/100.0, 10*domain[1],  zs=50, zl=50)
+
+    cur_pos = np.argmax(imp)
+
+    t_delay = -t[cur_pos] + 2*1/f_sig + mm_lock_pos
+
+    t2, step = s4p_to_step(str(file_name), step_size, 10*domain[1], zs=50, zl=50)
+
+    interp = interp1d(t2, step, bounds_error=False, fill_value=(step[0], step[-1]))
+    
+    t_step = np.linspace(0, domain[1], numel) - t_delay
+    v_step = interp(t_step)
+
+    return v_step
+
+def get_real_channel_pulse(s4p_file, f_sig=16e9, mm_lock_pos=2e-12, numel=2048, domain=[0,4e-9]):
+    file_name = str(get_file(f'data/channel_sparam/{s4p_file}'))
+    
+    step_size = domain[1]/(numel-1)
+    t, imp = s4p_to_impulse(str(file_name), step_size/100.0, 10*domain[1],  zs=50, zl=50)
+    cur_pos = np.argmax(imp)
+    t_delay = -t[cur_pos] + 2*1/f_sig + mm_lock_pos
+
+    t, pulse = Channel(channel_type='s4p', sampl_rate=10e12, resp_depth=200000, s4p=file_name, zs=50, zl=50).get_pulse_resp(f_sig=f_sig, resp_depth=35, t_delay=t_delay)
+
+    return pulse
 
 def test_1(board_name, emu_clk_freq, fpga_sim_ctrl):
     ########################
@@ -111,7 +160,215 @@ def test_3():
     ana.set_target(target_name='fpga')
     ana.build()
 
-def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
+def test_ffe(channel_number):
+    SYSTEM = yaml.load(open(get_file('config/system.yml'), 'r'), Loader=yaml.FullLoader)
+    ffe_length = SYSTEM['generic']['ffe']['parameters']['length'] 
+    #channel 4 before
+    chan_func_values = get_real_channel_step(real_channels[channel_number], domain=CFG['func_domain'], numel=CFG['func_numel'])
+    pulse            = get_real_channel_pulse(real_channels[channel_number], domain=CFG['func_domain'], numel=CFG['func_numel'])
+    chan_func_values = chan_func_values.clip(0)
+    pulse = pulse / 0.3 * 128
+
+    retval = []
+    retval.append(chan_func_values[:])
+    retval.append(np.concatenate((np.diff(chan_func_values), [0])))
+
+    retval_2 = []
+    for k in range(2):
+        retval_2.append([
+            real2fixed(
+                coeff,
+                exp=-16, 
+                width=18, 
+                treat_as_unsigned=True
+            ) for coeff in retval[k]
+        ])
+
+    arr = np.array(retval_2[1])
+
+    retval_2[1] = list(np.where(arr > 65336, 0, arr))
+    print(retval_2[0])
+    with open('chan_vals_0.txt', 'w') as f1:
+            with open('chan_vals_1.txt', 'w') as f2:
+                print("\n".join([f'{a},' for a in retval_2[0]]), file=f1)
+                print("\n".join([f'{b},' for b in retval_2[1]]), file=f2)
+
+
+    coeffs_bin = retval_2
+    #coeffs_bin = coeffs_bin_old
+
+    pulse_width = 62.5e-12;
+    idx_pw      = int(62.5e-12 *  2048 / 4e-9)
+
+    pulse_bin = -(np.array(coeffs_bin[0][:-idx_pw:idx_pw]) - np.array(coeffs_bin[0][idx_pw::idx_pw])) / 2**16 * 128 / 0.3
+    plt.stem(pulse_bin)
+    plt.plot(pulse)
+    plt.show()
+
+    chan_mat = linalg.convolution_matrix(pulse, ffe_length)
+
+    fig, axes = plt.subplots(ffe_length,1)
+
+    best_err = -1;
+    best_zf_taps = 0
+    for ii in range(1,ffe_length-1):
+        imp = np.zeros((len(pulse) + ffe_length - 1, 1))
+        imp[ii] = 2**15
+
+        zf_taps = np.reshape(np.linalg.pinv(chan_mat) @ imp, (ffe_length,))
+
+        new_eql_pulse = np.convolve(zf_taps, pulse)
+        new_eql_pulse[ii] = 0
+
+        err = np.sum(np.square(new_eql_pulse))
+        axes[ii].plot(np.square(new_eql_pulse))
+
+        print(err)
+        if (err < best_err) or (best_err < 0):
+            best_ii = ii
+            best_zf_taps = zf_taps
+            best_err = err
+    plt.show()
+    plt.plot(best_zf_taps)
+    plt.show()
+
+    best_eql_pulse = np.convolve(best_zf_taps, pulse)
+
+
+    align_pos = np.argmax(best_eql_pulse)
+    print(best_ii, align_pos, best_err)
+
+    plt.plot(best_eql_pulse)
+    plt.show()
+    best_zf_taps = best_zf_taps/2
+    while np.max(np.abs(best_zf_taps)) > 255:
+        best_zf_taps = best_zf_taps/2
+    print(best_zf_taps)
+
+    best_eql_pulse = np.convolve(best_zf_taps, pulse)
+
+    shift = np.ceil(log2(np.sum(np.abs(best_eql_pulse)))) - 9
+    print(shift, np.ceil(log2(np.sum(np.abs(best_eql_pulse)))))
+    with open('ffe_vals.txt', 'w') as f:
+        print("\n".join([str(int(tap)) for tap in [shift, align_pos] + list(best_zf_taps)]), file=f)
+    out_pulse = [int(tap) for tap in pulse]/np.sum([int(tap) for tap in pulse]) * 109
+    print(out_pulse)
+
+    with open('chan_est_vals.txt', 'w') as f:
+        print("\n".join([str(int(round(tap))) for tap in list(out_pulse)]), file=f)
+
+    #print([int(round(pul)) for pul in list(pulse[::-1]*127)])
+def test_adapt():
+    SYSTEM = yaml.load(open(get_file('config/system.yml'), 'r'), Loader=yaml.FullLoader)
+    ffe_length = SYSTEM['generic']['ffe']['parameters']['length']
+
+    est_b = 0
+    est_e = 0
+
+    x_vec = np.zeros((20,))
+    sub_x_vec = np.zeros((10,))
+    est_b_vec = np.zeros((10,))
+    est_e_vec = np.zeros((10,))
+  
+    dg_vec = []
+    g_vec = []
+
+    #fig1 = plt.figure()
+    #ax1 = fig1.add_subplot(211)
+    #ax2 = fig1.add_subplot(212)
+    #line1, = ax1.plot(sub_x_vec)
+    #line2, = ax2.plot(est_b_vec)
+
+    #zfig2 = plt.figure()
+    #ax_3d = plt.axes(projection='3d')
+
+    z_d = np.zeros((10,10))
+
+    f_lines = []
+    with open('adapt_data.txt', 'r') as f:
+        f_lines = f.readlines()
+
+    for line in f_lines:
+        tokens = line.strip().split(',')[:-1]
+        est_b = int(tokens[0])
+        est_e = int(tokens[1])
+        x_vec = np.array([int(tok) for tok in tokens[2:]])
+        sub_x_vec[:] = x_vec[10-5:20-5]
+        est_b_vec[1:] = est_b_vec[0:9]
+        est_b_vec[0] = est_b
+
+        est_e_vec[1:] = est_e_vec[0:9]
+        est_e_vec[0] = est_e
+
+        z_d[1:,:] = z_d[0:9,:]
+        for ii in range(10):
+            z_d[0, ii] = z_d[1, ii] + est_e_vec[0] * x_vec[ii+11 - 3]
+        print(z_d)
+        print(est_e * x_vec[10 - 5:20-5])
+        print(x_vec)
+        print(est_b_vec)
+        print(est_e_vec)
+
+        #line1.set_ydata(sub_x_vec)
+        #ax1.set_ylim([-110, 110])
+        #line2.set_ydata(est_e_vec)
+        #ax2.set_ylim([-20, 20])
+#
+        #line3.set_ydata(z_d.flatten())
+#
+        #fig1.canvas.draw()
+        #fig1.canvas.flush_events()
+        #fig2.canvas.draw()
+        #fig2.canvas.flush_events()
+        #plt.pause(0.5)
+
+def test_adapt_mem():
+    SYSTEM = yaml.load(open(get_file('config/system.yml'), 'r'), Loader=yaml.FullLoader)
+    ffe_length = SYSTEM['generic']['ffe']['parameters']['length']
+
+    x_vec = np.zeros((20,))
+    est_b_vec = np.zeros((10,))
+
+    def signed(val, n_bits):
+        return val - 256 if val > 2**(n_bits-1) -1 else val
+
+    def slice(val):
+        return 1 if val > 0 else -1
+
+    vals = None
+    with open('mem.txt', 'r') as f:
+        vals = [int(line) for line in f]
+
+    ffe_vals = None
+    with open('mem_ffe.txt', 'r') as f:
+        ffe_vals = [int(line) for line in f]
+
+    z_d = np.zeros((30,10))
+
+
+    for ii in range(len(vals)-16):
+        x_vec[1:] = x_vec[0:19]
+        x_vec[0]  = signed(vals[ii], 8)
+        #print(x_vec[0], vals[ii])
+        est_b_vec[1:] = est_b_vec[0:9]
+        est_b_vec[0] = signed(ffe_vals[ii+16], 8)
+
+        est_e = 40*slice(est_b_vec[0]) - est_b_vec[0]
+
+        z_d[1:,:] = z_d[0:29,:]
+
+        for ii in range(10):
+            z_d[0, ii] = z_d[1, ii] + est_e * x_vec[ii+11 - 3]
+
+        print(z_d)
+        print(est_e * x_vec[10 - 5:20-5])
+        print(x_vec)
+        print(est_e, est_b_vec)
+
+
+
+
+def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_number, run_adapt_ffe=False):
     # read ffe_length
     SYSTEM = yaml.load(open(get_file('config/system.yml'), 'r'), Loader=yaml.FullLoader)
     ffe_length = SYSTEM['generic']['ffe']['parameters']['length']
@@ -156,6 +413,23 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
     ser = ctrl.ctrl_handler
 
     # functions
+    def load_ffe_vals():
+        ffe_vals = []
+        with open("ffe_vals.txt", "r") as f:
+            for line in f:
+                ffe_vals += [int(line.strip().split(',')[0])]
+
+
+
+        return ffe_vals[0], ffe_vals[1], ffe_vals[2:]
+
+    def load_chan_vals():
+        chan_est_vals = []
+        with open("chan_est_vals.txt", "r") as f:
+            for line in f:
+                chan_est_vals += [int(line.strip().split(',')[0])]
+
+        return chan_est_vals
     def do_reset():
         ser.write('RESET\n'.encode('utf-8'))
 
@@ -263,6 +537,30 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
         write_tc_reg('wme_ffe_exec', 1)
         write_tc_reg('wme_ffe_exec', 0)
 
+    def load_channel_estimate(
+            d_idx, # clog2(ffe_length)
+            w_idx, # 4 bits
+            value, # 10 bits
+    ):
+        print(f'Loading weight d_idx={d_idx}, w_idx={w_idx} with value {value}')
+
+        # determine number of bits for d_idx
+        d_idx_bits = int(ceil(log2(30)))
+
+        # write wme_ffe_inst
+        wme_chan_inst = 0
+        wme_chan_inst |= d_idx & ((1<<d_idx_bits)-1)
+        wme_chan_inst |= (w_idx & 0b1111) << d_idx_bits
+        write_tc_reg('wme_chan_inst', wme_chan_inst)
+
+        # write wme_ffe_data
+        wme_chan_data = value & 0b11111111
+        write_tc_reg('wme_chan_data', wme_chan_data)
+
+        # pulse wme_ffe_exec
+        write_tc_reg('wme_chan_exec', 1)
+        write_tc_reg('wme_chan_exec', 0)
+
     def update_chan(coeff_tuples, offset=0):
         # put together the command
         args = ['UPDATE_CHAN', offset, len(coeff_tuples)]
@@ -274,7 +572,116 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
         # stall until confirmation is received
         assert ser.readline().decode('utf-8').strip() == 'OK', 'Serial error'
 
-    # Initialize
+    def read_memory(filename=None):
+        data = []
+        for ii in range(1024):
+            write_tc_reg('in_addr_multi', ii)
+            for jj in range(16):
+                data += [read_sc_reg(f'out_data_multi[{jj}]')]
+            print(ii)
+
+
+        if filename:
+            with open(filename, 'w') as f:
+                for datum in data:
+                    print(f'{datum}' ,file=f)
+
+        return data
+
+    def read_memory_ffe(filename=None):
+        data = []
+        for ii in range(1024):
+            write_tc_reg('in_addr_multi_ffe', ii)
+            for jj in range(16):
+                data += [read_sc_reg(f'out_data_multi_ffe[{jj}]')]
+            print(ii)
+
+        if filename:
+            with open(filename, 'w') as f:
+                for datum in data:
+                    print(f'{datum}' ,file=f)
+
+        return data
+
+    def enable_error_tracker():
+        write_tc_reg('enable_errt', 1)
+    def disable_error_tracker():
+        write_tc_reg('enable_errt', 0)
+
+
+
+    def read_error_tracker(num_of_errors=100):
+        def signed(value):
+            return value - 512 if ((value >> 8) & 1) == 1 else value
+
+        depth = num_of_errors * 4
+        write_tc_reg('read_errt', 1)
+  
+        codes = np.zeros((num_of_errors, 48))
+        bits  = np.zeros((num_of_errors, 48))
+        ed_flags = np.zeros((num_of_errors, 24))
+        pb_flags = np.zeros((num_of_errors, 48))
+
+        data = {}
+        for ii in tqdm(range(depth)):
+            write_tc_reg('addr_errt', ii)
+
+            idx = ii % 4
+            data_set = 0
+
+            if idx < 3:
+                for jj in range(5):
+                    datum = int(read_sc_reg(f'output_data_frame_errt[{jj}]'))
+                    data_set = data_set + (datum << (32 * jj))
+                
+                codes[int(ii/4), idx * 16:(idx+1) * 16] = [ signed(data_set >> (9 * jj) & 0b111111111) for jj in range(16)]
+            else:
+                for jj in range(5):
+                    datum = int(read_sc_reg(f'output_data_frame_errt[{jj}]'))
+                    data_set = data_set + (datum << (32 * jj))
+                
+                pb_flags[int(ii/4), :] = [data_set >> jj          & 0b1  for jj in range(48)]
+                bits[int(ii/4), :]     = [data_set >> (jj + 48)   & 0b1  for jj in range(48)]
+                ed_flags[int(ii/4), :] = [data_set >> (2*jj + 96) & 0b11 for jj in range(24)]
+
+        write_tc_reg('read_errt', 0)
+
+        data['codes'] = codes
+        data['pb_flags'] = pb_flags
+        data['bits'] = bits
+        data['ed_flags'] = ed_flags
+
+        return data
+
+    def adapt_ffe_coeffs(mem, mem_ffe):
+
+        def slice(val):
+            return -1 if val < 0 else 1
+
+        def signed(val, n_bits=8):
+            return 256-val if val > 2**(n_bits-1)-1 else val 
+
+        x_vec = np.zeros((20,))
+        g_vec = np.zeros((10,))
+        est_e = 0
+        est_b = 0
+        for ii in range(len(mem)-16):
+            x_vec[1:] = x_vec[0:19]
+            x_vec[0]  = signed(mem[ii])
+
+            est_b = signed(mem_ffe[ii+16])
+            est_e = 40*slice(est_b) - est_b
+
+            for jj in range(10):
+                g_vec[jj] = g_vec[jj] + est_e * x_vec[jj + 11 - 3];
+                print(est_e * x_vec[jj + 11 - 3])
+            print(g_vec)
+        return g_vec / 2.0**20
+
+
+
+
+    # Initialize 
     set_sleep(1)
     do_init()
 
@@ -297,11 +704,40 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
     set_noise_rms(int(round(noise_rms*1e4)))
 
     # Configure step response function
-    placeholder = PlaceholderFunction(domain=CFG['func_domain'], order=CFG['func_order'],
-                                      numel=CFG['func_numel'], coeff_widths=CFG['func_widths'],
-                                      coeff_exps=CFG['func_exps'], real_type=get_dragonphy_real_type())
-    chan_func = lambda t_vec: (1-np.exp(-(t_vec-chan_delay)/chan_tau))*np.heaviside(t_vec-chan_delay, 0)
-    coeffs_bin = placeholder.get_coeffs_bin_fmt(chan_func)
+    #placeholder = PlaceholderFunction(domain=CFG['func_domain'], order=CFG['func_order'],
+    #                                  numel=CFG['func_numel'], coeff_widths=CFG['func_widths'],
+    #                                  coeff_exps=CFG['func_exps'], real_type=get_dragonphy_real_type())
+    #chan_func = lambda t_vec: (1-np.exp(-(t_vec-chan_delay)/chan_tau))*np.heaviside(t_vec-chan_delay, 0)
+    #coeffs_bin_old = placeholder.get_coeffs_bin_fmt(chan_func)
+
+    chan_func_values = get_real_channel_step(real_channels[channel_number], domain=CFG['func_domain'], numel=CFG['func_numel'])
+    pulse            = get_real_channel_pulse(real_channels[channel_number], domain=CFG['func_domain'], numel=CFG['func_numel'])
+    chan_func_values = chan_func_values.clip(0)
+    def convert_to_pwl(values):
+        retval = []
+        retval.append(values[:])
+        retval.append(np.concatenate((np.diff(values), [0])))
+    
+        retval_2 = []
+        for k in range(2):
+            retval_2.append([
+                real2fixed(
+                    coeff,
+                    exp=-16, 
+                    width=18, 
+                    treat_as_unsigned=True
+                ) for coeff in retval[k]
+            ])
+        arr = np.array(retval_2[1])
+        retval_2[1] = list(np.where(arr > 65336, 0, arr))
+        return retval_2
+
+
+    coeffs_bin = convert_to_pwl(chan_func_values)
+    ffe_shift, align_pos, zf_taps = load_ffe_vals()
+    print(ffe_shift, align_pos, zf_taps)
+    chan_taps = load_chan_vals()
+    print(zf_taps)
     coeff_tuples = list(zip(*coeffs_bin))
     chunk_size = 32 
     for k in range(len(coeff_tuples)//chunk_size):
@@ -313,6 +749,7 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
     write_tc_reg('int_rstb', 1)
     write_tc_reg('en_inbuf', 1)
     write_tc_reg('en_gf', 1)
+    write_tc_reg('mode_errt', 0)
     write_tc_reg('en_v2t', 1)
 
     # read the ID
@@ -333,25 +770,36 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
     # Configure PRBS checker
     print('Configure the PRBS checker')
     write_sc_reg('sel_prbs_mux', 1) # "0" is ADC, "1" is FFE, "3" is BIST
+    write_sc_reg('sel_trig_prbs_mux', 2) # "0" is ADC, "1" is FFE, "3" is BIST
+    write_sc_reg('sel_prbs_bits', 0); # trig prbs
 
     # Release the PRBS checker from reset
     print('Release the PRBS checker from reset')
     write_sc_reg('prbs_rstb', 1)
 
     # Set up the FFE
-    dt=1.0/(16.0e9)
-    coeff0 = 64.0/(1.0-exp(-dt/chan_tau))
-    coeff1 = -64.0*exp(-dt/chan_tau)/(1.0-exp(-dt/chan_tau))
+    #dt=1.0/(16.0e9)
+    #coeff0 = 32.0/(1.0-exp(-dt/chan_tau))
+    #coeff1 = -32.0*exp(-dt/chan_tau)/(1.0-exp(-dt/chan_tau))
+    #print(coeff0, coeff1)
+    #print(zf_taps[0], zf_taps[1])
+    #zf_taps = [coeff0, coeff1, 0,0,0,0,0,0,0,0]
+
     for loop_var in range(16):
         for loop_var2 in range(ffe_length):
-            if (loop_var2 == 0):
-                # The argument order for load() is depth, width, value
-                load_weight(loop_var2, loop_var, int(round(coeff0)))
-            elif (loop_var2 == 1):
-                load_weight(loop_var2, loop_var, int(round(coeff1)))
-            else:
-                load_weight(loop_var2, loop_var, 0)
-        write_tc_reg(f'ffe_shift[{loop_var}]', 7)
+            load_weight(loop_var2, loop_var, int(round(zf_taps[loop_var2])))
+        write_tc_reg(f'ffe_shift[{loop_var}]', ffe_shift)
+        for loop_var2 in range(30):
+            load_channel_estimate(loop_var2, loop_var, chan_taps[loop_var2])
+    #write_tc_reg('align_pos', 8)
+    write_tc_reg('align_pos', align_pos)
+
+
+    #for loop_var in range(16):
+    #    for loop_var2 in range(19):
+    #        load_channel_estimate(loop_var2, loop_var, int(round(act_pulse[loop_var2])))
+#        for loop_var2 in range(30):
+#            load_channel_estimate(loop_var2, loop_var, int(round(pulse[loop_var2]*127)))
 
     # Configure the CDR offsets
     print('Configure the CDR offsets')
@@ -371,11 +819,12 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
     # Configure the CDR
     print('Configuring the CDR...')
     write_tc_reg('cdr_rstb', 0)
-    write_tc_reg('Kp', 18)
-    write_tc_reg('Ki', 0)
+    write_tc_reg('Kp', 9)
+    write_tc_reg('Ki', 1)
     write_tc_reg('invert', 1)
-    write_tc_reg('en_freq_est', 0)
+    write_tc_reg('en_freq_est', 1)
     write_tc_reg('en_ext_pi_ctl', 0)
+    write_tc_reg('ext_pi_ctl', 81)
     write_tc_reg('sel_inp_mux', 1) # "0": use ADC output, "1": use FFE output
 
     # Re-initialize ordering
@@ -388,7 +837,11 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
     # (i.e., seems that it must be set to zero while configuring CDR parameters
     print('Wait for the CDR to lock')
     write_tc_reg('cdr_rstb', 1)
-    time.sleep(1.0)
+    time.sleep(5.0)
+
+    #write_tc_reg('en_int_dump_start', 1)
+    #write_tc_reg('int_dump_start', 0)
+    #write_tc_reg('int_dump_start', 1)
 
     # Run PRBS test.  In order to get a conservative estimate for the throughput, the
     # test duration includes the time it takes to send JTAG commands to start and stop
@@ -400,7 +853,58 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
     print('Run PRBS test')
     t_start = time.time()
     write_sc_reg('prbs_checker_mode', 2)
-    time.sleep(prbs_test_dur)
+    time.sleep(2)
+    
+    enable_error_tracker()
+    disable_error_tracker()
+    total_time_remaining = prbs_test_dur
+    pbar = tqdm(total=1000)
+    now = datetime.now()
+    meas_time = now.strftime("%d%m%Y_%H%M%S")
+    cycle = 1
+    prev_num_of_logged_errors = 0
+    while total_time_remaining > 0:
+        zero_counts = 0
+        update_time = time.time()
+        time.sleep(0.005)
+        num_of_logged_errors = int(read_sc_reg('number_stored_frames_errt')/4)
+        #print(num_of_logged_errors)
+
+        #zero_counts += 1 if num_of_logged_errors == 0 else 0
+        #if zero_counts > 24:
+        #    enable_error_tracker()
+        #    time.sleep(1)
+        #    disable_error_tracker()
+        #    zero_counts = 0
+        #    print('Restarting Error Tracker')
+
+        #print(num_of_logged_errors)
+        if num_of_logged_errors >= 2:
+            zero_counts = 0
+            update_time = (time.time() - update_time)
+            print(f'Error Tracker reached {num_of_logged_errors} - Reading Out')
+            e_tracker = read_error_tracker(num_of_errors=num_of_logged_errors)
+            with open(f'error_tracker_data_{meas_time}_{cycle}.txt', 'w') as f_wf:
+                with open(f'error_tracker_data_no_flags_{meas_time}_{cycle}.txt', 'w') as f_nf:
+                    for (codes, pb_flags, bits, ed_flags) in zip(e_tracker['codes'], e_tracker['pb_flags'], e_tracker['bits'], e_tracker['ed_flags']):
+                        fil = f_wf if np.sum(ed_flags) > 0 else f_nf
+                        print(codes, file=fil)
+                        print(pb_flags, file=fil)
+                        print(bits, file=fil)
+                        print(ed_flags, file=fil)
+            enable_error_tracker()
+            time.sleep(1)
+            disable_error_tracker()
+            #print(num_of_logged_errors)
+            cycle += 1
+        else:
+            update_time = (time.time() - update_time)
+        total_time_remaining -= update_time
+        pbar.update(int(num_of_logged_errors-prev_num_of_logged_errors))
+        prev_num_of_logged_errors = num_of_logged_errors
+
+    #time.sleep(prbs_test_dur)
+    #disable_error_tracker()
     write_sc_reg('prbs_checker_mode', 3)
     t_stop = time.time()
 
@@ -423,6 +927,51 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
     print(f'total_bits: {total_bits}')
 
     print(f'BER: {err_bits/total_bits:e}')
+    #t_start = time.time()
+    #num_of_logged_errors = read_sc_reg('number_stored_frames_errt')
+    #print(f'Logged Errors: {num_of_logged_errors}')
+    #e_tracker = read_error_tracker(num_of_errors=num_of_logged_errors if num_of_logged_errors < 1024 else 1024)
+    #t_stop = time.time()
+
+    #print(f'Error Readout Timne: {t_stop - t_start}')
+#
+    #now = datetime.now()
+    #with open(f'error_tracker_data_{now.strftime("%d%m%Y_%H%M%S")}.txt', 'w') as f_wf:
+    #    with open(f'error_tracker_data_no_flags_{now.strftime("%d%m%Y_%H%M%S")}.txt', 'w') as f_nf:
+    #        for (codes, pb_flags, bits, ed_flags) in zip(e_tracker['codes'], e_tracker['pb_flags'], e_tracker['bits'], e_tracker['ed_flags']):
+    #            fil = f_wf if np.sum(ed_flags) > 0 else f_nf
+    #            print(codes, file=fil)
+    #            print(pb_flags, file=fil)
+    #            print(bits, file=fil)
+    #            print(ed_flags, file=fil)
+
+    #    plt.plot(codes)
+    #    plt.plot(pb_flags)
+    #    plt.plot(bits)
+    #    plt.show()
+
+    if run_adapt_ffe:    
+        for jj in range(4):
+            write_tc_reg('int_dump_start', 0)
+            write_tc_reg('int_dump_start', 1)
+            time.sleep(1)
+
+            mem = read_memory(filename='mem.txt')
+            mem_ffe = read_memory_ffe(filename='mem_ffe.txt')
+
+
+            coeff_adj = adapt_ffe_coeffs(mem, mem_ffe)
+            zf_taps = np.array(zf_taps) + np.array(coeff_adj)
+
+            print(coeff_adj)
+            print(zf_taps)
+
+            for loop_var in range(16):
+                for loop_var2 in range(ffe_length):
+                    load_weight(loop_var2, loop_var, int(round(zf_taps[loop_var2])))
+                write_tc_reg(f'ffe_shift[{loop_var}]', ffe_shift)
+
+
 
     # check results
     print('Checking the results...')
@@ -432,3 +981,4 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay):
 
     # finish test
     print('OK!')
+

@@ -29,7 +29,7 @@ void do_init() {
 
    // prbs control
    set_prbs_eqn(0x100002);
-
+   //set_inp_sel(0);
    // step response function
    set_chan_wdata_0(0);
    set_chan_wdata_1(0);
@@ -187,6 +187,7 @@ enum cmd_t {
     SET_NOISE_RMS,
     SET_JITTER_RMS,
     SET_PRBS_EQN,
+    //SET_INP_SEL,
     UPDATE_CHAN
 } cmd;
 
@@ -322,7 +323,10 @@ int main() {
                     } else if (cmd == SET_SLEEP) {
                         sleep_time = arg1;
                         nargs=0;
-                    } else {
+                    } /*else if (cmd == SET_INP_SEL) {
+                        set_inp_sel(arg1);
+                        nargs=0;
+                    } */else {
                         nargs++;
                     }
                 } else if (nargs == 2) {
