@@ -255,7 +255,7 @@ module datapath_core #(
     logic [delay_width+width_width-1:0] stage3_res_errors_out_delay ;
 
     error_checker_datapath  #(
-        .seq_length(5),
+        .seq_length(4),
         .num_of_flip_patterns(5),
         .flip_pattern_depth(4),
         .flip_patterns('{'{1,1,1,1},'{0,1,1,1},'{0,1,0,1},'{0,0,1,1}, '{0,0,1,0}}),
@@ -287,7 +287,7 @@ module datapath_core #(
     );
 
     error_corrector_datapath  #(
-        .seq_length                      (5), 
+        .seq_length                      (4), 
         .num_of_flip_patterns(5),
         .flip_pattern_depth(4),
         .flip_patterns('{'{1,1,1,1},'{0,1,1,1},'{0,1,0,1},'{0,0,1,1}, '{0,0,1,0}}),

@@ -9,7 +9,7 @@ module buffer #(
 	input  logic [delay_width+width_width-1:0] in_delay,
 	input  logic clk,
 	input  logic rstb,
-	output logic [bitwidth-1:0] buffer [numChannels-1:0][depth:0],
+	(*retiming_backward = 1 *) output logic [bitwidth-1:0] buffer [numChannels-1:0][depth:0],
 	output logic [delay_width+width_width-1:0] buffer_delay [depth:0]
 );
 
