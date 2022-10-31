@@ -175,9 +175,9 @@ module res_err_estimator_datapath #(
 
 
     // synthesis translate_off
-    always_ff @(posedge clk) begin
-        $display("###### end_buffer_adc_codes: %p", end_buffer_adc_codes);
-    end
+    //always_ff @(posedge clk) begin
+    //    $display("###### end_buffer_adc_codes: %p", end_buffer_adc_codes);
+    //end
     // synthesis translate_on
 
     //Error pipeline

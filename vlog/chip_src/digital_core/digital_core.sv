@@ -42,18 +42,16 @@ module digital_core import const_pack::*; (
 
     cdr_debug_intf cdbg_intf_i ();
     sram_debug_intf #(.N_mem_tiles(4)) sm1_dbg_intf_i ();
-    sram_debug_intf #(.N_mem_tiles(4)) sm2_dbg_intf_i ();
 
     dcore_debug_intf ddbg_intf_i ();
     dsp_debug_intf dsp_dbg_intf_i();
     prbs_debug_intf pdbg_intf_i ();
-    wme_debug_intf wdbg_intf_i ();
     hist_debug_intf hdbg_intf_i ();
     error_tracker_debug_intf #(.addrwidth(10)) edbg_intf_i  ();
     tx_data_intf odbg_intf_i ();
     
     // internal signals
-    wire logic rstb;
+    wire logic dcore_rstb;
     wire logic adc_unfolding_update;
     wire logic [Nadc-1:0] adcout_retimed [Nti-1:0];
     wire logic [Nti-1:0] adcout_sign_retimed;
@@ -75,11 +73,10 @@ module digital_core import const_pack::*; (
 
     wire logic signed [error_gpack::est_error_precision-1:0] est_errors [Nti-1:0];
     wire logic        [1:0] sd_flags [Nti-1:0];
-    wire logic signed [ffe_gpack::weight_precision-1:0] init_weights [constant_gpack::channel_width-1:0][9:0];
+
     wire logic signed [ffe_gpack::output_precision-1:0] estimated_bits [constant_gpack::channel_width-1:0];
 
-    wire logic signed [ffe_gpack::weight_precision-1:0] single_init_weights   [9:0];
-    wire logic signed [ffe_gpack::weight_precision-1:0] single_weights   [9:0];
+    wire logic signed [ffe_gpack::weight_precision-1:0] single_weights   [ffe_gpack::length-1:0];
 
 
     wire logic signed [7:0] trunc_est_bits [Nti+Nti_rep-1:0];
@@ -121,11 +118,14 @@ module digital_core import const_pack::*; (
     // derived reset signals
     // these combine external reset with JTAG reset
 
-    assign rstb             = ddbg_intf_i.int_rstb  && ext_rstb;
-    assign sram_rstb        = ddbg_intf_i.sram_rstb && ext_rstb;
-    assign cdr_rstb         = ddbg_intf_i.cdr_rstb  && ext_rstb;
-    assign prbs_rstb        = ddbg_intf_i.prbs_rstb && ext_rstb;
-    assign prbs_gen_rstb    = ddbg_intf_i.prbs_gen_rstb && ext_rstb;
+
+
+
+    assign dcore_rstb       = ddbg_intf_i.int_rstb     ;
+    assign sram_rstb        = ddbg_intf_i.sram_rstb    ;
+    assign cdr_rstb         = ddbg_intf_i.cdr_rstb     ;
+    assign prbs_rstb        = ddbg_intf_i.prbs_rstb    ;
+    assign prbs_gen_rstb    = ddbg_intf_i.prbs_gen_rstb;
 
     // the dump_start signal can be set internally or externally
 
@@ -161,7 +161,7 @@ module digital_core import const_pack::*; (
         .N(Nrange)
     ) unfolding_pulse_inst (
         .clk(clk_adc),
-        .rstb(rstb),
+        .rstb(dcore_rstb),
         .ndiv(ddbg_intf_i.Ndiv_clk_avg),
         .out(adc_unfolding_update)
     );
@@ -175,7 +175,7 @@ module digital_core import const_pack::*; (
             ) PFD_CALIB (
                 // Inputs
                 .clk(clk_adc),
-                .rstb(rstb),
+                .rstb(dcore_rstb),
                 .update(adc_unfolding_update),
                 .din(adcout_retimed[k]),
                 .sign_out(adcout_sign_retimed[k]),
@@ -208,7 +208,7 @@ module digital_core import const_pack::*; (
             ) PFD_CALIB_REP (
                 // Inputs
                 .clk(clk_adc),
-                .rstb(rstb),
+                .rstb(dcore_rstb),
                 .update(adc_unfolding_update),
                 .din(adcout_retimed_rep[k]),
                 .sign_out(adcout_sign_retimed_rep[k]),
@@ -297,11 +297,22 @@ module digital_core import const_pack::*; (
         end
     endgenerate
 
+
+    //int fid;
+    //initial begin
+    //    fid = $fopen("pi_codes_at_destination.txt","w");
+//
+    //    $fmonitor(fid, "%m.int_pi_ctl_cdr[0]: %d", int_pi_ctl_cdr[0]);
+    //    $fmonitor(fid, "%m.int_pi_ctl_cdr[1]: %d", int_pi_ctl_cdr[1]);
+    //    $fmonitor(fid, "%m.int_pi_ctl_cdr[2]: %d", int_pi_ctl_cdr[2]);
+    //    $fmonitor(fid, "%m.int_pi_ctl_cdr[3]: %d", int_pi_ctl_cdr[3]);
+    //end
+
     // for tx_top
     generate
         for (j=0; j<Nout; j=j+1) begin
-            always_ff @(posedge clk_adc or negedge rstb) begin
-                if(~rstb) begin
+            always_ff @(posedge clk_adc or negedge dcore_rstb) begin
+                if(~dcore_rstb) begin
                     reg_tx_scale_value[j] <= 0;
                 end else begin
                     reg_tx_scale_value[j] <= tx_scale_value[j];
@@ -327,52 +338,36 @@ module digital_core import const_pack::*; (
     assign dsp_dbg_intf_i.thresh          = ddbg_intf_i.cmp_thresh;
     assign dsp_dbg_intf_i.align_pos       = ddbg_intf_i.align_pos;
 
-    weight_manager #(
-        .width(Nti),
-        .depth(ffe_gpack::length),
-        .bitwidth(ffe_gpack::weight_precision)
-    ) wme_ffe_i (
-        .data(wdbg_intf_i.wme_ffe_data),
-        .inst(wdbg_intf_i.wme_ffe_inst),
-        .exec(wdbg_intf_i.wme_ffe_exec),
-        .clk(clk_adc),
-        .rstb(rstb),
-        .read_reg(wdbg_intf_i.wme_ffe_read),
-        .weights (init_weights)
-    );
-
-    weight_manager #(
-        .width(Nti),
-        .depth(channel_gpack::est_channel_depth),
-        .bitwidth(channel_gpack::est_channel_precision)
-    ) wme_channel_est_i (
-        .data(wdbg_intf_i.wme_chan_data),
-        .inst(wdbg_intf_i.wme_chan_inst),
-        .exec(wdbg_intf_i.wme_chan_exec),
-        .clk(clk_adc),
-        .rstb(rstb),
-        .read_reg(wdbg_intf_i.wme_chan_read),
-        .weights (dsp_dbg_intf_i.channel_est)
-    );
-
-
     logic [7:0] checked_bits_delay;
     logic [7:0] est_errors_delay;
     logic [7:0] sliced_bits_delay;
     logic [7:0] sd_flags_delay;
 
+
+    logic signed [8:0] stage2_est_errors [15:0];
+    logic signed [8:0] stage2_est_errors_buffer [15:0][1:0];
+    logic signed [8:0] flat_stage2_est_errors [31:0];
+    logic              stage2_slcd_bits [15:0];
+    logic              stage2_slcd_bits_buffer [15:0][1:0];
+
+    logic signed [7:0] single_chan_est [29:0];
+
+    logic signed [constant_gpack::code_precision-1:0]   act_codes [constant_gpack::channel_width-1:0];
+    logic  sliced_est_bits [constant_gpack::channel_width-1:0];
+
     datapath_core datapath_i (
         .adc_codes(adcout_unfolded_non_rep),
         .clk(clk_adc),
-        .rstb(rstb),
+        .rstb(dcore_rstb),
 
         //Stage 1
         .stage1_est_bits_out(estimated_bits),
-        .stage1_sliced_bits_out(),
+        .stage1_sliced_bits_out(sliced_est_bits),
+        .stage1_act_codes_out(act_codes),
 
         //Stage 2
-        .stage2_res_errors_out  (),
-        .stage2_sliced_bits_out (),
+        .stage2_res_errors_out  (stage2_est_errors),
+        .stage2_sliced_bits_out (stage2_slcd_bits),
 
         // Stage 3
         .stage3_sd_flags_ener   (),
@@ -411,76 +406,107 @@ module digital_core import const_pack::*; (
         .dsp_dbg_intf_i(dsp_dbg_intf_i)
     );
 
+    ffe_estimator #(
+        .est_depth(ffe_gpack::length),
+        .ffe_bitwidth(ffe_gpack::weight_precision), 
+        .adapt_bitwidth(22), 
+        .code_bitwidth(constant_gpack::code_precision),
+        .est_bit_bitwidth(ffe_gpack::output_precision)
+    ) ffe_est_i (
+        .clk(clk_adc),
+        .rst_n(dcore_rstb),
+        .est_bits(estimated_bits[ffe_gpack::length-1:0]),
+        .current_code(act_codes[0]),
 
-    logic signed [Nadc-1:0] delayed_adc_codes_1 [Nti-1:0];
-    logic signed [Nadc-1:0] delayed_adc_codes_2 [Nti-1:0];
+        .gain(ddbg_intf_i.fe_adapt_gain),
+        .bit_level(ddbg_intf_i.fe_bit_target_level),
+
+        .exec_inst(ddbg_intf_i.fe_exec_inst),
+        .inst(ddbg_intf_i.fe_inst),
+
+        .ffe_init(ddbg_intf_i.init_ffe_taps),
+        .ffe_est(single_weights)
+    );
+    /*
+    buffer #(
+        .numChannels (16),
+        .bitwidth    (1),
+        .depth       (1),
+        .delay_width(4),
+        .width_width(4)
+    ) sb_buff_i (
+        .in      (stage2_slcd_bits),
+        .in_delay      (),
+        .clk     (clk_adc),
+        .rstb    (dcore_rstb),
+        .buffer  (stage2_slcd_bits_buffer),
+        .buffer_delay  ()
+    );
+
+    signed_buffer #(
+        .numChannels (16),
+        .bitwidth    (9),
+        .depth       (1),
+        .delay_width(4),
+        .width_width(4)
+    ) est_err_buff_i (
+        .in      (stage2_est_errors),
+        .in_delay      (),
+        .clk     (clk_adc),
+        .rstb    (dcore_rstb),
+        .buffer  (stage2_est_errors_buffer),
+        .buffer_delay  ()
+    );
+
+    signed_flatten_buffer_slice #(
+        .numChannels(16),
+        .bitwidth   (9),
+        .buff_depth (1),
+        .slice_depth(1),
+        .start      (0),
+        .delay_width(4),
+        .width_width(4)
+    ) est_err_fb_i (
+        .buffer    (stage2_est_errors_buffer),
+        .buffer_delay (),
+        .flat_slice(flat_stage2_est_errors),
+        .flat_slice_delay()
+    );
+
+
+
+    channel_estimator #( 
+        .est_depth(30),
+        .est_bitwidth(8), 
+        .adapt_bitwidth(16), 
+        .err_bitwidth(9)
+    ) chan_est_i (
+        .clk(clk_adc),
+        .rst_n(dcore_rstb),
+        .error(flat_stage2_est_errors),
+        .current_bit(stage2_slcd_bits_buffer[0][1]),
+
+        .gain(ddbg_intf_i.ce_gain),
+        .hold(ddbg_intf_i.ce_hold),
+
+        .est_chan(single_chan_est)
+    );*/
 
     generate
         for(gj=0; gj < 10; gj = gj + 1) begin
-            assign single_init_weights[gj] = init_weights[0][gj];
             for(gi=0; gi<channel_gpack::width; gi = gi + 1) begin
-                always_ff @(posedge clk_adc or negedge rstb) begin 
-                    if(~rstb) begin
-                        delayed_adc_codes_1[gi] <= 0;
-                        delayed_adc_codes_2[gi] <= 0;
-                    end else begin
-                        delayed_adc_codes_1[gi] <= adcout_unfolded_non_rep[gi];
-                        delayed_adc_codes_2[gi] <= delayed_adc_codes_1[gi];
-                    end
-                end
                 assign dsp_dbg_intf_i.weights[gi][gj] = single_weights[gj];
+            end
+        end
+        for(gj =0; gj < 30; gj = gj + 1) begin
+            for(gi = 0; gi < channel_gpack::width; gi = gi + 1) begin
+                assign dsp_dbg_intf_i.channel_est[gi][gj] = 0;//single_chan_est[gj]; 
             end
         end
     endgenerate
 
-    logic signed [ffe_gpack::output_precision-1:0] estimated_bits_buffer [constant_gpack::channel_width-1:0][1:0];
-    
-    signed_buffer #(
-        .numChannels(constant_gpack::channel_width),
-        .bitwidth   (ffe_gpack::output_precision),
-        .depth      (1)
-    ) est_bits_buff_i (
-        .in (estimated_bits),
-        .clk(clk_adc),
-        .rstb(rstb),
-        .buffer(estimated_bits_buffer)
-    );
+    // Add a downclocked oneshot multimemory!
 
-
-    logic signed [ffe_gpack::output_precision-1:0] flat_estimated_bits [constant_gpack::channel_width*2-1:0];
-    signed_flatten_buffer #(
-        .numChannels(constant_gpack::channel_width),
-        .bitwidth   (ffe_gpack::output_precision),
-        .depth (1)
-    ) est_bits_fb_i (
-        .buffer    (estimated_bits_buffer),
-        .flat_buffer(flat_estimated_bits)
-    );
-
-    fir_adapter #(
-        .codeBitwidth(ffe_gpack::input_precision),
-        .estBitwidth(ffe_gpack::output_precision),
-        .weightBitwidth(ffe_gpack::weight_precision),
-        .gainBitwidth(6),
-        .ffeDepth(ffe_gpack::length),
-        .numChannels(Nti)
-    ) fir_adapt_i (
-        .clk(clk_adc), 
-        .rst_n(rstb), 
-        .adc_codes(delayed_adc_codes_1), 
-        .est_bits(flat_estimated_bits), 
-        .gain(ddbg_intf_i.adapt_gain), 
-        .target_level(ddbg_intf_i.target_level), 
-        .cur_pos(ddbg_intf_i.align_pos), 
-        .weights(single_weights),
-        .init_weights(single_init_weights),
-        .use_init_weights (ddbg_intf_i.use_init_weights),
-        .load_init_weights(ddbg_intf_i.load_init_weights)
-    );
-    
-    initial begin
-        $dumpvars(0, fir_adapt_i);
-    end
 
     // SRAM
 
@@ -490,7 +516,7 @@ module digital_core import const_pack::*; (
         .clk(clk_adc),
         .rstb(sram_rstb),
         
-        .in_bytes(adcout_unfolded),
+        .in_bytes(sm1_dbg_intf_i.sel_sram ? adcout_unfolded : trunc_est_bits),
 
         .in_start_write(dump_start),
 
@@ -498,22 +524,6 @@ module digital_core import const_pack::*; (
 
         .out_data(sm1_dbg_intf_i.out_data),
         .addr(sm1_dbg_intf_i.addr)
-    );
-
-    oneshot_multimemory #(
-        .N_mem_tiles(4)
-    ) omm_ffe_i(
-        .clk(clk_adc),
-        .rstb(sram_rstb),
-        
-        .in_bytes(trunc_est_bits),
-
-        .in_start_write(dump_start),
-
-        .in_addr(sm2_dbg_intf_i.in_addr),
-
-        .out_data(sm2_dbg_intf_i.out_data),
-        .addr(sm2_dbg_intf_i.addr)
     );
 
     // PRBS
@@ -539,7 +549,7 @@ module digital_core import const_pack::*; (
         .codes     (adcout_unfolded_non_rep),
         .thresh    (ddbg_intf_i.adc_thresh),
         .clk       (clk_adc),
-        .rstb      (rstb),
+        .rstb      (dcore_rstb),
         .bit_out   (bits_adc)
     );
 
@@ -689,7 +699,7 @@ module digital_core import const_pack::*; (
         .sd_flags(sd_flags),
         .sd_flags_delay(sd_flags_delay),
         .clk(clk_adc),
-        .rstb(rstb),
+        .rstb(dcore_rstb),
         .errt_dbg_intf_i(edbg_intf_i)
     );
 
@@ -810,9 +820,7 @@ module digital_core import const_pack::*; (
         .adbg_intf_i(adbg_intf_i),
         .cdbg_intf_i(cdbg_intf_i),
         .sdbg1_intf_i(sm1_dbg_intf_i),
-        .sdbg2_intf_i(sm2_dbg_intf_i),
         .pdbg_intf_i(pdbg_intf_i),
-        .wdbg_intf_i(wdbg_intf_i),
         .mdbg_intf_i(mdbg_intf_i),
         .hdbg_intf_i(hdbg_intf_i),
         .edbg_intf_i(edbg_intf_i),

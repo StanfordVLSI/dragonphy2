@@ -1,3 +1,4 @@
+`default_nettype none
 module comb_ffe #(
 	parameter integer codeBitwidth=8,
 	parameter integer weightBitwidth=11,
@@ -12,11 +13,11 @@ module comb_ffe #(
 ) (
 	input wire logic signed [weightBitwidth-1:0] weights [ffeDepth-1:0][numChannels-1:0],
 	input wire logic signed [codeBitwidth-1:0] flat_codes [numBuffers*numChannels-1:0],
-	input logic [delay_width+width_width-1:0] flat_codes_delay,
+	input wire logic [delay_width+width_width-1:0] flat_codes_delay,
 	input wire logic [shiftBitwidth-1:0] shift_index [numChannels-1:0],
 	input wire logic disable_product [ffeDepth-1:0][numChannels-1:0],
 
-	input logic [delay_width+width_width-1:0] curs_pos,
+	input wire logic [delay_width+width_width-1:0] curs_pos,
 
 	output logic signed [resultBitwidth-1:0] estimated_bits [numChannels-1:0],
 	output logic [delay_width+width_width-1:0] estimated_bits_delay
@@ -58,3 +59,4 @@ generate
 endgenerate
 
 endmodule : comb_ffe
+`default_nettype wire

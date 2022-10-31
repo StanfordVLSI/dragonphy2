@@ -11,15 +11,18 @@ interface sram_debug_intf #(
     logic [N_mem_addr + log_N_tiles  - 1:0] in_addr;
     logic signed [Nadc - 1:0] out_data [(Nti+Nti_rep)-1:0];
     logic [N_mem_addr + log_N_tiles  - 1:0] addr;
+    logic sel_sram;
 
     modport sram (
 	    input in_addr,
+        input sel_sram,
 	    output out_data,
 	    output addr
     );
 
     modport jtag (
 	    output in_addr,
+        output sel_sram,
 	    input out_data,
 	    input addr
     );

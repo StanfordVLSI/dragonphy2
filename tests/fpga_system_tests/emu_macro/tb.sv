@@ -1,4 +1,4 @@
-`ifndef CHUNK_WIDTH
+    `ifndef CHUNK_WIDTH
     `define CHUNK_WIDTH 8
 `endif
 
@@ -31,6 +31,10 @@ module tb;
     ////////////////////
 	// JTAG Interface //
 	////////////////////
+
+//    initial begin
+//       $dumpvars(0, top_i);
+//    end
 
 	jtag_intf jtag_intf_i ();
 	assign jtag_intf_i.phy_tdi = tdi;
@@ -113,7 +117,7 @@ module tb;
     assign prbs_init_vals[14] = 32'h07ff5566;
     assign prbs_init_vals[15] = 32'h7f8afccf;
 
-    localparam integer pulse_width_period = 200;
+    localparam integer pulse_width_period = 100;
 
     logic [pulse_width_period-1:0] puls_count;
     always_ff @(posedge emu_clk or negedge rstb) begin

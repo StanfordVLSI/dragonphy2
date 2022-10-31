@@ -36,7 +36,6 @@ interface dcore_debug_intf import const_pack::*; (
 		logic signed [Nadc-1:0] pfd_offset_rep [Nti_rep-1:0];
 		logic [3:0] Ndiv_clk_avg;
 		logic [2:0] Ndiv_clk_cdr;
-		logic int_rstb;
 		logic [3:0]sel_outbuff;
     	logic [3:0]sel_trigbuff;
     	logic en_outbuff;
@@ -45,10 +44,13 @@ interface dcore_debug_intf import const_pack::*; (
     	logic [2:0]Ndiv_trigbuff;
     	logic bypass_trig;
     	logic bypass_out;
+    	
+    	logic int_rstb;
     	logic sram_rstb;
     	logic cdr_rstb;
     	logic prbs_rstb;
     	logic prbs_gen_rstb;
+
    		logic [ffe_gpack::shift_precision-1:0] ffe_shift [constant_gpack::channel_width-1:0];
     	logic signed [cmp_gpack::thresh_precision-1:0] cmp_thresh  [constant_gpack::channel_width-1:0];
     	logic [channel_gpack::shift_precision-1:0] channel_shift [constant_gpack::channel_width-1:0];
@@ -63,10 +65,16 @@ interface dcore_debug_intf import const_pack::*; (
         logic pfd_cal_flip_feedback;
         logic en_pfd_cal_ext_ave;
         logic [$clog2(constant_gpack::channel_width)-1:0] align_pos;
-        logic load_init_weights;
-        logic use_init_weights;
-        logic [5:0] adapt_gain;
-        logic [9:0] target_level;
+
+        logic [2:0] fe_inst;
+        logic fe_exec_inst;
+        logic signed [ffe_gpack::weight_precision-1:0] init_ffe_taps [ffe_gpack::length-1:0];
+        logic [4:0] fe_adapt_gain;
+        logic [9:0] fe_bit_target_level;
+
+        logic [3:0] ce_gain;
+        logic ce_hold;
+
         logic signed [Nadc-1:0] pfd_cal_ext_ave;
         logic en_int_dump_start;
         logic int_dump_start;
@@ -129,10 +137,15 @@ interface dcore_debug_intf import const_pack::*; (
         input en_pfd_cal_ext_ave,
         input pfd_cal_ext_ave,
         input align_pos,
-        input load_init_weights,
-        input use_init_weights,
-        input adapt_gain,
-        input target_level,
+
+		input fe_inst,
+		input fe_exec_inst,
+		input init_ffe_taps,
+		input fe_adapt_gain,
+		input fe_bit_target_level,
+
+		input ce_hold,
+		input ce_gain,
 
         input en_int_dump_start,
         input int_dump_start,
@@ -213,10 +226,15 @@ interface dcore_debug_intf import const_pack::*; (
         output tx_bypass_pi_ctl,
         output tx_rst,
         output tx_ctl_valid,
-        output load_init_weights,
-        output use_init_weights,
-        output adapt_gain,
-        output target_level,
+
+		output fe_inst,
+		output fe_exec_inst,
+		output init_ffe_taps,
+		output fe_adapt_gain,
+		output fe_bit_target_level,
+
+		output ce_hold,
+		output ce_gain,
 
 		input adcout_avg ,
 		input adcout_sum,

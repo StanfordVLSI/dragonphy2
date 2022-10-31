@@ -124,6 +124,8 @@ module analog_core import const_pack::*; #(
     assign noise_seed[14] = 32'h8e8c2794;
     assign noise_seed[15] = 32'haa1dd342;
 
+
+
     genvar i;
     generate
         for (i=0; i<Nti; i=i+1) begin

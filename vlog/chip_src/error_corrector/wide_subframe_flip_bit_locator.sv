@@ -107,19 +107,19 @@ module wide_subframe_flip_bit_locator #(
     assign combined_blk_subframe_flags[2*width-1:width + subframe_width] = '{0,0,0,0,0,0,0,0};
 
     // synthesis translate_off
-    always_ff @(posedge clk) begin 
-        $display("%m.flags: %p",flags);
-        $display("%m.flag_ener: %p",flag_ener);
-        $display("%m.best_red_subframe_flag[0]: %p",best_red_subframe_flag[0]);
-        $display("%m.best_red_subframe_flag[1]: %p",best_red_subframe_flag[1]);
-        $display("%m.combined_red_subframe_flags: %p",combined_red_subframe_flags);
-        $display("%m.best_blk_subframe_flag[0]: %p",best_blk_subframe_flag[0]);
-        $display("%m.best_blk_subframe_flag[1]: %p",best_blk_subframe_flag[1]);
-        $display("%m.combined_blk_subframe_flags: %p",combined_blk_subframe_flags);
-        $display("%m.unskewed_flip_bits: %p",unskewed_flip_bits);
-        $display("%m.flip_bits: %p",flip_bits);
-        $display("%m.selected_flags: %p",selected_flags);
-    end 
+    //always_ff @(posedge clk) begin 
+    //    $display("%m.flags: %p",flags);
+    //    $display("%m.flag_ener: %p",flag_ener);
+    //    $display("%m.best_red_subframe_flag[0]: %p",best_red_subframe_flag[0]);
+    //    $display("%m.best_red_subframe_flag[1]: %p",best_red_subframe_flag[1]);
+    //    $display("%m.combined_red_subframe_flags: %p",combined_red_subframe_flags);
+    //    $display("%m.best_blk_subframe_flag[0]: %p",best_blk_subframe_flag[0]);
+    //    $display("%m.best_blk_subframe_flag[1]: %p",best_blk_subframe_flag[1]);
+    //    $display("%m.combined_blk_subframe_flags: %p",combined_blk_subframe_flags);
+    //    $display("%m.unskewed_flip_bits: %p",unskewed_flip_bits);
+    //    $display("%m.flip_bits: %p",flip_bits);
+    //    $display("%m.selected_flags: %p",selected_flags);
+    //end 
     // synthesis translate_on
 
     always_comb begin

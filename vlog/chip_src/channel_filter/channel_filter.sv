@@ -21,14 +21,17 @@ module channel_filter #(
 
     localparam idx = depth - 1;
 
+    logic signed [est_code_bitwidth+$clog2(depth)-1:0] int_est_code [width-1:0];
+
+
     integer ii, jj;
     always_comb begin
         for(ii=0; ii<width; ii=ii+1) begin
-            est_code[ii] = 0;
+            int_est_code[ii] = 0;
             for(jj=0; jj<depth; jj=jj+1) begin
-                est_code[ii] = est_code[ii] + (bitstream[ii+idx-jj] ? channel[ii][jj] : -channel[ii][jj]);
+                int_est_code[ii] = int_est_code[ii] + (bitstream[ii+idx-jj] ? channel[ii][jj] : -channel[ii][jj]);
             end
-            est_code[ii] = est_code[ii] >>> shift[ii];
+            est_code[ii] = int_est_code[ii] >>> shift[ii];
         end
     end
 

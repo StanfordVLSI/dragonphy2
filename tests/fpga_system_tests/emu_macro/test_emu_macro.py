@@ -35,7 +35,7 @@ real_channels = ["Case4_FM_13SI_20_T_D13_L6.s4p",
  "TEC_Whisper42p8in_Meg6_THRU_C8C9.s4p",
  "TEC_Whisper42p8in_Nelco6_THRU_C8C9.s4p",]
 
-def get_real_channel_step(s4p_file, f_sig=16e9, mm_lock_pos=2e-12, numel=2048, domain=[0, 4e-9]):
+def get_real_channel_step(s4p_file, f_sig=16e9, mm_lock_pos=12.5e-12, numel=2048, domain=[0, 4e-9]):
     file_name = str(get_file(f'data/channel_sparam/{s4p_file}'))
 
     step_size = domain[1]/(numel-1)
@@ -55,7 +55,7 @@ def get_real_channel_step(s4p_file, f_sig=16e9, mm_lock_pos=2e-12, numel=2048, d
 
     return v_step
 
-def get_real_channel_pulse(s4p_file, f_sig=16e9, mm_lock_pos=2e-12, numel=2048, domain=[0,4e-9]):
+def get_real_channel_pulse(s4p_file, f_sig=16e9, mm_lock_pos=12.5e-12, numel=2048, domain=[0,4e-9]):
     file_name = str(get_file(f'data/channel_sparam/{s4p_file}'))
     
     step_size = domain[1]/(numel-1)
@@ -513,53 +513,6 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
         shift_ir(sc_cfg_data, jtag_inst_width)
         return shift_dr(0, sc_bus_width)
 
-    def load_weight(
-            d_idx, # clog2(ffe_length)
-            w_idx, # 4 bits
-            value, # 10 bits
-    ):
-        print(f'Loading weight d_idx={d_idx}, w_idx={w_idx} with value {value}')
-
-        # determine number of bits for d_idx
-        d_idx_bits = int(ceil(log2(ffe_length)))
-
-        # write wme_ffe_inst
-        wme_ffe_inst = 0
-        wme_ffe_inst |= d_idx & ((1<<d_idx_bits)-1)
-        wme_ffe_inst |= (w_idx & 0b1111) << d_idx_bits
-        write_tc_reg('wme_ffe_inst', wme_ffe_inst)
-
-        # write wme_ffe_data
-        wme_ffe_data = value & 0b1111111111
-        write_tc_reg('wme_ffe_data', wme_ffe_data)
-
-        # pulse wme_ffe_exec
-        write_tc_reg('wme_ffe_exec', 1)
-        write_tc_reg('wme_ffe_exec', 0)
-
-    def load_channel_estimate(
-            d_idx, # clog2(ffe_length)
-            w_idx, # 4 bits
-            value, # 10 bits
-    ):
-        print(f'Loading weight d_idx={d_idx}, w_idx={w_idx} with value {value}')
-
-        # determine number of bits for d_idx
-        d_idx_bits = int(ceil(log2(30)))
-
-        # write wme_ffe_inst
-        wme_chan_inst = 0
-        wme_chan_inst |= d_idx & ((1<<d_idx_bits)-1)
-        wme_chan_inst |= (w_idx & 0b1111) << d_idx_bits
-        write_tc_reg('wme_chan_inst', wme_chan_inst)
-
-        # write wme_ffe_data
-        wme_chan_data = value & 0b11111111
-        write_tc_reg('wme_chan_data', wme_chan_data)
-
-        # pulse wme_ffe_exec
-        write_tc_reg('wme_chan_exec', 1)
-        write_tc_reg('wme_chan_exec', 0)
 
     def update_chan(coeff_tuples, offset=0):
         # put together the command
@@ -608,7 +561,35 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     def disable_error_tracker():
         write_tc_reg('enable_errt', 0)
 
+    def toggle_int_rstb():
+        write_tc_reg('ctrl_rstb', 0b000)
+        write_tc_reg('exec_ctrl_rstb', 1)
+        write_tc_reg('exec_ctrl_rstb', 0)
 
+    def toggle_sram_rstb():
+        write_tc_reg('ctrl_rstb', 0b001)
+        write_tc_reg('exec_ctrl_rstb', 1)
+        write_tc_reg('exec_ctrl_rstb', 0)
+
+    def toggle_cdr_rstb():
+        write_tc_reg('ctrl_rstb', 0b010)
+        write_tc_reg('exec_ctrl_rstb', 1)
+        write_tc_reg('exec_ctrl_rstb', 0)
+
+    def toggle_prbs_rstb():
+        write_tc_reg('ctrl_rstb', 0b011)
+        write_tc_reg('exec_ctrl_rstb', 1)
+        write_tc_reg('exec_ctrl_rstb', 0)
+
+    def toggle_prbs_gen_rstb():
+        write_tc_reg('ctrl_rstb', 0b100)
+        write_tc_reg('exec_ctrl_rstb', 1)
+        write_tc_reg('exec_ctrl_rstb', 0)
+
+    def toggle_acore_rstb():
+        write_tc_reg('ctrl_rstb', 0b101)
+        write_tc_reg('exec_ctrl_rstb', 1)
+        write_tc_reg('exec_ctrl_rstb', 0)
 
     def read_error_tracker(num_of_errors=100):
         def signed(value):
@@ -713,6 +694,7 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     chan_func_values = get_real_channel_step(real_channels[channel_number], domain=CFG['func_domain'], numel=CFG['func_numel'])
     pulse            = get_real_channel_pulse(real_channels[channel_number], domain=CFG['func_domain'], numel=CFG['func_numel'])
     chan_func_values = chan_func_values.clip(0)
+
     def convert_to_pwl(values):
         retval = []
         retval.append(values[:])
@@ -734,19 +716,23 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
 
 
     coeffs_bin = convert_to_pwl(chan_func_values)
-    ffe_shift, align_pos, zf_taps = load_ffe_vals()
-    print(ffe_shift, align_pos, zf_taps)
-    chan_taps = load_chan_vals()
-    print(zf_taps)
     coeff_tuples = list(zip(*coeffs_bin))
     chunk_size = 32 
     for k in range(len(coeff_tuples)//chunk_size):
         print(f'Updating channel at chunk {k}...')
         update_chan(coeff_tuples[(k*chunk_size):((k+1)*chunk_size)], offset=k*chunk_size)
 
+    ffe_shift, align_pos, zf_taps = load_ffe_vals()
+    print(ffe_shift, align_pos, zf_taps)
+
+
     # Soft reset
     print('Soft reset')
-    write_tc_reg('int_rstb', 1)
+    toggle_int_rstb()
+    toggle_acore_rstb()
+    toggle_sram_rstb()
+    write_tc_reg('ce_hold', 1)
+    write_tc_reg('fe_exec_inst', 0)
     write_tc_reg('en_inbuf', 1)
     write_tc_reg('en_gf', 1)
     write_tc_reg('mode_errt', 0)
@@ -770,27 +756,23 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     # Configure PRBS checker
     print('Configure the PRBS checker')
     write_sc_reg('sel_prbs_mux', 1) # "0" is ADC, "1" is FFE, "3" is BIST
-    write_sc_reg('sel_trig_prbs_mux', 2) # "0" is ADC, "1" is FFE, "3" is BIST
+    write_sc_reg('sel_trig_prbs_mux', 1) # "0" is ADC, "1" is FFE, "3" is BIST
     write_sc_reg('sel_prbs_bits', 0); # trig prbs
 
     # Release the PRBS checker from reset
     print('Release the PRBS checker from reset')
-    write_sc_reg('prbs_rstb', 1)
+    toggle_prbs_rstb()
 
-    # Set up the FFE
-    #dt=1.0/(16.0e9)
-    #coeff0 = 32.0/(1.0-exp(-dt/chan_tau))
-    #coeff1 = -32.0*exp(-dt/chan_tau)/(1.0-exp(-dt/chan_tau))
-    #print(coeff0, coeff1)
-    #print(zf_taps[0], zf_taps[1])
-    #zf_taps = [coeff0, coeff1, 0,0,0,0,0,0,0,0]
+    for loop_var2 in range(ffe_length):
+        write_tc_reg(f'init_ffe_taps[{loop_var2}]',int(round(zf_taps[loop_var2])))
+    write_tc_reg('fe_inst', 0b100)
+    write_tc_reg('fe_exec_inst', 1)
+
 
     for loop_var in range(16):
-        for loop_var2 in range(ffe_length):
-            load_weight(loop_var2, loop_var, int(round(zf_taps[loop_var2])))
         write_tc_reg(f'ffe_shift[{loop_var}]', ffe_shift)
-        for loop_var2 in range(30):
-            load_channel_estimate(loop_var2, loop_var, chan_taps[loop_var2])
+        #for loop_var2 in range(30):
+        #    load_channel_estimate(loop_var2, loop_var, chan_taps[loop_var2])
     #write_tc_reg('align_pos', 8)
     write_tc_reg('align_pos', align_pos)
 
@@ -818,17 +800,17 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
 
     # Configure the CDR
     print('Configuring the CDR...')
-    write_tc_reg('cdr_rstb', 0)
     write_tc_reg('Kp', 9)
-    write_tc_reg('Ki', 1)
+    write_tc_reg('Ki', 0)
     write_tc_reg('invert', 1)
     write_tc_reg('en_freq_est', 1)
-    write_tc_reg('en_ext_pi_ctl', 0)
-    write_tc_reg('ext_pi_ctl', 81)
+    write_tc_reg('ext_pi_ctl', 0)
+    write_tc_reg('en_ext_pi_ctl', 1)
     write_tc_reg('sel_inp_mux', 1) # "0": use ADC output, "1": use FFE output
 
     # Re-initialize ordering
     print('Re-initialize ADC ordering')
+
     write_tc_reg('en_v2t', 0)
     write_tc_reg('en_v2t', 1)
 
@@ -836,12 +818,24 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     # TODO: explore why it is not sufficient to pulse cdr_rstb low here
     # (i.e., seems that it must be set to zero while configuring CDR parameters
     print('Wait for the CDR to lock')
-    write_tc_reg('cdr_rstb', 1)
+    toggle_cdr_rstb()
     time.sleep(5.0)
+
+
+
+    write_tc_reg('ce_gain', 5)
+    write_tc_reg('ce_hold', 0)
+
+    time.sleep(30.0)
+
+    write_tc_reg('ce_gain', 3)
 
     #write_tc_reg('en_int_dump_start', 1)
     #write_tc_reg('int_dump_start', 0)
     #write_tc_reg('int_dump_start', 1)
+    #mem = read_memory(filename='mem.txt')
+    #mem_ffe = read_memory_ffe(filename='mem_ffe.txt')
+
 
     # Run PRBS test.  In order to get a conservative estimate for the throughput, the
     # test duration includes the time it takes to send JTAG commands to start and stop
@@ -853,8 +847,9 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     print('Run PRBS test')
     t_start = time.time()
     write_sc_reg('prbs_checker_mode', 2)
+    write_tc_reg('fe_exec_inst', 0)
     time.sleep(2)
-    
+
     enable_error_tracker()
     disable_error_tracker()
     total_time_remaining = prbs_test_dur
@@ -970,7 +965,8 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
                 for loop_var2 in range(ffe_length):
                     load_weight(loop_var2, loop_var, int(round(zf_taps[loop_var2])))
                 write_tc_reg(f'ffe_shift[{loop_var}]', ffe_shift)
-
+    #toggle_int_rstb()
+    #toggle_acore_rstb()
 
 
     # check results

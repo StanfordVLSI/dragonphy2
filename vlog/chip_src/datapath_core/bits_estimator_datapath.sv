@@ -1,15 +1,15 @@
 `define MAX(arg1, arg2) ((arg1 > arg2) ? arg1 : arg2)
-
+`default_nettype none
 module bits_estimator_datapath #(
     parameter integer ffe_pipeline_depth = 0,
     parameter integer delay_width = 4,
     parameter integer width_width = 4
 ) (
-    input logic signed [constant_gpack::code_precision-1:0] act_codes_in [constant_gpack::channel_width-1:0],
-    input logic [delay_width+width_width-1:0] act_codes_in_delay ,
+    input wire logic signed [constant_gpack::code_precision-1:0] act_codes_in [constant_gpack::channel_width-1:0],
+    input wire logic [delay_width+width_width-1:0] act_codes_in_delay ,
 
-    input logic clk,
-    input logic rstb,
+    input wire logic clk,
+    input wire logic rstb,
 
     output logic signed [ffe_gpack::output_precision-1:0]      est_bits_out   [constant_gpack::channel_width-1:0],
     output logic                                               slcd_bits_out [constant_gpack::channel_width-1:0],
@@ -19,12 +19,12 @@ module bits_estimator_datapath #(
     output  logic       [delay_width+width_width-1:0]          slcd_bits_out_delay, 
     output  logic       [delay_width+width_width-1:0]          act_codes_out_delay,
 
-    input logic signed [ffe_gpack::weight_precision-1:0]          weights [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0],
-    input logic        [ffe_gpack::shift_precision-1:0]           ffe_shift [constant_gpack::channel_width-1:0],
-    input logic signed [cmp_gpack::thresh_precision-1:0]          thresh  [constant_gpack::channel_width-1:0],
+    input wire logic signed [ffe_gpack::weight_precision-1:0]          weights [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0],
+    input wire logic        [ffe_gpack::shift_precision-1:0]           ffe_shift [constant_gpack::channel_width-1:0],
+    input wire logic signed [cmp_gpack::thresh_precision-1:0]          thresh  [constant_gpack::channel_width-1:0],
 
-    input logic                                                   disable_product [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0],
-    input logic [$clog2(constant_gpack::channel_width)-1:0] align_pos
+    input wire logic                                                   disable_product [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0],
+    input wire logic [$clog2(constant_gpack::channel_width)-1:0] align_pos
 );
     genvar gi;
 
@@ -127,12 +127,12 @@ module bits_estimator_datapath #(
     generate
         for(gi=0; gi<constant_gpack::channel_width; gi=gi+1) begin
             assign buffered_estimated_bit[gi] = estimated_bits_buffer[gi][ffe_pipeline_depth];
-            assign est_bits_out[gi]           = estimated_bits_buffer[gi][ffe_pipeline_depth];
+            assign est_bits_out[gi]           = estimated_bits_buffer[gi][total_depth];
         end
     endgenerate
 
     assign buffered_estimated_bit_delay = estimated_bits_buffer_delay[ffe_pipeline_depth];
-    assign est_bits_out_delay           = estimated_bits_buffer_delay[ffe_pipeline_depth];
+    assign est_bits_out_delay           = estimated_bits_buffer_delay[total_depth];
 
     //Slicer
     wire logic cmp_out [constant_gpack::channel_width-1:0];
@@ -194,3 +194,4 @@ module bits_estimator_datapath #(
 
 
 endmodule // bits_estimator_datapath
+`default_nettype wire

@@ -79,20 +79,20 @@ module flip_bit_locator_datapath #(
     assign flip_bits_out_delay          = flip_bits_buffer_delay[flip_bits_output_pipeline_depth];
     // synthesis translate_off
 
-    always_ff @(posedge clk) begin
-        $display("%m.sliced_bits_out_delay : %p", sliced_bits_out_delay);
-        $display("%m.res_errors_out_delay : %p", res_errors_out_delay);
-        $display("%m.flip_bits_out_delay : %p", flip_bits_out_delay);
-
-        $display("%m.aligned_sliced_bits_buffer_delay : %p", aligned_sliced_bits_buffer_delay);
-        $display("%m.aligned_rse_buffer_delay : %p", aligned_rse_buffer_delay);
-        $display("%m.flip_bits_buffer_delay : %p", flip_bits_buffer_delay);
-
-        $display("%m.sd_flags_delay : %p", sd_flags_delay);
-        $display("%m.sd_flags_ener_delay : %p", sd_flags_ener_delay);
-        $display("%m.sliced_bits_in_delay : %p", sliced_bits_in_delay);
-        $display("%m.res_errors_in_delay : %p", res_errors_in_delay);
-    end
+    //always_ff @(posedge clk) begin
+    //    $display("%m.sliced_bits_out_delay : %p", sliced_bits_out_delay);
+    //    $display("%m.res_errors_out_delay : %p", res_errors_out_delay);
+    //    $display("%m.flip_bits_out_delay : %p", flip_bits_out_delay);
+//
+    //    $display("%m.aligned_sliced_bits_buffer_delay : %p", aligned_sliced_bits_buffer_delay);
+    //    $display("%m.aligned_rse_buffer_delay : %p", aligned_rse_buffer_delay);
+    //    $display("%m.flip_bits_buffer_delay : %p", flip_bits_buffer_delay);
+//
+    //    $display("%m.sd_flags_delay : %p", sd_flags_delay);
+    //    $display("%m.sd_flags_ener_delay : %p", sd_flags_ener_delay);
+    //    $display("%m.sliced_bits_in_delay : %p", sliced_bits_in_delay);
+    //    $display("%m.res_errors_in_delay : %p", res_errors_in_delay);
+    //end
     // synthesis translate_on
 
     //Detector pipeline

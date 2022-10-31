@@ -49,7 +49,7 @@ module weight_manager #(
     generate
         for(gi=0 ; gi < width; gi = gi + 1) begin
             assign increment_weights[gi] =  weights[gi][depth_addr] + $signed(data[2*gi+1:2*gi]);
-            assign next_weights[gi] = is_increment ? increment_weights[gi] : set_weights[gi];
+            assign next_weights[gi]      = is_increment ? increment_weights[gi] : set_weights[gi];
         end
 
 

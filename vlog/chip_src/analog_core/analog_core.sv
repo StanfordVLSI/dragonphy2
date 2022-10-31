@@ -143,6 +143,7 @@ module analog_core import const_pack::*; #(
     logic [3:0] inv_del_out_pi;
     logic [Nunit_pi-1:0] en_unit_pi [Nout-1:0]; 
 	// 4ch. PI
+
     generate
         for (genvar k=0; k<Nout; k=k+1) begin: iPI
             phase_interpolator iPI(

@@ -79,6 +79,4 @@ module fir_adapter #(
         end
     end
 
-
-
 endmodule

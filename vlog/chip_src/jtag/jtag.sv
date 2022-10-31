@@ -13,9 +13,7 @@ module jtag (
 	cdr_debug_intf.jtag cdbg_intf_i,
 	dcore_debug_intf.jtag ddbg_intf_i,
 	sram_debug_intf.jtag sdbg1_intf_i,
-	sram_debug_intf.jtag sdbg2_intf_i,
 	prbs_debug_intf.jtag pdbg_intf_i,
-	wme_debug_intf.jtag wdbg_intf_i,
     mdll_r1_debug_intf.jtag mdbg_intf_i,
     hist_debug_intf.jtag hdbg_intf_i,
     error_tracker_debug_intf.jtag edbg_intf_i,
@@ -24,6 +22,108 @@ module jtag (
 	jtag_intf.target jtag_intf_i
 );
 	raw_jtag_ifc_unq1 rjtag_intf_i(.Clk(clk), .Reset(rstb));
+
+    logic ctrl_int_rstb, ctrl_sram_rstb, ctrl_cdr_rstb, ctrl_prbs_rstb, ctrl_prbs_gen_rstb, ctrl_acore_rstb;
+
+    logic ctrl_rstb_state;
+
+    always_ff @(posedge clk or negedge rstb) begin 
+        if(~rstb) begin
+            ctrl_int_rstb      <= 0;
+            ctrl_sram_rstb     <= 0;
+            ctrl_cdr_rstb      <= 0;
+            ctrl_prbs_rstb     <= 0;
+            ctrl_prbs_gen_rstb <= 0;
+            ctrl_acore_rstb    <= 0;
+        end else begin
+            if(ctrl_rstb_state == 0) begin
+                if(rjtag_intf_i.exec_ctrl_rstb) begin
+                    unique case (rjtag_intf_i.ctrl_rstb)
+                        3'b000: begin
+                            ctrl_int_rstb      <= ~ctrl_int_rstb;
+                            ctrl_sram_rstb     <= ctrl_sram_rstb;
+                            ctrl_cdr_rstb      <= ctrl_cdr_rstb;
+                            ctrl_prbs_rstb     <= ctrl_prbs_rstb;
+                            ctrl_prbs_gen_rstb <= ctrl_prbs_gen_rstb;
+                            ctrl_acore_rstb    <= ctrl_acore_rstb;
+                        end
+                        3'b001: begin
+                            ctrl_int_rstb      <= ctrl_int_rstb;
+                            ctrl_sram_rstb     <= ~ctrl_sram_rstb;
+                            ctrl_cdr_rstb      <= ctrl_cdr_rstb;
+                            ctrl_prbs_rstb     <= ctrl_prbs_rstb;
+                            ctrl_prbs_gen_rstb <= ctrl_prbs_gen_rstb;
+                            ctrl_acore_rstb    <= ctrl_acore_rstb;
+                        end
+                        3'b010: begin
+                            ctrl_int_rstb      <= ctrl_int_rstb;
+                            ctrl_sram_rstb     <= ctrl_sram_rstb;
+                            ctrl_cdr_rstb      <= ~ctrl_cdr_rstb;
+                            ctrl_prbs_rstb     <= ctrl_prbs_rstb;
+                            ctrl_prbs_gen_rstb <= ctrl_prbs_gen_rstb;
+                            ctrl_acore_rstb    <= ctrl_acore_rstb;
+                        end
+                        3'b011: begin
+                            ctrl_int_rstb      <= ctrl_int_rstb;
+                            ctrl_sram_rstb     <= ctrl_sram_rstb;
+                            ctrl_cdr_rstb      <= ctrl_cdr_rstb;
+                            ctrl_prbs_rstb     <= ~ctrl_prbs_rstb;
+                            ctrl_prbs_gen_rstb <= ctrl_prbs_gen_rstb;
+                            ctrl_acore_rstb    <= ctrl_acore_rstb;
+                        end
+                        3'b100: begin
+                            ctrl_int_rstb      <= ctrl_int_rstb;
+                            ctrl_sram_rstb     <= ctrl_sram_rstb;
+                            ctrl_cdr_rstb      <= ctrl_cdr_rstb;
+                            ctrl_prbs_rstb     <= ctrl_prbs_rstb;
+                            ctrl_prbs_gen_rstb <= ~ctrl_prbs_gen_rstb;
+                            ctrl_acore_rstb    <= ctrl_acore_rstb;
+                        end
+                        3'b101: begin
+                            ctrl_int_rstb      <= ctrl_int_rstb;
+                            ctrl_sram_rstb     <= ctrl_sram_rstb;
+                            ctrl_cdr_rstb      <= ctrl_cdr_rstb;
+                            ctrl_prbs_rstb     <= ctrl_prbs_rstb;
+                            ctrl_prbs_gen_rstb <= ctrl_prbs_gen_rstb;
+                            ctrl_acore_rstb    <= ~ctrl_acore_rstb;
+                        end
+                        default : begin
+                            ctrl_int_rstb      <= ctrl_int_rstb;
+                            ctrl_sram_rstb     <= ctrl_sram_rstb;
+                            ctrl_cdr_rstb      <= ctrl_cdr_rstb;
+                            ctrl_prbs_rstb     <= ctrl_prbs_rstb;
+                            ctrl_prbs_gen_rstb <= ctrl_prbs_gen_rstb;
+                            ctrl_acore_rstb    <= ctrl_acore_rstb;
+                        end
+                    endcase
+                    ctrl_rstb_state <= 1;
+                end else begin
+                    ctrl_rstb_state    <= 0;
+                    ctrl_int_rstb      <= ctrl_int_rstb;
+                    ctrl_sram_rstb     <= ctrl_sram_rstb;
+                    ctrl_cdr_rstb      <= ctrl_cdr_rstb;
+                    ctrl_prbs_rstb     <= ctrl_prbs_rstb;
+                    ctrl_prbs_gen_rstb <= ctrl_prbs_gen_rstb;
+                    ctrl_acore_rstb    <= ctrl_acore_rstb;
+                end
+            end else begin
+                ctrl_rstb_state <= rjtag_intf_i.exec_ctrl_rstb ? 1 : 0;
+                ctrl_int_rstb      <= ctrl_int_rstb;
+                ctrl_sram_rstb     <= ctrl_sram_rstb;
+                ctrl_cdr_rstb      <= ctrl_cdr_rstb;
+                ctrl_prbs_rstb     <= ctrl_prbs_rstb;
+                ctrl_prbs_gen_rstb <= ctrl_prbs_gen_rstb;
+                ctrl_acore_rstb    <= ctrl_acore_rstb;	
+            end
+        end
+    end
+
+	assign ddbg_intf_i.int_rstb      = rstb && ctrl_int_rstb;
+	assign ddbg_intf_i.sram_rstb 	 = rstb && ctrl_sram_rstb;
+	assign ddbg_intf_i.cdr_rstb 	 = rstb && ctrl_cdr_rstb;
+    assign ddbg_intf_i.prbs_rstb 	 = rstb && ctrl_prbs_rstb;
+    assign ddbg_intf_i.prbs_gen_rstb = rstb && ctrl_prbs_gen_rstb;
+	assign adbg_intf_i.rstb          = rstb && ctrl_acore_rstb;
 
 	//Mdll
 	assign mdbg_intf_i.rstn_jtag = rstb & rjtag_intf_i.rstn_jtag ;
@@ -58,8 +158,8 @@ module jtag (
   	assign rjtag_intf_i.dac_ctl_mon_2jtag = mdbg_intf_i.dac_ctl_mon_2jtag ;
   	assign rjtag_intf_i.jm_cdf_out_2jtag = mdbg_intf_i.jm_cdf_out_2jtag ;
 
+
 	//Analog Input 
-	assign adbg_intf_i.rstb   = rstb && ddbg_intf_i.int_rstb;
 	assign adbg_intf_i.en_v2t = rjtag_intf_i.en_v2t;
 	assign adbg_intf_i.en_slice = rjtag_intf_i.en_slice;
 	assign adbg_intf_i.ctl_v2tn = rjtag_intf_i.ctl_v2tn;
@@ -154,7 +254,6 @@ module jtag (
 	assign ddbg_intf_i.Navg_adc_rep=rjtag_intf_i.Navg_adc_rep;
 	assign ddbg_intf_i.Nbin_adc_rep=rjtag_intf_i.Nbin_adc_rep;
 	assign ddbg_intf_i.DZ_hist_adc_rep=rjtag_intf_i.DZ_hist_adc_rep;
-	assign ddbg_intf_i.int_rstb = rjtag_intf_i.int_rstb;
 	assign ddbg_intf_i.Ndiv_clk_cdr  		  = rjtag_intf_i.Ndiv_clk_cdr;
 	assign ddbg_intf_i.sel_outbuff   = rjtag_intf_i.sel_outbuff;
 	assign ddbg_intf_i.sel_trigbuff  = rjtag_intf_i.sel_trigbuff;
@@ -164,10 +263,8 @@ module jtag (
 	assign ddbg_intf_i.Ndiv_trigbuff = rjtag_intf_i.Ndiv_trigbuff;
 	assign ddbg_intf_i.bypass_trig   = rjtag_intf_i.bypass_trig;
 	assign ddbg_intf_i.bypass_out    = rjtag_intf_i.bypass_out;
-	assign ddbg_intf_i.sram_rstb 	 = rjtag_intf_i.sram_rstb;
-	assign ddbg_intf_i.cdr_rstb 	 = rjtag_intf_i.cdr_rstb;
-    assign ddbg_intf_i.prbs_rstb 	 = rjtag_intf_i.prbs_rstb;
-    assign ddbg_intf_i.prbs_gen_rstb = rjtag_intf_i.prbs_gen_rstb;
+
+
 
     // work-around for Vivado: disable product is set to an unpacked dimension of "10"
     // in the JTAG markdown file for dcore_debug_intf, but dcore_debug_intf.sv itself
@@ -184,6 +281,7 @@ module jtag (
     generate
         for (ig=0; ig<ffe_gpack::length; ig=ig+1) begin
             assign ddbg_intf_i.disable_product[ig] = rjtag_intf_i.disable_product[ig];
+       		assign ddbg_intf_i.init_ffe_taps[ig]		 = rjtag_intf_i.init_ffe_taps[ig];
         end
     endgenerate
 
@@ -196,10 +294,18 @@ module jtag (
 	assign ddbg_intf_i.sel_trig_prbs_mux		= rjtag_intf_i.sel_trig_prbs_mux;
 	assign ddbg_intf_i.sel_prbs_bits 	= rjtag_intf_i.sel_prbs_bits;
 	assign ddbg_intf_i.align_pos 		= rjtag_intf_i.align_pos;
-	assign ddbg_intf_i.load_init_weights = rjtag_intf_i.load_init_weights;
-	assign ddbg_intf_i.use_init_weights  = rjtag_intf_i.use_init_weights;
-	assign ddbg_intf_i.target_level      = rjtag_intf_i.target_level;
-	assign ddbg_intf_i.adapt_gain        = rjtag_intf_i.adapt_gain;
+
+
+	assign ddbg_intf_i.fe_inst				 = rjtag_intf_i.fe_inst;
+	assign ddbg_intf_i.fe_exec_inst			 = rjtag_intf_i.fe_exec_inst;
+
+
+	assign ddbg_intf_i.fe_adapt_gain		 = rjtag_intf_i.fe_adapt_gain;
+	assign ddbg_intf_i.fe_bit_target_level	 = rjtag_intf_i.fe_bit_target_level;
+
+
+	assign ddbg_intf_i.ce_gain   		= rjtag_intf_i.ce_gain;
+	assign ddbg_intf_i.ce_hold   		= rjtag_intf_i.ce_hold;
 
     assign ddbg_intf_i.en_cgra_clk = rjtag_intf_i.en_cgra_clk;
 
@@ -243,16 +349,10 @@ module jtag (
 
 	//SRAM Input
 	assign sdbg1_intf_i.in_addr = rjtag_intf_i.in_addr_multi;
-	assign rjtag_intf_i.addr_multi = sdbg1_intf_i.addr;
+	assign sdbg1_intf_i.sel_sram = rjtag_intf_i.sel_sram;
 	//SRAM Output
 	assign rjtag_intf_i.out_data_multi = sdbg1_intf_i.out_data;
-
-	//SRAM Input FFE/chan
-	assign sdbg2_intf_i.in_addr = rjtag_intf_i.in_addr_multi_ffe;
-	assign rjtag_intf_i.addr_multi_ffe = sdbg2_intf_i.addr;
-	//SRAM Output FFE/chan
-	assign rjtag_intf_i.out_data_multi_ffe = sdbg2_intf_i.out_data;
-
+	assign rjtag_intf_i.addr_multi = sdbg1_intf_i.addr;
 
 	//CDR Input
 	assign cdbg_intf_i.pd_offset_ext = rjtag_intf_i.pd_offset_ext;
@@ -294,15 +394,6 @@ module jtag (
     assign pdbg_intf_i.prbs_gen_inj_err = rjtag_intf_i.prbs_gen_inj_err;
     assign pdbg_intf_i.prbs_gen_chicken = rjtag_intf_i.prbs_gen_chicken;
 
-    //WME Input
-    assign wdbg_intf_i.wme_ffe_data  = rjtag_intf_i.wme_ffe_data;
-    assign wdbg_intf_i.wme_ffe_inst  = rjtag_intf_i.wme_ffe_inst;
-    assign wdbg_intf_i.wme_ffe_exec  = rjtag_intf_i.wme_ffe_exec;
-    assign wdbg_intf_i.wme_chan_data = rjtag_intf_i.wme_chan_data;
-    assign wdbg_intf_i.wme_chan_inst = rjtag_intf_i.wme_chan_inst;
-    assign wdbg_intf_i.wme_chan_exec = rjtag_intf_i.wme_chan_exec;
-    assign rjtag_intf_i.wme_ffe_read  = wdbg_intf_i.wme_ffe_read;
-    assign rjtag_intf_i.wme_chan_read = wdbg_intf_i.wme_chan_read;
 
     // Histogram inputs
     assign hdbg_intf_i.hist_mode = rjtag_intf_i.hist_mode;

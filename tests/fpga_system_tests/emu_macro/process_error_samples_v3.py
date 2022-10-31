@@ -127,7 +127,7 @@ for expon in [1]: # [1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.35, 1.5, 1.7, 2]:
         
         flip_pattern_depth = [4,3,3]
         
-        checker_config     = [5,3,3]
+        checker_config     = [4,3,3]
 
         metric = np.square
 
@@ -175,7 +175,7 @@ for expon in [1]: # [1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.35, 1.5, 1.7, 2]:
             best_energies = np.array(np.where(best_flags == 0, 999999, best_energies), dtype=np.int32)
 
 
-            best_flip_bit = flag_applicator(best_flags, best_energies, 16, 8, flip_pattern_depth[ii], flip_pattern_list=flip_pattern_list[ii])
+            best_flip_bit = wider_flag_applicator(best_flags, best_energies, 16, 8, flip_pattern_depth[ii], flip_pattern_list=flip_pattern_list[ii])
             best_soft_inj, _no_error_ = create_legal_error_inject(best_flip_bit[:-2], data[2][:-2], start=0, length=48)
 
             #best_flag_loc = np.argmin(best_energies)

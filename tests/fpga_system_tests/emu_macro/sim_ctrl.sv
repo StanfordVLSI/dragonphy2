@@ -93,38 +93,53 @@ module sim_ctrl(
     logic [ffe_gpack::shift_precision-1:0] tmp_ffe_shift [constant_gpack::channel_width-1:0];
     logic [3:0] tmp_chan_shift [constant_gpack::channel_width-1:0];
 
-    // for loading one FFE weight with specified depth and width
-    task load_weight(
-        input logic [$clog2(length)-1:0] d_idx,
-        logic [$clog2(channel_width)-1:0] w_idx,
-        logic [weight_precision-1:0] value,
-        integer int_val
-    );
-        $display("Loading ffe weight d_idx=%0d, w_idx=%0d with value %0d, %0d", d_idx, w_idx, value, int_val);
-        `FORCE_JTAG(wme_ffe_inst, {1'b0, w_idx, d_idx});
-        `FORCE_JTAG(wme_ffe_data, value);
+    task toggle_int_rstb();
+        `FORCE_JTAG(ctrl_rstb, 3'b000);
+        `FORCE_JTAG(exec_ctrl_rstb, 1);
         `CLK_ADC_DLY;
-        `FORCE_JTAG(wme_ffe_exec, 1);
+        `FORCE_JTAG(exec_ctrl_rstb, 0);
         `CLK_ADC_DLY;
-        `FORCE_JTAG(wme_ffe_exec, 0);
-        `CLK_ADC_DLY;
-    endtask
+    endtask : toggle_int_rstb
 
-    task load_chan_weight(
-        input logic [$clog2(30)-1:0] d_idx,
-        logic [$clog2(channel_width)-1:0] w_idx,
-        logic [7:0] value,
-        integer int_val
-    );
-        $display("Loading chan weight d_idx=%0d, w_idx=%0d with value %0d, %0d", d_idx, w_idx, value, int_val);
-        `FORCE_JTAG(wme_chan_inst, {1'b0, w_idx, d_idx});
-        `FORCE_JTAG(wme_chan_data, value);
+    task toggle_sram_rstb();
+        `FORCE_JTAG(ctrl_rstb, 3'b001);
+        `FORCE_JTAG(exec_ctrl_rstb, 1);
         `CLK_ADC_DLY;
-        `FORCE_JTAG(wme_chan_exec, 1);
+        `FORCE_JTAG(exec_ctrl_rstb, 0);
         `CLK_ADC_DLY;
-        `FORCE_JTAG(wme_chan_exec, 0);
+    endtask : toggle_sram_rstb
+
+    task toggle_cdr_rstb();
+        `FORCE_JTAG(ctrl_rstb, 3'b010);
+        `FORCE_JTAG(exec_ctrl_rstb, 1);
         `CLK_ADC_DLY;
-    endtask
+        `FORCE_JTAG(exec_ctrl_rstb, 0);
+        `CLK_ADC_DLY;
+    endtask : toggle_cdr_rstb
+
+    task toggle_prbs_rstb();
+        `FORCE_JTAG(ctrl_rstb, 3'b011);
+        `FORCE_JTAG(exec_ctrl_rstb, 1);
+        `CLK_ADC_DLY;
+        `FORCE_JTAG(exec_ctrl_rstb, 0);
+        `CLK_ADC_DLY;
+    endtask : toggle_prbs_rstb
+
+    task toggle_prbs_gen_rstb();
+        `FORCE_JTAG(ctrl_rstb, 3'b100);
+        `FORCE_JTAG(exec_ctrl_rstb, 1);
+        `CLK_ADC_DLY;
+        `FORCE_JTAG(exec_ctrl_rstb, 0);
+        `CLK_ADC_DLY;
+    endtask : toggle_prbs_gen_rstb
+
+    task toggle_acore_rstb();
+        `FORCE_JTAG(ctrl_rstb, 3'b101);
+        `FORCE_JTAG(exec_ctrl_rstb, 1);
+        `CLK_ADC_DLY;
+        `FORCE_JTAG(exec_ctrl_rstb, 0);
+        `CLK_ADC_DLY;
+    endtask : toggle_acore_rstb
 
     function real chan_func(input real t);
         if (t <= chan_delay) begin
@@ -138,87 +153,20 @@ module sim_ctrl(
         slice = est_b > 0 ? 1 : -1;
     endfunction
 
-    task update_ffe;
-        // Set up the FFE
-        for (loop_var=0; loop_var<Nti; loop_var=loop_var+1) begin
-           for (loop_var2=0; loop_var2<ffe_gpack::length; loop_var2=loop_var2+1) begin
-                if ( !(ffe_coeffs[loop_var2] == 0)) begin
-                   load_weight(loop_var2, loop_var, ffe_coeffs[loop_var2], ffe_coeffs[loop_var2]);
-                end
-                tmp_ffe_shift[loop_var] = 8;
-            end
-        end
-        `FORCE_JTAG(ffe_shift, tmp_ffe_shift);
 
-    endtask // update_ffe
-
-    task calculate_ffe_update;
-        `FORCE_JTAG(int_dump_start, 0);
-        repeat (3) `CLK_ADC_DLY;
-        `FORCE_JTAG(int_dump_start, 1);
-        repeat (5000) `CLK_ADC_DLY;
-        for(loop_var = 0; loop_var < 4096; loop_var = loop_var + 1) begin
-            `FORCE_JTAG(in_addr_multi, loop_var);
-            `FORCE_JTAG(in_addr_multi_ffe, loop_var);
-
-            repeat (2) `CLK_ADC_DLY;
-
-            for(loop_var2 = 0; loop_var2 < 16; loop_var2 = loop_var2 + 1) begin
-                new_x = $signed(`GET_JTAG(out_data_multi[loop_var2]));
-                x_vec = {x_vec[18:0], new_x};
-                est_b = $signed(`GET_JTAG(out_data_multi_ffe[loop_var2]));
-                est_error = 16*slice(est_b) - est_b;
-
-                $write("est_b = %d\n", est_b);
-                $write("est_e = %d\n", est_error);
-
-                $write("x_vec = {");
-                for(ii = 0; ii < 10; ii += 1) begin
-                    dg_vec[ii] = est_error * x_vec[ii + 10 - 7];
-                    g_vec[ii] += dg_vec[ii];
-                    $write("%d, ", x_vec[ii]);
-                end
-                $write("}\n");
-
-                $write("dg_vec = {");
-                for(ii = 0; ii < 10; ii += 1) begin
-                    $write("%d, ", dg_vec[ii]);
-                end
-                $write("}\n");
-
-                $write("g_vec = {");
-                for(ii = 0; ii < 10; ii += 1) begin
-                    $write("%d, ", g_vec[ii]);
-                end
-                $write("}\n");
-
-
-                $write("ffe_coeffs = {");
-                for(ii = 0; ii < 10; ii += 1) begin
-                    if ((g_vec[ii] > 0) && (g_vec[ii][28:17] > 0) || (g_vec[ii] < 0) && (-g_vec[ii][28:17] > 0)) begin
-                        ffe_coeffs[ii] += (g_vec[ii] >>> 17);
-                        g_vec[ii] = 0;
-                    end
-                    $write("%d, ", ffe_coeffs[ii]);
-                end
-                $write("}\n");
-            end
-            repeat (2) `CLK_ADC_DLY;
-        end
-    endtask
 
     int fd_0, fd_1, fd_2;
 
     initial begin
         //Initialize Channel
         //chan_coeffs   = '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 3, 5, 9, 16, 30, 56,  2};
-        ffe_coeffs = '{0,0,0,0,0,0,0,0,0,0};
+        ffe_coeffs = '{0,0,0,0,0,32,0,0,0,0};
         x_vec = '{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
         g_vec = '{0,0,0,0,0,0,0,0,0,0};
         random_delay = 0;
         //chan_coeffs = '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 127, 127};
         //inp_sel = 1;
-
+        `FORCE_JTAG(fe_exec_inst, 1'b0);
         // initialize control signals
         jitter_rms_int = 0;
         noise_rms_int = 0;
@@ -228,40 +176,14 @@ module sim_ctrl(
         chan_waddr = 0;
         chan_we = 0;
         align_pos = 0;
+        `FORCE_JTAG(ce_hold, 1);
 
 
         // wait for emulator reset to complete
         $display("Waiting for emulator reset to complete...");
         `CLK_ADC_DLY;
 
-        // uncomment if the MT19937 mode is used (takes 25k cycles)
-        // $display("Waiting for the PRNG to start...");
-        // for (loop_var=0; loop_var<450; loop_var=loop_var+1) begin
-		//     $display("Interval %0d/450", loop_var);
-        //     repeat (56) `EMU_CLK_DLY;
-		// end
-        // `EMU_CLK_DLY;
-
-        // update the step response function
-        //chan_we = 1'b1;
-        //for (int idx=0; idx<numel; idx=idx+1) begin
-        //     if ((idx % 16) == 0) begin
-        //        $display("Updating function coefficients %0d/32", idx/16);
-        //     end
-        //     `ifndef HARD_FLOAT
-        //        chan_wdata_0 = `FLOAT_TO_FIXED(chan_func(idx*dt_samp), -16);
-        //        chan_wdata_1 = `FLOAT_TO_FIXED(chan_func((idx+1)*dt_samp)-chan_func(idx*dt_samp), -16);
-        //    `else
-        //        chan_wdata_0 = `REAL_TO_REC_FN(chan_func(idx*dt_samp));
-        //        chan_wdata_1 = `REAL_TO_REC_FN(chan_func((idx+1)*dt_samp)-chan_func(idx*dt_samp));
-        //    `endif
-        //    chan_waddr = idx;
-        //    `EMU_CLK_DLY;
-        //end
-        //chan_we = 1'b0;
-
-        // update the step response function
-
+        // Download the channel data in steven's step response form
 
         fd_0 = $fopen("/home/zamyers/Development/dragonphy2/tests/fpga_system_tests/emu_macro/chan_vals_0.txt", "r");
         fd_1 = $fopen("/home/zamyers/Development/dragonphy2/tests/fpga_system_tests/emu_macro/chan_vals_1.txt", "r");
@@ -269,8 +191,8 @@ module sim_ctrl(
 
         chan_we = 1'b1;
         for (int idx=0; idx<numel; idx=idx+1) begin
-            if ((idx % 16) == 0) begin
-                $display("Updating function coefficients %0d/32", idx/16);
+            if ((idx % 32) == 0) begin
+                $display("Updating function coefficients %0d/32", idx/32);
             end
             $fscanf(fd_0, "%d,\n", chan_wdata_0);
             $fscanf(fd_1, "%d,\n", chan_wdata_1);
@@ -299,25 +221,6 @@ module sim_ctrl(
         end
         $fclose(fd_2);
 
-
-
-        //chan_we = 1'b1;
-        //for (int idx=0; idx<numel; idx=idx+1) begin
-        //     if ((idx % 16) == 0) begin
-        //        $display("Updating function coefficients %0d/32", idx/16);
-        //     end
-        //     `ifndef HARD_FLOAT
-        //        chan_wdata_0 = `FLOAT_TO_FIXED(chan_func(idx*dt_samp), -16);
-        //        chan_wdata_1 = `FLOAT_TO_FIXED(chan_func((idx+1)*dt_samp)-chan_func(idx*dt_samp), -16);
-        //    `else
-        //        chan_wdata_0 = `REAL_TO_REC_FN(chan_func(idx*dt_samp));
-        //        chan_wdata_1 = `REAL_TO_REC_FN(chan_func((idx+1)*dt_samp)-chan_func(idx*dt_samp));
-        //    `endif
-        //    chan_waddr = idx;
-        //    `EMU_CLK_DLY;
-        //end
-        //chan_we = 1'b0;
-
         // release external reset signals
         rstb = 1'b1;
         trst_n = 1'b1;
@@ -325,8 +228,10 @@ module sim_ctrl(
 
         // Soft reset sequence
         $display("Soft reset sequence...");
-        `FORCE_JTAG(int_rstb, 1);
-        `CLK_ADC_DLY;
+        toggle_int_rstb();
+        toggle_acore_rstb();
+        toggle_sram_rstb();
+
         `FORCE_JTAG(en_inbuf, 1);
 		`CLK_ADC_DLY;
         `FORCE_JTAG(en_gf, 1);
@@ -357,45 +262,44 @@ module sim_ctrl(
 
         // Release the PRBS checker from reset
         $display("Release the PRBS tester from reset");
-        `FORCE_JTAG(prbs_rstb, 1);
+        toggle_prbs_rstb();
         `CLK_ADC_DLY;
 
-       /* // Set up the FFE
-        for (loop_var=0; loop_var<Nti; loop_var=loop_var+1) begin
-            for (loop_var2=0; loop_var2<ffe_gpack::length; loop_var2=loop_var2+1) begin
-                if (loop_var2 == 0) begin
-                    // The argument order for load() is depth, width, value
-                    load_weight(loop_var2, loop_var, coeff0, coeff0);
-                end else if (loop_var2 == 1) begin
-                    load_weight(loop_var2, loop_var, coeff1, coeff1);
-                end else begin
-                    load_weight(loop_var2, loop_var, 0,0);
-                end
-            end
-            tmp_ffe_shift[loop_var] = 7;
-        end
-        `FORCE_JTAG(ffe_shift, tmp_ffe_shift);
-        */
         // Set up the FFE
-        `FORCE_JTAG(adapt_gain, 5);
-        `FORCE_JTAG(load_init_weights, 1);
-        `FORCE_JTAG(use_init_weights, 1);
-        ffe_coeffs[9] = 0;
+        `FORCE_JTAG(fe_adapt_gain, 9);
+        `FORCE_JTAG(fe_bit_target_level, 10'd40);
+        // Pushing init_ffe_taps into ffe_estimator / ffe
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_0_q = ffe_coeffs[0];
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_1_q = ffe_coeffs[1];
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_2_q = ffe_coeffs[2];
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_3_q = ffe_coeffs[3];
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_4_q = ffe_coeffs[4];
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_5_q = ffe_coeffs[5];
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_6_q = ffe_coeffs[6];
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_7_q = ffe_coeffs[7];
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_8_q = ffe_coeffs[8];
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_9_q = ffe_coeffs[9];
+        `CLK_ADC_DLY;
+        repeat (3) `CLK_ADC_DLY;
+        `FORCE_JTAG(fe_inst, 3'b100);
+        repeat (3) `CLK_ADC_DLY;
+        `FORCE_JTAG(fe_exec_inst, 1'b1);
+        repeat (3) `CLK_ADC_DLY;
+        //Holding exec high so the FFE doesn't run
+        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_0_q;
+        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_1_q;
+        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_2_q;
+        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_3_q;
+        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_4_q;
+        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_5_q;
+        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_6_q;
+        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_7_q;
+        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_8_q;
+        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_9_q;
+
         for (loop_var=0; loop_var<Nti; loop_var=loop_var+1) begin
-           for (loop_var2=0; loop_var2<ffe_gpack::length; loop_var2=loop_var2+1) begin
-                if ( !(ffe_coeffs[loop_var2] == 0)) begin
-                   load_weight(loop_var2, loop_var, ffe_coeffs[loop_var2], ffe_coeffs[loop_var2]);
-                end
-            end
             tmp_ffe_shift[loop_var] = ffe_shift;
-
-            for (loop_var2=0; loop_var2<30; loop_var2=loop_var2+1) begin
-                if ( !(chan_coeffs[loop_var2] == 0) ) begin
-                    load_chan_weight(loop_var2, loop_var, chan_coeffs[loop_var2], chan_coeffs[loop_var2]);
-                end
-            end
-            tmp_chan_shift[loop_var] = 0;
-
+            tmp_chan_shift[loop_var] = 2;
         end
         `FORCE_JTAG(ffe_shift, tmp_ffe_shift);
         `FORCE_JTAG(channel_shift, tmp_chan_shift);
@@ -410,7 +314,9 @@ module sim_ctrl(
         tmp_ext_pi_ctl_offset[3] = 384;
         `FORCE_JTAG(ext_pi_ctl_offset, tmp_ext_pi_ctl_offset);
         `CLK_ADC_DLY;
-        `FORCE_JTAG(en_ext_max_sel_mux, 1);
+        //`FORCE_JTAG(en_ext_max_sel_mux, 1);
+        //`FORCE_JTAG(ext_max_sel_mux, 127);
+
         `CLK_ADC_DLY;
 
         // Configure the retimer
@@ -418,18 +324,14 @@ module sim_ctrl(
         `FORCE_JTAG(retimer_mux_ctrl_2, 16'hFFFF);
         `CLK_ADC_DLY;
 
-        // Assert the CDR reset
-        // TODO: do we really need to wait three cycles of clk_adc?
-        `FORCE_JTAG(cdr_rstb, 0);
-        repeat (3) `CLK_ADC_DLY;
-
         // Configure the CDR
         $display("Configuring the CDR...");
         `FORCE_JTAG(Kp, 10);
         `FORCE_JTAG(Ki, 0);
         `FORCE_JTAG(invert, 1);
-        `FORCE_JTAG(en_freq_est, 1);
-        `FORCE_JTAG(en_ext_pi_ctl, 0);
+        `FORCE_JTAG(en_freq_est, 0);
+        `FORCE_JTAG(en_ext_pi_ctl, 1);
+        `FORCE_JTAG(ext_pi_ctl, 0);
         `FORCE_JTAG(sel_inp_mux, 1); // "0": use ADC output, "1": use FFE output
         `CLK_ADC_DLY;
 
@@ -443,138 +345,53 @@ module sim_ctrl(
 
         // De-assert the CDR reset
         // TODO: do we really need to wait three cycles of clk_adc?
-        `FORCE_JTAG(cdr_rstb, 1);
+        toggle_cdr_rstb();
         repeat (100) `CLK_ADC_DLY;
-        `FORCE_JTAG(load_init_weights, 0);
-        //`FORCE_JTAG(use_init_weights, 0);
-        repeat (100) `CLK_ADC_DLY;
-        //`FORCE_JTAG(target_level, 'd125);
-        //repeat (10000) `CLK_ADC_DLY;
-
-        // Run FFE Adaptation
-        /*)
-        $display("Waiting for FFE Adaptation");
-        $fflush;
-
-        fd_0 = $fopen("/home/zamyers/Development/dragonphy2/tests/fpga_system_tests/emu_macro/adapt_data.txt", "w");
-
-        `FORCE_JTAG(en_int_dump_start, 1);
-
-        for ( jj = 0; jj < 5; jj+=1) begin
-            `FORCE_JTAG(int_dump_start, 0);
-            repeat (3) `CLK_ADC_DLY;
-            `FORCE_JTAG(int_dump_start, 1);
-            repeat (5000) `CLK_ADC_DLY;
-            for(loop_var = 0; loop_var < 4095; loop_var = loop_var + 1) begin
-                `FORCE_JTAG(in_addr_multi, loop_var);
-                `FORCE_JTAG(in_addr_multi_ffe, loop_var+1);
-    
-                repeat (2) `CLK_ADC_DLY;
-    
-                for(loop_var2 = 0; loop_var2 < 16; loop_var2 = loop_var2 + 1) begin
-                    new_x = $signed(`GET_JTAG(out_data_multi[loop_var2]));
-                    x_vec = {x_vec[18:0], new_x};
-                    est_b = $signed(`GET_JTAG(out_data_multi_ffe[loop_var2]));
-                    est_error = 38*slice(est_b) - est_b;
-    
-                    $write("est_b = %d\n", est_b);
-                    $write("est_e = %d\n", est_error);
-
-                    $fwrite(fd_0,"%d, %d, ",est_b, est_error);
-
-                    $write("x_vec = {");
-                    for(ii = 0; ii < 10; ii += 1) begin
-                        dg_vec[ii] = est_error * x_vec[ii + 11 - 2]; // already time reversed (FIFO)
-                        g_vec[ii] += dg_vec[ii];
-                        $write("%d, ", x_vec[ii + 11 - 2]);
-
-                    end
-                    $write("}\n");
-
-                    $write("x_vec = {");
-                    for(ii = 0; ii < 20; ii += 1) begin
-                        $write("%d, ", x_vec[ii]);
-                        $fwrite(fd_0, "%d, ", x_vec[ii]);
-
-                    end
-                    $write("}\n");
-                    $fwrite(fd_0, "\n");
-
-    
-                    $write("dg_vec = {");
-                    for(ii = 0; ii < 10; ii += 1) begin
-                        $write("%d, ", dg_vec[ii]);
-                    end
-                    $write("}\n");
-    
-                    $write("g_vec = {");
-                    for(ii = 0; ii < 10; ii += 1) begin
-                        $write("%d, ", g_vec[ii]);
-                    end
-                    $write("}\n");
-    
-                    $write("abs_g_vec = {");
-                    for(ii = 0; ii < 10; ii += 1) begin
-                        $write("%d, ", (1 + ~g_vec[ii]));
-                    end
-                    $write("}\n");
-
-                    $write("ffe_coeffs = {");
-                    for(ii = 0; ii < 10; ii += 1) begin
-                        if ((g_vec[ii] > 0) && ((g_vec[ii] >>> 19) > 0)) begin
-                            ffe_coeffs[ii] += (g_vec[ii] >>> 19);
-                            g_vec[ii] = 0;
-                        end else if((g_vec[ii] < 0) && (( (1 + ~g_vec[ii]) >>> 19) < 0)) begin
-                            ffe_coeffs[ii] += (g_vec[ii] >>> 19);
-                            g_vec[ii] = 0;
-                        end
-                        $write("%d, ", ffe_coeffs[ii]);
-                    end
-                    $write("}\n");
-                end
-                $fflush;
-                repeat (2) `CLK_ADC_DLY;
-            end
-            // Set up the FFE
-            for (loop_var=0; loop_var<Nti; loop_var=loop_var+1) begin
-               for (loop_var2=0; loop_var2<ffe_gpack::length; loop_var2=loop_var2+1) begin
-                    if ( !(ffe_coeffs[loop_var2] == 0)) begin
-                       load_weight(loop_var2, loop_var, ffe_coeffs[loop_var2], ffe_coeffs[loop_var2]);
-                    end
-                    tmp_ffe_shift[loop_var] = 6;
-                end
-            end
-            `FORCE_JTAG(ffe_shift, tmp_ffe_shift);
-        end
-        $fclose(fd_0);
-        */
 
         // Wait for PRBS checker to lock
 		$display("Waiting for PRBS checker to lock...");
 		for (loop_var=0; loop_var<50; loop_var=loop_var+1) begin
 		    $display("Interval %0d/50", loop_var);
-            repeat (8) `CLK_ADC_DLY;
+            repeat (2) `CLK_ADC_DLY;
 		end
         // Inject a single bit pulse
         //repeat (50) `CLK_ADC_DLY;
         //#inp_sel = 1;
 
+        `FORCE_JTAG(ce_gain, 12);
+        `FORCE_JTAG(ce_hold, 0);
+
+        repeat (10000) `CLK_ADC_DLY;
+
+        `FORCE_JTAG(ce_gain, 10);
+        `FORCE_JTAG(ce_hold, 0);
+
         // Run the PRBS tester
         $display("Running the PRBS tester");
         `FORCE_JTAG(prbs_checker_mode, 2);
         repeat (100) `CLK_ADC_DLY;
-        force tb_i.top_i.idcore.datapath_i.stage1_est_bits_out[7] = -tb_i.top_i.idcore.datapath_i.stage1_est_bits_out[7];
-        force tb_i.top_i.idcore.datapath_i.stage1_sliced_bits_out[7] = ~tb_i.top_i.idcore.datapath_i.stage1_sliced_bits_out[7];
+
+        `FORCE_JTAG(fe_exec_inst, 1'b0);
+        repeat (3) `CLK_ADC_DLY;
+
+        //force tb_i.top_i.idcore.datapath_i.stage1_est_bits_out[7] = -tb_i.top_i.idcore.datapath_i.stage1_est_bits_out[7];
+        //force tb_i.top_i.idcore.datapath_i.stage1_sliced_bits_out[7] = ~tb_i.top_i.idcore.datapath_i.stage1_sliced_bits_out[7];
         //force tb_i.top_i.idcore.datapath_i.stage1_est_bits_out[8] = -tb_i.top_i.idcore.datapath_i.stage1_est_bits_out[8];
 
-        `CLK_ADC_DLY;
-        release tb_i.top_i.idcore.datapath_i.stage1_est_bits_out[7];
-        release tb_i.top_i.idcore.datapath_i.stage1_sliced_bits_out[7];
+        //`CLK_ADC_DLY;
+        //release tb_i.top_i.idcore.datapath_i.stage1_est_bits_out[7];
+        //release tb_i.top_i.idcore.datapath_i.stage1_sliced_bits_out[7];
 
         //release tb_i.top_i.idcore.datapath_i.stage1_est_bits_out[8];
-        repeat (20) `CLK_ADC_DLY;
-        repeat (150) `CLK_ADC_DLY;
+        repeat (10000) `CLK_ADC_DLY;
+        /*
+        for (loop_var=0; loop_var<511; loop_var=loop_var+3) begin
+            `FORCE_JTAG(ext_pi_ctl, loop_var);
+            repeat (25) `CLK_ADC_DLY;
+        end */   
 
+
+        /*
         for (loop_var=0; loop_var<100; loop_var=loop_var+1) begin
             $display("ERROR INJECTED: ");
             random_delay = $random();
@@ -597,7 +414,7 @@ module sim_ctrl(
 		    $display("Interval %0d/100", loop_var);
             repeat (8) `CLK_ADC_DLY;
 		end
-        `CLK_ADC_DLY;
+        `CLK_ADC_DLY;*/
 
         // Get results
         `FORCE_JTAG(prbs_checker_mode, 3);

@@ -29,11 +29,8 @@
 | pfd_offset_rep             | yes     | Nadc-1:0               | Nti_rep-1:0      | System       | in       |           |
 | Ndiv_clk_avg               |         | Nrange-1:0             |                  | Test         | out      |   10      |
 | Ndiv_clk_cdr               |         | 3:0                    |                  | Test         | out      |   4       |
-| int_rstb                   |         |                        |                  | Test         | out      |   0       |
-| sram_rstb                  |         |                        |                  | Test         | out      |   1       |
-| cdr_rstb                   |         |                        |                  | Test         | out      |   1       |
-| prbs_rstb                  |         |                        |                  | System       | out      |   0       |
-| prbs_gen_rstb              |         |                        |                  | System       | out      |   0       |
+| ctrl_rstb                  |         | 2:0                    |                  | Test         | out      |   0       |
+| exec_ctrl_rstb             |         |                        |                  | Test         | out      |   0       |
 | sel_outbuff				 | 		   | 3:0					|				   | Test		  | out 	 |   0		 |
 | sel_trigbuff				 | 		   | 3:0					|				   | Test		  | out 	 |   0		 |
 | en_outbuff				 | 		   |     					|				   | Test		  | out 	 |   0		 |
@@ -45,10 +42,17 @@
 | ffe_shift                  |         | 4:0                    | Nti-1:0          | Test         | out      |   0       |
 | channel_shift              |         | 3:0                    | Nti-1:0          | Test         | out      |   0       |
 | align_pos		             |         | 3:0			        | 		           | Test 	      | out      |   0 	     |
-| load_init_weights          |         |                        |                  | Test         | out      |   1       |
-| use_init_weights           |         |                        |                  | Test         | out      |   1       |
-| adapt_gain                 |         | 5:0                    |                  | Test         | out      |   0       |
-| target_level               |         | 9:0                    |                  | Test         | out      |   'd150   |
+| fe_inst                    |         | 2:0                    |                  | Test         | out      |   0       |
+| fe_exec_inst               |         |                        |                  | Test         | out      |   0       |
+| init_ffe_taps              |  yes    | 9:0                    | 9:0              | Test         | out      |   0&0&0&0&0&32&0&0&0&0 |
+| fe_adapt_gain              |         | 4:0                    |                  | Test         | out      |   0       |
+| fe_bit_target_level        |  yes    | 9:0                    |                  | Test         | out      |   'd70    |
+| ce_gain                    |         | 3:0                    |                  | Test         | out      |   1       |
+| ce_hold                    |         |                        |                  | Test         | out      |   0       |
+| sample_fir_est             |         |                        |                  | Test         | out      |   0       |
+| sample_pos                 |         | 4:0                    |                  | Test         | out      |   0       |
+| ce_sampled_value           |   yes   | 7:0                    |                  | Test         | in       |           |
+| fe_sampled_value           |   yes   | 9:0                    |                  | Test         | in       |           |
 | cmp_thresh                 |   yes   | 9:0                    | Nti-1:0          | Test         | out      |   0       |
 | disable_product            |         | Nti-1:0                | 9:0              | Test         | out      |   0       |
 | ffe_thresh                 |   yes   | 9:0                    | Nti-1:0          | Test         | out      |   0       |
@@ -69,3 +73,10 @@
 | tx_bypass_pi_ctl           |         | Npi-1:0                | Nout-1:0         | Test         | out      | 0         |
 | tx_rst                     |         |                        |                  | Test         | out      |   1       |
 | tx_ctl_valid               |         |                        |                  | Test         | out      |   0       |
+
+
+
+
+
+
+

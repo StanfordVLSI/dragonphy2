@@ -1,17 +1,20 @@
 `define MAX(arg1, arg2) ((arg1 > arg2) ? arg1 : arg2)
+`default_nettype none
 
 module datapath_core #(
         parameter integer delay_width=4,
         parameter integer width_width=4
 )(
-    input logic signed [constant_gpack::code_precision-1:0] adc_codes [constant_gpack::channel_width-1:0],
+    input wire logic signed [constant_gpack::code_precision-1:0] adc_codes [constant_gpack::channel_width-1:0],
 
-    input logic clk,
-    input logic rstb,
+    input wire logic clk,
+    input wire logic rstb,
 
     //Stage 1
     output logic signed [ffe_gpack::output_precision-1:0]      stage1_est_bits_out    [constant_gpack::channel_width-1:0],
     output logic                                               stage1_sliced_bits_out [constant_gpack::channel_width-1:0],
+    output logic signed [constant_gpack::code_precision-1:0]   stage1_act_codes_out [constant_gpack::channel_width-1:0],
+
     output logic        [delay_width+width_width-1:0]          stage1_est_bits_out_delay       ,
     output logic        [delay_width+width_width-1:0]          stage1_sliced_bits_out_delay        ,
     //Stage 2
@@ -62,44 +65,44 @@ module datapath_core #(
 );
     
     // synthesis translate_off
-    always_ff @(posedge clk) begin
-        $display("stage1_est_bits_out:    %p",stage1_est_bits_out);
-        $display("stage1_sliced_bits_out: %p",stage1_sliced_bits_out);
-        $display("stage2_res_errors_out:  %p",stage2_res_errors_out);
-        $display("stage2_sliced_bits_out: %p",stage2_sliced_bits_out);
-        $display("stage3_sd_flags_ener:   %p",stage3_sd_flags_ener);
-        $display("stage3_sd_flags:        %p",stage3_sd_flags);
-        $display("stage4_sliced_bits_out: %p",stage4_sliced_bits_out);
-        $display("stage4_res_errors_out:  %p",stage4_res_errors_out);
-        $display("stage5_sd_flags_ener:   %p",stage5_sd_flags_ener);
-        $display("stage5_sd_flags:        %p",stage5_sd_flags);
-        $display("stage6_sliced_bits_out: %p",stage6_sliced_bits_out);
-        $display("stage6_res_errors_out:  %p",stage6_res_errors_out);
-        $display("stage8_sliced_bits_out: %p",stage8_sliced_bits_out);
-        $display("stage8_res_errors_out:  %p",stage8_res_errors_out);
-        $display("stage8_aligned_stage2_res_errors_out: %p",stage8_aligned_stage2_res_errors_out);
-        $display("stage8_aligned_stage2_sliced_bits_out:  %p",stage8_aligned_stage2_sliced_bits_out);
-        $display("stage8_aligned_stage5_sd_flags: %p",stage8_aligned_stage5_sd_flags);
-
-        $display("stage1_est_bits_out_delay:    %p",stage1_est_bits_out_delay);
-        $display("stage1_sliced_bits_out_delay: %p",stage1_sliced_bits_out_delay);
-        $display("stage1_act_codes_out_delay:   %p",stage1_act_codes_out_delay);
-        $display("stage2_res_errors_out_delay:  %p",stage2_res_errors_out_delay);
-        $display("stage2_sliced_bits_out_delay: %p",stage2_sliced_bits_out_delay);
-        $display("stage3_sd_flags_ener_delay:   %p",stage3_sd_flags_ener_delay);
-        $display("stage3_sd_flags_delay:        %p",stage3_sd_flags_delay);
-        $display("stage4_sliced_bits_out_delay: %p",stage4_sliced_bits_out_delay);
-        $display("stage4_res_errors_out_delay:  %p",stage4_res_errors_out_delay);
-        $display("stage5_sd_flags_ener_delay:   %p",stage5_sd_flags_ener_delay);
-        $display("stage5_sd_flags_delay:        %p",stage5_sd_flags_delay);
-        $display("stage6_sliced_bits_out_delay: %p",stage6_sliced_bits_out_delay);
-        $display("stage6_res_errors_out_delay:  %p",stage6_res_errors_out_delay);
-        $display("stage8_sliced_bits_out_delay: %p",stage8_sliced_bits_out_delay);
-        $display("stage8_res_errors_out_delay:  %p",stage8_res_errors_out_delay);
-        $display("stage8_aligned_stage2_res_errors_out_delay: %p",stage8_aligned_stage2_res_errors_out_delay);
-        $display("stage8_aligned_stage2_sliced_bits_out_delay:  %p",stage8_aligned_stage2_sliced_bits_out_delay);
-        $display("stage8_aligned_stage5_sd_flags_delay: %p",stage8_aligned_stage5_sd_flags_delay);
-    end
+    //always_ff @(posedge clk) begin
+    //    $display("stage1_est_bits_out:    %p",stage1_est_bits_out);
+    //    $display("stage1_sliced_bits_out: %p",stage1_sliced_bits_out);
+    //    $display("stage2_res_errors_out:  %p",stage2_res_errors_out);
+    //    $display("stage2_sliced_bits_out: %p",stage2_sliced_bits_out);
+    //    $display("stage3_sd_flags_ener:   %p",stage3_sd_flags_ener);
+    //    $display("stage3_sd_flags:        %p",stage3_sd_flags);
+    //    $display("stage4_sliced_bits_out: %p",stage4_sliced_bits_out);
+    //    $display("stage4_res_errors_out:  %p",stage4_res_errors_out);
+    //    $display("stage5_sd_flags_ener:   %p",stage5_sd_flags_ener);
+    //    $display("stage5_sd_flags:        %p",stage5_sd_flags);
+    //    $display("stage6_sliced_bits_out: %p",stage6_sliced_bits_out);
+    //    $display("stage6_res_errors_out:  %p",stage6_res_errors_out);
+    //    $display("stage8_sliced_bits_out: %p",stage8_sliced_bits_out);
+    //    $display("stage8_res_errors_out:  %p",stage8_res_errors_out);
+    //    $display("stage8_aligned_stage2_res_errors_out: %p",stage8_aligned_stage2_res_errors_out);
+    //    $display("stage8_aligned_stage2_sliced_bits_out:  %p",stage8_aligned_stage2_sliced_bits_out);
+    //    $display("stage8_aligned_stage5_sd_flags: %p",stage8_aligned_stage5_sd_flags);
+//
+    //    $display("stage1_est_bits_out_delay:    %p",stage1_est_bits_out_delay);
+    //    $display("stage1_sliced_bits_out_delay: %p",stage1_sliced_bits_out_delay);
+    //    $display("stage1_act_codes_out_delay:   %p",stage1_act_codes_out_delay);
+    //    $display("stage2_res_errors_out_delay:  %p",stage2_res_errors_out_delay);
+    //    $display("stage2_sliced_bits_out_delay: %p",stage2_sliced_bits_out_delay);
+    //    $display("stage3_sd_flags_ener_delay:   %p",stage3_sd_flags_ener_delay);
+    //    $display("stage3_sd_flags_delay:        %p",stage3_sd_flags_delay);
+    //    $display("stage4_sliced_bits_out_delay: %p",stage4_sliced_bits_out_delay);
+    //    $display("stage4_res_errors_out_delay:  %p",stage4_res_errors_out_delay);
+    //    $display("stage5_sd_flags_ener_delay:   %p",stage5_sd_flags_ener_delay);
+    //    $display("stage5_sd_flags_delay:        %p",stage5_sd_flags_delay);
+    //    $display("stage6_sliced_bits_out_delay: %p",stage6_sliced_bits_out_delay);
+    //    $display("stage6_res_errors_out_delay:  %p",stage6_res_errors_out_delay);
+    //    $display("stage8_sliced_bits_out_delay: %p",stage8_sliced_bits_out_delay);
+    //    $display("stage8_res_errors_out_delay:  %p",stage8_res_errors_out_delay);
+    //    $display("stage8_aligned_stage2_res_errors_out_delay: %p",stage8_aligned_stage2_res_errors_out_delay);
+    //    $display("stage8_aligned_stage2_sliced_bits_out_delay:  %p",stage8_aligned_stage2_sliced_bits_out_delay);
+    //    $display("stage8_aligned_stage5_sd_flags_delay: %p",stage8_aligned_stage5_sd_flags_delay);
+    //end
     // synthesis translate_on
 
     parameter integer stage1_depth = `MAX(1, constant_gpack::stage1_ffe_pipeline_depth + 1);
@@ -175,13 +178,13 @@ module datapath_core #(
         // synthesis translate_on
     end
 
-    logic signed [ffe_gpack::weight_precision-1:0] weights [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0];
-    logic [ffe_gpack::shift_precision-1:0] ffe_shift [constant_gpack::channel_width-1:0];
-    logic signed [cmp_gpack::thresh_precision-1:0] thresh  [constant_gpack::channel_width-1:0];
-    logic signed [channel_gpack::est_channel_precision-1:0] channel_est [constant_gpack::channel_width-1:0][channel_gpack::est_channel_depth-1:0];
-    logic [channel_gpack::shift_precision-1:0] channel_shift [constant_gpack::channel_width-1:0];
-    logic  disable_product [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0];
-    logic [$clog2(constant_gpack::channel_width)-1:0] align_pos;
+    wire logic signed [ffe_gpack::weight_precision-1:0] weights [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0];
+    wire logic [ffe_gpack::shift_precision-1:0] ffe_shift [constant_gpack::channel_width-1:0];
+    wire logic signed [cmp_gpack::thresh_precision-1:0] thresh  [constant_gpack::channel_width-1:0];
+    wire logic signed [channel_gpack::est_channel_precision-1:0] channel_est [constant_gpack::channel_width-1:0][channel_gpack::est_channel_depth-1:0];
+    wire logic [channel_gpack::shift_precision-1:0] channel_shift [constant_gpack::channel_width-1:0];
+    wire logic  disable_product [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0];
+    wire logic [$clog2(constant_gpack::channel_width)-1:0] align_pos;
 
     simplify_dsp_dbg_intf simp_dsp_i (
         //Input 
@@ -196,7 +199,6 @@ module datapath_core #(
         .disable_product(disable_product)
     );
 
-    logic signed [constant_gpack::code_precision-1:0] stage1_act_codes_out [constant_gpack::channel_width-1:0];
     logic [delay_width+width_width-1:0] stage1_act_codes_out_delay;
     bits_estimator_datapath  #(
         .ffe_pipeline_depth(constant_gpack::stage1_ffe_pipeline_depth)
@@ -325,7 +327,7 @@ module datapath_core #(
     logic [delay_width+width_width-1:0] stage5_sliced_bits_out_delay;
     logic [delay_width+width_width-1:0] stage5_res_errors_out_delay;
     error_checker_datapath  #(
-        .seq_length(4),
+        .seq_length(3),
         .num_of_flip_patterns(2),
         .flip_pattern_depth(3),
         .flip_patterns('{'{0,1,1}, '{0,1,0}}),
@@ -356,7 +358,7 @@ module datapath_core #(
     );
 
     error_corrector_datapath  #(
-        .seq_length                          (4),
+        .seq_length                          (3),
         .num_of_flip_patterns(2),
         .flip_pattern_depth(3),
         .flip_patterns('{'{0,1,1}, '{0,1,0}}),
@@ -456,3 +458,4 @@ module datapath_core #(
     );
 
 endmodule : datapath_core
+`default_nettype wire
