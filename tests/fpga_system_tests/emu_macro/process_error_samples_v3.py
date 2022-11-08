@@ -36,7 +36,7 @@ with open('ffe_vals.txt', 'r') as f:
 chan_taps = []
 with open('chan_est_vals.txt', 'r') as f:
     chan_taps = np.array([float(line.strip()) for line in f.readlines()])
-
+print(chan_taps)
 
 data_sets = []
 for filename in sys.argv[1:]:

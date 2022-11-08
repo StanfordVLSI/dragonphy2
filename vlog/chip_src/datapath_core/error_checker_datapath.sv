@@ -159,6 +159,7 @@ module error_checker_datapath #(
         .errstream_delay(sd_flat_errors_delay),
         .bitstream_delay(sd_flat_sliced_bits_delay),
         .channel(channel_est),
+        .channel_shift  (channel_shift),
         .mmse_vals(mmse_vals),
         .err_flags(argmin_mmse),
         .mmse_vals_delay(mmse_vals_delay),

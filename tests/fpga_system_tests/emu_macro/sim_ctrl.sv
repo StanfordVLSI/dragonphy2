@@ -74,7 +74,7 @@ module sim_ctrl(
 
     logic [Nadc-1:0] tmp_ext_pfd_offset [Nti-1:0];
     logic [Npi-1:0] tmp_ext_pi_ctl_offset [Nout-1:0];
-    logic [Nadc-1:0] chan_coeffs [29:0];
+    logic signed [channel_gpack::est_channel_precision-1:0] chan_coeffs [29:0];
     logic signed [Nadc            -1:0] x_vec [19:0];
     logic signed [Nadc*2 + 1      -1:0] dg_vec [9:0];
     logic signed [Nadc*2 + 1 + 12 -1:0] g_vec [ffe_gpack::length-1:0];
@@ -84,6 +84,8 @@ module sim_ctrl(
 
     localparam weight_update = 1;
     logic signed [ffe_gpack::weight_precision-1:0] ffe_coeffs [ffe_gpack::length-1:0];
+    logic signed [ffe_gpack::weight_precision-1:0] meas_ffe_coeffs [ffe_gpack::length-1:0];
+    logic signed [channel_gpack::est_channel_precision-1:0] meas_chan_coeffs [30-1:0];
 
     integer loop_var, loop_var2, ii, jj;
     string out_str;
@@ -92,6 +94,19 @@ module sim_ctrl(
     logic [ffe_gpack::shift_precision-1:0] ffe_shift;
     logic [ffe_gpack::shift_precision-1:0] tmp_ffe_shift [constant_gpack::channel_width-1:0];
     logic [3:0] tmp_chan_shift [constant_gpack::channel_width-1:0];
+
+    task read_ffe_and_channel_taps(input int ii);
+        `FORCE_JTAG(sample_pos, ii);
+        `CLK_ADC_DLY;
+        `FORCE_JTAG(sample_fir_est, 1);
+        `CLK_ADC_DLY;
+        `FORCE_JTAG(sample_fir_est, 0);
+        `CLK_ADC_DLY;
+        $display("ffe %d: %d", ii, `GET_JTAG(fe_sampled_value));
+        $display("chan %d: %d", ii, `GET_JTAG(ce_sampled_value));
+        `CLK_ADC_DLY;
+
+    endtask : read_ffe_and_channel_taps
 
     task toggle_int_rstb();
         `FORCE_JTAG(ctrl_rstb, 3'b000);
@@ -167,6 +182,8 @@ module sim_ctrl(
         //chan_coeffs = '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 127, 127};
         //inp_sel = 1;
         `FORCE_JTAG(fe_exec_inst, 1'b0);
+        `FORCE_JTAG(ce_exec_inst, 1'b0);
+
         // initialize control signals
         jitter_rms_int = 0;
         noise_rms_int = 0;
@@ -176,7 +193,6 @@ module sim_ctrl(
         chan_waddr = 0;
         chan_we = 0;
         align_pos = 0;
-        `FORCE_JTAG(ce_hold, 1);
 
 
         // wait for emulator reset to complete
@@ -205,13 +221,6 @@ module sim_ctrl(
         $fclose(fd_0);
         $fclose(fd_1);
 
-        fd_1 = $fopen("/home/zamyers/Development/dragonphy2/tests/fpga_system_tests/emu_macro/chan_est_vals.txt", "r");
-        for (loop_var2=0; loop_var2<30; loop_var2=loop_var2+1) begin
-            $fscanf(fd_1, "%d\n", chan_coeffs[loop_var2]);
-            $display("%d,", chan_coeffs[loop_var2]);
-        end
-        $fclose(fd_1);        
-
         fd_2 = $fopen("/home/zamyers/Development/dragonphy2/tests/fpga_system_tests/emu_macro/ffe_vals.txt", "r");
         $fscanf(fd_2, "%d\n", ffe_shift);
         $fscanf(fd_2, "%d\n", align_pos);
@@ -220,6 +229,20 @@ module sim_ctrl(
             $display("%d,", ffe_coeffs[loop_var2]);
         end
         $fclose(fd_2);
+
+        fd_1 = $fopen("/home/zamyers/Development/dragonphy2/tests/fpga_system_tests/emu_macro/chan_est_vals.txt", "r");
+        for (loop_var2=0; loop_var2<30; loop_var2=loop_var2+1) begin
+            $fscanf(fd_1, "%d\n", chan_coeffs[loop_var2]);
+            $display("%d,", chan_coeffs[loop_var2]);
+            chan_coeffs[loop_var2] = chan_coeffs[loop_var2] << 3;
+        end
+        $fclose(fd_1);     
+
+        for (loop_var=0; loop_var<Nti; loop_var=loop_var+1) begin
+            tmp_ffe_shift[loop_var] = ffe_shift;
+            tmp_chan_shift[loop_var] = 3;
+        end
+
 
         // release external reset signals
         rstb = 1'b1;
@@ -297,10 +320,19 @@ module sim_ctrl(
         release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_8_q;
         release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_9_q;
 
-        for (loop_var=0; loop_var<Nti; loop_var=loop_var+1) begin
-            tmp_ffe_shift[loop_var] = ffe_shift;
-            tmp_chan_shift[loop_var] = 2;
+        repeat (3) `CLK_ADC_DLY;
+        `FORCE_JTAG(ce_inst, 3'b100);
+        for(loop_var=0; loop_var<30; loop_var=loop_var+1) begin
+            `FORCE_JTAG(ce_addr, loop_var);
+            `FORCE_JTAG(ce_val, chan_coeffs[loop_var]);
+            repeat (3) `CLK_ADC_DLY;
+            `FORCE_JTAG(ce_exec_inst, 1'b1);
+            repeat (3) `CLK_ADC_DLY;
+            `FORCE_JTAG(ce_exec_inst, 1'b0);
         end
+        `FORCE_JTAG(ce_exec_inst, 1'b1);
+
+
         `FORCE_JTAG(ffe_shift, tmp_ffe_shift);
         `FORCE_JTAG(channel_shift, tmp_chan_shift);
         `FORCE_JTAG(align_pos, align_pos);
@@ -358,21 +390,34 @@ module sim_ctrl(
         //repeat (50) `CLK_ADC_DLY;
         //#inp_sel = 1;
 
-        `FORCE_JTAG(ce_gain, 12);
-        `FORCE_JTAG(ce_hold, 0);
-
-        repeat (10000) `CLK_ADC_DLY;
-
         `FORCE_JTAG(ce_gain, 10);
-        `FORCE_JTAG(ce_hold, 0);
+        `FORCE_JTAG(ce_exec_inst, 0);
+
+
+        `FORCE_JTAG(fe_exec_inst, 1'b0);
+        repeat (5000) `CLK_ADC_DLY;
+
+        `FORCE_JTAG(ce_gain, 9);
+        repeat (5000) `CLK_ADC_DLY;
+        `FORCE_JTAG(ce_gain, 8);
+        repeat (5000) `CLK_ADC_DLY;
+
+        for(int ii = 0; ii < 30; ii += 1) begin
+            read_ffe_and_channel_taps(ii);
+        end
+
+        `FORCE_JTAG(ce_gain, 6);
+        repeat (10000) `CLK_ADC_DLY;
 
         // Run the PRBS tester
         $display("Running the PRBS tester");
         `FORCE_JTAG(prbs_checker_mode, 2);
         repeat (100) `CLK_ADC_DLY;
 
-        `FORCE_JTAG(fe_exec_inst, 1'b0);
-        repeat (3) `CLK_ADC_DLY;
+        for(int ii = 0; ii < 30; ii += 1) begin
+            read_ffe_and_channel_taps(ii);
+        end
+
 
         //force tb_i.top_i.idcore.datapath_i.stage1_est_bits_out[7] = -tb_i.top_i.idcore.datapath_i.stage1_est_bits_out[7];
         //force tb_i.top_i.idcore.datapath_i.stage1_sliced_bits_out[7] = ~tb_i.top_i.idcore.datapath_i.stage1_sliced_bits_out[7];
@@ -389,6 +434,8 @@ module sim_ctrl(
             `FORCE_JTAG(ext_pi_ctl, loop_var);
             repeat (25) `CLK_ADC_DLY;
         end */   
+
+
 
 
         /*

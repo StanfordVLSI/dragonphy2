@@ -70,10 +70,18 @@ interface dcore_debug_intf import const_pack::*; (
         logic fe_exec_inst;
         logic signed [ffe_gpack::weight_precision-1:0] init_ffe_taps [ffe_gpack::length-1:0];
         logic [4:0] fe_adapt_gain;
-        logic [9:0] fe_bit_target_level;
+        logic [ffe_gpack::weight_precision-1:0] fe_bit_target_level;
 
         logic [3:0] ce_gain;
-        logic ce_hold;
+		logic [2:0] ce_inst;
+		logic ce_exec_inst;
+		logic [4:0] ce_addr;
+		logic signed [channel_gpack::est_channel_precision-1:0] ce_val;
+
+		logic sample_fir_est;
+		logic [4:0] sample_pos;
+		logic signed [channel_gpack::est_channel_precision-1:0] ce_sampled_value;
+		logic signed [ffe_gpack::weight_precision-1:0] fe_sampled_value;
 
         logic signed [Nadc-1:0] pfd_cal_ext_ave;
         logic en_int_dump_start;
@@ -144,8 +152,16 @@ interface dcore_debug_intf import const_pack::*; (
 		input fe_adapt_gain,
 		input fe_bit_target_level,
 
-		input ce_hold,
 		input ce_gain,
+		input ce_inst,
+		input ce_exec_inst,
+		input ce_addr,
+		input ce_val,
+		
+		input sample_fir_est,
+		input sample_pos,
+		output ce_sampled_value,
+		output fe_sampled_value,
 
         input en_int_dump_start,
         input int_dump_start,
@@ -233,8 +249,16 @@ interface dcore_debug_intf import const_pack::*; (
 		output fe_adapt_gain,
 		output fe_bit_target_level,
 
-		output ce_hold,
 		output ce_gain,
+		output ce_inst,
+		output ce_exec_inst,
+		output ce_addr,
+		output ce_val,
+
+		output sample_fir_est,
+		output sample_pos,
+		input ce_sampled_value,
+		input fe_sampled_value,
 
 		input adcout_avg ,
 		input adcout_sum,

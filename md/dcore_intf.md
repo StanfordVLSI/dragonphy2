@@ -48,13 +48,15 @@
 | fe_adapt_gain              |         | 4:0                    |                  | Test         | out      |   0       |
 | fe_bit_target_level        |  yes    | 9:0                    |                  | Test         | out      |   'd70    |
 | ce_gain                    |         | 3:0                    |                  | Test         | out      |   1       |
-| ce_hold                    |         |                        |                  | Test         | out      |   0       |
+| ce_inst                    |         | 2:0                    |                  | Test         | out      |   0       |
+| ce_exec_inst               |         |                        |                  | Test         | out      |   0       |
+| ce_addr                    |         | 4:0                    |                  | Test         | out      |   0       |
+| ce_val                     |   yes   | 9:0                    |                  | Test         | out      |   0       |
 | sample_fir_est             |         |                        |                  | Test         | out      |   0       |
 | sample_pos                 |         | 4:0                    |                  | Test         | out      |   0       |
-| ce_sampled_value           |   yes   | 7:0                    |                  | Test         | in       |           |
-| fe_sampled_value           |   yes   | 9:0                    |                  | Test         | in       |           |
+| ce_sampled_value           |   yes   | 9:0                    |                  | System       | in       |           |
+| fe_sampled_value           |   yes   | 9:0                    |                  | System       | in       |           |
 | cmp_thresh                 |   yes   | 9:0                    | Nti-1:0          | Test         | out      |   0       |
-| disable_product            |         | Nti-1:0                | 9:0              | Test         | out      |   0       |
 | ffe_thresh                 |   yes   | 9:0                    | Nti-1:0          | Test         | out      |   0       |
 | adc_thresh                 |   yes   | 7:0                    | Nti-1:0          | Test         | out      |   0       |
 | sel_prbs_mux               |         | 1:0                    |                  | System       | out      |   0       |
@@ -66,13 +68,6 @@
 | en_pfd_cal_ext_ave         |         |                        |                  | Test         | out      |   0       |
 | en_int_dump_start          |         |                        |                  | Test         | out      |   0       |
 | int_dump_start             |         |                        |                  | Test         | out      |   0       |
-| tx_en_ext_max_sel_mux      |         |                        |                  | Test         | out      | 'b0       |
-| tx_ext_max_sel_mux         |         | $clog2(Nunit_pi)-1:0   | Nout-1:0         | Test         | out      | 'h1F      |
-| tx_pi_ctl                  |         | Npi-1:0                | Nout-1:0         | Test         | out      | 0&135&270&405|
-| tx_en_bypass_pi_ctl        |         | Npi-1:0                |                  | Test         | out      | 0         |
-| tx_bypass_pi_ctl           |         | Npi-1:0                | Nout-1:0         | Test         | out      | 0         |
-| tx_rst                     |         |                        |                  | Test         | out      |   1       |
-| tx_ctl_valid               |         |                        |                  | Test         | out      |   0       |
 
 
 

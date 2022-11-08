@@ -6,29 +6,37 @@ module sliding_detector_single_slice #(
     parameter integer flip_patterns[num_of_flip_patterns-1:0][flip_pattern_depth-1:0] = '{'{0,1,0}, '{0,1,1}, '{1,1,1},'{1,0,1}},
     parameter integer est_error_bitwidth = 8,
     parameter integer est_channel_bitwidth = 8,
-    parameter integer ener_bitwidth = 18,
-    parameter integer max_bitwidth = 8
+    parameter integer ener_bitwidth = 18
 ) (
     input logic signed [est_error_bitwidth-1:0] residual_error_trace [seq_length-1:0],
     input logic bits [seq_length-1:0],
     input logic signed [est_channel_bitwidth-1:0] channel [flip_pattern_depth+seq_length-1-1:0],
+    input logic [3:0] channel_shift,
 
     output logic [$clog2(num_of_flip_patterns+1)-1:0] error_flag,
     output logic [ener_bitwidth-1:0] mmse_val
 );
-    logic [ener_bitwidth-1:0] mse_val [num_of_flip_patterns:0];
-    logic [max_bitwidth*2+4-1:0] sqr_val ;
+
+    localparam shift_factor = 0;
+    localparam integer max_ener_bitwidth = est_error_bitwidth*2 + $clog2(seq_length);
+    logic [max_ener_bitwidth-1:0] mse_val [num_of_flip_patterns:0];
+    logic [max_ener_bitwidth-1:0] sqr_val ;
 
 //    initial begin
 //        $monitor("MSE_VAL: %p", mse_val);
 //    end
+    logic signed [est_error_bitwidth-1-shift_factor:0] div_one_rse_trace [seq_length-1:0];
 
     always_comb begin
         mse_val[0] = 0;
         sqr_val = 0;
         for(int ii = 0; ii < seq_length; ii = ii + 1) begin
-            sqr_val = (residual_error_trace[ii])**2;
+            div_one_rse_trace[ii] = residual_error_trace[ii][est_error_bitwidth-1-shift_factor:0];
+            sqr_val = ((div_one_rse_trace[ii])**2);
             mse_val[0] += sqr_val;
+            //$display("div_one_rse_trace[%d]: %d", ii, div_one_rse_trace[ii]);
+            //$display("sqr_val: %d", sqr_val);
+            //$display("mse_val at %d iteration: %d", ii, mse_val[0]);
         end
     end
 
@@ -41,13 +49,13 @@ module sliding_detector_single_slice #(
                 .flip_pattern(flip_patterns[gi]),
                 .seq_length(seq_length),
                 .cp(2),
-                .max_bitwidth(max_bitwidth),
                 .est_channel_bitwidth(est_channel_bitwidth),
-                .ener_bitwidth(ener_bitwidth)
+                .ener_bitwidth(max_ener_bitwidth)
             ) fpc_i (
                 .seq(residual_error_trace),
                 .bits(bits),
                 .channel(channel),
+                .channel_shift(channel_shift),
                 .mse_val(mse_val[gi+1])
             );
         end
@@ -58,7 +66,23 @@ module sliding_detector_single_slice #(
         for(int ii = 1; ii < num_of_flip_patterns+1; ii = ii + 1) begin
             error_flag = (mse_val[error_flag] > mse_val[ii]) ? ii : error_flag;
         end
-        mmse_val = mse_val[error_flag][ener_bitwidth-1:0];
+        mmse_val = mse_val[error_flag][max_ener_bitwidth-1:1];
+        /*
+        if (error_flag != 0) begin
+            $display("============ ERROR DETECTED ============");
+            $display("%m.error_flag: %d", error_flag);
+            $display("%m.mse_vals: %p", mse_val);
+            $display("%m.mmse_vals: %d", mmse_val);
+            $display("%m.residual_error_trace: %p", residual_error_trace);
+            $display("%m.bits: %p", bits);
+            $display("%m.channel: %p", channel);
+            $display("seq_length: %d", seq_length);
+            $display("num_of_flip_patterns: %d", num_of_flip_patterns);
+            $display("flip_pattern_depth: %d", flip_pattern_depth);
+            $display("est_error_bitwidth: %d", est_error_bitwidth);
+            $display("est_channel_bitwidth: %d", est_channel_bitwidth);
+            $display("ener_bitwidth: %d", ener_bitwidth);
+        end*/
     end
     
 

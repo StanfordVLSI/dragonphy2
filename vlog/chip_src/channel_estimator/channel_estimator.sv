@@ -15,20 +15,25 @@ module channel_estimator #(
     input wire logic current_bit,
 
     input wire logic [$clog2(adapt_bitwidth)-1:0] gain,
-    input wire logic hold,
+    input wire logic [2:0]  inst,
+    input wire logic        exec_inst,
+    input wire logic signed [est_bitwidth:0] load_val,
+    input wire logic [4:0] load_addr,
 
     output logic signed [est_bitwidth-1:0] est_chan [est_depth-1:0]
 );
 
-    logic signed [est_bitwidth + adapt_bitwidth-1:0] tap_decimal, next_tap_decimal;
+    logic signed [est_bitwidth + adapt_bitwidth-1:0] tap_decimal, next_tap_decimal, adjust_val;
     logic signed [est_bitwidth + adapt_bitwidth-1:0] int_chan_est [est_depth-1:0];
     logic [$clog2(est_depth)-1:0] tap_pos, tap_pos_plus_one, next_tap_pos;
-    logic store_tap_decimal;
-    wire logic signed [err_bitwidth-1:0] curr_err;
-    assign curr_err = error[tap_pos];
+
+    logic store_tap_decimal, load;
+
+    assign adjust_val = (current_bit) ?  -( error[tap_pos] <<< gain) : ( error[tap_pos] <<< gain);
     assign tap_pos_plus_one = tap_pos + 1;
 
-    typedef enum logic [2:0] {RST, INCREMENT, LOAD, CALC, STORE, HALT} chan_est_states_t;
+
+    typedef enum logic [2:0] {RST, LOAD_AND_CALC, CALC_AND_STORE, EXEC, HALT} chan_est_states_t;
     chan_est_states_t chan_est_states, next_chan_est_states;
 
     always_comb begin
@@ -57,10 +62,13 @@ module channel_estimator #(
             tap_decimal <= next_tap_decimal;
             chan_est_states <= next_chan_est_states;
             if(store_tap_decimal) begin
-                int_chan_est[next_tap_pos] <= next_tap_decimal;
+                int_chan_est[tap_pos] <= next_tap_decimal;
                 // synthesis translate_off
                 $fwrite(fid, "%d, %d\n", tap_pos, next_tap_decimal);
                 // synthesis translate_on
+            end
+            if(load) begin
+                int_chan_est[load_addr] <= (load_val <<< adapt_bitwidth);
             end
         end
     end
@@ -68,34 +76,29 @@ module channel_estimator #(
     always_comb begin
         unique case (chan_est_states)
             RST : begin
-                next_chan_est_states = hold ? HALT : LOAD;
+                next_chan_est_states = exec_inst ? EXEC : LOAD_AND_CALC;
                 next_tap_pos = 0;
                 next_tap_decimal = tap_decimal;
             end
-            INCREMENT: begin
-                next_chan_est_states = hold ? HALT : LOAD;
-                next_tap_pos = (tap_pos_plus_one > est_depth - 1) ? 0 : tap_pos_plus_one;
-                next_tap_decimal = tap_decimal;
+            LOAD_AND_CALC : begin
+                next_chan_est_states  = exec_inst ? EXEC : CALC_AND_STORE;
+                next_tap_pos     = tap_pos;
+                next_tap_decimal = int_chan_est[tap_pos] + adjust_val;
             end
-            LOAD : begin
-                next_chan_est_states = CALC;
-                next_tap_pos = tap_pos;
-                next_tap_decimal = (current_bit) ? int_chan_est[tap_pos] - (curr_err <<< gain) :  int_chan_est[tap_pos] + (curr_err <<< gain) ;
+            CALC_AND_STORE: begin
+                next_chan_est_states  = LOAD_AND_CALC;
+                next_tap_decimal      = tap_decimal + adjust_val;
+                next_tap_pos          = (tap_pos_plus_one > est_depth - 1) ? 0 : tap_pos_plus_one;
             end
-            CALC : begin
-                next_chan_est_states = STORE;
-                next_tap_pos = tap_pos;
-                next_tap_decimal = (current_bit) ? tap_decimal - (curr_err <<< gain) : tap_decimal + (curr_err <<< gain);
-            end
-            STORE: begin
-                next_chan_est_states =  INCREMENT;
-                next_tap_decimal     =  tap_decimal;
-                next_tap_pos = tap_pos;
+            EXEC : begin
+                next_chan_est_states = HALT;
+                next_tap_decimal = 0;
+                next_tap_pos = 0;
             end
             HALT : begin
-                next_chan_est_states =  hold ? HALT : INCREMENT;
-                next_tap_decimal     =  tap_decimal;
-                next_tap_pos = tap_pos;
+                next_chan_est_states = exec_inst ? HALT : LOAD_AND_CALC;
+                next_tap_decimal = 0;
+                next_tap_pos = 0;
             end
             default : begin
                 next_chan_est_states = RST;
@@ -109,27 +112,44 @@ module channel_estimator #(
         unique case (chan_est_states)
             RST : begin
                 store_tap_decimal = 0;
+                load = 0;
             end
-            INCREMENT: begin
+            LOAD_AND_CALC : begin
                 store_tap_decimal = 0;
+                load = 0;
             end
-            LOAD : begin
-                store_tap_decimal = 0;
-            end
-            CALC : begin
-                store_tap_decimal = 0;
-            end
-            STORE : begin
+            CALC_AND_STORE : begin
                 store_tap_decimal = 1;
+                load = 0;
             end
             HALT : begin
                 store_tap_decimal = 0;
+                load = 0;
+            end
+            EXEC : begin
+                store_tap_decimal = 0;
+                unique case(inst) 
+                    3'b100: begin
+                        load = 1;
+                    end
+                    3'b011: begin
+                        load = 0;
+                    end 
+                    3'b010: begin
+                        load = 0;
+                    end
+                    default : begin
+                        load = 0;
+                    end
+                endcase
             end
             default : begin 
-                store_tap_decimal = 0; 
+                store_tap_decimal = 0;
+                load = 0;
             end
         endcase
     end
+
 
 endmodule : channel_estimator
 `default_nettype wire

@@ -21,6 +21,7 @@ module sliding_detector_v2 #(
     input logic [delay_width+width_width-1:0] errstream_delay,
     input logic [delay_width+width_width-1:0] bitstream_delay,
     input logic signed [est_channel_bitwidth-1:0] channel   [width-1:0][depth-1:0],
+    input logic [3:0] channel_shift [width-1:0],
 
     output logic [ener_bitwidth-1:0]                  mmse_vals [width-1:0],
     output logic [$clog2(num_of_flip_patterns+1)-1:0] err_flags [width-1:0],
@@ -57,13 +58,13 @@ generate
             .num_of_flip_patterns(num_of_flip_patterns),
             .flip_pattern_depth  (flip_pattern_depth),
             .flip_patterns(flip_patterns),
-            .max_bitwidth(max_bitwidth),
             .ener_bitwidth(ener_bitwidth)
         ) sd_slice_i (
             .residual_error_trace(errstream_slice[gi]),
             .bits(bitstream_slice[gi]),
             .channel(channel_slice[gi]),
             .error_flag(err_flags[gi]),
+            .channel_shift       (channel_shift[gi]),
             .mmse_val(mmse_vals[gi])
         );
     end

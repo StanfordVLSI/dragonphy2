@@ -26,15 +26,15 @@ module digital_core import const_pack::*; (
     input wire logic ext_dump_start,
 
     input wire logic clk_tx,
-    output wire logic tx_rst,
-    output wire logic [(Nti-1):0] tx_data,
-    output wire logic [(Npi-1):0] tx_pi_ctl [(Nout-1):0],
-    output wire logic tx_ctl_valid,
+    //output wire logic tx_rst,
+    //output wire logic [(Nti-1):0] tx_data,
+    //output wire logic [(Npi-1):0] tx_pi_ctl [(Nout-1):0],
+    //output wire logic tx_ctl_valid,
 
     acore_debug_intf.dcore adbg_intf_i,
     jtag_intf.target jtag_intf_i,
     mdll_r1_debug_intf.jtag mdbg_intf_i,
-    tx_debug_intf.dcore tdbg_intf_i,
+    //tx_debug_intf.dcore tdbg_intf_i,
 
     output wire logic clk_cgra
 );
@@ -48,7 +48,7 @@ module digital_core import const_pack::*; (
     prbs_debug_intf pdbg_intf_i ();
     hist_debug_intf hdbg_intf_i ();
     error_tracker_debug_intf #(.addrwidth(10)) edbg_intf_i  ();
-    tx_data_intf odbg_intf_i ();
+    //tx_data_intf odbg_intf_i ();
     
     // internal signals
     wire logic dcore_rstb;
@@ -103,9 +103,9 @@ module digital_core import const_pack::*; (
     wire logic [Npi-1:0] unscaled_pi_ctl [Nout-1:0];
     wire logic [Npi+Npi-1:0] scaled_pi_ctl [Nout-1:0];
 
-    wire logic [(Npi-1):0] tx_scale_value [(Nout-1):0];
-    logic [(Npi-1):0] reg_tx_scale_value [(Nout-1):0];
-    wire logic [(Npi+Npi-1):0] tx_scaled_pi_ctl [(Nout-1):0];
+    //wire logic [(Npi-1):0] tx_scale_value [(Nout-1):0];
+    //logic [(Npi-1):0] reg_tx_scale_value [(Nout-1):0];
+    //wire logic [(Npi+Npi-1):0] tx_scaled_pi_ctl [(Nout-1):0];
 
 //    initial begin
 //        $shm_open("waves.shm");
@@ -307,7 +307,7 @@ module digital_core import const_pack::*; (
     //    $fmonitor(fid, "%m.int_pi_ctl_cdr[2]: %d", int_pi_ctl_cdr[2]);
     //    $fmonitor(fid, "%m.int_pi_ctl_cdr[3]: %d", int_pi_ctl_cdr[3]);
     //end
-
+    /*
     // for tx_top
     generate
         for (j=0; j<Nout; j=j+1) begin
@@ -330,7 +330,7 @@ module digital_core import const_pack::*; (
                                    ddbg_intf_i.tx_bypass_pi_ctl[j] :
                                    (tx_scaled_pi_ctl[j] >> Npi));
         end
-    endgenerate
+    endgenerate*/
 
     assign dsp_dbg_intf_i.disable_product = ddbg_intf_i.disable_product;
     assign dsp_dbg_intf_i.ffe_shift       = ddbg_intf_i.ffe_shift;
@@ -350,7 +350,7 @@ module digital_core import const_pack::*; (
     logic              stage2_slcd_bits [15:0];
     logic              stage2_slcd_bits_buffer [15:0][1:0];
 
-    logic signed [7:0] single_chan_est [29:0];
+    logic signed [channel_gpack::est_channel_precision-1:0] single_chan_est [29:0];
 
     logic signed [constant_gpack::code_precision-1:0]   act_codes [constant_gpack::channel_width-1:0];
     logic  sliced_est_bits [constant_gpack::channel_width-1:0];
@@ -427,7 +427,7 @@ module digital_core import const_pack::*; (
         .ffe_init(ddbg_intf_i.init_ffe_taps),
         .ffe_est(single_weights)
     );
-    /*
+    
     buffer #(
         .numChannels (16),
         .bitwidth    (1),
@@ -473,13 +473,11 @@ module digital_core import const_pack::*; (
         .flat_slice_delay()
     );
 
-
-
     channel_estimator #( 
-        .est_depth(30),
-        .est_bitwidth(8), 
+        .est_depth(channel_gpack::est_channel_depth),
+        .est_bitwidth(channel_gpack::est_channel_precision), 
         .adapt_bitwidth(16), 
-        .err_bitwidth(9)
+        .err_bitwidth(detector_gpack::est_error_precision)
     ) chan_est_i (
         .clk(clk_adc),
         .rst_n(dcore_rstb),
@@ -487,10 +485,24 @@ module digital_core import const_pack::*; (
         .current_bit(stage2_slcd_bits_buffer[0][1]),
 
         .gain(ddbg_intf_i.ce_gain),
-        .hold(ddbg_intf_i.ce_hold),
-
+        .inst(ddbg_intf_i.ce_inst),
+        .exec_inst(ddbg_intf_i.ce_exec_inst),
+        .load_addr(ddbg_intf_i.ce_addr),
+        .load_val(ddbg_intf_i.ce_val),
         .est_chan(single_chan_est)
-    );*/
+    );
+
+    always_ff @(posedge clk_adc or negedge dcore_rstb) begin
+        if(~dcore_rstb) begin
+            ddbg_intf_i.ce_sampled_value <= 0;
+            ddbg_intf_i.fe_sampled_value <= 0;
+        end else begin
+            if(ddbg_intf_i.sample_fir_est) begin
+                ddbg_intf_i.ce_sampled_value <= single_chan_est[ddbg_intf_i.sample_pos];
+                ddbg_intf_i.fe_sampled_value <= single_weights[ddbg_intf_i.sample_pos];
+            end
+        end
+    end
 
     generate
         for(gj=0; gj < 10; gj = gj + 1) begin
@@ -500,7 +512,7 @@ module digital_core import const_pack::*; (
         end
         for(gj =0; gj < 30; gj = gj + 1) begin
             for(gi = 0; gi < channel_gpack::width; gi = gi + 1) begin
-                assign dsp_dbg_intf_i.channel_est[gi][gj] = 0;//single_chan_est[gj]; 
+                assign dsp_dbg_intf_i.channel_est[gi][gj] = single_chan_est[gj]; 
             end
         end
     endgenerate
@@ -824,8 +836,8 @@ module digital_core import const_pack::*; (
         .mdbg_intf_i(mdbg_intf_i),
         .hdbg_intf_i(hdbg_intf_i),
         .edbg_intf_i(edbg_intf_i),
-        .tdbg_intf_i(tdbg_intf_i),
-        .odbg_intf_i(odbg_intf_i),
+        //.tdbg_intf_i(tdbg_intf_i),
+        //.odbg_intf_i(odbg_intf_i),
         .jtag_intf_i(jtag_intf_i)
     );
 
@@ -844,11 +856,11 @@ module digital_core import const_pack::*; (
 
     // transmitter control signals
 
-    assign tx_rst = ddbg_intf_i.tx_rst;
-    assign tx_ctl_valid = ddbg_intf_i.tx_ctl_valid;
+    //assign tx_rst = ddbg_intf_i.tx_rst;
+    //assign tx_ctl_valid = ddbg_intf_i.tx_ctl_valid;
 
     // TX data generator
-
+    /*
     tx_data_gen #(
         .Nprbs(Nprbs),
         .Nti(Nti)
@@ -868,7 +880,7 @@ module digital_core import const_pack::*; (
         .prbs_chicken(odbg_intf_i.tx_prbs_gen_chicken),
 
         .data_out(tx_data)
-    );
+    );*/
 
 endmodule
 

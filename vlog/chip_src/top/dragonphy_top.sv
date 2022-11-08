@@ -132,12 +132,13 @@ module dragonphy_top import const_pack::*; (
     logic [Nadc-1:0] adcout_rep [Nti_rep-1:0];
     logic [Nti_rep-1:0] adcout_sign_rep;
 
+    /*
     // TX control signals
     logic clk_tx;
     logic tx_rst;
     logic [(Nti-1):0] tx_data;
     logic [(Npi-1):0] tx_pi_ctl [(Nout-1):0];
-    logic tx_ctl_valid;
+    logic tx_ctl_valid;*/
 
     ///////////////////////////////
 	// analog core instantiation //
@@ -173,7 +174,7 @@ module dragonphy_top import const_pack::*; (
     ///////////////////////////////
 	// transmitter instantiation //
 	///////////////////////////////
-
+    /*
     tx_top itx (
         .din(tx_data),
         .mdll_clk(mdll_clk_out),
@@ -197,7 +198,7 @@ module dragonphy_top import const_pack::*; (
         .dout_n(ext_tx_outn),
 
         .tx(tdbg_intf_i)
-	);
+	);*/
 
     ////////////////////////////////
 	// digital core instantiation //
@@ -226,15 +227,15 @@ module dragonphy_top import const_pack::*; (
 	    .disable_ibuf_main(disable_ibuf_main),
         .disable_ibuf_mdll_ref(disable_ibuf_mdll_ref),
 	    .disable_ibuf_mdll_mon(disable_ibuf_mdll_mon),
-	    .clk_tx(clk_tx),
-	    .tx_rst(tx_rst),
-	    .tx_data(tx_data),
-	    .tx_pi_ctl(tx_pi_ctl),
-	    .tx_ctl_valid(tx_ctl_valid),
+	    //.clk_tx(clk_tx),
+	    //.tx_rst(tx_rst),
+	    //.tx_data(tx_data),
+	    //.tx_pi_ctl(tx_pi_ctl),
+	    //.tx_ctl_valid(tx_ctl_valid),
 		.adbg_intf_i(adbg_intf_i),		
 		.jtag_intf_i(jtag_intf_i),
     	.mdbg_intf_i(mdbg_intf_i),
-    	.tdbg_intf_i(tdbg_intf_i),
+    	//.tdbg_intf_i(tdbg_intf_i),
     	.clk_cgra(clk_cgra)
 	);
 

@@ -5,7 +5,7 @@ parameter_list:
   - &ffe_length 10
   - &ffe_weight_precision 10
   - &estimate_depth 30
-  - &est_channel_precision 8
+  - &est_channel_precision 10
   - &est_code_precision 8
   - &est_error_precision 9
   - &sequence_length 3

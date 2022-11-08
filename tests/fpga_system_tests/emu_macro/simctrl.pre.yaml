@@ -104,54 +104,735 @@ digital_probes:
     abspath: 'tb_i.top_i.idcore.datapath_i.res_err_stage_2_i.end_buffer_est_codes[0]'
     width: 8
     signed: 1
-  codes_0:
-    abspath: 'tb_i.top_i.idcore.datapath_i.res_err_stage_2_i.end_buffer_adc_codes[0]'
-    width: 8
-    signed: 1
   delayed_trigger:
     abspath: 'tb_i.top_i.idcore.errt_i.delayed_trigger'
     width: 1
+    signed: 0
+  tap_pos:
+    abspath: 'tb_i.top_i.idcore.chan_est_i.tap_pos'
+    width: 5
     signed: 0 
-  stage1_est_bits_out:
-    abspath: 'tb_i.top_i.idcore.datapath_i.stage1_est_bits_out[0]'
-    width: 10
-    signed: 1
-  stage1_act_codes_in:
-    abspath: 'tb_i.top_i.idcore.datapath_i.adc_codes[0]'
-    width: 8
-    signed: 1
-  bit_est_rstb:
-    abspath: 'tb_i.top_i.idcore.datapath_i.bit_est_stage_1_i.rstb'
-    width: 1
+  chan_est_state:
+    abspath: 'tb_i.top_i.idcore.chan_est_i.chan_est_states'
+    width: 3
     signed: 0
-  res_est_rstb:
-    abspath: 'tb_i.top_i.idcore.datapath_i.res_err_stage_2_i.rstb'
-    width: 1
-    signed: 0
-  datapath_rstb:
-    abspath: 'tb_i.top_i.idcore.datapath_i.rstb'
-    width: 1
-    signed: 0
-  dcore_rstb:
-    abspath: 'tb_i.top_i.idcore.dcore_rstb'
-    width: 1
-    signed: 0
-  ext_rstb:
-    abspath: 'tb_i.top_i.idcore.ext_rstb'
-    width: 1
-    signed: 0
-  bit_est_est_bits: 
-    abspath: 'tb_i.top_i.idcore.datapath_i.bit_est_stage_1_i.estimated_bits[0]'
-    width: 8
+  tap_decimal:
+    abspath: 'tb_i.top_i.idcore.chan_est_i.tap_decimal'
+    width: 26
     signed: 1
-  stage1_act_codes_out:
-    abspath: 'tb_i.top_i.idcore.datapath_i.stage1_act_codes_out[0]'
-    width: 8
-    signed: 1
-  stage2_res_errors_out:
-    abspath: 'tb_i.top_i.idcore.datapath_i.stage2_res_errors_out[0]'
-    width: 9
-    signed: 1
+#  stage1_act_codes_out_0:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage1_act_codes_out[0]'
+#    width: 8
+#    signed: 1
+#  stage2_res_errors_out_0:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage2_res_errors_out[0]'
+#    width: 9
+#    signed: 1
+#  stage3_sd_flags_ener_0:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags_ener[0]'
+#    width: 18
+#    signed: 1
+#  stage3_sd_flags_0:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags[0]'
+#    width: 3
+#    signed: 1
+#  stage4_res_errors_out_0:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage4_res_errors_out[0]'
+#    width: 9
+#    signed: 1
+#  stage5_sd_flags_ener_0:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags_ener[0]'
+#    width: 18
+#    signed: 1
+#  stage5_sd_flags_0:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags[0]'
+#    width: 2
+#    signed: 1
+#  stage6_res_errors_out_0:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage6_res_errors_out[0]'
+#    width: 9
+#    signed: 1
+#  stage7_sd_flags_ener_0:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags_ener[0]'
+#    width: 18
+#    signed: 1
+#  stage7_sd_flags_0:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags[0]'
+#    width: 1
+#    signed: 1
+#  stage8_res_errors_out_0:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage8_res_errors_out[0]'
+#    width: 9
+#    signed: 1
+#  stage1_act_codes_out_1:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage1_act_codes_out[1]'
+#    width: 8
+#    signed: 1
+#  stage2_res_errors_out_1:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage2_res_errors_out[1]'
+#    width: 9
+#    signed: 1
+#  stage3_sd_flags_ener_1:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags_ener[1]'
+#    width: 18
+#    signed: 1
+#  stage3_sd_flags_1:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags[1]'
+#    width: 3
+#    signed: 1
+#  stage4_res_errors_out_1:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage4_res_errors_out[1]'
+#    width: 9
+#    signed: 1
+#  stage5_sd_flags_ener_1:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags_ener[1]'
+#    width: 18
+#    signed: 1
+#  stage5_sd_flags_1:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags[1]'
+#    width: 2
+#    signed: 1
+#  stage6_res_errors_out_1:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage6_res_errors_out[1]'
+#    width: 9
+#    signed: 1
+#  stage7_sd_flags_ener_1:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags_ener[1]'
+#    width: 18
+#    signed: 1
+#  stage7_sd_flags_1:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags[1]'
+#    width: 1
+#    signed: 1
+#  stage8_res_errors_out_1:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage8_res_errors_out[1]'
+#    width: 9
+#    signed: 1   
+#  stage1_act_codes_out_2:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage1_act_codes_out[2]'
+#    width: 8
+#    signed: 1
+#  stage2_res_errors_out_2:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage2_res_errors_out[2]'
+#    width: 9
+#    signed: 1
+#  stage3_sd_flags_ener_2:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags_ener[2]'
+#    width: 18
+#    signed: 1
+#  stage3_sd_flags_2:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags[2]'
+#    width: 3
+#    signed: 1
+#  stage4_res_errors_out_2:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage4_res_errors_out[2]'
+#    width: 9
+#    signed: 1
+#  stage5_sd_flags_ener_2:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags_ener[2]'
+#    width: 18
+#    signed: 1
+#  stage5_sd_flags_2:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags[2]'
+#    width: 2
+#    signed: 1
+#  stage6_res_errors_out_2:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage6_res_errors_out[2]'
+#    width: 9
+#    signed: 1
+#  stage7_sd_flags_ener_2:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags_ener[2]'
+#    width: 18
+#    signed: 1
+#  stage7_sd_flags_2:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags[2]'
+#    width: 1
+#    signed: 1
+#  stage8_res_errors_out_2:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage8_res_errors_out[2]'
+#    width: 9
+#    signed: 1   
+#  stage1_act_codes_out_3:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage1_act_codes_out[3]'
+#    width: 8
+#    signed: 1
+#  stage2_res_errors_out_3:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage2_res_errors_out[3]'
+#    width: 9
+#    signed: 1
+#  stage3_sd_flags_ener_3:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags_ener[3]'
+#    width: 18
+#    signed: 1
+#  stage3_sd_flags_3:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags[3]'
+#    width: 3
+#    signed: 1
+#  stage4_res_errors_out_3:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage4_res_errors_out[3]'
+#    width: 9
+#    signed: 1
+#  stage5_sd_flags_ener_3:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags_ener[3]'
+#    width: 18
+#    signed: 1
+#  stage5_sd_flags_3:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags[3]'
+#    width: 2
+#    signed: 1
+#  stage6_res_errors_out_3:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage6_res_errors_out[3]'
+#    width: 9
+#    signed: 1
+#  stage7_sd_flags_ener_3:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags_ener[3]'
+#    width: 18
+#    signed: 1
+#  stage7_sd_flags_3:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags[3]'
+#    width: 1
+#    signed: 1
+#  stage8_res_errors_out_3:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage8_res_errors_out[3]'
+#    width: 9
+#    signed: 1   
+#  stage1_act_codes_out_4:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage1_act_codes_out[4]'
+#    width: 8
+#    signed: 1
+#  stage2_res_errors_out_4:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage2_res_errors_out[4]'
+#    width: 9
+#    signed: 1
+#  stage3_sd_flags_ener_4:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags_ener[4]'
+#    width: 18
+#    signed: 1
+#  stage3_sd_flags_4:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags[4]'
+#    width: 3
+#    signed: 1
+#  stage4_res_errors_out_4:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage4_res_errors_out[4]'
+#    width: 9
+#    signed: 1
+#  stage5_sd_flags_ener_4:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags_ener[4]'
+#    width: 18
+#    signed: 1
+#  stage5_sd_flags_4:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags[4]'
+#    width: 2
+#    signed: 1
+#  stage6_res_errors_out_4:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage6_res_errors_out[4]'
+#    width: 9
+#    signed: 1
+#  stage7_sd_flags_ener_4:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags_ener[4]'
+#    width: 18
+#    signed: 1
+#  stage7_sd_flags_4:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags[4]'
+#    width: 1
+#    signed: 1
+#  stage8_res_errors_out_4:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage8_res_errors_out[4]'
+#    width: 9
+#    signed: 1   
+#  stage1_act_codes_out_5:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage1_act_codes_out[5]'
+#    width: 8
+#    signed: 1
+#  stage2_res_errors_out_5:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage2_res_errors_out[5]'
+#    width: 9
+#    signed: 1
+#  stage3_sd_flags_ener_5:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags_ener[5]'
+#    width: 18
+#    signed: 1
+#  stage3_sd_flags_5:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags[5]'
+#    width: 3
+#    signed: 1
+#  stage4_res_errors_out_5:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage4_res_errors_out[5]'
+#    width: 9
+#    signed: 1
+#  stage5_sd_flags_ener_5:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags_ener[5]'
+#    width: 18
+#    signed: 1
+#  stage5_sd_flags_5:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags[5]'
+#    width: 2
+#    signed: 1
+#  stage6_res_errors_out_5:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage6_res_errors_out[5]'
+#    width: 9
+#    signed: 1
+#  stage7_sd_flags_ener_5:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags_ener[5]'
+#    width: 18
+#    signed: 1
+#  stage7_sd_flags_5:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags[5]'
+#    width: 1
+#    signed: 1
+#  stage8_res_errors_out_5:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage8_res_errors_out[5]'
+#    width: 9
+#    signed: 1   
+#  stage1_act_codes_out_6:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage1_act_codes_out[6]'
+#    width: 8
+#    signed: 1
+#  stage2_res_errors_out_6:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage2_res_errors_out[6]'
+#    width: 9
+#    signed: 1
+#  stage3_sd_flags_ener_6:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags_ener[6]'
+#    width: 18
+#    signed: 1
+#  stage3_sd_flags_6:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags[6]'
+#    width: 3
+#    signed: 1
+#  stage4_res_errors_out_6:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage4_res_errors_out[6]'
+#    width: 9
+#    signed: 1
+#  stage5_sd_flags_ener_6:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags_ener[6]'
+#    width: 18
+#    signed: 1
+#  stage5_sd_flags_6:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags[6]'
+#    width: 2
+#    signed: 1
+#  stage6_res_errors_out_6:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage6_res_errors_out[6]'
+#    width: 9
+#    signed: 1
+#  stage7_sd_flags_ener_6:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags_ener[6]'
+#    width: 18
+#    signed: 1
+#  stage7_sd_flags_6:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags[6]'
+#    width: 1
+#    signed: 1
+#  stage8_res_errors_out_6:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage8_res_errors_out[6]'
+#    width: 9
+#    signed: 1   
+#  stage1_act_codes_out_7:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage1_act_codes_out[7]'
+#    width: 8
+#    signed: 1
+#  stage2_res_errors_out_7:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage2_res_errors_out[7]'
+#    width: 9
+#    signed: 1
+#  stage3_sd_flags_ener_7:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags_ener[7]'
+#    width: 18
+#    signed: 1
+#  stage3_sd_flags_7:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags[7]'
+#    width: 3
+#    signed: 1
+#  stage4_res_errors_out_7:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage4_res_errors_out[7]'
+#    width: 9
+#    signed: 1
+#  stage5_sd_flags_ener_7:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags_ener[7]'
+#    width: 18
+#    signed: 1
+#  stage5_sd_flags_7:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags[7]'
+#    width: 2
+#    signed: 1
+#  stage6_res_errors_out_7:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage6_res_errors_out[7]'
+#    width: 9
+#    signed: 1
+#  stage7_sd_flags_ener_7:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags_ener[7]'
+#    width: 18
+#    signed: 1
+#  stage7_sd_flags_7:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags[7]'
+#    width: 1
+#    signed: 1
+#  stage8_res_errors_out_7:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage8_res_errors_out[7]'
+#    width: 9
+#    signed: 1   
+#  stage1_act_codes_out_8:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage1_act_codes_out[8]'
+#    width: 8
+#    signed: 1
+#  stage2_res_errors_out_8:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage2_res_errors_out[8]'
+#    width: 9
+#    signed: 1
+#  stage3_sd_flags_ener_8:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags_ener[8]'
+#    width: 18
+#    signed: 1
+#  stage3_sd_flags_8:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags[8]'
+#    width: 3
+#    signed: 1
+#  stage4_res_errors_out_8:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage4_res_errors_out[8]'
+#    width: 9
+#    signed: 1
+#  stage5_sd_flags_ener_8:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags_ener[8]'
+#    width: 18
+#    signed: 1
+#  stage5_sd_flags_8:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags[8]'
+#    width: 2
+#    signed: 1
+#  stage6_res_errors_out_8:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage6_res_errors_out[8]'
+#    width: 9
+#    signed: 1
+#  stage7_sd_flags_ener_8:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags_ener[8]'
+#    width: 18
+#    signed: 1
+#  stage7_sd_flags_8:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags[8]'
+#    width: 1
+#    signed: 1
+#  stage8_res_errors_out_8:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage8_res_errors_out[8]'
+#    width: 9
+#    signed: 1   
+#  stage1_act_codes_out_9:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage1_act_codes_out[9]'
+#    width: 8
+#    signed: 1
+#  stage2_res_errors_out_9:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage2_res_errors_out[9]'
+#    width: 9
+#    signed: 1
+#  stage3_sd_flags_ener_9:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags_ener[9]'
+#    width: 18
+#    signed: 1
+#  stage3_sd_flags_9:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags[9]'
+#    width: 3
+#    signed: 1
+#  stage4_res_errors_out_9:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage4_res_errors_out[9]'
+#    width: 9
+#    signed: 1
+#  stage5_sd_flags_ener_9:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags_ener[9]'
+#    width: 18
+#    signed: 1
+#  stage5_sd_flags_9:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags[9]'
+#    width: 2
+#    signed: 1
+#  stage6_res_errors_out_9:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage6_res_errors_out[9]'
+#    width: 9
+#    signed: 1
+#  stage7_sd_flags_ener_9:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags_ener[9]'
+#    width: 18
+#    signed: 1
+#  stage7_sd_flags_9:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags[9]'
+#    width: 1
+#    signed: 1
+#  stage8_res_errors_out_9:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage8_res_errors_out[9]'
+#    width: 9
+#    signed: 1   
+#  stage1_act_codes_out_10:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage1_act_codes_out[10]'
+#    width: 8
+#    signed: 1
+#  stage2_res_errors_out_10:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage2_res_errors_out[10]'
+#    width: 9
+#    signed: 1
+#  stage3_sd_flags_ener_10:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags_ener[10]'
+#    width: 18
+#    signed: 1
+#  stage3_sd_flags_10:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags[10]'
+#    width: 3
+#    signed: 1
+#  stage4_res_errors_out_10:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage4_res_errors_out[10]'
+#    width: 9
+#    signed: 1
+#  stage5_sd_flags_ener_10:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags_ener[10]'
+#    width: 18
+#    signed: 1
+#  stage5_sd_flags_10:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags[10]'
+#    width: 2
+#    signed: 1
+#  stage6_res_errors_out_10:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage6_res_errors_out[10]'
+#    width: 9
+#    signed: 1
+#  stage7_sd_flags_ener_10:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags_ener[10]'
+#    width: 18
+#    signed: 1
+#  stage7_sd_flags_10:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags[10]'
+#    width: 1
+#    signed: 1
+#  stage8_res_errors_out_10:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage8_res_errors_out[10]'
+#    width: 9
+#    signed: 1   
+#  stage1_act_codes_out_11:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage1_act_codes_out[11]'
+#    width: 8
+#    signed: 1
+#  stage2_res_errors_out_11:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage2_res_errors_out[11]'
+#    width: 9
+#    signed: 1
+#  stage3_sd_flags_ener_11:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags_ener[11]'
+#    width: 18
+#    signed: 1
+#  stage3_sd_flags_11:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags[11]'
+#    width: 3
+#    signed: 1
+#  stage4_res_errors_out_11:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage4_res_errors_out[11]'
+#    width: 9
+#    signed: 1
+#  stage5_sd_flags_ener_11:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags_ener[11]'
+#    width: 18
+#    signed: 1
+#  stage5_sd_flags_11:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags[11]'
+#    width: 2
+#    signed: 1
+#  stage6_res_errors_out_11:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage6_res_errors_out[11]'
+#    width: 9
+#    signed: 1
+#  stage7_sd_flags_ener_11:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags_ener[11]'
+#    width: 18
+#    signed: 1
+#  stage7_sd_flags_11:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags[11]'
+#    width: 1
+#    signed: 1
+#  stage8_res_errors_out_11:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage8_res_errors_out[11]'
+#    width: 9
+#    signed: 1   
+#  stage1_act_codes_out_12:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage1_act_codes_out[12]'
+#    width: 8
+#    signed: 1
+#  stage2_res_errors_out_12:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage2_res_errors_out[12]'
+#    width: 9
+#    signed: 1
+#  stage3_sd_flags_ener_12:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags_ener[12]'
+#    width: 18
+#    signed: 1
+#  stage3_sd_flags_12:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags[12]'
+#    width: 3
+#    signed: 1
+#  stage4_res_errors_out_12:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage4_res_errors_out[12]'
+#    width: 9
+#    signed: 1
+#  stage5_sd_flags_ener_12:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags_ener[12]'
+#    width: 18
+#    signed: 1
+#  stage5_sd_flags_12:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags[12]'
+#    width: 2
+#    signed: 1
+#  stage6_res_errors_out_12:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage6_res_errors_out[12]'
+#    width: 9
+#    signed: 1
+#  stage7_sd_flags_ener_12:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags_ener[12]'
+#    width: 18
+#    signed: 1
+#  stage7_sd_flags_12:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags[12]'
+#    width: 1
+#    signed: 1
+#  stage8_res_errors_out_12:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage8_res_errors_out[12]'
+#    width: 9
+#    signed: 1   
+#  stage1_act_codes_out_13:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage1_act_codes_out[13]'
+#    width: 8
+#    signed: 1
+#  stage2_res_errors_out_13:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage2_res_errors_out[13]'
+#    width: 9
+#    signed: 1
+#  stage3_sd_flags_ener_13:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags_ener[13]'
+#    width: 18
+#    signed: 1
+#  stage3_sd_flags_13:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags[13]'
+#    width: 3
+#    signed: 1
+#  stage4_res_errors_out_13:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage4_res_errors_out[13]'
+#    width: 9
+#    signed: 1
+#  stage5_sd_flags_ener_13:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags_ener[13]'
+#    width: 18
+#    signed: 1
+#  stage5_sd_flags_13:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags[13]'
+#    width: 2
+#    signed: 1
+#  stage6_res_errors_out_13:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage6_res_errors_out[13]'
+#    width: 9
+#    signed: 1
+#  stage7_sd_flags_ener_13:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags_ener[13]'
+#    width: 18
+#    signed: 1
+#  stage7_sd_flags_13:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags[13]'
+#    width: 1
+#    signed: 1
+#  stage8_res_errors_out_13:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage8_res_errors_out[13]'
+#    width: 9
+#    signed: 1   
+#  stage1_act_codes_out_14:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage1_act_codes_out[14]'
+#    width: 8
+#    signed: 1
+#  stage2_res_errors_out_14:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage2_res_errors_out[14]'
+#    width: 9
+#    signed: 1
+#  stage3_sd_flags_ener_14:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags_ener[14]'
+#    width: 18
+#    signed: 1
+#  stage3_sd_flags_14:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags[14]'
+#    width: 3
+#    signed: 1
+#  stage4_res_errors_out_14:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage4_res_errors_out[14]'
+#    width: 9
+#    signed: 1
+#  stage5_sd_flags_ener_14:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags_ener[14]'
+#    width: 18
+#    signed: 1
+#  stage5_sd_flags_14:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags[14]'
+#    width: 2
+#    signed: 1
+#  stage6_res_errors_out_14:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage6_res_errors_out[14]'
+#    width: 9
+#    signed: 1
+#  stage7_sd_flags_ener_14:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags_ener[14]'
+#    width: 18
+#    signed: 1
+#  stage7_sd_flags_14:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags[14]'
+#    width: 1
+#    signed: 1
+#  stage8_res_errors_out_14:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage8_res_errors_out[14]'
+#    width: 9
+#    signed: 1   
+#  stage1_act_codes_out_15:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage1_act_codes_out[15]'
+#    width: 8
+#    signed: 1
+#  stage2_res_errors_out_15:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage2_res_errors_out[15]'
+#    width: 9
+#    signed: 1
+#  stage3_sd_flags_ener_15:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags_ener[15]'
+#    width: 18
+#    signed: 1
+#  stage3_sd_flags_15:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage3_sd_flags[15]'
+#    width: 3
+#    signed: 1
+#  stage4_res_errors_out_15:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage4_res_errors_out[15]'
+#    width: 9
+#    signed: 1
+#  stage5_sd_flags_ener_15:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags_ener[15]'
+#    width: 18
+#    signed: 1
+#  stage5_sd_flags_15:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage5_sd_flags[15]'
+#    width: 2
+#    signed: 1
+#  stage6_res_errors_out_15:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage6_res_errors_out[15]'
+#    width: 9
+#    signed: 1
+#  stage7_sd_flags_ener_15:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags_ener[15]'
+#    width: 18
+#    signed: 1
+#  stage7_sd_flags_15:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage7_sd_flags[15]'
+#    width: 1
+#    signed: 1
+#  stage8_res_errors_out_15:
+#    abspath: 'tb_i.top_i.idcore.datapath_i.stage8_res_errors_out[15]'
+#    width: 9
+#    signed: 1   
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
   # handling of rare cases in analog_slice
 #  t_samp_idx_0:

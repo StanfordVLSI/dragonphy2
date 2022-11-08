@@ -555,6 +555,8 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
                     print(f'{datum}' ,file=f)
 
         return data
+    def signed(val, n_bits=8):
+        return val-(2**n_bits) if val > 2**(n_bits-1)-1 else val
 
     def enable_error_tracker():
         write_tc_reg('enable_errt', 1)
@@ -590,6 +592,22 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
         write_tc_reg('ctrl_rstb', 0b101)
         write_tc_reg('exec_ctrl_rstb', 1)
         write_tc_reg('exec_ctrl_rstb', 0)
+
+    def read_learned_weights():
+        ffe_vals = np.zeros((10,), dtype=np.int32)
+        chan_vals = np.zeros((30,), dtype=np.int32)
+        for ii in range(30):
+            write_tc_reg('sample_pos', ii)
+            write_tc_reg('sample_fir_est', 1)
+            write_tc_reg('sample_fir_est', 0)
+            print(read_sc_reg('ce_sampled_value'))
+            chan_vals[ii] = signed(int(read_sc_reg('ce_sampled_value')), n_bits=10)
+            chan_vals[ii] = signed(int(read_sc_reg('ce_sampled_value')), n_bits=10)
+            if ii < 10:
+                ffe_vals[ii] = signed(int(read_sc_reg('fe_sampled_value')), n_bits=10)
+                ffe_vals[ii] = signed(int(read_sc_reg('fe_sampled_value')), n_bits=10)
+
+        return ffe_vals, chan_vals
 
     def read_error_tracker(num_of_errors=100):
         def signed(value):
@@ -634,30 +652,6 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
 
         return data
 
-    def adapt_ffe_coeffs(mem, mem_ffe):
-
-        def slice(val):
-            return -1 if val < 0 else 1
-
-        def signed(val, n_bits=8):
-            return 256-val if val > 2**(n_bits-1)-1 else val 
-
-        x_vec = np.zeros((20,))
-        g_vec = np.zeros((10,))
-        est_e = 0
-        est_b = 0
-        for ii in range(len(mem)-16):
-            x_vec[1:] = x_vec[0:19]
-            x_vec[0]  = signed(mem[ii])
-
-            est_b = signed(mem_ffe[ii+16])
-            est_e = 40*slice(est_b) - est_b
-
-            for jj in range(10):
-                g_vec[jj] = g_vec[jj] + est_e * x_vec[jj + 11 - 3];
-                print(est_e * x_vec[jj + 11 - 3])
-            print(g_vec)
-        return g_vec / 2.0**20
 
 
 
@@ -724,14 +718,14 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
 
     ffe_shift, align_pos, zf_taps = load_ffe_vals()
     print(ffe_shift, align_pos, zf_taps)
-
+    chan_taps = load_chan_vals()
 
     # Soft reset
     print('Soft reset')
     toggle_int_rstb()
     toggle_acore_rstb()
     toggle_sram_rstb()
-    write_tc_reg('ce_hold', 1)
+    write_tc_reg('ce_exec_inst', 0)
     write_tc_reg('fe_exec_inst', 0)
     write_tc_reg('en_inbuf', 1)
     write_tc_reg('en_gf', 1)
@@ -755,9 +749,9 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
 
     # Configure PRBS checker
     print('Configure the PRBS checker')
-    write_sc_reg('sel_prbs_mux', 1) # "0" is ADC, "1" is FFE, "3" is BIST
-    write_sc_reg('sel_trig_prbs_mux', 1) # "0" is ADC, "1" is FFE, "3" is BIST
-    write_sc_reg('sel_prbs_bits', 0); # trig prbs
+    write_sc_reg('sel_prbs_mux', 1) # "0" is ADC, "1" is FFE, "2" Checker, "3" is BIST
+    write_sc_reg('sel_trig_prbs_mux', 2) # "0" is ADC, "1" is FFE, "2" Checker, "3" is BIST
+    write_sc_reg('sel_prbs_bits', 0); # Chooses which PRBS BER is read out "1" is checker, "0" is FFE 
 
     # Release the PRBS checker from reset
     print('Release the PRBS checker from reset')
@@ -768,9 +762,17 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     write_tc_reg('fe_inst', 0b100)
     write_tc_reg('fe_exec_inst', 1)
 
+    write_tc_reg('ce_inst', 0b100)
+    for loop_var2 in range(30):
+        write_tc_reg('ce_exec_inst', 0)
+        write_tc_reg(f'ce_addr', loop_var2)
+        write_tc_reg(f'ce_val', 8*int(round(chan_taps[loop_var2])))
+        write_tc_reg('ce_exec_inst', 1)
+
 
     for loop_var in range(16):
         write_tc_reg(f'ffe_shift[{loop_var}]', ffe_shift)
+        write_tc_reg(f'channel_shift[{loop_var}]', 3)
         #for loop_var2 in range(30):
         #    load_channel_estimate(loop_var2, loop_var, chan_taps[loop_var2])
     #write_tc_reg('align_pos', 8)
@@ -819,16 +821,67 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     # (i.e., seems that it must be set to zero while configuring CDR parameters
     print('Wait for the CDR to lock')
     toggle_cdr_rstb()
-    time.sleep(5.0)
+    time.sleep(1.0)
 
+    write_tc_reg('ce_gain', 4)
+    write_tc_reg('ce_exec_inst', 0)
 
+    time.sleep(5)
 
-    write_tc_reg('ce_gain', 5)
-    write_tc_reg('ce_hold', 0)
+    #write_tc_reg('ce_gain', 1)
+    write_tc_reg('fe_adapt_gain', 3)
+    write_tc_reg('fe_exec_inst', 0)
+    write_tc_reg('ext_pi_ctl', 0)
+    #write_tc_reg('fe_bit_target_level', 100)
+    time.sleep(10)
 
-    time.sleep(30.0)
+    #for ii in range(1, 20):
+    #    write_tc_reg('ext_pi_ctl', ii)
+    #    time.sleep(10)
+    #    write_tc_reg('fe_adapt_gain', 1)
+    #    write_sc_reg('prbs_checker_mode', 2)
+    #    time.sleep(10)
+    #    write_sc_reg('prbs_checker_mode', 3)
+    #    print(f'PI CODE: {ii}')
+    #    print('Read out PRBS test results')
+    #    write_sc_reg('sel_prbs_bits', 0); # Chooses which PRBS BER is read out "1" is checker, "0" is FFE 
+    #    err_bits = 0
+    #    err_bits |= read_sc_reg('prbs_err_bits_upper')
+    #    err_bits <<= 32
+    #    err_bits |= read_sc_reg('prbs_err_bits_lower')
+    #    print(f'err_bits: {err_bits}')
+#
+    #    total_bits = 0
+    #    total_bits |= read_sc_reg('prbs_total_bits_upper')
+    #    total_bits <<= 32
+    #    total_bits |= read_sc_reg('prbs_total_bits_lower')
+    #    print(f'total_bits: {total_bits}')
+#
+    #    print(f'BER: {err_bits/total_bits:e}')
+#
+    #    write_sc_reg('sel_prbs_bits', 1); # Chooses which PRBS BER is read out "1" is checker, "0" is FFE 
+    #    err_bits = 0
+    #    err_bits |= read_sc_reg('prbs_err_bits_upper')
+    #    err_bits <<= 32
+    #    err_bits |= read_sc_reg('prbs_err_bits_lower')
+    #    print(f'err_bits: {err_bits}')
+#
+    #    total_bits = 0
+    #    total_bits |= read_sc_reg('prbs_total_bits_upper')
+    #    total_bits <<= 32
+    #    total_bits |= read_sc_reg('prbs_total_bits_lower')
+    #    print(f'total_bits: {total_bits}')
+#
+    #    print(f'BER: {err_bits/total_bits:e}')
+#
+    #    #learned_ffe_vals, learned_channel_vals = read_learned_weights()
+    #    #print(learned_ffe_vals)
+    #    #print(zf_taps)
+    #    #print(learned_channel_vals)
+    #    #print(chan_taps)
+    #    write_sc_reg('prbs_checker_mode', 0)
 
-    write_tc_reg('ce_gain', 3)
+    write_tc_reg('fe_adapt_gain', 1)
 
     #write_tc_reg('en_int_dump_start', 1)
     #write_tc_reg('int_dump_start', 0)
@@ -847,8 +900,6 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     print('Run PRBS test')
     t_start = time.time()
     write_sc_reg('prbs_checker_mode', 2)
-    write_tc_reg('fe_exec_inst', 0)
-    time.sleep(2)
 
     enable_error_tracker()
     disable_error_tracker()
@@ -861,19 +912,17 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     while total_time_remaining > 0:
         zero_counts = 0
         update_time = time.time()
-        time.sleep(0.005)
+        time.sleep(1)
         num_of_logged_errors = int(read_sc_reg('number_stored_frames_errt')/4)
         #print(num_of_logged_errors)
-
-        #zero_counts += 1 if num_of_logged_errors == 0 else 0
+#        #zero_counts += 1 if num_of_logged_errors == 0 else 0
         #if zero_counts > 24:
         #    enable_error_tracker()
         #    time.sleep(1)
         #    disable_error_tracker()
         #    zero_counts = 0
         #    print('Restarting Error Tracker')
-
-        #print(num_of_logged_errors)
+#        #print(num_of_logged_errors)
         if num_of_logged_errors >= 2:
             zero_counts = 0
             update_time = (time.time() - update_time)
@@ -898,6 +947,42 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
         pbar.update(int(num_of_logged_errors-prev_num_of_logged_errors))
         prev_num_of_logged_errors = num_of_logged_errors
 
+    #for ii in range(int(prbs_test_dur/10.0)):
+    #    time.sleep(10)
+    #    write_sc_reg('prbs_checker_mode', 3)
+    #    # Read out PRBS test results
+    #    print('Read out PRBS test results')
+    #    write_sc_reg('sel_prbs_bits', 0); # Chooses which PRBS BER is read out "1" is checker, "0" is FFE 
+    #    err_bits = 0
+    #    err_bits |= read_sc_reg('prbs_err_bits_upper')
+    #    err_bits <<= 32
+    #    err_bits |= read_sc_reg('prbs_err_bits_lower')
+    #    print(f'err_bits: {err_bits}')
+#
+    #    total_bits = 0
+    #    total_bits |= read_sc_reg('prbs_total_bits_upper')
+    #    total_bits <<= 32
+    #    total_bits |= read_sc_reg('prbs_total_bits_lower')
+    #    print(f'total_bits: {total_bits}')
+#
+    #    print(f'BER: {err_bits/total_bits:e}')
+#
+    #    write_sc_reg('sel_prbs_bits', 1); # Chooses which PRBS BER is read out "1" is checker, "0" is FFE 
+    #    err_bits = 0
+    #    err_bits |= read_sc_reg('prbs_err_bits_upper')
+    #    err_bits <<= 32
+    #    err_bits |= read_sc_reg('prbs_err_bits_lower')
+    #    print(f'err_bits: {err_bits}')
+#
+    #    total_bits = 0
+    #    total_bits |= read_sc_reg('prbs_total_bits_upper')
+    #    total_bits <<= 32
+    #    total_bits |= read_sc_reg('prbs_total_bits_lower')
+    #    print(f'total_bits: {total_bits}')
+#
+    #    print(f'BER: {err_bits/total_bits:e}')
+    #    write_sc_reg('prbs_checker_mode', 2)
+
     #time.sleep(prbs_test_dur)
     #disable_error_tracker()
     write_sc_reg('prbs_checker_mode', 3)
@@ -908,7 +993,7 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
 
     # Read out PRBS test results
     print('Read out PRBS test results')
-
+    write_sc_reg('sel_prbs_bits', 0); # Chooses which PRBS BER is read out "1" is checker, "0" is FFE 
     err_bits = 0
     err_bits |= read_sc_reg('prbs_err_bits_upper')
     err_bits <<= 32
@@ -922,6 +1007,22 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     print(f'total_bits: {total_bits}')
 
     print(f'BER: {err_bits/total_bits:e}')
+
+    write_sc_reg('sel_prbs_bits', 1); # Chooses which PRBS BER is read out "1" is checker, "0" is FFE 
+    err_bits = 0
+    err_bits |= read_sc_reg('prbs_err_bits_upper')
+    err_bits <<= 32
+    err_bits |= read_sc_reg('prbs_err_bits_lower')
+    print(f'err_bits: {err_bits}')
+
+    total_bits = 0
+    total_bits |= read_sc_reg('prbs_total_bits_upper')
+    total_bits <<= 32
+    total_bits |= read_sc_reg('prbs_total_bits_lower')
+    print(f'total_bits: {total_bits}')
+
+    print(f'BER: {err_bits/total_bits:e}')
+
     #t_start = time.time()
     #num_of_logged_errors = read_sc_reg('number_stored_frames_errt')
     #print(f'Logged Errors: {num_of_logged_errors}')
@@ -945,29 +1046,13 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     #    plt.plot(bits)
     #    plt.show()
 
-    if run_adapt_ffe:    
-        for jj in range(4):
-            write_tc_reg('int_dump_start', 0)
-            write_tc_reg('int_dump_start', 1)
-            time.sleep(1)
 
-            mem = read_memory(filename='mem.txt')
-            mem_ffe = read_memory_ffe(filename='mem_ffe.txt')
+    learned_ffe_vals, learned_channel_vals = read_learned_weights()
 
-
-            coeff_adj = adapt_ffe_coeffs(mem, mem_ffe)
-            zf_taps = np.array(zf_taps) + np.array(coeff_adj)
-
-            print(coeff_adj)
-            print(zf_taps)
-
-            for loop_var in range(16):
-                for loop_var2 in range(ffe_length):
-                    load_weight(loop_var2, loop_var, int(round(zf_taps[loop_var2])))
-                write_tc_reg(f'ffe_shift[{loop_var}]', ffe_shift)
+    print(learned_ffe_vals, zf_taps)
+    print(learned_channel_vals, load_chan_vals())
     #toggle_int_rstb()
     #toggle_acore_rstb()
-
 
     # check results
     print('Checking the results...')
