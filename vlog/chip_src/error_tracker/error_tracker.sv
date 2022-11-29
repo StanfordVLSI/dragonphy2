@@ -2,7 +2,7 @@ module error_tracker #(
     parameter integer width=16,
     parameter integer error_bitwidth=8,
     parameter integer addrwidth= 10,
-    parameter integer flag_width=2
+    parameter integer flag_width=3
 )(
     input logic        [width-1:0]          prbs_flags,
     input logic        [width-1:0]          prbs_flags_trigger,

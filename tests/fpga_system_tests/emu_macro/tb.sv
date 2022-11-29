@@ -32,9 +32,9 @@ module tb;
 	// JTAG Interface //
 	////////////////////
 
-//    initial begin
-//       $dumpvars(0, top_i);
-//    end
+    initial begin
+       $dumpvars(0, top_i);
+    end
 
 	jtag_intf jtag_intf_i ();
 	assign jtag_intf_i.phy_tdi = tdi;
@@ -136,7 +136,7 @@ module tb;
             end else begin
                 assign puls_out[i]  = |puls_count[63:58];
             end
-            assign data_rx_i[i] = prbs_out[i];
+            assign data_rx_i[i] = puls_out[i];
 
             prbs_generator_syn #(
                 .n_prbs(32)

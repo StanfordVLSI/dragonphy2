@@ -292,16 +292,16 @@ module sim_ctrl(
         `FORCE_JTAG(fe_adapt_gain, 9);
         `FORCE_JTAG(fe_bit_target_level, 10'd40);
         // Pushing init_ffe_taps into ffe_estimator / ffe
-        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_0_q = ffe_coeffs[0];
-        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_1_q = ffe_coeffs[1];
-        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_2_q = ffe_coeffs[2];
-        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_3_q = ffe_coeffs[3];
-        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_4_q = ffe_coeffs[4];
-        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_5_q = ffe_coeffs[5];
-        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_6_q = ffe_coeffs[6];
-        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_7_q = ffe_coeffs[7];
-        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_8_q = ffe_coeffs[8];
-        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_9_q = ffe_coeffs[9];
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_0_q = ffe_coeffs[0];
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_1_q = ffe_coeffs[1];
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_2_q = ffe_coeffs[2];
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_3_q = ffe_coeffs[3];
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_4_q = ffe_coeffs[4];
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_5_q = ffe_coeffs[5];
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_6_q = ffe_coeffs[6];
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_7_q = ffe_coeffs[7];
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_8_q = ffe_coeffs[8];
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_9_q = ffe_coeffs[9];
         `CLK_ADC_DLY;
         repeat (3) `CLK_ADC_DLY;
         `FORCE_JTAG(fe_inst, 3'b100);
@@ -309,16 +309,16 @@ module sim_ctrl(
         `FORCE_JTAG(fe_exec_inst, 1'b1);
         repeat (3) `CLK_ADC_DLY;
         //Holding exec high so the FFE doesn't run
-        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_0_q;
-        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_1_q;
-        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_2_q;
-        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_3_q;
-        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_4_q;
-        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_5_q;
-        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_6_q;
-        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_7_q;
-        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_8_q;
-        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile30_on_tstclk.init_ffe_taps_9_q;
+        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_0_q;
+        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_1_q;
+        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_2_q;
+        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_3_q;
+        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_4_q;
+        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_5_q;
+        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_6_q;
+        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_7_q;
+        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_8_q;
+        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_9_q;
 
         repeat (3) `CLK_ADC_DLY;
         `FORCE_JTAG(ce_inst, 3'b100);
@@ -346,8 +346,11 @@ module sim_ctrl(
         tmp_ext_pi_ctl_offset[3] = 384;
         `FORCE_JTAG(ext_pi_ctl_offset, tmp_ext_pi_ctl_offset);
         `CLK_ADC_DLY;
-        //`FORCE_JTAG(en_ext_max_sel_mux, 1);
-        //`FORCE_JTAG(ext_max_sel_mux, 127);
+        `FORCE_JTAG(en_ext_max_sel_mux, 1);
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile26_on_tstclk.ext_max_sel_mux_0_q = 127;
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile26_on_tstclk.ext_max_sel_mux_1_q = 127;
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile26_on_tstclk.ext_max_sel_mux_2_q = 127;
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile26_on_tstclk.ext_max_sel_mux_3_q = 127;
 
         `CLK_ADC_DLY;
 
@@ -359,7 +362,7 @@ module sim_ctrl(
         // Configure the CDR
         $display("Configuring the CDR...");
         `FORCE_JTAG(Kp, 10);
-        `FORCE_JTAG(Ki, 0);
+        `FORCE_JTAG(Ki, 5);
         `FORCE_JTAG(invert, 1);
         `FORCE_JTAG(en_freq_est, 0);
         `FORCE_JTAG(en_ext_pi_ctl, 1);
@@ -378,7 +381,7 @@ module sim_ctrl(
         // De-assert the CDR reset
         // TODO: do we really need to wait three cycles of clk_adc?
         toggle_cdr_rstb();
-        repeat (100) `CLK_ADC_DLY;
+      /*  repeat (5000) `CLK_ADC_DLY;
 
         // Wait for PRBS checker to lock
 		$display("Waiting for PRBS checker to lock...");
@@ -429,12 +432,12 @@ module sim_ctrl(
 
         //release tb_i.top_i.idcore.datapath_i.stage1_est_bits_out[8];
         repeat (10000) `CLK_ADC_DLY;
-        /*
+        */
         for (loop_var=0; loop_var<511; loop_var=loop_var+3) begin
             `FORCE_JTAG(ext_pi_ctl, loop_var);
             repeat (25) `CLK_ADC_DLY;
-        end */   
-
+        end 
+        $finish;
 
 
 

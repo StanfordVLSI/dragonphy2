@@ -15,7 +15,7 @@ interface dcore_debug_intf import const_pack::*; (
 		logic en_ext_pfd_offset_rep;
 		logic [Nadc-1:0] ext_pfd_offset_rep [Nti_rep-1:0];
         logic en_ext_max_sel_mux;
- 		logic [$clog2(Nunit_pi)-1:0] ext_max_sel_mux[Nout-1:0];	// to DCORE and JTAG
+ 		logic [Npi-1:0] ext_max_sel_mux[Nout-1:0];	// to DCORE and JTAG
 		logic en_pfd_cal;
 		logic en_pfd_cal_rep;
 		logic [Nrange-1:0] Navg_adc;

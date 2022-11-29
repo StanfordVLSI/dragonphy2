@@ -1,6 +1,13 @@
 import sys
 import numpy as np
 
+def load_chan_vals():
+    chan_est_vals = []
+    with open("chan_est_vals.txt", "r") as f:
+        for line in f:
+            chan_est_vals += [int(line.strip().split(',')[0])]
+    return np.array(chan_est_vals)
+
 def read_array(f):
     arr_text = ""
 
@@ -22,10 +29,10 @@ def test_vector_sv(test_vectors, chan=[11, 72, 83, 62, 43, 31, 23, 17]):
 
     out_str = "package test_vectors;\n"
     out_str += f'\tlocalparam integer num_of_vects = {len(test_vectors)};\n'
-    out_str += f'\tlogic signed [8:0] chan_vals [7:0] = \'{{{",".join(stringify(chan[::-1]))}}};\n'
+    out_str += f'\tlogic signed [9:0] chan_vals [{len(chan)-1}:0] = \'{{{",".join(stringify(chan[::-1]))}}};\n'
 
-    errs_str = f'\tlogic signed [8:0] errs_test_vectors[num_of_vects-1:0][3:0] = \'{{\n'
-    bits_str = f'\tlogic bits_test_vectors[num_of_vects-1:0][3:0] = \'{{\n'
+    errs_str = f'\tlogic signed [8:0] errs_test_vectors[num_of_vects-1:0][{len(test_vectors[0][0])-1}:0] = \'{{\n'
+    bits_str = f'\tlogic bits_test_vectors[num_of_vects-1:0][{len(test_vectors[0][1])-1}:0] = \'{{\n'
 
     for (err_vec, bit_vec) in test_vectors[:-1]:
         errs_str += f'\t\t\'{{' + ",".join(stringify(err_vec)[::-1]) + f'}},\n'
@@ -62,12 +69,12 @@ for filename in sys.argv[1:]:
 test_vectors = []
 
 for data_set in data_sets:
-    errs = data_set[0][2:]
-    bits = data_set[2][:-2]
+    errs = data_set[0][8:-4]
+    bits = data_set[2][0:]
 
     num_of_test_vectors = len(errs) - 5
     for ii in range(num_of_test_vectors):
         test_vectors += [(errs[ii:ii+5], bits[ii:ii+5])]
 
 with open('test_vec_gpack.sv', 'w') as f:
-    print(test_vector_sv(test_vectors), file=f)
+    print(test_vector_sv(test_vectors, chan=[ 13, 126, 171, 131,  91,  64,  47,  34,  25,  22,  18,  14,  13,  11,  10,   9]), file=f)

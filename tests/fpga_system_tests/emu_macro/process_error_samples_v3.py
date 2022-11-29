@@ -127,7 +127,7 @@ for expon in [1]: # [1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.35, 1.5, 1.7, 2]:
         
         flip_pattern_depth = [4,3,3]
         
-        checker_config     = [4,3,3]
+        checker_config     = [5,3,3]
 
         metric = np.square
 
@@ -137,7 +137,7 @@ for expon in [1]: # [1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.35, 1.5, 1.7, 2]:
         error_pol    = data[2][polarity_loc] * 2 - 1 
 
 
-        act_errors = np.zeros((48,), dtype=np.int32)
+        act_errors = np.zeros((36,), dtype=np.int32)
 
         for ii in range(len(act_errors)):
             if data[1][ii] > 0:
@@ -166,7 +166,7 @@ for expon in [1]: # [1, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.35, 1.5, 1.7, 2]:
         
         best_soft_res = np.copy(data[0])
         total_soft_inj = np.zeros((48,))
-        for ii in range(3):
+        for ii in range(1):
 
             energies = error_checker(best_soft_res[2:], data[2][:-2], chan_taps.astype(np.int64), 2, checker_config[ii], 42, flip_pattern_list=flip_pattern_list[ii], metric=metric)
 

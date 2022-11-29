@@ -162,7 +162,7 @@ def test_3():
 
 def test_ffe(channel_number):
     SYSTEM = yaml.load(open(get_file('config/system.yml'), 'r'), Loader=yaml.FullLoader)
-    ffe_length = SYSTEM['generic']['ffe']['parameters']['length'] 
+    ffe_length = 10# SYSTEM['generic']['ffe']['parameters']['length'] 
     #channel 4 before
     chan_func_values = get_real_channel_step(real_channels[channel_number], domain=CFG['func_domain'], numel=CFG['func_numel'])
     pulse            = get_real_channel_pulse(real_channels[channel_number], domain=CFG['func_domain'], numel=CFG['func_numel'])
@@ -217,17 +217,17 @@ def test_ffe(channel_number):
 
         zf_taps = np.reshape(np.linalg.pinv(chan_mat) @ imp, (ffe_length,))
 
-        new_eql_pulse = np.convolve(zf_taps, pulse)
+        new_eql_pulse = np.convolve(zf_taps, pulse)[0:ffe_length]
         new_eql_pulse[ii] = 0
 
-        err = np.sum(np.square(new_eql_pulse))
+        ener_err = np.sum(np.square(new_eql_pulse))
+        abs_err = np.sum(np.abs(new_eql_pulse))
         axes[ii].plot(np.square(new_eql_pulse))
-
-        print(err)
-        if (err < best_err) or (best_err < 0):
+        print(f'{ii}: {abs_err} {ener_err}')
+        if (abs_err < best_err) or (best_err < 0):
             best_ii = ii
             best_zf_taps = zf_taps
-            best_err = err
+            best_err = abs_err
     plt.show()
     plt.plot(best_zf_taps)
     plt.show()
@@ -260,7 +260,7 @@ def test_ffe(channel_number):
     #print([int(round(pul)) for pul in list(pulse[::-1]*127)])
 def test_adapt():
     SYSTEM = yaml.load(open(get_file('config/system.yml'), 'r'), Loader=yaml.FullLoader)
-    ffe_length = SYSTEM['generic']['ffe']['parameters']['length']
+    ffe_length = 100 #SYSTEM['generic']['ffe']['parameters']['length']
 
     est_b = 0
     est_e = 0
@@ -609,17 +609,33 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
 
         return ffe_vals, chan_vals
 
-    def read_error_tracker(num_of_errors=100):
+    def read_error_tracker(flag_width=2, num_of_errors=100):
         def signed(value):
             return value - 512 if ((value >> 8) & 1) == 1 else value
+
+        num_ed_flags = 0
+        num_pb_flags = 0
+        num_bits     = 0
+        tag = 0b00
+
+        if flag_width == 2:
+            num_ed_flags = 24
+            num_pb_flags = 48
+            num_bits     = 48
+            tag = 0b11
+        elif flag_width == 3:
+            num_ed_flags = 24
+            num_pb_flags = 36
+            num_bits     = 36
+            tag = 0b111
 
         depth = num_of_errors * 4
         write_tc_reg('read_errt', 1)
   
         codes = np.zeros((num_of_errors, 48))
-        bits  = np.zeros((num_of_errors, 48))
-        ed_flags = np.zeros((num_of_errors, 24))
-        pb_flags = np.zeros((num_of_errors, 48))
+        bits  = np.zeros((num_of_errors, num_bits))
+        ed_flags = np.zeros((num_of_errors, num_ed_flags))
+        pb_flags = np.zeros((num_of_errors, num_pb_flags))
 
         data = {}
         for ii in tqdm(range(depth)):
@@ -639,9 +655,9 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
                     datum = int(read_sc_reg(f'output_data_frame_errt[{jj}]'))
                     data_set = data_set + (datum << (32 * jj))
                 
-                pb_flags[int(ii/4), :] = [data_set >> jj          & 0b1  for jj in range(48)]
-                bits[int(ii/4), :]     = [data_set >> (jj + 48)   & 0b1  for jj in range(48)]
-                ed_flags[int(ii/4), :] = [data_set >> (2*jj + 96) & 0b11 for jj in range(24)]
+                pb_flags[int(ii/4), :] = [data_set >> jj          & 0b1  for jj in range(num_pb_flags)]
+                bits[int(ii/4), :]     = [data_set >> (jj + num_pb_flags)   & 0b1  for jj in range(num_bits)]
+                ed_flags[int(ii/4), :] = [data_set >> (flag_width*jj + num_pb_flags + num_bits) & tag for jj in range(num_ed_flags)]
 
         write_tc_reg('read_errt', 0)
 
@@ -717,7 +733,6 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
         update_chan(coeff_tuples[(k*chunk_size):((k+1)*chunk_size)], offset=k*chunk_size)
 
     ffe_shift, align_pos, zf_taps = load_ffe_vals()
-    print(ffe_shift, align_pos, zf_taps)
     chan_taps = load_chan_vals()
 
     # Soft reset
@@ -792,6 +807,10 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     write_tc_reg('ext_pi_ctl_offset[2]', 256)
     write_tc_reg('ext_pi_ctl_offset[3]', 384)
     write_tc_reg('en_ext_max_sel_mux', 1)
+    write_tc_reg('ext_max_sel_mux[0]', 127)
+    write_tc_reg('ext_max_sel_mux[1]', 127)
+    write_tc_reg('ext_max_sel_mux[2]', 127)
+    write_tc_reg('ext_max_sel_mux[3]', 127)
 
     # Configure the retimer
     print('Configuring the retimer...')
@@ -802,12 +821,12 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
 
     # Configure the CDR
     print('Configuring the CDR...')
-    write_tc_reg('Kp', 9)
+    write_tc_reg('Kp', 2)
     write_tc_reg('Ki', 0)
     write_tc_reg('invert', 1)
-    write_tc_reg('en_freq_est', 1)
+    write_tc_reg('en_freq_est', 0)
     write_tc_reg('ext_pi_ctl', 0)
-    write_tc_reg('en_ext_pi_ctl', 1)
+    write_tc_reg('en_ext_pi_ctl', 0)
     write_tc_reg('sel_inp_mux', 1) # "0": use ADC output, "1": use FFE output
 
     # Re-initialize ordering
@@ -816,12 +835,7 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     write_tc_reg('en_v2t', 0)
     write_tc_reg('en_v2t', 1)
 
-    # Release the CDR from reset, then wait for it to lock
-    # TODO: explore why it is not sufficient to pulse cdr_rstb low here
-    # (i.e., seems that it must be set to zero while configuring CDR parameters
-    print('Wait for the CDR to lock')
-    toggle_cdr_rstb()
-    time.sleep(1.0)
+
 
     write_tc_reg('ce_gain', 4)
     write_tc_reg('ce_exec_inst', 0)
@@ -882,7 +896,12 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     #    write_sc_reg('prbs_checker_mode', 0)
 
     write_tc_reg('fe_adapt_gain', 1)
-
+    # Release the CDR from reset, then wait for it to lock
+    # TODO: explore why it is not sufficient to pulse cdr_rstb low here
+    # (i.e., seems that it must be set to zero while configuring CDR parameters
+    print('Wait for the CDR to lock')
+    toggle_cdr_rstb()
+    time.sleep(45.0)
     #write_tc_reg('en_int_dump_start', 1)
     #write_tc_reg('int_dump_start', 0)
     #write_tc_reg('int_dump_start', 1)
@@ -909,6 +928,16 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     meas_time = now.strftime("%d%m%Y_%H%M%S")
     cycle = 1
     prev_num_of_logged_errors = 0
+
+    def stingify_noise(noise_rms):
+        out_str = ""
+        if int(np.log10(noise_rms)) >= -2:
+            out_str += f'{noise_rms*1e3:1}mv'
+        elif int(np.log10(noise_rms)) >= -5:
+            out_str += f'{noise_rms*1e6:1}uv'
+        return out_str
+
+
     while total_time_remaining > 0:
         zero_counts = 0
         update_time = time.time()
@@ -927,9 +956,9 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
             zero_counts = 0
             update_time = (time.time() - update_time)
             print(f'Error Tracker reached {num_of_logged_errors} - Reading Out')
-            e_tracker = read_error_tracker(num_of_errors=num_of_logged_errors)
-            with open(f'error_tracker_data_{meas_time}_{cycle}.txt', 'w') as f_wf:
-                with open(f'error_tracker_data_no_flags_{meas_time}_{cycle}.txt', 'w') as f_nf:
+            e_tracker = read_error_tracker(flag_width=3, num_of_errors=num_of_logged_errors)
+            with open(f'error_tracker_data_{channel_number}_{stingify_noise(noise_rms)}_{meas_time}_{cycle}.txt', 'w') as f_wf:
+                with open(f'error_tracker_data_no_flags_{channel_number}_{stingify_noise(noise_rms)}_{meas_time}_{cycle}.txt', 'w') as f_nf:
                     for (codes, pb_flags, bits, ed_flags) in zip(e_tracker['codes'], e_tracker['pb_flags'], e_tracker['bits'], e_tracker['ed_flags']):
                         fil = f_wf if np.sum(ed_flags) > 0 else f_nf
                         print(codes, file=fil)

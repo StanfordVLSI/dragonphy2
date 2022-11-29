@@ -16,7 +16,7 @@ module digital_core import const_pack::*; (
 	output wire logic disable_ibuf_main,   
     output wire logic disable_ibuf_mdll_ref, 
 	output wire logic disable_ibuf_mdll_mon, 
-    output wire logic  [Npi-1:0] int_pi_ctl_cdr [Nout-1:0],
+    output logic  [Npi-1:0] int_pi_ctl_cdr [Nout-1:0],
     output wire logic clock_out_p,
     output wire logic clock_out_n,
     output wire logic trigg_out_p,
@@ -72,7 +72,7 @@ module digital_core import const_pack::*; (
     wire logic        sliced_bits [Nti-1:0];
 
     wire logic signed [error_gpack::est_error_precision-1:0] est_errors [Nti-1:0];
-    wire logic        [1:0] sd_flags [Nti-1:0];
+    wire logic        [2:0] sd_flags [Nti-1:0];
 
     wire logic signed [ffe_gpack::output_precision-1:0] estimated_bits [constant_gpack::channel_width-1:0];
 
@@ -100,8 +100,7 @@ module digital_core import const_pack::*; (
     endgenerate
 
     wire logic [Npi-1:0] scale_value [Nout-1:0];
-    wire logic [Npi-1:0] unscaled_pi_ctl [Nout-1:0];
-    wire logic [Npi+Npi-1:0] scaled_pi_ctl [Nout-1:0];
+
 
     //wire logic [(Npi-1):0] tx_scale_value [(Nout-1):0];
     //logic [(Npi-1):0] reg_tx_scale_value [(Nout-1):0];
@@ -290,47 +289,24 @@ module digital_core import const_pack::*; (
 
     generate
         for (j=0; j<Nout; j=j+1) begin
-            assign scale_value[j]        = (((ddbg_intf_i.en_ext_max_sel_mux ? ddbg_intf_i.ext_max_sel_mux[j]: adbg_intf_i.max_sel_mux[j]) + 1)<<4) -1;
-            assign unscaled_pi_ctl[j]    = pi_ctl_cdr[j] + ddbg_intf_i.ext_pi_ctl_offset[j];
-            assign scaled_pi_ctl[j]      = unscaled_pi_ctl[j]*scale_value[j];
-            assign int_pi_ctl_cdr[j]     = ddbg_intf_i.en_bypass_pi_ctl[j] ?  ddbg_intf_i.bypass_pi_ctl[j] : (scaled_pi_ctl[j] >> Npi);
+            assign scale_value[j]        = ddbg_intf_i.en_ext_max_sel_mux ? ddbg_intf_i.ext_max_sel_mux[j] : ((((adbg_intf_i.max_sel_mux[j]) + 1)<<4) -1);
+
+            always_comb begin
+                int_pi_ctl_cdr[j] =  (pi_ctl_cdr[j] % scale_value[j]) + ddbg_intf_i.ext_pi_ctl_offset[j];
+            end
         end
     endgenerate
 
 
-    //int fid;
-    //initial begin
-    //    fid = $fopen("pi_codes_at_destination.txt","w");
-//
-    //    $fmonitor(fid, "%m.int_pi_ctl_cdr[0]: %d", int_pi_ctl_cdr[0]);
-    //    $fmonitor(fid, "%m.int_pi_ctl_cdr[1]: %d", int_pi_ctl_cdr[1]);
-    //    $fmonitor(fid, "%m.int_pi_ctl_cdr[2]: %d", int_pi_ctl_cdr[2]);
-    //    $fmonitor(fid, "%m.int_pi_ctl_cdr[3]: %d", int_pi_ctl_cdr[3]);
-    //end
-    /*
-    // for tx_top
-    generate
-        for (j=0; j<Nout; j=j+1) begin
-            always_ff @(posedge clk_adc or negedge dcore_rstb) begin
-                if(~dcore_rstb) begin
-                    reg_tx_scale_value[j] <= 0;
-                end else begin
-                    reg_tx_scale_value[j] <= tx_scale_value[j];
-                end
-            end
+    logic [Npi-1:0] pi_ctl_0;
+    logic [Npi-1:0] pi_ctl_1;
+    logic [Npi-1:0] pi_ctl_2;
+    logic [Npi-1:0] pi_ctl_3;
 
-
-            assign tx_scale_value[j] = (((ddbg_intf_i.tx_en_ext_max_sel_mux ?
-                                          ddbg_intf_i.tx_ext_max_sel_mux[j] :
-                                          tdbg_intf_i.max_sel_mux[j]) + 1) << 4) - 1;
-
-            assign tx_scaled_pi_ctl[j] = ddbg_intf_i.tx_pi_ctl[j]*reg_tx_scale_value[j];
-
-            assign tx_pi_ctl[j] = (ddbg_intf_i.tx_en_bypass_pi_ctl[j] ?
-                                   ddbg_intf_i.tx_bypass_pi_ctl[j] :
-                                   (tx_scaled_pi_ctl[j] >> Npi));
-        end
-    endgenerate*/
+    assign pi_ctl_0 = int_pi_ctl_cdr[0];
+    assign pi_ctl_1 = int_pi_ctl_cdr[1];
+    assign pi_ctl_2 = int_pi_ctl_cdr[2];
+    assign pi_ctl_3 = int_pi_ctl_cdr[3];
 
     assign dsp_dbg_intf_i.disable_product = ddbg_intf_i.disable_product;
     assign dsp_dbg_intf_i.ffe_shift       = ddbg_intf_i.ffe_shift;
@@ -374,34 +350,18 @@ module digital_core import const_pack::*; (
         .stage3_sd_flags        (),
 
         // Stage 4
-        .stage4_sliced_bits_out (),
+        .stage4_sliced_bits_out (checked_bits),
         .stage4_res_errors_out  (),
 
-        // Stage 5
-        .stage5_sd_flags_ener   (),
-        .stage5_sd_flags        (),
+        //Aligned to Stage 4:
+        .stage4_aligned_stage2_res_errors_out(est_errors),
+        .stage4_aligned_stage2_sliced_bits_out(sliced_bits),
+        .stage4_aligned_stage3_sd_flags(sd_flags),
 
-        // Stage 6
-        .stage6_sliced_bits_out (),
-        .stage6_res_errors_out  (),
+        .stage4_aligned_stage2_res_errors_out_delay(est_errors_delay),
+        .stage4_aligned_stage2_sliced_bits_out_delay(sliced_bits_delay),
+        .stage4_aligned_stage3_sd_flags_delay(sd_flags_delay),
 
-        //Aligned to Stage 6:
-        .stage8_aligned_stage2_res_errors_out(est_errors),
-        .stage8_aligned_stage2_sliced_bits_out(sliced_bits),
-        .stage8_aligned_stage5_sd_flags(sd_flags),
-
-        .stage6_sliced_bits_out_delay(),
-        .stage8_aligned_stage2_res_errors_out_delay(est_errors_delay),
-        .stage8_aligned_stage2_sliced_bits_out_delay(sliced_bits_delay),
-        .stage8_aligned_stage5_sd_flags_delay(sd_flags_delay),
-
-        .stage7_sd_flags_ener                       (),
-        .stage7_sd_flags                            (),
-
-        .stage8_sliced_bits_out                     (checked_bits),
-        .stage8_res_errors_out                      (),
-         
-        .stage8_sliced_bits_out_delay (checked_bits_delay),
 
         .dsp_dbg_intf_i(dsp_dbg_intf_i)
     );
@@ -854,33 +814,7 @@ module digital_core import const_pack::*; (
 
     assign clk_cgra = (clk_adc & en_cgra_clk_latch);
 
-    // transmitter control signals
 
-    //assign tx_rst = ddbg_intf_i.tx_rst;
-    //assign tx_ctl_valid = ddbg_intf_i.tx_ctl_valid;
-
-    // TX data generator
-    /*
-    tx_data_gen #(
-        .Nprbs(Nprbs),
-        .Nti(Nti)
-    ) tx_data_gen_i (
-        .clk(clk_tx),
-        .rst(odbg_intf_i.tx_data_gen_rst),
-        .cke(odbg_intf_i.tx_data_gen_cke),
-        .exec(odbg_intf_i.tx_data_gen_exec),
-
-        .data_mode(odbg_intf_i.tx_data_gen_mode),
-        .data_per(odbg_intf_i.tx_data_gen_per),
-        .data_in(odbg_intf_i.tx_data_gen_register),
-
-        .prbs_init(odbg_intf_i.tx_prbs_gen_init),
-        .prbs_eqn(odbg_intf_i.tx_prbs_gen_eqn),
-        .prbs_inj_err(odbg_intf_i.tx_prbs_gen_inj_err),
-        .prbs_chicken(odbg_intf_i.tx_prbs_gen_chicken),
-
-        .data_out(tx_data)
-    );*/
 
 endmodule
 

@@ -2,7 +2,7 @@ module error_tracker_core #(
 	parameter integer width=16,
 	parameter integer error_bitwidth=8,
 	parameter integer addrwidth= 12,
-	parameter integer flag_width=2
+	parameter integer flag_width=3
 )(
 	input logic trigger,
 	
@@ -67,10 +67,10 @@ module error_tracker_core #(
 			end
 		end else if(flag_width== 3) begin
 			//Concatenate and store the PRBS flags, the bistream and the sliding detector outputs
-			assign next_data_frames[3][width+halfwidth-1:0] 	  = prbs_flags[width*2+halfwidth/2-1:width-halfwidth/2];
-			assign next_data_frames[3][width*3-1:width+halfwidth] = bitstream [width*2+halfwidth/2-1:width-halfwidth/2];
+			assign next_data_frames[3][2*width+halfwidth/2-1:0]                   = prbs_flags[width*2+10-1:width-10];
+			assign next_data_frames[3][4*width+halfwidth-1:2*width+halfwidth/2] = bitstream [width*2+10-1:width-10];
 			for(gi = 0; gi < width + halfwidth ; gi = gi + 1 ) begin
-				assign next_data_frames[3][width*3 + (gi+1) * 3 - 1: width*3 + gi*3] = sd_flags[gi + halfwidth];
+				assign next_data_frames[3][4*width+halfwidth + (gi+1) * 3 - 1: 4*width+halfwidth + gi*3] = sd_flags[gi + width];
 			end
 		end
 	endgenerate

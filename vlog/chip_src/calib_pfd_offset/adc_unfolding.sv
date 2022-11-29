@@ -65,6 +65,39 @@ module adc_unfolding #(
     ///////////////
     // histogram //
     ///////////////
+    logic signed [(Nadc-1):0] adc_value_0;
+    logic signed [(Nadc-1):0] adc_value_1;
+    logic signed [(Nadc-1):0] adc_value_2;
+    logic signed [(Nadc-1):0] adc_value_3;
+    logic signed [(Nadc-1):0] adc_value_4;
+    logic signed [(Nadc-1):0] adc_value_5;
+    logic signed [(Nadc-1):0] adc_value_6;
+    logic signed [(Nadc-1):0] adc_value_7;
+    logic signed [(Nadc-1):0] adc_value_8;
+    logic signed [(Nadc-1):0] adc_value_9;
+    logic signed [(Nadc-1):0] adc_value_10;
+    logic signed [(Nadc-1):0] adc_value_11;
+    logic signed [(Nadc-1):0] adc_value_12;
+    logic signed [(Nadc-1):0] adc_value_13;
+    logic signed [(Nadc-1):0] adc_value_14;
+    logic signed [(Nadc-1):0] adc_value_15;
+
+    assign adc_value_0 = dout[0];
+    assign adc_value_1 = dout[1];
+    assign adc_value_2 = dout[2];
+    assign adc_value_3 = dout[3];
+    assign adc_value_4 = dout[4];
+    assign adc_value_5 = dout[5];
+    assign adc_value_6 = dout[6];
+    assign adc_value_7 = dout[7];
+    assign adc_value_8 = dout[8];
+    assign adc_value_9 = dout[9];
+    assign adc_value_10 = dout[10];
+    assign adc_value_11 = dout[11];
+    assign adc_value_12 = dout[12];
+    assign adc_value_13 = dout[13];
+    assign adc_value_14 = dout[14];
+    assign adc_value_15 = dout[15];
 
     logic signed [(Nadc-1):0] hist_avg_in;
     logic [((2**Nrange)-1):0] hist_center_imm;
