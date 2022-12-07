@@ -42,7 +42,7 @@
 | align_pos		             |         | 3:0			        | 		           | Test 	      | out      |   0 	     |
 | fe_inst                    |         | 2:0                    |                  | Test         | out      |   0       |
 | fe_exec_inst               |         |                        |                  | Test         | out      |   0       |
-| init_ffe_taps              |  yes    | 9:0                    | 9:0              | Test         | out      |   0&0&0&0&0&32&0&0&0&0 |
+| init_ffe_taps              |  yes    | 9:0                    | 15:0             | Test         | out      |   0       |
 | fe_adapt_gain              |         | 4:0                    |                  | Test         | out      |   0       |
 | fe_bit_target_level        |  yes    | 9:0                    |                  | Test         | out      |   'd70    |
 | ce_gain                    |         | 3:0                    |                  | Test         | out      |   1       |

@@ -249,7 +249,7 @@ module digital_core import const_pack::*; (
 
     generate
         for(k = 0; k < Nti; k = k + 1) begin
-            assign mm_cdr_input[k] = cdbg_intf_i.sel_inp_mux ? estimated_bits[k][ffe_gpack::output_precision-1:(ffe_gpack::output_precision-Nadc)] : adcout_unfolded[k];
+            assign mm_cdr_input[k] = cdbg_intf_i.sel_inp_mux ? estimated_bits[k] : act_codes[k];
         end
     endgenerate
 
@@ -270,7 +270,8 @@ module digital_core import const_pack::*; (
     end
 
     mm_cdr iMM_CDR (
-        .din(mm_cdr_input),
+        .codes(act_codes),
+        .bits(sliced_est_bits),
         .clk(clk_adc),
         .ext_rstb(ctl_valid),
         .ramp_clock(ramp_clock),
@@ -366,6 +367,14 @@ module digital_core import const_pack::*; (
         .dsp_dbg_intf_i(dsp_dbg_intf_i)
     );
 
+    logic signed [9:0] sec_est_bits [ffe_gpack::length-1:0];
+
+    always_comb begin
+        for(int ii=0; ii<ffe_gpack::length; ii=ii+1) begin
+            sec_est_bits[ii] = estimated_bits[ii];
+        end
+    end
+
     ffe_estimator #(
         .est_depth(ffe_gpack::length),
         .ffe_bitwidth(ffe_gpack::weight_precision), 
@@ -375,7 +384,7 @@ module digital_core import const_pack::*; (
     ) ffe_est_i (
         .clk(clk_adc),
         .rst_n(dcore_rstb),
-        .est_bits(estimated_bits[ffe_gpack::length-1:0]),
+        .est_bits(sec_est_bits),
         .current_code(act_codes[0]),
 
         .gain(ddbg_intf_i.fe_adapt_gain),
@@ -465,12 +474,12 @@ module digital_core import const_pack::*; (
     end
 
     generate
-        for(gj=0; gj < 10; gj = gj + 1) begin
+        for(gj=0; gj < ffe_gpack::length; gj = gj + 1) begin
             for(gi=0; gi<channel_gpack::width; gi = gi + 1) begin
                 assign dsp_dbg_intf_i.weights[gi][gj] = single_weights[gj];
             end
         end
-        for(gj =0; gj < 30; gj = gj + 1) begin
+        for(gj =0; gj < channel_gpack::est_channel_depth; gj = gj + 1) begin
             for(gi = 0; gi < channel_gpack::width; gi = gi + 1) begin
                 assign dsp_dbg_intf_i.channel_est[gi][gj] = single_chan_est[gj]; 
             end

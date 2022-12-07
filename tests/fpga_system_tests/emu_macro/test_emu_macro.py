@@ -162,13 +162,12 @@ def test_3():
 
 def test_ffe(channel_number):
     SYSTEM = yaml.load(open(get_file('config/system.yml'), 'r'), Loader=yaml.FullLoader)
-    ffe_length = 10# SYSTEM['generic']['ffe']['parameters']['length'] 
+    ffe_length = SYSTEM['generic']['ffe']['parameters']['length'] 
     #channel 4 before
     chan_func_values = get_real_channel_step(real_channels[channel_number], domain=CFG['func_domain'], numel=CFG['func_numel'])
     pulse            = get_real_channel_pulse(real_channels[channel_number], domain=CFG['func_domain'], numel=CFG['func_numel'])
     chan_func_values = chan_func_values.clip(0)
     pulse = pulse / 0.3 * 128
-
     retval = []
     retval.append(chan_func_values[:])
     retval.append(np.concatenate((np.diff(chan_func_values), [0])))
@@ -220,7 +219,7 @@ def test_ffe(channel_number):
         new_eql_pulse = np.convolve(zf_taps, pulse)[0:ffe_length]
         new_eql_pulse[ii] = 0
 
-        ener_err = np.sum(np.square(new_eql_pulse))
+        ener_err = np.sqrt(np.sum(np.square(new_eql_pulse)))
         abs_err = np.sum(np.abs(new_eql_pulse))
         axes[ii].plot(np.square(new_eql_pulse))
         print(f'{ii}: {abs_err} {ener_err}')
@@ -233,7 +232,10 @@ def test_ffe(channel_number):
     plt.show()
 
     best_eql_pulse = np.convolve(best_zf_taps, pulse)
-
+    print(best_eql_pulse[best_ii], np.sum(np.abs(best_eql_pulse[best_ii+1:ffe_length])) + np.sum(np.abs(best_eql_pulse[:best_ii])))
+    print('----------')
+    print(best_eql_pulse[best_ii+1:ffe_length])
+    print(best_eql_pulse[:best_ii])
 
     align_pos = np.argmax(best_eql_pulse)
     print(best_ii, align_pos, best_err)
@@ -594,16 +596,15 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
         write_tc_reg('exec_ctrl_rstb', 0)
 
     def read_learned_weights():
-        ffe_vals = np.zeros((10,), dtype=np.int32)
+        ffe_vals = np.zeros((16,), dtype=np.int32)
         chan_vals = np.zeros((30,), dtype=np.int32)
         for ii in range(30):
             write_tc_reg('sample_pos', ii)
             write_tc_reg('sample_fir_est', 1)
             write_tc_reg('sample_fir_est', 0)
-            print(read_sc_reg('ce_sampled_value'))
             chan_vals[ii] = signed(int(read_sc_reg('ce_sampled_value')), n_bits=10)
             chan_vals[ii] = signed(int(read_sc_reg('ce_sampled_value')), n_bits=10)
-            if ii < 10:
+            if ii < 16:
                 ffe_vals[ii] = signed(int(read_sc_reg('fe_sampled_value')), n_bits=10)
                 ffe_vals[ii] = signed(int(read_sc_reg('fe_sampled_value')), n_bits=10)
 
@@ -792,7 +793,7 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
         #    load_channel_estimate(loop_var2, loop_var, chan_taps[loop_var2])
     #write_tc_reg('align_pos', 8)
     write_tc_reg('align_pos', align_pos)
-
+    write_tc_reg('fe_bit_target_level', 40)
 
     #for loop_var in range(16):
     #    for loop_var2 in range(19):
@@ -807,10 +808,10 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     write_tc_reg('ext_pi_ctl_offset[2]', 256)
     write_tc_reg('ext_pi_ctl_offset[3]', 384)
     write_tc_reg('en_ext_max_sel_mux', 1)
-    write_tc_reg('ext_max_sel_mux[0]', 127)
-    write_tc_reg('ext_max_sel_mux[1]', 127)
-    write_tc_reg('ext_max_sel_mux[2]', 127)
-    write_tc_reg('ext_max_sel_mux[3]', 127)
+    write_tc_reg('ext_max_sel_mux[0]', 128)
+    write_tc_reg('ext_max_sel_mux[1]', 128)
+    write_tc_reg('ext_max_sel_mux[2]', 128)
+    write_tc_reg('ext_max_sel_mux[3]', 128)
 
     # Configure the retimer
     print('Configuring the retimer...')
@@ -826,7 +827,7 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     write_tc_reg('invert', 1)
     write_tc_reg('en_freq_est', 0)
     write_tc_reg('ext_pi_ctl', 0)
-    write_tc_reg('en_ext_pi_ctl', 0)
+    write_tc_reg('en_ext_pi_ctl', 1)
     write_tc_reg('sel_inp_mux', 1) # "0": use ADC output, "1": use FFE output
 
     # Re-initialize ordering
@@ -842,66 +843,80 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
 
     time.sleep(5)
 
-    #write_tc_reg('ce_gain', 1)
-    write_tc_reg('fe_adapt_gain', 3)
+    write_tc_reg('ce_gain', 2)
+    write_tc_reg('fe_adapt_gain', 2)
+    
     write_tc_reg('fe_exec_inst', 0)
-    write_tc_reg('ext_pi_ctl', 0)
+    write_tc_reg('ext_pi_ctl', 20)
     #write_tc_reg('fe_bit_target_level', 100)
     time.sleep(10)
 
-    #for ii in range(1, 20):
-    #    write_tc_reg('ext_pi_ctl', ii)
-    #    time.sleep(10)
-    #    write_tc_reg('fe_adapt_gain', 1)
-    #    write_sc_reg('prbs_checker_mode', 2)
-    #    time.sleep(10)
-    #    write_sc_reg('prbs_checker_mode', 3)
-    #    print(f'PI CODE: {ii}')
-    #    print('Read out PRBS test results')
-    #    write_sc_reg('sel_prbs_bits', 0); # Chooses which PRBS BER is read out "1" is checker, "0" is FFE 
-    #    err_bits = 0
-    #    err_bits |= read_sc_reg('prbs_err_bits_upper')
-    #    err_bits <<= 32
-    #    err_bits |= read_sc_reg('prbs_err_bits_lower')
-    #    print(f'err_bits: {err_bits}')
-#
-    #    total_bits = 0
-    #    total_bits |= read_sc_reg('prbs_total_bits_upper')
-    #    total_bits <<= 32
-    #    total_bits |= read_sc_reg('prbs_total_bits_lower')
-    #    print(f'total_bits: {total_bits}')
-#
-    #    print(f'BER: {err_bits/total_bits:e}')
-#
-    #    write_sc_reg('sel_prbs_bits', 1); # Chooses which PRBS BER is read out "1" is checker, "0" is FFE 
-    #    err_bits = 0
-    #    err_bits |= read_sc_reg('prbs_err_bits_upper')
-    #    err_bits <<= 32
-    #    err_bits |= read_sc_reg('prbs_err_bits_lower')
-    #    print(f'err_bits: {err_bits}')
-#
-    #    total_bits = 0
-    #    total_bits |= read_sc_reg('prbs_total_bits_upper')
-    #    total_bits <<= 32
-    #    total_bits |= read_sc_reg('prbs_total_bits_lower')
-    #    print(f'total_bits: {total_bits}')
-#
-    #    print(f'BER: {err_bits/total_bits:e}')
-#
-    #    #learned_ffe_vals, learned_channel_vals = read_learned_weights()
-    #    #print(learned_ffe_vals)
-    #    #print(zf_taps)
-    #    #print(learned_channel_vals)
-    #    #print(chan_taps)
-    #    write_sc_reg('prbs_checker_mode', 0)
-
+    for ii in range(8):
+        write_tc_reg('fe_adapt_gain', 4)
+        write_tc_reg('fe_inst', 0b010)
+        write_tc_reg('fe_exec_inst', 1)
+        write_tc_reg('fe_exec_inst', 0) 
+        align_pos = align_pos+1
+        write_tc_reg('align_pos', align_pos)
+        time.sleep(3)
     write_tc_reg('fe_adapt_gain', 1)
+
+#    for ii in range(17, 25):
+#        write_tc_reg('fe_adapt_gain', 4)
+#        write_tc_reg('ext_pi_ctl', ii)
+#        time.sleep(30)
+#        write_tc_reg('fe_adapt_gain', 1)
+#        write_sc_reg('prbs_checker_mode', 2)
+#        time.sleep(10)
+#        write_sc_reg('prbs_checker_mode', 3)
+#        print(f'PI CODE: {ii}')
+#        print('Read out PRBS test results')
+#        write_sc_reg('sel_prbs_bits', 0); # Chooses which PRBS BER is read out "1" is checker, "0" is FFE 
+#        err_bits = 0
+#        err_bits |= read_sc_reg('prbs_err_bits_upper')
+#        err_bits <<= 32
+#        err_bits |= read_sc_reg('prbs_err_bits_lower')
+#        print(f'err_bits: {err_bits}')
+#    
+#        total_bits = 0
+#        total_bits |= read_sc_reg('prbs_total_bits_upper')
+#        total_bits <<= 32
+#        total_bits |= read_sc_reg('prbs_total_bits_lower')
+#        print(f'total_bits: {total_bits}')
+#    
+#        print(f'BER: {err_bits/total_bits:e}')
+#    
+#        write_sc_reg('sel_prbs_bits', 1); # Chooses which PRBS BER is read out "1" is checker, "0" is FFE 
+#        err_bits = 0
+#        err_bits |= read_sc_reg('prbs_err_bits_upper')
+#        err_bits <<= 32
+#        err_bits |= read_sc_reg('prbs_err_bits_lower')
+#        print(f'err_bits: {err_bits}')
+#    
+#        total_bits = 0
+#        total_bits |= read_sc_reg('prbs_total_bits_upper')
+#        total_bits <<= 32
+#        total_bits |= read_sc_reg('prbs_total_bits_lower')
+#        print(f'total_bits: {total_bits}')
+#    
+#        print(f'BER: {err_bits/total_bits:e}')
+#    
+#        #learned_ffe_vals, learned_channel_vals = read_learned_weights()
+#        #print(learned_ffe_vals)
+#        #print(zf_taps)
+#        #print(learned_channel_vals)
+#        #print(chan_taps)
+#        write_sc_reg('prbs_checker_mode', 0)
+#        learned_ffe_vals, learned_channel_vals = read_learned_weights()
+#        plt.plot(np.convolve(learned_ffe_vals, learned_channel_vals))
+#        print(np.convolve(learned_ffe_vals, learned_channel_vals))
+#    plt.show()
     # Release the CDR from reset, then wait for it to lock
     # TODO: explore why it is not sufficient to pulse cdr_rstb low here
     # (i.e., seems that it must be set to zero while configuring CDR parameters
     print('Wait for the CDR to lock')
     toggle_cdr_rstb()
-    time.sleep(45.0)
+    time.sleep(15.0)
     #write_tc_reg('en_int_dump_start', 1)
     #write_tc_reg('int_dump_start', 0)
     #write_tc_reg('int_dump_start', 1)

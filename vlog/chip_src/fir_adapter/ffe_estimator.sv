@@ -27,6 +27,40 @@ module ffe_estimator #(
     output logic signed [ffe_bitwidth-1:0] ffe_est [est_depth-1:0]
 );
 
+    logic signed [9:0] estimated_bit_0;
+    logic signed [9:0] estimated_bit_1;
+    logic signed [9:0] estimated_bit_2;
+    logic signed [9:0] estimated_bit_3;
+    logic signed [9:0] estimated_bit_4;
+    logic signed [9:0] estimated_bit_5;
+    logic signed [9:0] estimated_bit_6;
+    logic signed [9:0] estimated_bit_7;
+    logic signed [9:0] estimated_bit_8;
+    logic signed [9:0] estimated_bit_9;
+    logic signed [9:0] estimated_bit_10;
+    logic signed [9:0] estimated_bit_11;
+    logic signed [9:0] estimated_bit_12;
+    logic signed [9:0] estimated_bit_13;
+    logic signed [9:0] estimated_bit_14;
+    logic signed [9:0] estimated_bit_15;
+    assign estimated_bit_0 = est_bits[0];
+    assign estimated_bit_1 = est_bits[1];
+    assign estimated_bit_2 = est_bits[2];
+    assign estimated_bit_3 = est_bits[3];
+    assign estimated_bit_4 = est_bits[4];
+    assign estimated_bit_5 = est_bits[5];
+    assign estimated_bit_6 = est_bits[6];
+    assign estimated_bit_7 = est_bits[7];
+    assign estimated_bit_8 = est_bits[8];
+    assign estimated_bit_9 = est_bits[9];
+    assign estimated_bit_10 = est_bits[10];
+    assign estimated_bit_11 = est_bits[11];
+    assign estimated_bit_12 = est_bits[12];
+    assign estimated_bit_13 = est_bits[13];
+    assign estimated_bit_14 = est_bits[14];
+    assign estimated_bit_15 = est_bits[15];
+
+
     logic signed [ffe_bitwidth + adapt_bitwidth-1:0] tap_decimal, next_tap_decimal;
     logic signed [ffe_bitwidth + adapt_bitwidth-1:0] int_ffe_est [est_depth-1:0];
     logic [$clog2(est_depth)-1:0] tap_pos, tap_pos_plus_one, next_tap_pos;

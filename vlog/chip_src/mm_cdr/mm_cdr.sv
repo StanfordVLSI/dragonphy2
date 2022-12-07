@@ -6,7 +6,8 @@ module mm_cdr import const_pack::*; #(
     parameter integer ramp_width = 5,
     parameter integer phase_est_shift = 20
 ) (
-    input wire logic signed [Nadc-1:0] din[Nti-1:0],    // adc outputs
+    input wire logic signed [Nadc-1:0] codes[Nti-1:0],    // adc outputs
+    input wire logic bits [Nti-1:0],    // adc outputs
     input wire logic ramp_clock,
 
     input wire logic clk,
@@ -70,7 +71,8 @@ module mm_cdr import const_pack::*; #(
     //logic cond1, cond2;
     
     mm_pd iMM_PD (
-        .din(din),
+        .codes(codes),
+        .bits(bits),
         .pd_offset(cdbg_intf_i.pd_offset_ext),
         .pd_out(pd_phase_error)
     );

@@ -75,9 +75,7 @@ module sim_ctrl(
     logic [Nadc-1:0] tmp_ext_pfd_offset [Nti-1:0];
     logic [Npi-1:0] tmp_ext_pi_ctl_offset [Nout-1:0];
     logic signed [channel_gpack::est_channel_precision-1:0] chan_coeffs [29:0];
-    logic signed [Nadc            -1:0] x_vec [19:0];
-    logic signed [Nadc*2 + 1      -1:0] dg_vec [9:0];
-    logic signed [Nadc*2 + 1 + 12 -1:0] g_vec [ffe_gpack::length-1:0];
+
     logic [3:0] align_pos;
     logic signed [Nadc-1:0] new_x;
     logic signed [Nadc-1:0] est_b, est_error;
@@ -175,9 +173,7 @@ module sim_ctrl(
     initial begin
         //Initialize Channel
         //chan_coeffs   = '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 3, 5, 9, 16, 30, 56,  2};
-        ffe_coeffs = '{0,0,0,0,0,32,0,0,0,0};
-        x_vec = '{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-        g_vec = '{0,0,0,0,0,0,0,0,0,0};
+        ffe_coeffs = '{0,0,0,0,0,32,0,0,0,0,0,0,0,0,0,0};
         random_delay = 0;
         //chan_coeffs = '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 127, 127};
         //inp_sel = 1;
@@ -289,7 +285,7 @@ module sim_ctrl(
         `CLK_ADC_DLY;
 
         // Set up the FFE
-        `FORCE_JTAG(fe_adapt_gain, 9);
+        `FORCE_JTAG(fe_adapt_gain, 11);
         `FORCE_JTAG(fe_bit_target_level, 10'd40);
         // Pushing init_ffe_taps into ffe_estimator / ffe
         force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_0_q = ffe_coeffs[0];
@@ -302,6 +298,12 @@ module sim_ctrl(
         force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_7_q = ffe_coeffs[7];
         force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_8_q = ffe_coeffs[8];
         force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_9_q = ffe_coeffs[9];
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_10_q = ffe_coeffs[10];
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_11_q = ffe_coeffs[11];
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_12_q = ffe_coeffs[12];
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_13_q = ffe_coeffs[13];
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_14_q = ffe_coeffs[14];
+        force top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_15_q = ffe_coeffs[15];
         `CLK_ADC_DLY;
         repeat (3) `CLK_ADC_DLY;
         `FORCE_JTAG(fe_inst, 3'b100);
@@ -319,6 +321,12 @@ module sim_ctrl(
         release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_7_q;
         release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_8_q;
         release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_9_q;
+        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_10_q;
+        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_11_q;
+        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_12_q;
+        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_13_q;
+        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_14_q;
+        release top.tb_i.top_i.idcore.jtag_i.act_jtag.regfile29_on_tstclk.init_ffe_taps_15_q;
 
         repeat (3) `CLK_ADC_DLY;
         `FORCE_JTAG(ce_inst, 3'b100);
@@ -361,7 +369,7 @@ module sim_ctrl(
 
         // Configure the CDR
         $display("Configuring the CDR...");
-        `FORCE_JTAG(Kp, 10);
+        `FORCE_JTAG(Kp, 9);
         `FORCE_JTAG(Ki, 5);
         `FORCE_JTAG(invert, 1);
         `FORCE_JTAG(en_freq_est, 0);
@@ -377,11 +385,12 @@ module sim_ctrl(
         `FORCE_JTAG(en_v2t, 1);
         `CLK_ADC_DLY;
         //inp_sel = 1;
+        `FORCE_JTAG(fe_exec_inst, 1'b0);
 
         // De-assert the CDR reset
         // TODO: do we really need to wait three cycles of clk_adc?
         toggle_cdr_rstb();
-      /*  repeat (5000) `CLK_ADC_DLY;
+        repeat (10000) `CLK_ADC_DLY;
 
         // Wait for PRBS checker to lock
 		$display("Waiting for PRBS checker to lock...");
@@ -397,7 +406,6 @@ module sim_ctrl(
         `FORCE_JTAG(ce_exec_inst, 0);
 
 
-        `FORCE_JTAG(fe_exec_inst, 1'b0);
         repeat (5000) `CLK_ADC_DLY;
 
         `FORCE_JTAG(ce_gain, 9);
@@ -432,12 +440,12 @@ module sim_ctrl(
 
         //release tb_i.top_i.idcore.datapath_i.stage1_est_bits_out[8];
         repeat (10000) `CLK_ADC_DLY;
-        */
+        /*
         for (loop_var=0; loop_var<511; loop_var=loop_var+3) begin
             `FORCE_JTAG(ext_pi_ctl, loop_var);
             repeat (25) `CLK_ADC_DLY;
         end 
-        $finish;
+        $finish;*/
 
 
 

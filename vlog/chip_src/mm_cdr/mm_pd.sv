@@ -1,7 +1,8 @@
 `default_nettype none
 
 module mm_pd import const_pack::*; (
-    input wire logic signed [Nadc-1:0] din [Nti-1:0],   // range: [-128, +127]
+    input wire logic signed [Nadc-1:0] codes [Nti-1:0],   // range: [-128, +127]
+    input wire logic bits [Nti-1:0],
     input wire logic signed [Nadc-1:0] pd_offset,       // range: [-128, +127]
     output var logic signed [Nadc+1:0] pd_out           // range: [-384, +383]
 );
@@ -22,11 +23,11 @@ module mm_pd import const_pack::*; (
     genvar k;
     generate
         for (k=0; k<Nti; k=k+1) begin: uSGN
-            assign ak[k] = (din[k][Nadc-1]==0)? 1 : -1;
+            assign ak[k] = bits[k]  ? 1 : -1;
         end
 
         for (k=0; k<Nti; k=k+1) begin: uPD
-            assign pd_net[k] = din[k]*(ak[k+1] - ak[k-1]);
+            assign pd_net[k] = codes[k]*(ak[k+1] - ak[k-1]);
         end
     endgenerate
 
