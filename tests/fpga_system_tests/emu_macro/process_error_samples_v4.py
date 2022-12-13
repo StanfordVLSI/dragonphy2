@@ -21,24 +21,20 @@ def read_array(f):
 
 
 
-if len(sys.argv) <= 1:
-    print('Please provide at least one file!')
+if len(sys.argv) <= 2:
+    print('Provide directory and at least one file!')
     exit()
 
-
-zf_taps = []
-with open('ffe_vals.txt', 'r') as f:
-    zf_taps = np.array([int(line.strip()) for line in f.readlines()])
-
-
+directory = sys.argv[1]
+files     = sys.argv[2:]
 
 chan_taps = []
-with open('chan_est_vals.txt', 'r') as f:
+with open(f'{directory}/chan_est_vals.txt', 'r') as f:
     chan_taps = np.array([float(line.strip()) for line in f.readlines()])
 print(chan_taps)
 
 data_sets = []
-for filename in sys.argv[1:]:
+for filename in files:
     print(filename)
     with open(filename, 'r') as f:
         done = False

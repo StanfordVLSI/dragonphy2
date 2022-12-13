@@ -68,8 +68,8 @@ def run_iteration_error_viterbi(viterbi_state, bit, trace_val):
 
     return next_viterbi_state
 
-def run_error_viterbi(bits, trace_vals, viterbi_state, num_iterations = 4):
+def run_error_viterbi(bits, trace, viterbi_state, num_iterations = 4):
     for ii in range(num_iterations):
-        viterbi_state = run_iteration_error_viterbi(viterbi_state, bits[ii], trace_vals[ii])
+        viterbi_state = run_iteration_error_viterbi(viterbi_state, bits[ii], trace[ii])
         print(viterbi_state)
     return viterbi_state
