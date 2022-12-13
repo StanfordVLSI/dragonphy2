@@ -3,7 +3,6 @@ import numpy as np
 import sys
 from tqdm import tqdm
 
-from software_error_corrector import error_checker, flag_applicator, wider_flag_applicator
 
 def read_array(f):
     arr_text = ""
