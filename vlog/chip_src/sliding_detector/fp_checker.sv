@@ -11,6 +11,7 @@ module fp_checker #(
         input logic                            bits     [seq_length-1:0],
         input logic signed [est_channel_bitwidth-1:0] channel  [(seq_length+flip_pattern_depth-1)-1:0],
         input logic [3:0] channel_shift,
+        output logic overflow,
         output logic [ener_bitwidth-1:0] mse_val
 );
     localparam integer shift_factor = 0;
@@ -23,15 +24,6 @@ module fp_checker #(
 
 
     genvar gi;
-
-    initial begin
-    //    $monitor("%p, partial_error[0]: %p", flip_pattern, partial_error[0]);
-    //    $monitor("%p, partial_error[1]: %p", flip_pattern, partial_error[1]);
-    //    $monitor("%p, partial_error[2]: %p", flip_pattern, partial_error[2]);
-    //    $monitor("%m, %p, error: %p", flip_pattern, error);
-    //    $monitor("%m, %p, rsd:   %p", flip_pattern, seq);
-    end
-
     generate
         for(gi = 0; gi < flip_pattern_depth; gi += 1) begin
             if(flip_pattern[gi]) begin
@@ -54,36 +46,42 @@ module fp_checker #(
         end
     endgenerate
 
+    logic err_sign, prt_err_sign, pst_op_err_sign, dv_one_err_sign, seq_sign, pst_op_dv_one_err_sign;
+    logic signed [ener_bitwidth-1:0] prev_op_mse_val;
+
 
     always_comb begin
-        for(int ii =0; ii < flip_pattern_depth; ii = ii + 1) begin
-            //$display("partial_error[%d]: %p", ii, partial_error[ii]);
-        end
-
-
+        overflow = 0;
         for(int ii = 0; ii < seq_length; ii = ii + 1) begin
             error[ii] = 0;
-            //$display("Partial Error Summing [%d] sequence:", ii);
             for(int jj = 0; jj < flip_pattern_depth; jj = jj + 1) begin
+                err_sign = error[ii][est_err_bitwidth+$clog2(flip_pattern_depth)+1-1];
+                prt_err_sign = partial_error[jj][ii][est_channel_bitwidth+1-1];
                 error[ii] += partial_error[jj][ii];
-                //$display("partial_error[%d][%d]: %d", jj, ii, partial_error[jj][ii]);
-                //$display("error[%d] at %d iteration: %d", ii, jj, error[ii]);
+                pst_op_err_sign = error[ii][est_err_bitwidth+$clog2(flip_pattern_depth)+1-1];
+
+                overflow = overflow || (err_sign == prt_err_sign) && (err_sign != pst_op_err_sign);
             end
             div_one_error[ii] = error[ii][est_err_bitwidth+$clog2(flip_pattern_depth)+1-1:chan_shift_factor];
-            //$display("div_one_error[%d] at %d iteration: %d", ii, flip_pattern_depth, div_one_error[ii]);
+
+            dv_one_err_sign = div_one_error[ii][est_err_bitwidth+$clog2(flip_pattern_depth)+1-1-chan_shift_factor];
+            seq_sign = seq[ii][est_err_bitwidth-1];
+
             div_one_error[ii] += seq[ii];
-            //$display("div_one_error[%d] at %d iteration: %d", ii, flip_pattern_depth, div_one_error[ii]);
+
+            pst_op_dv_one_err_sign = div_one_error[ii][est_err_bitwidth+$clog2(flip_pattern_depth)+1-1-chan_shift_factor];
+            overflow = overflow || (dv_one_err_sign == seq_sign) && (dv_one_err_sign != pst_op_dv_one_err_sign);
         end
-        //$display("div_one_error: %p", div_one_error);
         mse_val = 0;
         sqr_val = 0;
         for (int ii = 0; ii < seq_length; ii = ii + 1) begin
             div_two_error[ii] = div_one_error[ii][est_err_bitwidth+$clog2(flip_pattern_depth)+1-1-chan_shift_factor:shift_factor];
             sqr_val = ((div_two_error[ii])**2 );
-            //$display("div_two_error[%d]: %d", ii, div_two_error[ii]);
-            //$display("sqr_val: %d", sqr_val);
+
+            prev_op_mse_val = mse_val;
             mse_val += sqr_val;
-            //$display("mse_val at %d iteration: %d", ii, mse_val);
+
+            overflow = overflow || (prev_op_mse_val > mse_val);
         end
     end
 

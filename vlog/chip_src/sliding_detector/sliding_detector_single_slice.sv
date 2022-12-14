@@ -14,6 +14,7 @@ module sliding_detector_single_slice #(
     input logic [3:0] channel_shift,
 
     output logic [$clog2(num_of_flip_patterns+1)-1:0] error_flag,
+    output logic [num_of_flip_patterns-1:0] overflow,
     output logic [ener_bitwidth-1:0] mmse_val
 );
 
@@ -34,9 +35,6 @@ module sliding_detector_single_slice #(
             div_one_rse_trace[ii] = residual_error_trace[ii][est_error_bitwidth-1-shift_factor:0];
             sqr_val = ((div_one_rse_trace[ii])**2);
             mse_val[0] += sqr_val;
-            //$display("div_one_rse_trace[%d]: %d", ii, div_one_rse_trace[ii]);
-            //$display("sqr_val: %d", sqr_val);
-            //$display("mse_val at %d iteration: %d", ii, mse_val[0]);
         end
     end
 
@@ -56,7 +54,8 @@ module sliding_detector_single_slice #(
                 .bits(bits),
                 .channel(channel),
                 .channel_shift(channel_shift),
-                .mse_val(mse_val[gi+1])
+                .mse_val(mse_val[gi+1]),
+                .overflow(overflow[gi])
             );
         end
     endgenerate
@@ -67,22 +66,6 @@ module sliding_detector_single_slice #(
             error_flag = (mse_val[error_flag] > mse_val[ii]) ? ii : error_flag;
         end
         mmse_val = mse_val[error_flag][max_ener_bitwidth-1:1];
-        /*
-        if (error_flag != 0) begin
-            $display("============ ERROR DETECTED ============");
-            $display("%m.error_flag: %d", error_flag);
-            $display("%m.mse_vals: %p", mse_val);
-            $display("%m.mmse_vals: %d", mmse_val);
-            $display("%m.residual_error_trace: %p", residual_error_trace);
-            $display("%m.bits: %p", bits);
-            $display("%m.channel: %p", channel);
-            $display("seq_length: %d", seq_length);
-            $display("num_of_flip_patterns: %d", num_of_flip_patterns);
-            $display("flip_pattern_depth: %d", flip_pattern_depth);
-            $display("est_error_bitwidth: %d", est_error_bitwidth);
-            $display("est_channel_bitwidth: %d", est_channel_bitwidth);
-            $display("ener_bitwidth: %d", ener_bitwidth);
-        end*/
     end
     
 

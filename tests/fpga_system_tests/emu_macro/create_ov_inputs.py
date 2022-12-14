@@ -77,4 +77,4 @@ for data_set in data_sets:
         test_vectors += [(errs[ii:ii+5], bits[ii:ii+5])]
 
 with open('test_vec_gpack.sv', 'w') as f:
-    print(test_vector_sv(test_vectors, chan=[ 13, 126, 171, 131,  91,  64,  47,  34,  25,  22,  18,  14,  13,  11,  10,   9]), file=f)
+    print(test_vector_sv(test_vectors, chan=[ 14, 128, 171, 131,  91,  64,  48,  34,  26,  21,  17,  14,  13,  11,  9, 8]), file=f)

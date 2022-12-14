@@ -847,19 +847,19 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     write_tc_reg('fe_adapt_gain', 2)
     
     write_tc_reg('fe_exec_inst', 0)
-    write_tc_reg('ext_pi_ctl', 20)
+    write_tc_reg('ext_pi_ctl', 0)
     #write_tc_reg('fe_bit_target_level', 100)
     time.sleep(10)
 
-    for ii in range(8):
-        write_tc_reg('fe_adapt_gain', 4)
-        write_tc_reg('fe_inst', 0b010)
-        write_tc_reg('fe_exec_inst', 1)
-        write_tc_reg('fe_exec_inst', 0) 
-        align_pos = align_pos+1
-        write_tc_reg('align_pos', align_pos)
-        time.sleep(3)
-    write_tc_reg('fe_adapt_gain', 1)
+#    for ii in range(8):
+#        write_tc_reg('fe_adapt_gain', 4)
+#        write_tc_reg('fe_inst', 0b010)
+#        write_tc_reg('fe_exec_inst', 1)
+#        write_tc_reg('fe_exec_inst', 0) 
+#        align_pos = align_pos+1
+#        write_tc_reg('align_pos', align_pos)
+#        time.sleep(3)
+#    write_tc_reg('fe_adapt_gain', 1)
 
 #    for ii in range(17, 25):
 #        write_tc_reg('fe_adapt_gain', 4)

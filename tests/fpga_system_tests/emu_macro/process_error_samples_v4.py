@@ -3,7 +3,7 @@ import numpy as np
 import sys
 from tqdm import tqdm
 
-from software_error_corrector import error_checker, flag_applicator, wider_flag_applicator
+from dragonphy import error_checker, flag_applicator, wider_flag_applicator
 
 def read_array(f):
     arr_text = ""
@@ -112,10 +112,17 @@ def create_legal_error_inject(flips, bits, start=0, length=8):
 
 c_print = create_cond_print(debug=debug)
 labeled_errors = {}
+false_positives = 0
 for data in data_sets:
     valuable_data += 1
 
-    error_loc    = np.nonzero(data[1]==1)[0][0]
+    try:
+        error_loc    = np.nonzero(data[1]==1)[0][0]
+
+    except IndexError:
+        false_positives += 1
+        print('False Positive Detected')
+        continue
     polarity_loc = error_loc 
     error_pol    = data[2][polarity_loc] * 2 - 1 
 
@@ -138,7 +145,7 @@ for data in data_sets:
     print(act_errors)
 
 print(labeled_errors.keys())
-
+print(false_positives, valuable_data)
 for error_seq in labeled_errors:
     for data in labeled_errors[error_seq]:
         plt.plot(data)

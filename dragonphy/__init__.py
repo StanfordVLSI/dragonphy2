@@ -37,7 +37,7 @@ from .fir           import Fir
 from .ffe           import FFEHelper
 from .mlsd          import MLSD
 from .cdr           import Cdr
-
+from .software_error_corrector import error_checker, flag_applicator, wider_flag_applicator 
 # For FPGA emulation
 from .files import (get_file, get_files, get_files_arr, get_dir, get_dirs,
                     TOP_DIR, get_mlingua_dir)

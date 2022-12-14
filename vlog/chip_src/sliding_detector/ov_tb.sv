@@ -6,7 +6,6 @@ module overflow_testbench ();
     import test_vectors::errs_test_vectors;
     import test_vectors::bits_test_vectors;
 
-
     parameter integer seq_length = 4;
     parameter integer est_error_bitwidth = 9;
     parameter integer est_channel_bitwidth = 10;
@@ -43,33 +42,16 @@ module overflow_testbench ();
 
     integer fid;
     initial begin
-        #1
-        #1
-        fid = $fopen("possible_vectors.txt", "w");
+        #1;
+        #1;
+        $dumpvars(3, overflow_testbench);
         for(int ii = 0; ii < num_of_vects; ii += 1) begin
             est_err = errs_test_vectors[ii][3:0];
             bits = bits_test_vectors[ii][3:0];
             chan = chan_vals[6:0];
-            #1
+            #1;
             $display("%p", est_err);
-            if(err_flag) begin
-                $display("est_errs: %p\nbits: %p", est_err, bits);
-                $display("err_flag: %d\nmmse_val: %d", err_flag, mmse_val);
-                $display("mmse_vals: %p", sd_slice_i.mse_val);
-                $fwrite(fid, "%d, ", ii);
-            end
         end
-        $fclose(fid);
-        /*
-        for(int ii =56; ii < 57; ii += 1) begin
-            est_err = errs_test_vectors[positions[ii]][3:0];
-            bits = bits_test_vectors[positions[ii]][3:0];
-            chan = chan_vals[6:0];
-            #1
-            $display("est_errs: %p\nbits: %p", est_err, bits);
-            $display("err_flag: %d\nmmse_val: %d", err_flag, mmse_val);
-            $display("mmse_vals: %p", sd_slice_i.mse_val);
-        end*/
     end
 
 endmodule : overflow_testbench
