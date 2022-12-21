@@ -38,7 +38,7 @@ module channel_estimator #(
 
     always_comb begin
         for(int ii = 0; ii < est_depth; ii = ii + 1) begin
-            est_chan[ii] = (int_chan_est[ii] >> adapt_bitwidth);
+            est_chan[ii] = (int_chan_est[ii] >>> adapt_bitwidth);
         end
     end
  
