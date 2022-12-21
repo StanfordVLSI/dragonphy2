@@ -1097,6 +1097,11 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     print(learned_channel_vals, load_chan_vals())
     #toggle_int_rstb()
     #toggle_acore_rstb()
+    with open('ffe_vals.txt', 'w') as f:
+        print("\n".join([str(int(tap)) for tap in [ffe_shift, align_pos] + list(learned_ffe_vals)]), file=f)
+
+    with open('chan_est_vals.txt', 'w') as f:
+        print("\n".join([str(int(round(tap))) for tap in list(learned_channel_vals)]), file=f)
 
     # check results
     print('Checking the results...')

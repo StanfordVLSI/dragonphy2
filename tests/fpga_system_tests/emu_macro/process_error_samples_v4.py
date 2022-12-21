@@ -3,6 +3,7 @@ import numpy as np
 import sys
 from tqdm import tqdm
 
+from dragonphy import ViterbiState, run_error_viterbi, run_iteration_error_viterbi, create_init_viterbi_state
 
 def read_array(f):
     arr_text = ""
@@ -30,7 +31,7 @@ files     = sys.argv[2:]
 
 chan_taps = []
 with open(f'{directory}/chan_est_vals.txt', 'r') as f:
-    chan_taps = np.array([float(line.strip()) for line in f.readlines()])
+    chan_taps = np.array([float(line.strip()) for line in f.readlines()])/8
 print(chan_taps)
 
 data_sets = []
