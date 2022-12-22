@@ -109,7 +109,7 @@ module test;
 	);
 
     //  Main test
-
+    logic signed [ffe_gpack::weight_precision-1:0] init_ffe_taps [ffe_gpack::length-1:0];
 	logic [Nadc-1:0] tmp_ext_pfd_offset [Nti-1:0];
     logic [Npi-1:0] tmp_ext_pi_ctl_offset [Nout-1:0];
     logic [Nprbs-1:0] tmp_prbs_eqn;
@@ -171,6 +171,13 @@ module test;
             $shm_probe(top_i.idcore.dsp_dbg_intf_i.ffe_shift);
         `endif
 
+        for(int ii= 0; ii < ffe_gpack::length; ii = ii + 1) begin
+            init_ffe_taps[ii] = 0;
+        end
+        // Write Steven's handcalculated values in!
+        init_ffe_taps[0] = coeff0;
+        init_ffe_taps[1] = coeff1;
+
         // print test condition
         $display("bw=%0.3f (GHz)", bw/1.0e9);
         $display("tau=%0.3f (ps)", tau*1.0e12);
@@ -190,7 +197,10 @@ module test;
 
         // Soft reset sequence
         $display("Soft reset sequence...");
-        `FORCE_JTAG(int_rstb, 1);
+        toggle_int_rstb();
+        toggle_acore_rstb();
+        toggle_sram_rstb();
+
         #(1ns);
         `FORCE_JTAG(en_inbuf, 1);
 		#(1ns);
@@ -222,21 +232,14 @@ module test;
 
         // Release the PRBS checker from reset
         $display("Release the PRBS tester from reset");
-        `FORCE_JTAG(prbs_rstb, 1);
+        toggle_prbs_rstb();
         #(50ns);
 
-        // Set up the FFE
+        // Load in the weights for the FFE
+        load_ffe_and_halt_adaptation(init_ffe_taps);
+
+        // Load the shift factor!
         for (loop_var=0; loop_var<Nti; loop_var=loop_var+1) begin
-            for (loop_var2=0; loop_var2<ffe_gpack::length; loop_var2=loop_var2+1) begin
-                if (loop_var2 == 0) begin
-                    // The argument order for load() is depth, width, value
-                    load(loop_var2, loop_var, coeff0);
-                end else if (loop_var2 == 1) begin
-                    load(loop_var2, loop_var, coeff1);
-                end else begin
-                    load(loop_var2, loop_var, 0);
-                end
-            end
             tmp_ffe_shift[loop_var] = 7;
         end
         `FORCE_JTAG(ffe_shift, tmp_ffe_shift);
@@ -256,13 +259,12 @@ module test;
       	$display("Configuring the CDR...");
       	`FORCE_JTAG(Kp, 18);
       	`FORCE_JTAG(Ki, 0);
-      	`FORCE_JTAG(invert, 1);
 		`FORCE_JTAG(en_freq_est, 0);
 		`FORCE_JTAG(en_ext_pi_ctl, 0);
 		`ifdef CDR_USE_FFE
 		    `FORCE_JTAG(sel_inp_mux, 1);
 		`endif
-		#(10ns);
+		#(10ns);    
 
         // Toggle the en_v2t signal to re-initialize the V2T ordering
         $display("Toggling en_v2t...");
@@ -270,6 +272,7 @@ module test;
         #(5ns);
         `FORCE_JTAG(en_v2t, 1);
         #(5ns);
+        run_ffe_adaptation();
 
 		// Wait for MM_CDR to lock
 		$display("Waiting for MM_CDR to lock...");
@@ -324,19 +327,73 @@ module test;
 		$finish;
 	end
 
-    // for loading one FFE weight with specified depth and width
-    task load(input logic [$clog2(ffe_gpack::length)-1:0] d_idx, logic [$clog2(constant_gpack::channel_width)-1:0] w_idx, logic [ffe_gpack::weight_precision-1:0] value);
-        `FORCE_JTAG(wme_ffe_inst[$clog2(ffe_gpack::length)+$clog2(constant_gpack::channel_width)],  0);
-        `FORCE_JTAG(wme_ffe_inst[$clog2(ffe_gpack::length)+$clog2(constant_gpack::channel_width)-1:$clog2(ffe_gpack::length)],  w_idx);
-        `FORCE_JTAG(wme_ffe_inst[$clog2(ffe_gpack::length)-1:0],  d_idx);
-        `FORCE_JTAG(wme_ffe_data[ffe_gpack::weight_precision-1:0],  value);
-        toggle_exec();
+    // The FFE loads an entire init vector at once. I inserted "random" delays to enforce the JTAG vs not JTAG distinction. Since the JTAG register isn't reflect until the execution happen, the lack of sequential loading is not an issue.
+    task load_ffe_and_halt_adaptation(input logic signed [ffe_gpack::weight_precision-1:0] init_ffe_taps [ffe_gpack::length-1:0]);
+        `FORCE_JTAG(init_ffe_taps, init_ffe_taps);
+        repeat (5) tick();
+        `FORCE_JTAG(fe_inst, 3'b100);
+        repeat (5) tick();
+        `FORCE_JTAG(fe_exec_inst, 1);
+        repeat (5) tick();
+        // Leaving fe_exec_inst high will halt the FFE adaption
     endtask
 
-    task toggle_exec;
-        // TODO on the actual chip we can't change wme_ffe_exec with precise timing
-        @(posedge top_i.idcore.clk_adc) `FORCE_JTAG(wme_ffe_exec, 1);
-        @(posedge top_i.idcore.clk_adc) `FORCE_JTAG(wme_ffe_exec, 0);
+    task run_ffe_adaptation;
+        `FORCE_JTAG(fe_exec_inst, 0);
+        repeat (5) tick();
     endtask
+
+    task toggle_int_rstb();
+        `FORCE_JTAG(ctrl_rstb, 3'b000);
+        `FORCE_JTAG(exec_ctrl_rstb, 1);
+        tick();
+        `FORCE_JTAG(exec_ctrl_rstb, 0);
+        tick();
+    endtask : toggle_int_rstb
+
+    task toggle_sram_rstb();
+        `FORCE_JTAG(ctrl_rstb, 3'b001);
+        `FORCE_JTAG(exec_ctrl_rstb, 1);
+        tick();
+        `FORCE_JTAG(exec_ctrl_rstb, 0);
+        tick();
+    endtask : toggle_sram_rstb
+
+    task toggle_cdr_rstb();
+        `FORCE_JTAG(ctrl_rstb, 3'b010);
+        `FORCE_JTAG(exec_ctrl_rstb, 1);
+        tick();
+        `FORCE_JTAG(exec_ctrl_rstb, 0);
+        tick();
+    endtask : toggle_cdr_rstb
+
+    task toggle_prbs_rstb();
+        `FORCE_JTAG(ctrl_rstb, 3'b011);
+        `FORCE_JTAG(exec_ctrl_rstb, 1);
+        tick();
+        `FORCE_JTAG(exec_ctrl_rstb, 0);
+        tick();
+    endtask : toggle_prbs_rstb
+
+    task toggle_prbs_gen_rstb();
+        `FORCE_JTAG(ctrl_rstb, 3'b100);
+        `FORCE_JTAG(exec_ctrl_rstb, 1);
+        tick();
+        `FORCE_JTAG(exec_ctrl_rstb, 0);
+        tick();
+    endtask : toggle_prbs_gen_rstb
+
+    task toggle_acore_rstb();
+        `FORCE_JTAG(ctrl_rstb, 3'b101);
+        `FORCE_JTAG(exec_ctrl_rstb, 1);
+        tick();
+        `FORCE_JTAG(exec_ctrl_rstb, 0);
+        tick();
+    endtask : toggle_acore_rstb
+
+    task tick();
+        @(posedge top_i.idcore.clk_adc);
+    endtask : tick
+
 
 endmodule

@@ -11,5 +11,6 @@ def test_sim(dump_waveforms):
     DragonTester(
         ext_srcs=deps,
         directory=BUILD_DIR,
-        dump_waveforms=dump_waveforms
+        dump_waveforms=dump_waveforms,
+        simulator='xcelium',
     ).run()
