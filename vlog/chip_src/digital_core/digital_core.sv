@@ -81,6 +81,8 @@ module digital_core import const_pack::*; (
 
     wire logic signed [7:0] trunc_est_bits [Nti+Nti_rep-1:0];
 
+    logic signed [constant_gpack::code_precision-1:0] act_codes [constant_gpack::channel_width-1:0];
+    logic  sliced_est_bits [constant_gpack::channel_width-1:0];
     //Sample the FFE output
     genvar gi, gj;
     generate
@@ -329,8 +331,6 @@ module digital_core import const_pack::*; (
 
     logic signed [channel_gpack::est_channel_precision-1:0] single_chan_est [29:0];
 
-    logic signed [constant_gpack::code_precision-1:0]   act_codes [constant_gpack::channel_width-1:0];
-    logic  sliced_est_bits [constant_gpack::channel_width-1:0];
 
     datapath_core datapath_i (
         .adc_codes(adcout_unfolded_non_rep),

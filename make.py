@@ -70,11 +70,9 @@ def create_asic_graph():
     graph.add_input('mdll_r1_top_intf', ext='md', folders=['md'])
     graph.add_input('prbs_intf', ext='md', folders=['md'])
     graph.add_input('error_intf', ext='md', folders=['md'])
-    graph.add_input('sm_ffe_intf', ext='md', folders=['md'])
     graph.add_input('sram_multi_intf', ext='md', folders=['md'])
     graph.add_input('txdata_intf', ext='md', folders=['md'])
     graph.add_input('tx_intf', ext='md', folders=['md'])
-    graph.add_input('wme_intf', ext='md', folders=['md'])
 
     # Scripts
     graph.add_python('adapt_fir', 'adapt_fir', 'AdaptFir', view='chip_src',
@@ -106,11 +104,9 @@ def create_cpu_graph():
     graph.add_input('mdll_r1_top_intf', ext='md', folders=['md'])
     graph.add_input('prbs_intf', ext='md', folders=['md'])
     graph.add_input('error_intf', ext='md', folders=['md'])
-    graph.add_input('sm_ffe_intf', ext='md', folders=['md'])
     graph.add_input('sram_multi_intf', ext='md', folders=['md'])
     graph.add_input('txdata_intf', ext='md', folders=['md'])
     graph.add_input('tx_intf', ext='md', folders=['md'])
-    graph.add_input('wme_intf', ext='md', folders=['md'])
 
     # Scripts
     graph.add_python('adapt_fir', 'adapt_fir', 'AdaptFir', view='chip_src',
@@ -120,9 +116,8 @@ def create_cpu_graph():
                      configs={'jtag_config'},
                      sources={'acore_intf', 'cdr_intf', 'dcore_intf',
                               'hist_intf', 'mdll_r1_top_intf',
-                              'prbs_intf', 'sm_ffe_intf',
-                              'sram_multi_intf', 'txdata_intf',
-                              'tx_intf', 'wme_intf'})
+                              'prbs_intf',  'sram_multi_intf', 'txdata_intf',
+                              'tx_intf'})
 
     return graph
 

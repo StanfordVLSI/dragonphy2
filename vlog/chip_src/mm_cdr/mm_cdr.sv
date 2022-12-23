@@ -126,7 +126,11 @@ module mm_cdr import const_pack::*; #(
             ramp_clock_sync <= 0;
         end else begin
             phase_error_q           <= phase_error_d;
-            phase_est_q             <= phase_est_d;
+            if (cdbg_intf_i.en_ext_pi_ctl) begin
+                phase_est_q         <= cdbg_intf_i.ext_pi_ctl << phase_est_shift;
+            end else begin
+                phase_est_q         <= phase_est_d;
+            end            
             freq_est_q              <= freq_est_d;
             prev_freq_update_q      <= freq_est_update;
             ramp_est_pls_q          <= ramp_est_pls_d;

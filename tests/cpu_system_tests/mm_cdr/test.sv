@@ -17,10 +17,10 @@ module test;
 	import jtag_reg_pack::*;
 
     localparam real dt=1.0/(16.0e9);
-    localparam real bw=1.0e9;
+    localparam real bw=3e9;
     localparam real tau=1.0/(2.0*3.14*bw);
-    localparam integer coeff0 = 128.0/(1.0-$exp(-dt/tau));
-    localparam integer coeff1 = -128.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
+    localparam integer coeff0 = 64.0/(1.0-$exp(-dt/tau));
+    localparam integer coeff1 = -64.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
 
     // clock inputs
 	logic ext_clkp;
@@ -126,10 +126,10 @@ module test;
         `ifdef DUMP_WAVEFORMS
             // Set up probing
             $shm_open("waves.shm");
-
+            //$shm_probe("AS");
             // MM CDR instance
             $shm_probe(top_i.idcore.iMM_CDR);
-            $shm_probe(top_i.idcore.iMM_CDR.din);
+            $shm_probe(top_i.idcore.iMM_CDR.codes);
             $shm_probe(top_i.idcore.iMM_CDR.pi_ctl);
             $shm_probe(top_i.idcore.iMM_CDR.pd_phase_error);
             $shm_probe(top_i.idcore.iMM_CDR.phase_est_update);
@@ -141,9 +141,8 @@ module test;
             $shm_probe(top_i.idcore.iMM_CDR.phase_est_out);
 
             // Calculating PI control codes
-            $shm_probe(top_i.idcore.scale_value);
-            $shm_probe(top_i.idcore.unscaled_pi_ctl);
-            $shm_probe(top_i.idcore.scaled_pi_ctl);
+            $shm_probe(top_i.idcore.pi_ctl_cdr);
+            $shm_probe(top_i.idcore.clk_adc);
             $shm_probe(top_i.idcore.int_pi_ctl_cdr);
             $shm_probe(top_i.idcore.cdbg_intf_i.sel_inp_mux);
             $shm_probe(top_i.idcore.ddbg_intf_i.ext_pi_ctl_offset);
@@ -163,10 +162,17 @@ module test;
             // data in analog_core
             $shm_probe(inp);
             $shm_probe(inn);
+            $shm_probe(init_ffe_taps);
 
             // data in digital_core
+            $shm_probe(top_i.idcore.ddbg_intf_i.int_rstb);
+            $shm_probe(top_i.iacore.adbg_intf_i.rstb);
             $shm_probe(top_i.idcore.adcout_unfolded);
+            $shm_probe(top_i.idcore.jtag_i.ctrl_rstb_state);
             $shm_probe(top_i.idcore.estimated_bits);
+            $shm_probe(top_i.idcore.prbs_checker_i.prbs_flags);
+            $shm_probe(top_i.idcore.ffe_est_i.exec_inst);
+            $shm_probe(top_i.idcore.ffe_est_i.inst);
             $shm_probe(top_i.idcore.dsp_dbg_intf_i.weights);
             $shm_probe(top_i.idcore.dsp_dbg_intf_i.ffe_shift);
         `endif
@@ -197,18 +203,20 @@ module test;
 
         // Soft reset sequence
         $display("Soft reset sequence...");
-        toggle_int_rstb();
         toggle_acore_rstb();
-        toggle_sram_rstb();
 
         #(1ns);
         `FORCE_JTAG(en_inbuf, 1);
 		#(1ns);
         `FORCE_JTAG(en_gf, 1);
         #(1ns);
+        `FORCE_JTAG(en_v2t, 0);
+        #(4ns);
         `FORCE_JTAG(en_v2t, 1);
         #(64ns);
-
+ 
+        toggle_sram_rstb();
+        toggle_int_rstb();
         // Set up the PFD offset
         $display("Setting up the PFD offset...");
         for (int idx=0; idx<Nti; idx=idx+1) begin
@@ -235,6 +243,7 @@ module test;
         toggle_prbs_rstb();
         #(50ns);
 
+        `FORCE_JTAG(align_pos, 0);
         // Load in the weights for the FFE
         load_ffe_and_halt_adaptation(init_ffe_taps);
 
@@ -249,30 +258,37 @@ module test;
         // Configure the CDR offsets
         $display("Setting up the CDR offset...");
         tmp_ext_pi_ctl_offset[0] =   0;
-        tmp_ext_pi_ctl_offset[1] = 135;
-        tmp_ext_pi_ctl_offset[2] = 270;
-        tmp_ext_pi_ctl_offset[3] = 405;
+        tmp_ext_pi_ctl_offset[1] = 128;
+        tmp_ext_pi_ctl_offset[2] = 256;
+        tmp_ext_pi_ctl_offset[3] = 384;
         `FORCE_JTAG(ext_pi_ctl_offset, tmp_ext_pi_ctl_offset);
         #(5ns);
 
+        `FORCE_JTAG(en_ext_max_sel_mux, 1);
+        `FORCE_JTAG(ext_max_sel_mux, '{127, 127, 127, 127});
+
+
         // Configure the CDR
       	$display("Configuring the CDR...");
-      	`FORCE_JTAG(Kp, 18);
+      	`FORCE_JTAG(Kp, 12);
       	`FORCE_JTAG(Ki, 0);
 		`FORCE_JTAG(en_freq_est, 0);
-		`FORCE_JTAG(en_ext_pi_ctl, 0);
+		`FORCE_JTAG(en_ext_pi_ctl, 1);
+        `FORCE_JTAG(ext_pi_ctl, 17);
 		`ifdef CDR_USE_FFE
 		    `FORCE_JTAG(sel_inp_mux, 1);
 		`endif
 		#(10ns);    
-
+        toggle_cdr_rstb();
+        
+        `FORCE_JTAG(en_ext_pi_ctl, 0);
         // Toggle the en_v2t signal to re-initialize the V2T ordering
         $display("Toggling en_v2t...");
         `FORCE_JTAG(en_v2t, 0);
         #(5ns);
         `FORCE_JTAG(en_v2t, 1);
         #(5ns);
-        run_ffe_adaptation();
+        //run_ffe_adaptation();
 
 		// Wait for MM_CDR to lock
 		$display("Waiting for MM_CDR to lock...");
@@ -284,8 +300,8 @@ module test;
         // Run the PRBS tester
         $display("Running the PRBS tester");
         `FORCE_JTAG(prbs_checker_mode, 2);
-        for (loop_var=0; loop_var<6; loop_var=loop_var+1) begin
-		    $display("Interval %0d/6", loop_var);
+        for (loop_var=0; loop_var<60; loop_var=loop_var+1) begin
+		    $display("Interval %0d/60", loop_var);
 		    #(100ns);
 		end
         #(25ns);
@@ -344,6 +360,8 @@ module test;
     endtask
 
     task toggle_int_rstb();
+        `FORCE_JTAG(exec_ctrl_rstb, 0);
+        tick();
         `FORCE_JTAG(ctrl_rstb, 3'b000);
         `FORCE_JTAG(exec_ctrl_rstb, 1);
         tick();
@@ -392,7 +410,7 @@ module test;
     endtask : toggle_acore_rstb
 
     task tick();
-        @(posedge top_i.idcore.clk_adc);
+        #(50ns);
     endtask : tick
 
 

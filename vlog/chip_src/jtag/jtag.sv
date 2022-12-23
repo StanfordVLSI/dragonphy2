@@ -34,7 +34,7 @@ module jtag (
             ctrl_cdr_rstb      <= 0;
             ctrl_prbs_rstb     <= 0;
             ctrl_prbs_gen_rstb <= 0;
-            ctrl_acore_rstb    <= 0;
+            ctrl_acore_rstb    <= 1;
         end else begin
             if(ctrl_rstb_state == 0) begin
                 if(rjtag_intf_i.exec_ctrl_rstb) begin
@@ -123,7 +123,7 @@ module jtag (
 	assign ddbg_intf_i.cdr_rstb 	 = rstb && ctrl_cdr_rstb;
     assign ddbg_intf_i.prbs_rstb 	 = rstb && ctrl_prbs_rstb;
     assign ddbg_intf_i.prbs_gen_rstb = rstb && ctrl_prbs_gen_rstb;
-	assign adbg_intf_i.rstb          = rstb && ctrl_acore_rstb;
+	assign adbg_intf_i.rstb          = rstb;
 
 	//Mdll
 	assign mdbg_intf_i.rstn_jtag = rstb & rjtag_intf_i.rstn_jtag ;
