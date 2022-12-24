@@ -19,8 +19,8 @@ module test;
     localparam real dt=1.0/(16.0e9);
     localparam real bw=3e9;
     localparam real tau=1.0/(2.0*3.14*bw);
-    localparam integer coeff0 = 64.0/(1.0-$exp(-dt/tau));
-    localparam integer coeff1 = -64.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
+    localparam integer coeff0 = 32.0/(1.0-$exp(-dt/tau));
+    localparam integer coeff1 = -32.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
 
     // clock inputs
 	logic ext_clkp;
@@ -249,7 +249,7 @@ module test;
 
         // Load the shift factor!
         for (loop_var=0; loop_var<Nti; loop_var=loop_var+1) begin
-            tmp_ffe_shift[loop_var] = 7;
+            tmp_ffe_shift[loop_var] = 5;
         end
         `FORCE_JTAG(ffe_shift, tmp_ffe_shift);
 
@@ -258,23 +258,23 @@ module test;
         // Configure the CDR offsets
         $display("Setting up the CDR offset...");
         tmp_ext_pi_ctl_offset[0] =   0;
-        tmp_ext_pi_ctl_offset[1] = 128;
-        tmp_ext_pi_ctl_offset[2] = 256;
-        tmp_ext_pi_ctl_offset[3] = 384;
+        tmp_ext_pi_ctl_offset[1] = 64;
+        tmp_ext_pi_ctl_offset[2] = 128;
+        tmp_ext_pi_ctl_offset[3] = 192;
         `FORCE_JTAG(ext_pi_ctl_offset, tmp_ext_pi_ctl_offset);
         #(5ns);
 
         `FORCE_JTAG(en_ext_max_sel_mux, 1);
-        `FORCE_JTAG(ext_max_sel_mux, '{127, 127, 127, 127});
+        `FORCE_JTAG(ext_max_sel_mux, '{63, 63, 63, 63});
 
 
         // Configure the CDR
       	$display("Configuring the CDR...");
-      	`FORCE_JTAG(Kp, 12);
+      	`FORCE_JTAG(Kp, 11);
       	`FORCE_JTAG(Ki, 0);
 		`FORCE_JTAG(en_freq_est, 0);
 		`FORCE_JTAG(en_ext_pi_ctl, 1);
-        `FORCE_JTAG(ext_pi_ctl, 17);
+        `FORCE_JTAG(ext_pi_ctl, 0);
 		`ifdef CDR_USE_FFE
 		    `FORCE_JTAG(sel_inp_mux, 1);
 		`endif
@@ -288,12 +288,21 @@ module test;
         #(5ns);
         `FORCE_JTAG(en_v2t, 1);
         #(5ns);
-        //run_ffe_adaptation();
 
 		// Wait for MM_CDR to lock
 		$display("Waiting for MM_CDR to lock...");
-		for (loop_var=0; loop_var<2; loop_var=loop_var+1) begin
+		for (loop_var=0; loop_var<60; loop_var=loop_var+1) begin
 		    $display("Interval %0d/2", loop_var);
+		    #(100ns);
+		end
+        
+        `FORCE_JTAG(fe_adapt_gain, 9);
+        #(5ns);
+        run_ffe_adaptation();
+        
+		$display("Waiting for FFE to adapt");
+		for (loop_var=0; loop_var<60; loop_var=loop_var+1) begin
+		    $display("Interval %0d/10", loop_var);
 		    #(100ns);
 		end
 
