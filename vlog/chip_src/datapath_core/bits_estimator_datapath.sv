@@ -136,6 +136,17 @@ module bits_estimator_datapath #(
 
     //Slicer
     wire logic cmp_out [constant_gpack::channel_width-1:0];
+    wire logic [0:0] tmp_cmp_out [constant_gpack::channel_width-1:0];
+    wire logic signed [cmp_gpack::thresh_precision-1:0] tmp_thresh [0:0][constant_gpack::channel_width-1:0];
+
+    assign cmp_out = tmp_cmp_out;
+
+    generate
+        for(gi=0; gi<constant_gpack::channel_width; gi=gi+1) begin
+            assign tmp_thresh[0][gi] = thresh[gi];
+        end
+    endgenerate
+
     logic [delay_width+width_width-1:0]    cmp_out_delay;
     comb_comp #(
         .numChannels(cmp_gpack::width),
@@ -144,16 +155,16 @@ module bits_estimator_datapath #(
     ) ccmp_i (
         .codes(buffered_estimated_bit),
         .codes_delay(buffered_estimated_bit_delay),
-        .thresh(thresh),
+        .thresh(tmp_thresh),
         .clk       (clk),
         .rstb      (rstb),
-        .bit_out   (cmp_out),
+        .sym_out   (tmp_cmp_out),
         .bit_out_delay(cmp_out_delay)
     );
 
 
     //Bits Pipeline
-    logic   cmp_out_buffer  [constant_gpack::channel_width-1:0][1:0];
+    logic  cmp_out_buffer  [constant_gpack::channel_width-1:0][1:0];
     logic [delay_width+width_width-1:0]    cmp_out_buffer_delay [1:0];
     buffer #(
         .numChannels (constant_gpack::channel_width),
