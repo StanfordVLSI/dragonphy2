@@ -19,8 +19,8 @@ module test;
     localparam real dt=1.0/(16.0e9);
     localparam real bw=3e9;
     localparam real tau=1.0/(2.0*3.14*bw);
-    localparam integer coeff0 = 64.0/(1.0-$exp(-dt/tau));
-    localparam integer coeff1 = -64.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
+    localparam integer coeff0 = 32.0/(1.0-$exp(-dt/tau));
+    localparam integer coeff1 = -32.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
 
     // clock inputs
 	logic ext_clkp;
@@ -68,7 +68,7 @@ module test;
     logic tx_data;
 
     tx_prbs #(
-        .freq(full_rate),
+        .freq(full_rate+1e6),
         .td(0)
     ) tx_prbs_i (
         .clk(tx_clk),
@@ -122,7 +122,32 @@ module test;
     //logic signed [ffe_gpack::weight_precision-1:0] tmp_weights [constant_gpack::channel_width-1:0][ffe_gpack::length-1:0];
     logic [ffe_gpack::shift_precision-1:0] tmp_ffe_shift [constant_gpack::channel_width-1:0];
 
+    int fd_1, fd_2;
 	initial begin
+        /*
+        fd_2 = $fopen("ffe_vals.txt", "r");
+        $fscanf(fd_2, "%d\n", tmp_ffe_shift);
+        $fscanf(fd_2, "%d\n", align_pos);
+        for (loop_var2=0; loop_var2<ffe_gpack::length; loop_var2=loop_var2+1) begin
+            $fscanf(fd_2, "%d\n", ffe_coeffs[loop_var2]);
+            $display("%d,", ffe_coeffs[loop_var2]);
+        end
+        $fclose(fd_2);
+
+        fd_1 = $fopen("chan_est_vals.txt", "r");
+        for (loop_var2=0; loop_var2<30; loop_var2=loop_var2+1) begin
+            $fscanf(fd_1, "%d\n", chan_coeffs[loop_var2]);
+            $display("%d,", chan_coeffs[loop_var2]);
+            chan_coeffs[loop_var2] = chan_coeffs[loop_var2] << 3;
+        end
+        $fclose(fd_1);     
+
+        for (loop_var=0; loop_var<Nti; loop_var=loop_var+1) begin
+            tmp_ffe_shift[loop_var] = ffe_shift;
+            tmp_chan_shift[loop_var] = 3;
+        end*/
+
+
         `ifdef DUMP_WAVEFORMS
             // Set up probing
             $shm_open("waves.shm");
@@ -144,6 +169,7 @@ module test;
             $shm_probe(top_i.idcore.pi_ctl_cdr);
             $shm_probe(top_i.idcore.clk_adc);
             $shm_probe(top_i.idcore.int_pi_ctl_cdr);
+            $shm_probe(top_i.idcore.scale_value);
             $shm_probe(top_i.idcore.cdbg_intf_i.sel_inp_mux);
             $shm_probe(top_i.idcore.ddbg_intf_i.ext_pi_ctl_offset);
             $shm_probe(top_i.idcore.ddbg_intf_i.en_ext_max_sel_mux);
@@ -249,7 +275,7 @@ module test;
 
         // Load the shift factor!
         for (loop_var=0; loop_var<Nti; loop_var=loop_var+1) begin
-            tmp_ffe_shift[loop_var] = 7;
+            tmp_ffe_shift[loop_var] = 5;
         end
         `FORCE_JTAG(ffe_shift, tmp_ffe_shift);
 
@@ -258,23 +284,23 @@ module test;
         // Configure the CDR offsets
         $display("Setting up the CDR offset...");
         tmp_ext_pi_ctl_offset[0] =   0;
-        tmp_ext_pi_ctl_offset[1] = 128;
-        tmp_ext_pi_ctl_offset[2] = 256;
-        tmp_ext_pi_ctl_offset[3] = 384;
+        tmp_ext_pi_ctl_offset[1] = 68;
+        tmp_ext_pi_ctl_offset[2] = 132;
+        tmp_ext_pi_ctl_offset[3] = 200;
         `FORCE_JTAG(ext_pi_ctl_offset, tmp_ext_pi_ctl_offset);
         #(5ns);
 
-        `FORCE_JTAG(en_ext_max_sel_mux, 1);
-        `FORCE_JTAG(ext_max_sel_mux, '{127, 127, 127, 127});
+        `FORCE_JTAG(en_ext_max_sel_mux, 0);
+        `FORCE_JTAG(ext_max_sel_mux, '{63, 63, 63, 63});
 
 
         // Configure the CDR
       	$display("Configuring the CDR...");
-      	`FORCE_JTAG(Kp, 12);
-      	`FORCE_JTAG(Ki, 0);
-		`FORCE_JTAG(en_freq_est, 0);
+      	`FORCE_JTAG(Kp, 10);
+      	`FORCE_JTAG(Ki, 3);
+		`FORCE_JTAG(en_freq_est, 1);
 		`FORCE_JTAG(en_ext_pi_ctl, 1);
-        `FORCE_JTAG(ext_pi_ctl, 17);
+        `FORCE_JTAG(ext_pi_ctl, 0);
 		`ifdef CDR_USE_FFE
 		    `FORCE_JTAG(sel_inp_mux, 1);
 		`endif
@@ -288,12 +314,21 @@ module test;
         #(5ns);
         `FORCE_JTAG(en_v2t, 1);
         #(5ns);
-        //run_ffe_adaptation();
 
 		// Wait for MM_CDR to lock
 		$display("Waiting for MM_CDR to lock...");
-		for (loop_var=0; loop_var<2; loop_var=loop_var+1) begin
+		for (loop_var=0; loop_var<60; loop_var=loop_var+1) begin
 		    $display("Interval %0d/2", loop_var);
+		    #(100ns);
+		end
+        
+        `FORCE_JTAG(fe_adapt_gain, 9);
+        #(5ns);
+        run_ffe_adaptation();
+        
+		$display("Waiting for FFE to adapt");
+		for (loop_var=0; loop_var<60; loop_var=loop_var+1) begin
+		    $display("Interval %0d/10", loop_var);
 		    #(100ns);
 		end
 

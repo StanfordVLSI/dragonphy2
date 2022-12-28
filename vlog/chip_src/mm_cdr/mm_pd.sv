@@ -43,7 +43,7 @@ module mm_pd import const_pack::*; (
 
     // re-scale sum of terms
 
-    assign pd_net_sc = pd_net_sum >>> $clog2(Nti);
+    assign pd_net_sc = pd_net_sum;
 
     // assign output
     assign pd_out = pd_net_sc + pd_offset;

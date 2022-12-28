@@ -79,7 +79,8 @@ module digital_core import const_pack::*; (
     wire logic signed [ffe_gpack::weight_precision-1:0] single_weights   [ffe_gpack::length-1:0];
 
 
-    wire logic signed [7:0] trunc_est_bits [Nti+Nti_rep-1:0];
+    wire logic signed [7:0] trunc_est_bits [Nti-1:0];
+    wire logic signed [7:0] trunc_est_bits_ext [Nti+Nti_rep-1:0];
 
     logic signed [constant_gpack::code_precision-1:0] act_codes [constant_gpack::channel_width-1:0];
     logic  sliced_est_bits [constant_gpack::channel_width-1:0];
@@ -88,18 +89,15 @@ module digital_core import const_pack::*; (
     generate
         for(gi=0; gi<constant_gpack::channel_width; gi = gi + 1 ) begin
             assign trunc_est_bits[gi] = estimated_bits[gi][9:2];
+            assign trunc_est_bits_ext[gi] = estimated_bits[gi][9:2];
         end
     endgenerate
 
+    assign trunc_est_bits_ext[Nti] =0;
+    assign trunc_est_bits_ext[Nti+1] =0 ;
+
     wire logic checked_bits [constant_gpack::channel_width-1:0];
     //Sample the MLSD output
-    generate
-        for(gi=0; gi<8; gi = gi + 1) begin
-            for(gj=0; gj<2; gj = gj + 1 ) begin
-                assign trunc_est_bits[16+gj][gi] = checked_bits[gi + gj*8];
-            end
-        end
-    endgenerate
 
     wire logic [Npi-1:0] scale_value [Nout-1:0];
 
@@ -272,7 +270,7 @@ module digital_core import const_pack::*; (
     end
 
     mm_cdr iMM_CDR (
-        .codes(estimated_bits),
+        .codes(trunc_est_bits),
         .bits(sliced_est_bits),
         .clk(clk_adc),
         .ext_rstb(ctl_valid),
@@ -497,7 +495,7 @@ module digital_core import const_pack::*; (
         .clk(clk_adc),
         .rstb(sram_rstb),
         
-        .in_bytes(sm1_dbg_intf_i.sel_sram ? adcout_unfolded : trunc_est_bits),
+        .in_bytes(adcout_unfolded),
 
         .in_start_write(dump_start),
 
@@ -720,7 +718,7 @@ module digital_core import const_pack::*; (
         .source(hdbg_intf_i.hist_source),
         .index(hdbg_intf_i.hist_src_idx),
         .adc_data(adcout_unfolded),
-        .ffe_data(trunc_est_bits),
+        .ffe_data(trunc_est_bits_ext),
         .bist_data(data_gen_out),
         .out(hist_data_in)
     );
