@@ -36,6 +36,8 @@ module micro_mm_cdr_ctl import const_pack::*; #(
     logic ramp_clock_sync;
     logic signed [Nadc+1:0] phase_error_d, phase_error_q, pd_phase_error, phase_error_inv;
     logic signed [Nadc+1+phase_est_shift:0] phase_est_d, phase_est_q, phase_est_update;
+    // pass the input to pd_phase_error
+    assign pd_phase_error = pd_in;
 
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////

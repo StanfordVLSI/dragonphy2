@@ -153,17 +153,24 @@ module test;
             $shm_open("waves.shm");
             //$shm_probe("AS");
             // MM CDR instance
-            $shm_probe(top_i.idcore.iMM_CDR);
-            // $shm_probe(top_i.idcore.iMM_CDR.codes);
-            // $shm_probe(top_i.idcore.iMM_CDR.pi_ctl);
-            // $shm_probe(top_i.idcore.iMM_CDR.pd_phase_error);
-            // $shm_probe(top_i.idcore.iMM_CDR.phase_est_update);
-            // $shm_probe(top_i.idcore.iMM_CDR.phase_error_q);
-            // $shm_probe(top_i.idcore.iMM_CDR.freq_est_q);
-            // $shm_probe(top_i.idcore.iMM_CDR.phase_update_clamped);
-            // $shm_probe(top_i.idcore.iMM_CDR.phase_est_d);
-            // $shm_probe(top_i.idcore.iMM_CDR.phase_est_q);
-            // $shm_probe(top_i.idcore.iMM_CDR.phase_est_out);
+            $shm_probe(top_i.idcore.iMM_CDR.uMM_CTL[0].i_umm_cdrctl);
+            $shm_probe(top_i.idcore.iMM_CDR.codes);
+            $shm_probe(top_i.idcore.iMM_CDR.pi_ctl);
+            $shm_probe(top_i.idcore.iMM_CDR.pd_phase_error);
+            $shm_probe(top_i.idcore.iMM_CDR.uMM_CTL[0].i_umm_cdrctl.phase_est_update);
+            $shm_probe(top_i.idcore.iMM_CDR.uMM_CTL[0].i_umm_cdrctl.phase_error_q);
+            $shm_probe(top_i.idcore.iMM_CDR.uMM_CTL[0].i_umm_cdrctl.freq_est_q);
+            $shm_probe(top_i.idcore.iMM_CDR.uMM_CTL[0].i_umm_cdrctl.phase_update_clamped);
+            $shm_probe(top_i.idcore.iMM_CDR.uMM_CTL[0].i_umm_cdrctl.phase_est_d);
+            $shm_probe(top_i.idcore.iMM_CDR.uMM_CTL[0].i_umm_cdrctl.phase_est_q);
+            $shm_probe(top_i.idcore.iMM_CDR.uMM_CTL[0].i_umm_cdrctl.phase_est_out);
+            $shm_probe(top_i.idcore.iMM_CDR.iMM_PD.codes_pre);
+            $shm_probe(top_i.idcore.iMM_CDR.iMM_PD.codes_cur);
+            $shm_probe(top_i.idcore.iMM_CDR.iMM_PD.codes_pos);
+            $shm_probe(top_i.idcore.iMM_CDR.iMM_PD.bits_pre);
+            $shm_probe(top_i.idcore.iMM_CDR.iMM_PD.bits_cur);
+            $shm_probe(top_i.idcore.iMM_CDR.iMM_PD.bits_pos);
+
 
             // Calculating PI control codes
             $shm_probe(top_i.idcore.pi_ctl_cdr);
@@ -296,7 +303,7 @@ module test;
 
         // Configure the CDR
       	$display("Configuring the CDR...");
-      	`FORCE_JTAG(Kp, 10);
+      	`FORCE_JTAG(Kp, 12);
       	`FORCE_JTAG(Ki, 3);
 		`FORCE_JTAG(en_freq_est, 1);
 		`FORCE_JTAG(en_ext_pi_ctl, 1);
@@ -317,7 +324,7 @@ module test;
 
 		// Wait for MM_CDR to lock
 		$display("Waiting for MM_CDR to lock...");
-		for (loop_var=0; loop_var<60; loop_var=loop_var+1) begin
+		for (loop_var=0; loop_var<30; loop_var=loop_var+1) begin
 		    $display("Interval %0d/2", loop_var);
 		    #(100ns);
 		end
