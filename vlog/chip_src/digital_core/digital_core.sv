@@ -269,6 +269,8 @@ module digital_core import const_pack::*; (
         end
     end
 
+    `ifdef MACRO_CDR // Flag to switch in between one cdr design and four cdr design
+    
     mm_cdr iMM_CDR (
         .codes(trunc_est_bits),
         .bits(sliced_est_bits),
@@ -279,6 +281,21 @@ module digital_core import const_pack::*; (
         .pi_ctl(pi_ctl_cdr),
         .cdbg_intf_i(cdbg_intf_i)
     );
+
+    `else // Instantiateion of the four cdr module
+    four_mm_cdr iMM_CDR (
+        .codes(trunc_est_bits),
+        .bits(sliced_est_bits),
+        .clk(clk_adc),
+        .ext_rstb(ctl_valid),
+        .ramp_clock(ramp_clock),
+        .freq_lvl_cross(freq_lvl_cross),
+        .pi_ctl(pi_ctl_cdr),
+        .cdbg_intf_i(cdbg_intf_i)
+    );
+    `endif
+
+
 
     ////////////////////////////
     // Calculate PI CTL codes //
