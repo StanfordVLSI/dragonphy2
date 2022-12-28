@@ -36,7 +36,7 @@ module dragonphy_top import const_pack::*; (
 
 	//CDR IO
 	input wire logic ramp_clock,
-	output wire logic freq_lvl_cross,
+	output wire logic freq_lvl_cross[Nout-1:0],
 
 	//Reset Logic
 	input wire logic ext_rstb,

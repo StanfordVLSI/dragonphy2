@@ -14,7 +14,8 @@ module micro_mm_cdr_ctl import const_pack::*; #(
     input wire logic clk,
     input wire logic ext_rstb,
     
-    output logic [Npi-1:0]pi_ctl[Nout-1:0],
+    output logic [Npi-1:0]pi_ctl,
+    
     output logic freq_lvl_cross,
 
     cdr_debug_intf.cdr cdbg_intf_i
@@ -69,6 +70,9 @@ module micro_mm_cdr_ctl import const_pack::*; #(
     logic signed [Npi-1:0]  scaled_pi_ctl;
     logic signed [Nadc+1:0] phase_est_out;
 
+	logic signed [Npi+1+phase_est_shift:0] phase_est;
+    logic signed [Npi+1+phase_est_shift:0] freq_est;
+    logic signed [Npi+1+phase_est_shift:0] ramp_est;
 
     always @* begin
         phase_error_d         = -1*pd_phase_error; // This is the correct sign!
@@ -116,7 +120,8 @@ module micro_mm_cdr_ctl import const_pack::*; #(
             ramp_est_neg_q <= 0;
             ramp_clock_ff <= 0;
             ramp_clock_sync <= 0;
-        end else begin
+        end 
+        else begin
             phase_error_q           <= phase_error_d;
             if (cdbg_intf_i.en_ext_pi_ctl) begin
                 phase_est_q         <= cdbg_intf_i.ext_pi_ctl << phase_est_shift;
@@ -134,27 +139,22 @@ module micro_mm_cdr_ctl import const_pack::*; #(
 
     assign scaled_pi_ctl = phase_est_out;// >> (Nadc + 2 - Npi);
 
-    genvar k;
-    generate
-        for(k=0;k<Nout;k=k+1) begin
-            assign pi_ctl[k] = cdbg_intf_i.en_ext_pi_ctl ? cdbg_intf_i.ext_pi_ctl : scaled_pi_ctl;
-        end
-    endgenerate
-
-
+    assign pi_ctl = cdbg_intf_i.en_ext_pi_ctl ? cdbg_intf_i.ext_pi_ctl : scaled_pi_ctl;
+    
     //State Machine to sample the current state of the 2nd order loop once
     always_ff @(posedge clk or negedge ext_rstb) begin
         if(~ext_rstb) begin
-            cdbg_intf_i.phase_est <= 0;
-            cdbg_intf_i.freq_est  <= 0;
-            cdbg_intf_i.ramp_est  <= 0;
+            phase_est <= 0;
+            freq_est  <= 0;
+            ramp_est  <= 0;
             sampler_state <= WAIT;
-        end else begin
+        end 
+        else begin
             case(sampler_state)
                 SAMPLE : begin
-                    cdbg_intf_i.phase_est <= phase_est_out;
-                    cdbg_intf_i.freq_est  <= freq_est_update;
-                    cdbg_intf_i.ramp_est  <= ramp_clock ? ramp_est_pls_update : ramp_est_neg_update;
+                    phase_est <= phase_est_out;
+                    freq_est  <= freq_est_update;
+                    ramp_est  <= ramp_clock ? ramp_est_pls_update : ramp_est_neg_update;
                     sampler_state <= WAIT;
                 end
                 WAIT : begin
@@ -170,7 +170,8 @@ module micro_mm_cdr_ctl import const_pack::*; #(
     always_ff @(posedge clk or negedge ext_rstb) begin
         if(~ext_rstb) begin
             freq_lvl_cross <= 0;
-        end else begin
+        end 
+        else begin
             freq_lvl_cross <= (freq_diff > 0) ? 1'b1 : 1'b0;
         end
     end

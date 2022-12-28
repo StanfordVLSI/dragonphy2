@@ -22,7 +22,7 @@ module digital_core import const_pack::*; (
     output wire logic trigg_out_p,
     output wire logic trigg_out_n,
     output wire logic ctl_valid,
-    output wire logic freq_lvl_cross,
+    output wire logic freq_lvl_cross[Nout-1:0],
     input wire logic ext_dump_start,
 
     input wire logic clk_tx,

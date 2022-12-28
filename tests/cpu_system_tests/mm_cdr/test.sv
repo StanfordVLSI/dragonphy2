@@ -154,16 +154,16 @@ module test;
             //$shm_probe("AS");
             // MM CDR instance
             $shm_probe(top_i.idcore.iMM_CDR);
-            $shm_probe(top_i.idcore.iMM_CDR.codes);
-            $shm_probe(top_i.idcore.iMM_CDR.pi_ctl);
-            $shm_probe(top_i.idcore.iMM_CDR.pd_phase_error);
-            $shm_probe(top_i.idcore.iMM_CDR.phase_est_update);
-            $shm_probe(top_i.idcore.iMM_CDR.phase_error_q);
-            $shm_probe(top_i.idcore.iMM_CDR.freq_est_q);
-            $shm_probe(top_i.idcore.iMM_CDR.phase_update_clamped);
-            $shm_probe(top_i.idcore.iMM_CDR.phase_est_d);
-            $shm_probe(top_i.idcore.iMM_CDR.phase_est_q);
-            $shm_probe(top_i.idcore.iMM_CDR.phase_est_out);
+            // $shm_probe(top_i.idcore.iMM_CDR.codes);
+            // $shm_probe(top_i.idcore.iMM_CDR.pi_ctl);
+            // $shm_probe(top_i.idcore.iMM_CDR.pd_phase_error);
+            // $shm_probe(top_i.idcore.iMM_CDR.phase_est_update);
+            // $shm_probe(top_i.idcore.iMM_CDR.phase_error_q);
+            // $shm_probe(top_i.idcore.iMM_CDR.freq_est_q);
+            // $shm_probe(top_i.idcore.iMM_CDR.phase_update_clamped);
+            // $shm_probe(top_i.idcore.iMM_CDR.phase_est_d);
+            // $shm_probe(top_i.idcore.iMM_CDR.phase_est_q);
+            // $shm_probe(top_i.idcore.iMM_CDR.phase_est_out);
 
             // Calculating PI control codes
             $shm_probe(top_i.idcore.pi_ctl_cdr);

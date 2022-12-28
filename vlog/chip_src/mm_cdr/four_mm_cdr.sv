@@ -14,7 +14,8 @@ module four_mm_cdr import const_pack::*; #(
     input wire logic ext_rstb,
     
     output logic [Npi-1:0]pi_ctl[Nout-1:0],
-    output logic freq_lvl_cross,
+
+    output logic freq_lvl_cross[Nout-1:0],
 
     cdr_debug_intf.cdr cdbg_intf_i
 );
@@ -34,7 +35,7 @@ module four_mm_cdr import const_pack::*; #(
         .pd_offset(cdbg_intf_i.pd_offset_ext),
         .pd_out(pd_phase_error)
     );
-
+    
     genvar k;
     generate 
         for (k=0;k<Nout;k=k+1) begin: uMM_CTL
@@ -46,7 +47,7 @@ module four_mm_cdr import const_pack::*; #(
                 .clk(clk),
                 .ext_rstb(ext_rstb),
                 .pi_ctl(pi_ctl[k]),
-                .freq_lvl_cross(freq_lvl_cross),
+                .freq_lvl_cross(freq_lvl_cross[k]),
                 .cdbg_intf_i(cdbg_intf_i)
             );
         end
