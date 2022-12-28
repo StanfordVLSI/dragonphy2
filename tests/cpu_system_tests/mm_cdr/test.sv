@@ -17,10 +17,11 @@ module test;
 	import jtag_reg_pack::*;
 
     localparam real dt=1.0/(16.0e9);
-    localparam real bw=3e9;
+    localparam real bw=30e9;
     localparam real tau=1.0/(2.0*3.14*bw);
     localparam integer coeff0 = 32.0/(1.0-$exp(-dt/tau));
     localparam integer coeff1 = -32.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
+    localparam integer sym_bitwidth=1;
 
     // clock inputs
 	logic ext_clkp;
@@ -66,13 +67,22 @@ module test;
 
     logic tx_clk;
     logic tx_data;
+    logic [sym_bitwidth-1:0] tx_sym;
+
 
     tx_prbs #(
-        .freq(full_rate+1e6),
+        .freq(sym_bitwidth*(full_rate+1e6)),
         .td(0)
     ) tx_prbs_i (
         .clk(tx_clk),
         .out(tx_data)
+    );
+
+    sym_encoder #(.sym_bitwidth(sym_bitwidth)) sym_encoder_i(
+        .tx_clk(tx_clk),
+        .rstb(rstb),
+        .tx_data(tx_data),
+        .tx_sym(tx_sym)
     );
 
     // TX driver
@@ -80,8 +90,8 @@ module test;
     pwl tx_p;
     pwl tx_n;
 
-    diff_tx_driver diff_tx_driver_i (
-        .in(tx_data),
+    diff_tx_driver #(.sym_bitwidth(sym_bitwidth)) diff_tx_driver_i(
+        .in(tx_sym),
         .out_p(tx_p),
         .out_n(tx_n)
     );
@@ -153,6 +163,8 @@ module test;
             $shm_open("waves.shm");
             //$shm_probe("AS");
             // MM CDR instance
+
+            $shm_probe(tx_sym);
             $shm_probe(top_i.idcore.iMM_CDR);
             $shm_probe(top_i.idcore.iMM_CDR.codes);
             $shm_probe(top_i.idcore.iMM_CDR.pi_ctl);
