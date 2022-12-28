@@ -21,7 +21,9 @@ module test;
     localparam real tau=1.0/(2.0*3.14*bw);
     localparam integer coeff0 = 32.0/(1.0-$exp(-dt/tau));
     localparam integer coeff1 = -32.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
-    localparam integer sym_bitwidth=1;
+    localparam integer sym_bitwidth=2;
+    //localparam [sym_bitwidth-1:0] sym_table [2**sym_bitwidth-1:0] = '{1'b1, 1'b0};
+    localparam [sym_bitwidth-1:0] sym_table [2**sym_bitwidth-1:0] = '{2'b10, 2'b11, 2'b01, 2'b00};
 
     // clock inputs
 	logic ext_clkp;
@@ -78,7 +80,10 @@ module test;
         .out(tx_data)
     );
 
-    sym_encoder #(.sym_bitwidth(sym_bitwidth)) sym_encoder_i(
+    sym_encoder #(
+        .sym_bitwidth(sym_bitwidth),
+        .sym_table(sym_table)
+    ) sym_encoder_i(
         .tx_clk(tx_clk),
         .rstb(rstb),
         .tx_data(tx_data),
