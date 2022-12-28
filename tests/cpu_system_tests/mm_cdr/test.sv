@@ -203,7 +203,7 @@ module test;
 
         // Soft reset sequence
         $display("Soft reset sequence...");
-        toggle_acore_rstb();
+        //toggle_acore_rstb();
 
         #(1ns);
         `FORCE_JTAG(en_inbuf, 1);
@@ -344,8 +344,8 @@ module test;
 	end
 
     // The FFE loads an entire init vector at once. I inserted "random" delays to enforce the JTAG vs not JTAG distinction. Since the JTAG register isn't reflect until the execution happen, the lack of sequential loading is not an issue.
-    task load_ffe_and_halt_adaptation(input logic signed [ffe_gpack::weight_precision-1:0] init_ffe_taps [ffe_gpack::length-1:0]);
-        `FORCE_JTAG(init_ffe_taps, init_ffe_taps);
+    task load_ffe_and_halt_adaptation(input logic signed [ffe_gpack::weight_precision-1:0] tmp_init_ffe_taps [ffe_gpack::length-1:0]);
+        `FORCE_JTAG(init_ffe_taps, tmp_init_ffe_taps);
         repeat (5) tick();
         `FORCE_JTAG(fe_inst, 3'b100);
         repeat (5) tick();

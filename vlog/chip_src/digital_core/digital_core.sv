@@ -272,7 +272,7 @@ module digital_core import const_pack::*; (
     end
 
     mm_cdr iMM_CDR (
-        .codes(act_codes),
+        .codes(estimated_bits),
         .bits(sliced_est_bits),
         .clk(clk_adc),
         .ext_rstb(ctl_valid),

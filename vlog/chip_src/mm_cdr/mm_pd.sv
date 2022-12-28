@@ -27,6 +27,7 @@ module mm_pd import const_pack::*; (
         end
 
         for (k=0; k<Nti; k=k+1) begin: uPD
+            // Convert this to four outputs for each PI
             assign pd_net[k] = codes[k]*(ak[k+1] - ak[k-1]);
         end
     endgenerate
