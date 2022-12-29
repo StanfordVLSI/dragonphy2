@@ -9,6 +9,7 @@
 
 // comment out to directly feed ADC data to CDR
 `define CDR_USE_FFE
+`define NRZ
 
 module test;
 
@@ -21,9 +22,14 @@ module test;
     localparam real tau=1.0/(2.0*3.14*bw);
     localparam integer coeff0 = 32.0/(1.0-$exp(-dt/tau));
     localparam integer coeff1 = -32.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
-    localparam integer sym_bitwidth=2;
-    //localparam [sym_bitwidth-1:0] sym_table [2**sym_bitwidth-1:0] = '{1'b1, 1'b0};
-    localparam [sym_bitwidth-1:0] sym_table [2**sym_bitwidth-1:0] = '{2'b10, 2'b11, 2'b01, 2'b00};
+
+    `ifdef NRZ 
+        localparam integer sym_bitwidth=1;
+        parameter  [sym_bitwidth-1:0] sym_table [2**sym_bitwidth-1:0] = '{1'b1, 1'b0};
+    `elsif PAM4
+        localparam integer sym_bitwidth=2;
+        parameter  [sym_bitwidth-1:0] sym_table [2**sym_bitwidth-1:0] = '{2'b10, 2'b11, 2'b01, 2'b00};
+    `endif 
 
     // clock inputs
 	logic ext_clkp;
