@@ -18,7 +18,7 @@ module comb_comp #(
 	output logic [sym_bitwidth-1:0] sym_out [numChannels-1:0],
 	output logic [delay_width+width_width-1:0] bit_out_delay
 );
-
+    logic [(2**sym_bitwidth)-2:0] therm_enc_slicer_outputs [numChannels-1:0];
 	assign bit_out_delay = codes_delay;
 
 	// I am not sure how this synthesizes vs explicitly having three thresholds and a thermometer decoder
@@ -28,11 +28,15 @@ module comb_comp #(
 		for(gc=0; gc<numChannels; gc=gc+1) begin
 			always_comb begin
 				for(int ii = 0; ii < (2**sym_bitwidth)-1; ii += 1) begin
-					sym_out[gc] = sym_table[0];
-					if(codes[gc] > bit_level*sym_thrsh_table[ii]) begin
-						sym_out[gc] = sym_table[ii+1];
-					end
+					therm_enc_slicer_outputs[ii][gc] = (codes[gc] >  bit_level * sym_thrsh_table[ii]) ? 1 : 0;
 				end
+
+				unique case (therm_enc_slicer_outputs[gc])
+					3'b000: sym_out[gc] = sym_table[0];
+					3'b001: sym_out[gc] = sym_table[1];
+					3'b011: sym_out[gc] = sym_table[2];
+					3'b111: sym_out[gc] = sym_table[3];
+				endcase
 			end
 		end
 	endgenerate
