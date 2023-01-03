@@ -8,7 +8,7 @@ module comb_comp #(
 	parameter integer width_width=4,
 	parameter integer sym_bitwidth=2,
 	parameter logic [sym_bitwidth-1:0] sym_table [(2**sym_bitwidth)-1:0] = '{2'b10, 2'b11, 2'b01, 2'b00},
-	parameter logic signed [sym_bitwidth+1-1:0] sym_thrsh_table [(2**sym_bitwidth)-2:0] = '{2, 0, 2}
+	parameter logic signed [sym_bitwidth+1-1:0] sym_thrsh_table [(2**sym_bitwidth)-2:0] = '{2, 0, -2}
 ) (
 	input wire logic signed [inputBitwidth-1:0] codes [numChannels-1:0],
 	input wire logic [delay_width+width_width-1:0] codes_delay,
