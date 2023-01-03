@@ -39,6 +39,8 @@ module ffe_estimator #(
 
     logic store_tap_decimal;
     logic [sym_bitwidth-1:0] sym_idx;
+    logic [(2**sym_bitwidth)-2:0] therm_enc_slicer_outputs;
+    
     logic signed [est_bit_bitwidth-1:0] sliced_sym_val;
     logic signed [est_bit_bitwidth-1:0] est_bit_val;
     logic signed [ffe_bitwidth + adapt_bitwidth-1:0] err;
@@ -46,18 +48,21 @@ module ffe_estimator #(
     logic signed [est_bit_bitwidth-1:0] tmp_thresh;
     logic load_init, shift_left, shift_right;
 
-
     always_comb begin
         est_bit_val = est_bits[tap_pos];
 
+
         for(int ii = 0; ii < (2**sym_bitwidth)-1; ii += 1) begin
-            sym_idx = 0;
-            tmp_thresh = bit_level * sym_thrsh_table[ii];
-            if(est_bit_val > tmp_thresh) begin
-                sym_idx = ii+1;
-            end
+            therm_enc_slicer_outputs[ii] = (est_bit_val >  bit_level * sym_thrsh_table[ii]) ? 1 : 0;
         end
 
+        unique case (therm_enc_slicer_outputs)
+            3'b000: sym_idx = 0;
+            3'b001: sym_idx = 1;
+            3'b011: sym_idx = 2;
+            3'b111: sym_idx = 3;
+        endcase
+        
         sliced_sym_val = sliced_sym_val[sym_idx] * bit_level;
         err = (sliced_sym_val - est_bit_val) * sym_bal_table[sym_idx];
         adjust_val = ((current_code * err) <<< gain);
