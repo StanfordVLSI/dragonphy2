@@ -53,7 +53,7 @@ module ffe_estimator #(
         for(int ii = 0; ii < (2**sym_bitwidth)-1; ii += 1) begin
             sym_idx = 0;
             tmp_thresh = bit_level * sym_thrsh_table[ii];
-            if(sym_ctrl[ii] && (est_bit_val > tmp_thresh)) begin
+            if(est_bit_val > tmp_thresh) begin
                 sym_idx = ii+1;
             end
         end
