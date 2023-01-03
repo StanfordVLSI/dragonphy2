@@ -8,6 +8,10 @@ module ffe_estimator #(
     parameter integer ffe_bitwidth = 10,
     parameter integer adapt_bitwidth = 14,
     parameter integer code_bitwidth = 8,
+    parameter integer sym_bitwidth = 2,
+    parameter logic signed [sym_bitwidth+1-1:0] sym_thrsh_table [(2**sym_bitwidth)-2:0] = '{2, 0, -2},
+	parameter logic signed [sym_bitwidth+1-1:0] sym_val_table [(2**sym_bitwidth)-1:0] = '{3, 1, -1, -3},
+	parameter logic signed [sym_bitwidth+1-1:0] sym_bal_table [(2**sym_bitwidth)-1:0] = '{1, 3, 3, 1},
     parameter integer est_bit_bitwidth = 10
 ) (
     input wire logic clk,
@@ -20,6 +24,8 @@ module ffe_estimator #(
     input wire logic [$clog2(adapt_bitwidth)-1:0] gain,
     input wire logic signed [est_bit_bitwidth-1:0] bit_level,
 
+    input wire logic signed [(2**sym_bitwidth)-2:0] sym_ctrl,
+
     input wire logic exec_inst,
     input wire logic [2:0] inst,
 
@@ -27,55 +33,35 @@ module ffe_estimator #(
     output logic signed [ffe_bitwidth-1:0] ffe_est [est_depth-1:0]
 );
 
-    logic signed [9:0] estimated_bit_0;
-    logic signed [9:0] estimated_bit_1;
-    logic signed [9:0] estimated_bit_2;
-    logic signed [9:0] estimated_bit_3;
-    logic signed [9:0] estimated_bit_4;
-    logic signed [9:0] estimated_bit_5;
-    logic signed [9:0] estimated_bit_6;
-    logic signed [9:0] estimated_bit_7;
-    logic signed [9:0] estimated_bit_8;
-    logic signed [9:0] estimated_bit_9;
-    logic signed [9:0] estimated_bit_10;
-    logic signed [9:0] estimated_bit_11;
-    logic signed [9:0] estimated_bit_12;
-    logic signed [9:0] estimated_bit_13;
-    logic signed [9:0] estimated_bit_14;
-    logic signed [9:0] estimated_bit_15;
-    assign estimated_bit_0 = est_bits[0];
-    assign estimated_bit_1 = est_bits[1];
-    assign estimated_bit_2 = est_bits[2];
-    assign estimated_bit_3 = est_bits[3];
-    assign estimated_bit_4 = est_bits[4];
-    assign estimated_bit_5 = est_bits[5];
-    assign estimated_bit_6 = est_bits[6];
-    assign estimated_bit_7 = est_bits[7];
-    assign estimated_bit_8 = est_bits[8];
-    assign estimated_bit_9 = est_bits[9];
-    assign estimated_bit_10 = est_bits[10];
-    assign estimated_bit_11 = est_bits[11];
-    assign estimated_bit_12 = est_bits[12];
-    assign estimated_bit_13 = est_bits[13];
-    assign estimated_bit_14 = est_bits[14];
-    assign estimated_bit_15 = est_bits[15];
-
-
     logic signed [ffe_bitwidth + adapt_bitwidth-1:0] tap_decimal, next_tap_decimal;
     logic signed [ffe_bitwidth + adapt_bitwidth-1:0] int_ffe_est [est_depth-1:0];
     logic [$clog2(est_depth)-1:0] tap_pos, tap_pos_plus_one, next_tap_pos;
+
     logic store_tap_decimal;
-    wire logic signed [est_bit_bitwidth-1:0] sliced_bit_val;
-    wire logic signed [est_bit_bitwidth-1:0] est_bit_val;
-    wire logic signed [ffe_bitwidth + adapt_bitwidth-1:0] err;
-    wire logic signed [ffe_bitwidth + adapt_bitwidth-1:0] adjust_val;
+    logic [sym_bitwidth-1:0] sym_idx;
+    logic signed [est_bit_bitwidth-1:0] sliced_sym_val;
+    logic signed [est_bit_bitwidth-1:0] est_bit_val;
+    logic signed [ffe_bitwidth + adapt_bitwidth-1:0] err;
+    logic signed [ffe_bitwidth + adapt_bitwidth-1:0] adjust_val;
 
     logic load_init, shift_left, shift_right;
 
-    assign sliced_bit_val = (est_bits[tap_pos] > 0 ? bit_level : -bit_level);
-    assign est_bit_val    = est_bits[tap_pos];
-    assign err = sliced_bit_val - est_bit_val;
-    assign adjust_val = ((current_code * err) <<< gain);
+
+    always_comb begin
+        est_bit_val = est_bits[tap_pos];
+
+        for(int ii = 0; ii < (2**sym_bitwidth)-1; ii += 1) begin
+            sym_idx = 0;
+            if(sym_ctrl[ii] && (est_bit_val > bit_level*sym_thrsh_table[ii])) begin
+                sym_idx = ii+1;
+            end
+        end
+
+        sliced_sym_val = sliced_sym_val[sym_idx] * bit_level;
+        err = (sliced_sym_val - est_bit_val) * sym_bal_table[sym_idx];
+        adjust_val = ((current_code * err) <<< gain);
+    end
+
 
     assign tap_pos_plus_one = tap_pos + 1;
     typedef enum logic [2:0] {RST, LOAD_AND_CALC, CALC_AND_STORE, EXEC, HALT} est_states_t;

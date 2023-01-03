@@ -13,18 +13,11 @@ module comb_comp #(
 	input wire logic [delay_width+width_width-1:0] codes_delay,
 	input wire logic signed [thresholdBitwidth-1:0] thresh [(2**sym_bitwidth)-2:0][numChannels-1:0],
 
-	input wire logic clk,
-	input wire logic rstb,
-
 	output logic [sym_bitwidth-1:0] sym_out [numChannels-1:0],
 	output logic [delay_width+width_width-1:0] bit_out_delay
 );
 
 	assign bit_out_delay = codes_delay;
-
-	localparam integer input_shift = inputBitwidth-thresholdBitwidth;
-
-	wire logic signed [thresholdBitwidth-1:0]  inp_minus_thresh	[numChannels-1:0];
 
 	// I am not sure how this synthesizes vs explicitly having three thresholds and a thermometer decoder
 

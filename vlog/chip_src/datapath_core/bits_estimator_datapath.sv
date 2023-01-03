@@ -156,8 +156,6 @@ module bits_estimator_datapath #(
         .codes(buffered_estimated_bit),
         .codes_delay(buffered_estimated_bit_delay),
         .thresh(tmp_thresh),
-        .clk       (clk),
-        .rstb      (rstb),
         .sym_out   (tmp_cmp_out),
         .bit_out_delay(cmp_out_delay)
     );

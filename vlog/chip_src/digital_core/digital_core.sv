@@ -385,6 +385,8 @@ module digital_core import const_pack::*; (
         .est_bits(sec_est_bits),
         .current_code(act_codes[0]),
 
+        .sym_ctrl(3'b111),
+
         .gain(ddbg_intf_i.fe_adapt_gain),
         .bit_level(ddbg_intf_i.fe_bit_target_level),
 
@@ -538,8 +540,6 @@ module digital_core import const_pack::*; (
     comb_comp #(.numChannels(16), .inputBitwidth(Nadc), .thresholdBitwidth(Nadc)) dig_comp_adc_i (
         .codes     (adcout_unfolded_non_rep),
         .thresh    (tmp_thresh),
-        .clk       (clk_adc),
-        .rstb      (dcore_rstb),
         .sym_out   (tmp_cmp_out)
     );
 
