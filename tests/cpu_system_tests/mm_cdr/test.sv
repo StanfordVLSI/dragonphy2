@@ -9,7 +9,7 @@
 
 // comment out to directly feed ADC data to CDR
 `define CDR_USE_FFE
-`define NRZ
+`define PAM4
 
 module test;
 
@@ -18,7 +18,7 @@ module test;
 	import jtag_reg_pack::*;
 
     localparam real dt=1.0/(16.0e9);
-    localparam real bw=3e9;
+    localparam real bw=30e9;
     localparam real tau=1.0/(2.0*3.14*bw);
     localparam integer coeff0 = 32.0/(1.0-$exp(-dt/tau));
     localparam integer coeff1 = -32.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
@@ -29,6 +29,9 @@ module test;
     `elsif PAM4
         localparam integer sym_bitwidth=2;
         parameter  [sym_bitwidth-1:0] sym_table [2**sym_bitwidth-1:0] = '{2'b10, 2'b11, 2'b01, 2'b00};
+    `elsif PAM8 
+        localparam integer sym_bitwidth=3;
+        parameter  [sym_bitwidth-1:0] sym_table [2**sym_bitwidth-1:0] = '{3'b111, 3'b110, 3'b101, 3'b100, 3'b011, 3'b010, 3'b001, 3'b000};
     `endif 
 
     // clock inputs
