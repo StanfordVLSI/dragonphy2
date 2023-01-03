@@ -9,7 +9,7 @@
 
 // comment out to directly feed ADC data to CDR
 `define CDR_USE_FFE
-`define PAM4
+`define NRZ
 
 module test;
 
@@ -225,6 +225,14 @@ module test;
             $shm_probe(top_i.idcore.prbs_checker_i.prbs_flags);
             $shm_probe(top_i.idcore.ffe_est_i.exec_inst);
             $shm_probe(top_i.idcore.ffe_est_i.inst);
+
+            $shm_probe(top_i.idcore.ffe_est_i.est_bit_val);
+            $shm_probe(top_i.idcore.ffe_est_i.sliced_sym_val);
+            $shm_probe(top_i.idcore.ffe_est_i.err);
+            $shm_probe(top_i.idcore.ffe_est_i.adjust_val);
+                        $shm_probe(top_i.idcore.ffe_est_i.sym_idx);
+                                    $shm_probe(top_i.idcore.ffe_est_i.sym_ctrl);
+
             $shm_probe(top_i.idcore.dsp_dbg_intf_i.weights);
             $shm_probe(top_i.idcore.dsp_dbg_intf_i.ffe_shift);
         `endif

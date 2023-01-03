@@ -136,9 +136,13 @@ module bits_estimator_datapath #(
 
     //Slicer
     wire logic cmp_out [constant_gpack::channel_width-1:0];
-    wire logic [0:0] tmp_cmp_out [constant_gpack::channel_width-1:0];
+    wire logic [1:0] tmp_cmp_out [constant_gpack::channel_width-1:0];
 
-    assign cmp_out = tmp_cmp_out;
+    generate
+        for(gi =0; gi < constant_gpack::channel_width; gi = gi + 1) begin
+            assign cmp_out[gi] = tmp_cmp_out[gi][1];
+        end
+    endgenerate
 
 
     logic [delay_width+width_width-1:0]    cmp_out_delay;
