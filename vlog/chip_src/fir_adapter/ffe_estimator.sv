@@ -57,14 +57,27 @@ module ffe_estimator #(
         end
 
         unique case (therm_enc_slicer_outputs)
-            3'b000: sym_idx = 0;
-            3'b001: sym_idx = 1;
-            3'b011: sym_idx = 2;
-            3'b111: sym_idx = 3;
+            3'b000: begin 
+                sym_idx = 0;
+                sliced_sym_val = -3 * bit_level;
+                err = (sliced_sym_val - est_bit_val) * 1;
+            end
+            3'b001: begin 
+                sym_idx = 1; 
+                sliced_sym_val = -1 * bit_level;
+                err = (sliced_sym_val - est_bit_val) * 3;
+            end
+            3'b011: begin 
+                sym_idx = 2; 
+                sliced_sym_val = 1 * bit_level;
+                err = (sliced_sym_val - est_bit_val) * 3;
+            end
+            3'b111: begin 
+                sym_idx = 3; 
+                sliced_sym_val = 3 * bit_level;
+                err = (sliced_sym_val - est_bit_val) * 1;
+            end
         endcase
-        
-        sliced_sym_val = sliced_sym_val[sym_idx] * bit_level;
-        err = (sliced_sym_val - est_bit_val) * sym_bal_table[sym_idx];
         adjust_val = ((current_code * err) <<< gain);
     end
 
