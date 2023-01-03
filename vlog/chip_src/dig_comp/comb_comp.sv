@@ -32,10 +32,10 @@ module comb_comp #(
 				end
 
 				unique case (therm_enc_slicer_outputs[gc])
-					3'b000: sym_out[gc] = sym_table[0];
-					3'b001: sym_out[gc] = sym_table[1];
-					3'b011: sym_out[gc] = sym_table[2];
-					3'b111: sym_out[gc] = sym_table[3];
+					3'b000: sym_out[gc] = 2'b00;
+					3'b001: sym_out[gc] = 2'b01;
+					3'b011: sym_out[gc] = 2'b11;
+					3'b111: sym_out[gc] = 2'b10;
 				endcase
 			end
 		end
