@@ -526,9 +526,13 @@ module digital_core import const_pack::*; (
     logic bits_adc [Nti-1:0];
     logic bits_ffe [Nti-1:0];
 
-    wire logic [0:0] tmp_cmp_out [constant_gpack::channel_width-1:0];
+    wire logic [1:0] tmp_cmp_out [constant_gpack::channel_width-1:0];
 
-    assign bits_adc = tmp_cmp_out;
+    generate
+        for(gi=0; gi<constant_gpack::channel_width; gi = gi + 1) begin
+            assign bits_adc[gi] = tmp_cmp_out[gi][1];
+        end
+    endgenerate
 
 
     comb_comp #(.numChannels(16), .inputBitwidth(Nadc), .thresholdBitwidth(Nadc)) dig_comp_adc_i (
