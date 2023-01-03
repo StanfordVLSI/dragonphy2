@@ -43,7 +43,7 @@ module ffe_estimator #(
     logic signed [est_bit_bitwidth-1:0] est_bit_val;
     logic signed [ffe_bitwidth + adapt_bitwidth-1:0] err;
     logic signed [ffe_bitwidth + adapt_bitwidth-1:0] adjust_val;
-
+    logic signed [est_bit_bitwidth-1:0] tmp_thresh;
     logic load_init, shift_left, shift_right;
 
 
@@ -52,7 +52,8 @@ module ffe_estimator #(
 
         for(int ii = 0; ii < (2**sym_bitwidth)-1; ii += 1) begin
             sym_idx = 0;
-            if(sym_ctrl[ii] && (est_bit_val > bit_level*sym_thrsh_table[ii])) begin
+            tmp_thresh = bit_level * sym_thrsh_table[ii];
+            if(sym_ctrl[ii] && (est_bit_val > tmp_thresh)) begin
                 sym_idx = ii+1;
             end
         end
