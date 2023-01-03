@@ -21,7 +21,7 @@ module bits_estimator_datapath #(
 
     input wire logic signed [ffe_gpack::weight_precision-1:0]          weights [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0],
     input wire logic        [ffe_gpack::shift_precision-1:0]           ffe_shift [constant_gpack::channel_width-1:0],
-    input wire logic signed [cmp_gpack::thresh_precision-1:0]          thresh  [constant_gpack::channel_width-1:0],
+    input wire logic signed [ffe_gpack::output_precision-1:0]          bit_level,
 
     input wire logic                                                   disable_product [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0],
     input wire logic [$clog2(constant_gpack::channel_width)-1:0] align_pos
@@ -137,15 +137,9 @@ module bits_estimator_datapath #(
     //Slicer
     wire logic cmp_out [constant_gpack::channel_width-1:0];
     wire logic [0:0] tmp_cmp_out [constant_gpack::channel_width-1:0];
-    wire logic signed [cmp_gpack::thresh_precision-1:0] tmp_thresh [0:0][constant_gpack::channel_width-1:0];
 
     assign cmp_out = tmp_cmp_out;
 
-    generate
-        for(gi=0; gi<constant_gpack::channel_width; gi=gi+1) begin
-            assign tmp_thresh[0][gi] = thresh[gi];
-        end
-    endgenerate
 
     logic [delay_width+width_width-1:0]    cmp_out_delay;
     comb_comp #(
@@ -155,7 +149,7 @@ module bits_estimator_datapath #(
     ) ccmp_i (
         .codes(buffered_estimated_bit),
         .codes_delay(buffered_estimated_bit_delay),
-        .thresh(tmp_thresh),
+        .bit_level(bit_level),
         .sym_out   (tmp_cmp_out),
         .bit_out_delay(cmp_out_delay)
     );

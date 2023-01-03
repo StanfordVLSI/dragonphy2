@@ -311,6 +311,7 @@ module digital_core import const_pack::*; (
 
     assign dsp_dbg_intf_i.disable_product = ddbg_intf_i.disable_product;
     assign dsp_dbg_intf_i.ffe_shift       = ddbg_intf_i.ffe_shift;
+    assign dsp_dbg_intf_i.bit_level       = ddbg_intf_i.fe_bit_target_level;
     assign dsp_dbg_intf_i.channel_shift   = ddbg_intf_i.channel_shift;
     assign dsp_dbg_intf_i.thresh          = ddbg_intf_i.cmp_thresh;
     assign dsp_dbg_intf_i.align_pos       = ddbg_intf_i.align_pos;
