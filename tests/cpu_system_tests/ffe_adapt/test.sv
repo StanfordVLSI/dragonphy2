@@ -18,7 +18,7 @@ module test;
 	import jtag_reg_pack::*;
 
     localparam real dt=1.0/(16.0e9);
-    localparam real bw=30e9;
+    localparam real bw=10e9;
     localparam real tau=1.0/(2.0*3.14*bw);
     localparam integer coeff0 = 32.0/(1.0-$exp(-dt/tau));
     localparam integer coeff1 = -32.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
@@ -179,30 +179,10 @@ module test;
             // MM CDR instance
 
             $shm_probe(tx_sym);
-            $shm_probe(top_i.idcore.iMM_CDR);
-            $shm_probe(top_i.idcore.iMM_CDR.codes);
-            $shm_probe(top_i.idcore.iMM_CDR.bits);
-            $shm_probe(top_i.idcore.iMM_CDR.pi_ctl);
-            $shm_probe(top_i.idcore.iMM_CDR.pd_phase_error);
-            $shm_probe(top_i.idcore.iMM_CDR.phase_est_update);
-            $shm_probe(top_i.idcore.iMM_CDR.phase_error_q);
-            $shm_probe(top_i.idcore.iMM_CDR.freq_est_q);
-            $shm_probe(top_i.idcore.iMM_CDR.phase_update_clamped);
-            $shm_probe(top_i.idcore.iMM_CDR.phase_est_d);
-            $shm_probe(top_i.idcore.iMM_CDR.phase_est_q);
-            $shm_probe(top_i.idcore.iMM_CDR.phase_est_out);
 
             // Calculating PI control codes
-            $shm_probe(top_i.idcore.pi_ctl_cdr);
             $shm_probe(top_i.idcore.clk_adc);
-            $shm_probe(top_i.idcore.int_pi_ctl_cdr);
-            $shm_probe(top_i.idcore.scale_value);
-            $shm_probe(top_i.idcore.cdbg_intf_i.sel_inp_mux);
-            $shm_probe(top_i.idcore.ddbg_intf_i.ext_pi_ctl_offset);
-            $shm_probe(top_i.idcore.ddbg_intf_i.en_ext_max_sel_mux);
-            $shm_probe(top_i.idcore.ddbg_intf_i.en_bypass_pi_ctl);
-            $shm_probe(top_i.idcore.ddbg_intf_i.bypass_pi_ctl);
-            $shm_probe(top_i.iacore.adbg_intf_i.max_sel_mux);
+
 
             // Number of error bits
             $shm_probe(top_i.idcore.prbs_checker_i.err_bits);
@@ -231,10 +211,10 @@ module test;
             $shm_probe(top_i.idcore.ffe_est_i.sliced_sym_val);
             $shm_probe(top_i.idcore.ffe_est_i.err);
             $shm_probe(top_i.idcore.ffe_est_i.adjust_val);
-                        $shm_probe(top_i.idcore.ffe_est_i.tmp_thresh);
+            $shm_probe(top_i.idcore.ffe_est_i.tmp_thresh);
 
-                        $shm_probe(top_i.idcore.ffe_est_i.sym_idx);
-                                    $shm_probe(top_i.idcore.ffe_est_i.sym_ctrl);
+            $shm_probe(top_i.idcore.ffe_est_i.sym_idx);
+            $shm_probe(top_i.idcore.ffe_est_i.sym_ctrl);
 
             $shm_probe(top_i.idcore.dsp_dbg_intf_i.weights);
             $shm_probe(top_i.idcore.dsp_dbg_intf_i.ffe_shift);
@@ -245,7 +225,7 @@ module test;
         end
         // Write Steven's handcalculated values in!
         init_ffe_taps[0] = coeff0;
-        init_ffe_taps[1] = coeff1;
+        init_ffe_taps[1] = 0;
 
         // print test condition
         $display("bw=%0.3f (GHz)", bw/1.0e9);
@@ -338,14 +318,13 @@ module test;
       	`FORCE_JTAG(Ki, 3);
 		`FORCE_JTAG(en_freq_est, 1);
 		`FORCE_JTAG(en_ext_pi_ctl, 1);
-        `FORCE_JTAG(ext_pi_ctl, 0);
+        `FORCE_JTAG(ext_pi_ctl, 25);
 		`ifdef CDR_USE_FFE
 		    `FORCE_JTAG(sel_inp_mux, 1);
 		`endif
 		#(10ns);    
         toggle_cdr_rstb();
         
-        `FORCE_JTAG(en_ext_pi_ctl, 0);
         // Toggle the en_v2t signal to re-initialize the V2T ordering
         $display("Toggling en_v2t...");
         `FORCE_JTAG(en_v2t, 0);
@@ -353,14 +332,8 @@ module test;
         `FORCE_JTAG(en_v2t, 1);
         #(5ns);
 
-		// Wait for MM_CDR to lock
-		$display("Waiting for MM_CDR to lock...");
-		for (loop_var=0; loop_var<60; loop_var=loop_var+1) begin
-		    $display("Interval %0d/2", loop_var);
-		    #(100ns);
-		end
         
-        `FORCE_JTAG(fe_adapt_gain, 9);
+        `FORCE_JTAG(fe_adapt_gain, 10);
         #(5ns);
         run_ffe_adaptation();
         
@@ -374,7 +347,7 @@ module test;
         $display("Running the PRBS tester");
         `FORCE_JTAG(prbs_checker_mode, 2);
         for (loop_var=0; loop_var<60; loop_var=loop_var+1) begin
-		    $display("Interval %0d/60", loop_var);
+		    $display("Interval %0d/10", loop_var);
 		    #(100ns);
 		end
         #(25ns);
