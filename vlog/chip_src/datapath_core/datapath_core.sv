@@ -12,7 +12,7 @@ module datapath_core #(
 
     //Stage 1
     output logic signed [ffe_gpack::output_precision-1:0]      stage1_est_bits_out    [constant_gpack::channel_width-1:0],
-    output logic                                               stage1_sliced_bits_out [constant_gpack::channel_width-1:0],
+    output logic      [1:0]                                    stage1_sliced_bits_out [constant_gpack::channel_width-1:0],
     output logic signed [constant_gpack::code_precision-1:0]   stage1_act_codes_out [constant_gpack::channel_width-1:0],
 
     output logic        [delay_width+width_width-1:0]          stage1_est_bits_out_delay       ,

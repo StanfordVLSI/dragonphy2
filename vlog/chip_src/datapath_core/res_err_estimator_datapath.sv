@@ -10,7 +10,7 @@ module res_err_estimator_datapath #(
     input logic clk,
     input logic rstb,
 
-    input logic                                               slcd_bits_in [constant_gpack::channel_width-1:0],
+    input logic [1:0]                                         slcd_bits_in [constant_gpack::channel_width-1:0],
     input logic signed [constant_gpack::code_precision-1:0]   act_codes_in [constant_gpack::channel_width-1:0],
 
     input logic [delay_width+width_width-1:0]                 slcd_bits_in_delay,
@@ -43,7 +43,7 @@ module res_err_estimator_datapath #(
     localparam actual_channel_bit_depth = constant_gpack::channel_width + channel_gpack::est_channel_depth - main_cursor_position; // This minus two is covertly performing a bit alignment!
 
     //Bits Pipeline
-    logic                                               sliced_bits_buffer  [constant_gpack::channel_width-1:0][bits_pipeline_depth:0];
+    logic [1:0]                                         sliced_bits_buffer  [constant_gpack::channel_width-1:0][bits_pipeline_depth:0];
     logic signed [constant_gpack::code_precision-1:0]   act_codes_buffer    [constant_gpack::channel_width-1:0][code_pipeline_depth:0];
     logic signed [error_gpack::est_error_precision-1:0] est_error_buffer    [constant_gpack::channel_width-1:0][error_pipeline_depth:0];
 
@@ -57,13 +57,13 @@ module res_err_estimator_datapath #(
     generate
         for(gi = 0; gi < constant_gpack::channel_width; gi += 1) begin
             assign res_err_out[gi]   = est_error_buffer[gi][error_pipeline_depth];
-            assign slcd_bits_out[gi] = sliced_bits_buffer[gi][bits_pipeline_end];
+            assign slcd_bits_out[gi] = sliced_bits_buffer[gi][bits_pipeline_end][1];
         end
     endgenerate
 
     buffer #(
         .numChannels (constant_gpack::channel_width),
-        .bitwidth    (1),
+        .bitwidth    (2),
         .depth       (bits_pipeline_depth),
         .delay_width(delay_width),
         .width_width(width_width)
@@ -93,12 +93,12 @@ module res_err_estimator_datapath #(
 
     );
 
-    logic flat_sliced_bits [total_channel_bit_depth-1:0];
+    logic [1:0] flat_sliced_bits [total_channel_bit_depth-1:0];
     logic [delay_width+width_width-1:0] flat_sliced_bits_delay;
 
     flatten_buffer_slice #(
         .numChannels(constant_gpack::channel_width),
-        .bitwidth   (1),
+        .bitwidth   (2),
         .buff_depth (bits_pipeline_depth),
         .slice_depth(2),
         .start      (0),

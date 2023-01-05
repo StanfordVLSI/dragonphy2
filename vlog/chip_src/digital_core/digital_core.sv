@@ -83,7 +83,8 @@ module digital_core import const_pack::*; (
     wire logic signed [7:0] trunc_est_bits_ext [Nti+Nti_rep-1:0];
 
     logic signed [constant_gpack::code_precision-1:0] act_codes [constant_gpack::channel_width-1:0];
-    logic  sliced_est_bits [constant_gpack::channel_width-1:0];
+    logic [1:0] tmp_sliced_est_bits [constant_gpack::channel_width-1:0];
+    logic sliced_est_bits [constant_gpack::channel_width-1:0];
     //Sample the FFE output
     genvar gi, gj;
     generate
@@ -337,7 +338,7 @@ module digital_core import const_pack::*; (
 
         //Stage 1
         .stage1_est_bits_out(estimated_bits),
-        .stage1_sliced_bits_out(sliced_est_bits),
+        .stage1_sliced_bits_out(tmp_sliced_est_bits),
         .stage1_act_codes_out(act_codes),
 
         //Stage 2
@@ -370,6 +371,9 @@ module digital_core import const_pack::*; (
     always_comb begin
         for(int ii=0; ii<ffe_gpack::length; ii=ii+1) begin
             sec_est_bits[ii] = estimated_bits[ii];
+        end
+        for(int ii=0; ii<constant_gpack::channel_width; ii=ii+1) begin
+            sliced_est_bits[ii] = tmp_sliced_est_bits[ii][1];
         end
     end
 

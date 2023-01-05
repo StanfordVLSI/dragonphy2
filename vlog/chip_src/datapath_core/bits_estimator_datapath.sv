@@ -12,7 +12,7 @@ module bits_estimator_datapath #(
     input wire logic rstb,
 
     output logic signed [ffe_gpack::output_precision-1:0]      est_bits_out   [constant_gpack::channel_width-1:0],
-    output logic                                               slcd_bits_out [constant_gpack::channel_width-1:0],
+    output logic       [1:0]                                   slcd_bits_out [constant_gpack::channel_width-1:0],
     output logic signed [constant_gpack::code_precision-1:0]   act_codes_out [constant_gpack::channel_width-1:0],
 
     output  logic       [delay_width+width_width-1:0]          est_bits_out_delay,    
@@ -135,8 +135,7 @@ module bits_estimator_datapath #(
     assign est_bits_out_delay           = estimated_bits_buffer_delay[total_depth];
 
     //Slicer
-    wire logic cmp_out [constant_gpack::channel_width-1:0];
-    wire logic [1:0] tmp_cmp_out [constant_gpack::channel_width-1:0];
+    wire logic [1:0] cmp_out [constant_gpack::channel_width-1:0];
 
     generate
         for(gi =0; gi < constant_gpack::channel_width; gi = gi + 1) begin
@@ -154,17 +153,17 @@ module bits_estimator_datapath #(
         .codes(buffered_estimated_bit),
         .codes_delay(buffered_estimated_bit_delay),
         .bit_level(bit_level),
-        .sym_out   (tmp_cmp_out),
+        .sym_out   (cmp_out),
         .bit_out_delay(cmp_out_delay)
     );
 
 
     //Bits Pipeline
-    logic  cmp_out_buffer  [constant_gpack::channel_width-1:0][1:0];
+    logic [1:0] cmp_out_buffer  [constant_gpack::channel_width-1:0][1:0];
     logic [delay_width+width_width-1:0]    cmp_out_buffer_delay [1:0];
     buffer #(
         .numChannels (constant_gpack::channel_width),
-        .bitwidth    (1),
+        .bitwidth    (2),
         .depth       (1)
     ) cmp_out_buff_i (
         .in      (cmp_out),
@@ -175,7 +174,7 @@ module bits_estimator_datapath #(
         .buffer_delay(cmp_out_buffer_delay)
     );
 
-    logic flat_cmp_out_bits [constant_gpack::channel_width*2-1:0];
+    logic [1:0] flat_cmp_out_bits [constant_gpack::channel_width*2-1:0];
     logic [delay_width+width_width-1:0]    flat_cmp_out_bits_delay;
     flatten_buffer #(
         .numChannels(constant_gpack::channel_width),
@@ -188,8 +187,9 @@ module bits_estimator_datapath #(
         .flat_buffer_delay(flat_cmp_out_bits_delay)
     );
 
-    bit_aligner #(
+    data_aligner #(
         .width (constant_gpack::channel_width),
+        .bitwidth(2),
         .depth(2)
     ) b_algn_i (
         .bit_segment(flat_cmp_out_bits),
