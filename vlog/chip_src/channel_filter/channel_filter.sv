@@ -21,7 +21,7 @@ module channel_filter #(
 
     localparam idx = depth - 1;
 
-    logic signed [est_code_bitwidth+$clog2(depth)-1:0] int_est_code [width-1:0];
+    logic signed [est_code_bitwidth+$clog2(depth)+2-1:0] int_est_code [width-1:0];
 
 
     integer ii, jj;

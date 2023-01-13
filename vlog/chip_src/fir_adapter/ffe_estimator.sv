@@ -24,7 +24,7 @@ module ffe_estimator #(
     input wire logic [$clog2(adapt_bitwidth)-1:0] gain,
     input wire logic signed [est_bit_bitwidth-1:0] bit_level,
 
-    input wire logic signed [(2**sym_bitwidth)-2:0] sym_ctrl,
+    input wire logic fe_nrz_mode,
 
     input wire logic exec_inst,
     input wire logic [2:0] inst,
@@ -54,6 +54,23 @@ module ffe_estimator #(
 
         for(int ii = 0; ii < (2**sym_bitwidth)-1; ii += 1) begin
             therm_enc_slicer_outputs[ii] = (est_bit_val >  bit_level * sym_thrsh_table[ii]) ? 1 : 0;
+        end
+
+        if(fe_nrz_mode) begin
+            unique case (therm_enc_slicer_outputs)
+                3'b000: begin 
+                    therm_enc_slicer_outputs = 3'b000;
+                end
+                3'b001: begin 
+                    therm_enc_slicer_outputs = 3'b000;
+                end
+                3'b011: begin 
+                    therm_enc_slicer_outputs = 3'b111;
+                end
+                3'b111: begin 
+                    therm_enc_slicer_outputs = 3'b111;
+                end
+            endcase
         end
 
         unique case (therm_enc_slicer_outputs)

@@ -18,10 +18,10 @@ module test;
 	import jtag_reg_pack::*;
 
     localparam real dt=1.0/(16.0e9);
-    localparam real bw=10e9;
+    localparam real bw=3e9;
     localparam real tau=1.0/(2.0*3.14*bw);
-    localparam integer coeff0 = 32.0/(1.0-$exp(-dt/tau));
-    localparam integer coeff1 = -32.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
+    localparam integer coeff0 = 90.0/(1.0-$exp(-dt/tau));
+    localparam integer coeff1 = -90.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
 
     `ifdef NRZ 
         localparam integer sym_bitwidth=1;
@@ -145,6 +145,7 @@ module test;
 
     //logic signed [ffe_gpack::weight_precision-1:0] tmp_weights [constant_gpack::channel_width-1:0][ffe_gpack::length-1:0];
     logic [ffe_gpack::shift_precision-1:0] tmp_ffe_shift [constant_gpack::channel_width-1:0];
+    logic [channel_gpack::shift_precision-1:0] tmp_chan_shift [constant_gpack::channel_width-1:0];
 
     int fd_1, fd_2;
 	initial begin
@@ -178,24 +179,33 @@ module test;
             //$shm_probe("AS");
             // MM CDR instance
 
-            $shm_probe(tx_sym);
+            //$shm_probe(tx_sym);
 
             // Calculating PI control codes
-            $shm_probe(top_i.idcore.clk_adc);
+            //$shm_probe(top_i.idcore.clk_adc);
 
 
             // Number of error bits
-            $shm_probe(top_i.idcore.prbs_checker_i.err_bits);
-            $shm_probe(top_i.idcore.prbs_checker_i.err_signals);
+            //$shm_probe(top_i.idcore.prbs_checker_i.err_bits);
+            //$shm_probe(top_i.idcore.prbs_checker_i.err_signals);
 
             // clocks in analog_core
-            $shm_probe(top_i.iacore.clk_interp_slice);
-            $shm_probe(top_i.iacore.clk_interp_sw);
+            //$shm_probe(top_i.iacore.clk_interp_slice);
+            //$shm_probe(top_i.iacore.clk_interp_sw);
 
             // data in analog_core
             $shm_probe(inp);
             $shm_probe(inn);
-            $shm_probe(init_ffe_taps);
+            //$shm_probe(init_ffe_taps);
+
+            $shm_probe(top_i.idcore.datapath_i.res_err_stage_2_i.estimated_codes);
+            $shm_probe(top_i.idcore.datapath_i.res_err_stage_2_i.channel_est);
+            $shm_probe(top_i.idcore.datapath_i.res_err_stage_2_i.est_error);
+            $shm_probe(top_i.idcore.datapath_i.res_err_stage_2_i.end_buffer_est_codes);
+            $shm_probe(top_i.idcore.datapath_i.res_err_stage_2_i.end_buffer_adc_codes);
+            $shm_probe(top_i.idcore.datapath_i.res_err_stage_2_i.chan_filt_i.int_est_code);
+
+
 
             // data in digital_core
             $shm_probe(top_i.idcore.ddbg_intf_i.int_rstb);
@@ -204,28 +214,27 @@ module test;
             $shm_probe(top_i.idcore.jtag_i.ctrl_rstb_state);
             $shm_probe(top_i.idcore.estimated_bits);
             $shm_probe(top_i.idcore.prbs_checker_i.prbs_flags);
-            $shm_probe(top_i.idcore.ffe_est_i.exec_inst);
-            $shm_probe(top_i.idcore.ffe_est_i.inst);
+            //$shm_probe(top_i.idcore.ffe_est_i.exec_inst);
+            //$shm_probe(top_i.idcore.ffe_est_i.inst);
 
             $shm_probe(top_i.idcore.ffe_est_i.est_bit_val);
             $shm_probe(top_i.idcore.ffe_est_i.sliced_sym_val);
-            $shm_probe(top_i.idcore.ffe_est_i.err);
-            $shm_probe(top_i.idcore.ffe_est_i.adjust_val);
-            $shm_probe(top_i.idcore.ffe_est_i.tmp_thresh);
+            //$shm_probe(top_i.idcore.ffe_est_i.err);
+            //$shm_probe(top_i.idcore.ffe_est_i.adjust_val);
+            //$shm_probe(top_i.idcore.ffe_est_i.tmp_thresh);
 
-            $shm_probe(top_i.idcore.ffe_est_i.sym_idx);
-            $shm_probe(top_i.idcore.ffe_est_i.sym_ctrl);
+            //$shm_probe(top_i.idcore.ffe_est_i.sym_idx);
 
             $shm_probe(top_i.idcore.dsp_dbg_intf_i.weights);
-            $shm_probe(top_i.idcore.dsp_dbg_intf_i.ffe_shift);
+            //$shm_probe(top_i.idcore.dsp_dbg_intf_i.ffe_shift);
         `endif
 
         for(int ii= 0; ii < ffe_gpack::length; ii = ii + 1) begin
             init_ffe_taps[ii] = 0;
         end
         // Write Steven's handcalculated values in!
-        init_ffe_taps[0] = coeff0;
-        init_ffe_taps[1] = 0;
+        init_ffe_taps[0] = coeff0 * 1.1;
+        init_ffe_taps[1] = coeff1 * 0.8;
 
         // print test condition
         $display("bw=%0.3f (GHz)", bw/1.0e9);
@@ -293,9 +302,11 @@ module test;
         // Load the shift factor!
         for (loop_var=0; loop_var<Nti; loop_var=loop_var+1) begin
             tmp_ffe_shift[loop_var] = 5;
+            tmp_chan_shift[loop_var] = 4;
         end
         `FORCE_JTAG(ffe_shift, tmp_ffe_shift);
-        `FORCE_JTAG(fe_bit_target_level, 25);
+        `FORCE_JTAG(channel_shift, tmp_chan_shift);
+        `FORCE_JTAG(fe_bit_target_level, 40);
 
         #(10ns);
 
@@ -316,7 +327,7 @@ module test;
       	$display("Configuring the CDR...");
       	`FORCE_JTAG(Kp, 10);
       	`FORCE_JTAG(Ki, 3);
-		`FORCE_JTAG(en_freq_est, 1);
+		`FORCE_JTAG(en_freq_est, 0);
 		`FORCE_JTAG(en_ext_pi_ctl, 1);
         `FORCE_JTAG(ext_pi_ctl, 25);
 		`ifdef CDR_USE_FFE
@@ -332,22 +343,38 @@ module test;
         `FORCE_JTAG(en_v2t, 1);
         #(5ns);
 
-        
-        `FORCE_JTAG(fe_adapt_gain, 10);
+        `FORCE_JTAG(ce_gain, 11);
+        `FORCE_JTAG(fe_adapt_gain, 7);
         #(5ns);
         run_ffe_adaptation();
         
 		$display("Waiting for FFE to adapt");
-		for (loop_var=0; loop_var<60; loop_var=loop_var+1) begin
-		    $display("Interval %0d/10", loop_var);
+		for (loop_var=0; loop_var<100; loop_var=loop_var+1) begin
+		    $display("Interval %0d/100", loop_var);
 		    #(100ns);
 		end
+        `FORCE_JTAG(fe_adapt_gain, 6);
+        `FORCE_JTAG(ce_gain, 10);
+
+		$display("Waiting for Channel to adapt");
+		for (loop_var=0; loop_var<400; loop_var=loop_var+1) begin
+		    $display("Interval %0d/400", loop_var);
+		    #(100ns);
+		end
+        `FORCE_JTAG(ce_gain, 9);
+        `FORCE_JTAG(fe_adapt_gain, 5);
+		$display("Waiting for Channel to adapt");
+		for (loop_var=0; loop_var<400; loop_var=loop_var+1) begin
+		    $display("Interval %0d/400", loop_var);
+		    #(100ns);
+		end
+        `FORCE_JTAG(ce_gain, 8);
 
         // Run the PRBS tester
         $display("Running the PRBS tester");
         `FORCE_JTAG(prbs_checker_mode, 2);
-        for (loop_var=0; loop_var<60; loop_var=loop_var+1) begin
-		    $display("Interval %0d/10", loop_var);
+        for (loop_var=0; loop_var<250; loop_var=loop_var+1) begin
+		    $display("Interval %0d/250", loop_var);
 		    #(100ns);
 		end
         #(25ns);

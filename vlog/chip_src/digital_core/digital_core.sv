@@ -325,8 +325,8 @@ module digital_core import const_pack::*; (
     logic signed [8:0] stage2_est_errors [15:0];
     logic signed [8:0] stage2_est_errors_buffer [15:0][1:0];
     logic signed [8:0] flat_stage2_est_errors [31:0];
-    logic              stage2_slcd_bits [15:0];
-    logic              stage2_slcd_bits_buffer [15:0][1:0];
+    logic         [1:0]   stage2_slcd_bits [15:0];
+    logic         [1:0]     stage2_slcd_bits_buffer [15:0][1:0];
 
     logic signed [channel_gpack::est_channel_precision-1:0] single_chan_est [29:0];
 
@@ -389,7 +389,7 @@ module digital_core import const_pack::*; (
         .est_bits(sec_est_bits),
         .current_code(act_codes[0]),
 
-        .sym_ctrl(3'b111),
+        .fe_nrz_mode(0),
 
         .gain(ddbg_intf_i.fe_adapt_gain),
         .bit_level(ddbg_intf_i.fe_bit_target_level),
@@ -403,7 +403,7 @@ module digital_core import const_pack::*; (
     
     buffer #(
         .numChannels (16),
-        .bitwidth    (1),
+        .bitwidth    (2),
         .depth       (1),
         .delay_width(4),
         .width_width(4)

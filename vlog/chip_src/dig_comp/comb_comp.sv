@@ -27,15 +27,22 @@ module comb_comp #(
 	generate
 		for(gc=0; gc<numChannels; gc=gc+1) begin
 			always_comb begin
-				for(int ii = 0; ii < (2**sym_bitwidth)-1; ii += 1) begin
-					therm_enc_slicer_outputs[gc][ii] = (codes[gc] >  bit_level * sym_thrsh_table[ii]) ? 1 : 0;
-				end
+
+				therm_enc_slicer_outputs[gc][0] = (codes[gc] > bit_level*-2) ? 1 : 0;
+				therm_enc_slicer_outputs[gc][1] = (codes[gc] > bit_level*0) ? 1 : 0;
+				therm_enc_slicer_outputs[gc][2] = (codes[gc] > bit_level*2) ? 1 : 0;
+
 
 				unique case (therm_enc_slicer_outputs[gc])
 					3'b000: sym_out[gc] = sym_table[0];
 					3'b001: sym_out[gc] = sym_table[1];
 					3'b011: sym_out[gc] = sym_table[2];
 					3'b111: sym_out[gc] = sym_table[3];
+					default: begin
+						$display("Exception!");
+						$display("therm_enc_slicer_outputs[%d] = %b", gc, therm_enc_slicer_outputs[gc]);
+						$display("codes[%d] = %d", gc, codes[gc]);
+					end
 				endcase
 			end
 		end

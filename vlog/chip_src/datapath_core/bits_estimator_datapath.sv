@@ -137,11 +137,7 @@ module bits_estimator_datapath #(
     //Slicer
     wire logic [1:0] cmp_out [constant_gpack::channel_width-1:0];
 
-    generate
-        for(gi =0; gi < constant_gpack::channel_width; gi = gi + 1) begin
-            assign cmp_out[gi] = tmp_cmp_out[gi][1];
-        end
-    endgenerate
+
 
 
     logic [delay_width+width_width-1:0]    cmp_out_delay;
@@ -178,7 +174,7 @@ module bits_estimator_datapath #(
     logic [delay_width+width_width-1:0]    flat_cmp_out_bits_delay;
     flatten_buffer #(
         .numChannels(constant_gpack::channel_width),
-        .bitwidth   (1),
+        .bitwidth   (2),
         .depth (1)
     ) cmp_out_fb_i (
         .buffer    (cmp_out_buffer),
@@ -192,11 +188,11 @@ module bits_estimator_datapath #(
         .bitwidth(2),
         .depth(2)
     ) b_algn_i (
-        .bit_segment(flat_cmp_out_bits),
-        .bit_segment_delay(flat_cmp_out_bits_delay),
+        .data_segment(flat_cmp_out_bits),
+        .data_segment_delay(flat_cmp_out_bits_delay),
         .align_pos(align_pos),
-        .aligned_bits(slcd_bits_out),
-        .aligned_bits_delay(slcd_bits_out_delay)
+        .aligned_data(slcd_bits_out),
+        .aligned_data_delay(slcd_bits_out_delay)
     );
 
 

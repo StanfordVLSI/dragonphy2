@@ -12,7 +12,7 @@ module channel_estimator #(
     input wire logic rst_n,
 
     input wire logic signed [err_bitwidth-1:0] error [31:0],
-    input wire logic current_bit,
+    input wire logic [1:0] current_bit,
 
     input wire logic [$clog2(adapt_bitwidth)-1:0] gain,
     input wire logic [2:0]  inst,
@@ -29,8 +29,24 @@ module channel_estimator #(
 
     logic store_tap_decimal, load;
 
-    assign adjust_val = (current_bit) ?  -( error[tap_pos] <<< gain) : ( error[tap_pos] <<< gain);
     assign tap_pos_plus_one = tap_pos + 1;
+
+    always_comb begin
+        unique case (current_bit)
+            2'b10: begin 
+                adjust_val = -(error[tap_pos] <<< gain);
+            end
+            2'b11: begin 
+                adjust_val = -3*(error[tap_pos] <<< gain);
+            end
+            2'b01: begin 
+                adjust_val = 3*(error[tap_pos] <<< gain);
+            end
+            2'b00: begin 
+                adjust_val = (error[tap_pos] <<< gain);
+            end
+        endcase
+    end
 
 
     typedef enum logic [2:0] {RST, LOAD_AND_CALC, CALC_AND_STORE, EXEC, HALT} chan_est_states_t;

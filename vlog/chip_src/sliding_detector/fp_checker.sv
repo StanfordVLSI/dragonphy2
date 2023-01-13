@@ -51,26 +51,13 @@ module fp_checker #(
 
 
     always_comb begin
-        overflow = 0;
         for(int ii = 0; ii < seq_length; ii = ii + 1) begin
             error[ii] = 0;
             for(int jj = 0; jj < flip_pattern_depth; jj = jj + 1) begin
-                err_sign = error[ii][est_err_bitwidth+$clog2(flip_pattern_depth)+1-1];
-                prt_err_sign = partial_error[jj][ii][est_channel_bitwidth+1-1];
                 error[ii] += partial_error[jj][ii];
-                pst_op_err_sign = error[ii][est_err_bitwidth+$clog2(flip_pattern_depth)+1-1];
-
-                overflow = overflow || (err_sign == prt_err_sign) && (err_sign != pst_op_err_sign);
             end
             div_one_error[ii] = error[ii][est_err_bitwidth+$clog2(flip_pattern_depth)+1-1:chan_shift_factor];
-
-            dv_one_err_sign = div_one_error[ii][est_err_bitwidth+$clog2(flip_pattern_depth)+1-1-chan_shift_factor];
-            seq_sign = seq[ii][est_err_bitwidth-1];
-
             div_one_error[ii] += seq[ii];
-
-            pst_op_dv_one_err_sign = div_one_error[ii][est_err_bitwidth+$clog2(flip_pattern_depth)+1-1-chan_shift_factor];
-            overflow = overflow || (dv_one_err_sign == seq_sign) && (dv_one_err_sign != pst_op_dv_one_err_sign);
         end
         mse_val = 0;
         sqr_val = 0;
@@ -78,10 +65,7 @@ module fp_checker #(
             div_two_error[ii] = div_one_error[ii][est_err_bitwidth+$clog2(flip_pattern_depth)+1-1-chan_shift_factor:shift_factor];
             sqr_val = ((div_two_error[ii])**2 );
 
-            prev_op_mse_val = mse_val;
             mse_val += sqr_val;
-
-            overflow = overflow || (prev_op_mse_val > mse_val);
         end
     end
 

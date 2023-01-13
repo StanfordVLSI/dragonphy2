@@ -19,7 +19,7 @@ module datapath_core #(
     output logic        [delay_width+width_width-1:0]          stage1_sliced_bits_out_delay        ,
     //Stage 2
     output logic signed [error_gpack::est_error_precision-1:0] stage2_res_errors_out  [constant_gpack::channel_width-1:0],
-    output logic                                               stage2_sliced_bits_out [constant_gpack::channel_width-1:0],
+    output logic        [1:0]                                      stage2_sliced_bits_out [constant_gpack::channel_width-1:0],
     output logic        [delay_width+width_width-1:0]          stage2_res_errors_out_delay         ,
     output logic        [delay_width+width_width-1:0]          stage2_sliced_bits_out_delay        ,
     // Stage 3
@@ -90,12 +90,14 @@ module datapath_core #(
     logic        [delay_width+width_width-1:0]              stage2_res_error_buffer_delay    [stage4_depth-stage2_depth+2:0];
     logic        [delay_width+width_width-1:0]              stage3_sd_flags_buffer_delay     [stage4_depth-stage3_depth+2:0];
 
+    logic                                              tmp_stage2_sliced_bits_out [constant_gpack::channel_width-1:0];
+
     buffer #(
         .numChannels (constant_gpack::channel_width),
         .bitwidth    (1),
         .depth       (stage4_depth-stage2_depth+2)
     ) s2_sliced_bits_buff_i (
-        .in      (stage2_sliced_bits_out),
+        .in      (tmp_stage2_sliced_bits_out),
         .in_delay(stage2_sliced_bits_out_delay),
         .clk     (clk),
         .rstb    (rstb),
@@ -220,6 +222,13 @@ module datapath_core #(
 
     logic [delay_width+width_width-1:0] stage3_sliced_bits_out_delay;
     logic [delay_width+width_width-1:0] stage3_res_errors_out_delay ;
+    genvar gi;
+    generate
+        for(gi = 0; gi < constant_gpack::channel_width; gi = gi + 1) begin
+            assign tmp_stage2_sliced_bits_out[gi] = stage2_sliced_bits_out[gi][1];
+        end
+    endgenerate
+
 
     error_checker_datapath  #(
         .seq_length(4),
@@ -231,7 +240,7 @@ module datapath_core #(
         .clk(clk),
         .rstb(rstb),
         // Inputs
-        .sliced_bits_in(stage2_sliced_bits_out),
+        .sliced_bits_in(tmp_stage2_sliced_bits_out),
         .res_errors_in(stage2_res_errors_out),
 
         .sliced_bits_in_delay(stage2_sliced_bits_out_delay),

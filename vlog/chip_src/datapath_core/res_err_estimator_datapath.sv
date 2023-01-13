@@ -17,7 +17,7 @@ module res_err_estimator_datapath #(
     input logic [delay_width+width_width-1:0]                 act_codes_in_delay,    
 
     output logic signed [error_gpack::est_error_precision-1:0] res_err_out  [constant_gpack::channel_width-1:0],
-    output logic                                               slcd_bits_out [constant_gpack::channel_width-1:0],
+    output logic [1:0]                                          slcd_bits_out [constant_gpack::channel_width-1:0],
 
 
     output logic [delay_width+width_width-1:0] res_err_out_delay ,
@@ -57,7 +57,7 @@ module res_err_estimator_datapath #(
     generate
         for(gi = 0; gi < constant_gpack::channel_width; gi += 1) begin
             assign res_err_out[gi]   = est_error_buffer[gi][error_pipeline_depth];
-            assign slcd_bits_out[gi] = sliced_bits_buffer[gi][bits_pipeline_end][1];
+            assign slcd_bits_out[gi] = sliced_bits_buffer[gi][bits_pipeline_end];
         end
     endgenerate
 

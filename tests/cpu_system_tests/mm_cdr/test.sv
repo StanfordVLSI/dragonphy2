@@ -22,7 +22,7 @@ module test;
     localparam real tau=1.0/(2.0*3.14*bw);
     localparam integer coeff0 = 32.0/(1.0-$exp(-dt/tau));
     localparam integer coeff1 = -32.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
-
+ 
     `ifdef NRZ 
         localparam integer sym_bitwidth=1;
         parameter  [sym_bitwidth-1:0] sym_table [2**sym_bitwidth-1:0] = '{1'b1, 1'b0};
@@ -145,6 +145,7 @@ module test;
 
     //logic signed [ffe_gpack::weight_precision-1:0] tmp_weights [constant_gpack::channel_width-1:0][ffe_gpack::length-1:0];
     logic [ffe_gpack::shift_precision-1:0] tmp_ffe_shift [constant_gpack::channel_width-1:0];
+    logic [channel_gpack::shift_precision-1:0] tmp_chan_shift [constant_gpack::channel_width-1:0];
 
     int fd_1, fd_2;
 	initial begin
@@ -313,8 +314,10 @@ module test;
         // Load the shift factor!
         for (loop_var=0; loop_var<Nti; loop_var=loop_var+1) begin
             tmp_ffe_shift[loop_var] = 5;
+            tmp_chan_shift[loop_var] = 3;
         end
         `FORCE_JTAG(ffe_shift, tmp_ffe_shift);
+        `FORCE_JTAG(channel_shift, tmp_chan_shift);
         `FORCE_JTAG(fe_bit_target_level, 25);
 
         #(10ns);

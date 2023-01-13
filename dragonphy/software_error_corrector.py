@@ -6,7 +6,6 @@ import numpy as np
 from copy import copy, deepcopy
 from scipy import linalg, stats
 from dragonphy import *
-from joblib import Parallel, delayed
 
 def stringify(arr, func=str):
     return "".join([func(val) for val in arr])
