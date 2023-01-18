@@ -141,8 +141,8 @@ module error_checker_datapath #(
     logic [error_gpack::ener_bitwidth-1:0] mmse_vals [constant_gpack::channel_width-1:0];
 
     logic [delay_width+width_width-1:0] argmin_mmse_delay;
-    logic [delay_width+width_width-1:0] mmse_vals_delay;//
-    sliding_detector_v2 #(
+    logic [delay_width+width_width-1:0] mmse_vals_delay;
+    /*sliding_detector_v2 #(
         .seq_length(seq_length),
         .width(constant_gpack::channel_width),
         .depth(channel_gpack::est_channel_depth),
@@ -164,6 +164,28 @@ module error_checker_datapath #(
         .err_flags(argmin_mmse),
         .mmse_vals_delay(mmse_vals_delay),
         .err_flags_delay(argmin_mmse_delay)
+    ); */
+
+
+
+    trellis_neighbor_checker #(
+        .est_channel_bitwidth(detector_gpack::est_channel_precision),
+        .depth(channel_gpack::est_channel_depth),
+        .width(constant_gpack::channel_width),
+        .branch_bitwidth(3),
+        .trellis_neighbor_checker_depth(2),
+        .num_of_trellis_patterns(),
+        .trellis_pattern_depth(),
+        .seq_length(seq_length),
+        .ener_bitwidth(22),
+        .est_err_bitwidth(detector_gpack::est_error_precision)
+    ) tnc_i (
+        .channel(channel_est[0]) ,
+        .trellis_patterns(),
+        .nrz_mode(0),
+        .errstream(sd_flat_errors),
+
+        .flags(argmin_mmse)
     );
 
 

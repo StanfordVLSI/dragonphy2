@@ -1,5 +1,6 @@
 module energy_metric #(
     parameter integer est_err_bitwidth = 9,
+    parameter integer seq_length = 4,
     parameter integer ener_bitwidth = 18
 ) (
     input logic signed [est_err_bitwidth-1:0] injection_error_seq [seq_length-1:0], 
@@ -9,9 +10,9 @@ module energy_metric #(
 );
 
     always_comb begin
-        energy = 0
+        energy = 0;
         for(int ii =0; ii < seq_length; ii = ii + 1) begin
-            energy += (injection_error_seq+est_error)**2;
+            energy += ((injection_error_seq[ii]+est_error[ii])**2) >> 4;
         end
     end
 

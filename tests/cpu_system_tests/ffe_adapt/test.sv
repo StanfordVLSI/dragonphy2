@@ -176,7 +176,7 @@ module test;
         `ifdef DUMP_WAVEFORMS
             // Set up probing
             $shm_open("waves.shm");
-            //$shm_probe("AS");
+            $shm_probe("AS");
             // MM CDR instance
 
             //$shm_probe(tx_sym);
@@ -335,7 +335,33 @@ module test;
 		`endif
 		#(10ns);    
         toggle_cdr_rstb();
-        
+
+        repeat (3) 		#(10ns);    
+        `FORCE_JTAG(ce_inst, 3'b100);
+        `FORCE_JTAG(ce_addr, 0);
+        `FORCE_JTAG(ce_val, 200);
+        repeat (3) 		#(10ns);    
+        `FORCE_JTAG(ce_exec_inst, 1'b1);
+        repeat (3) 		#(10ns);    
+        `FORCE_JTAG(ce_exec_inst, 1'b0);
+        repeat (3) 		#(10ns);
+
+        `FORCE_JTAG(ce_inst, 3'b100);
+        `FORCE_JTAG(ce_addr, 1);
+        `FORCE_JTAG(ce_val, 70);
+        repeat (3) 		#(10ns);    
+        `FORCE_JTAG(ce_exec_inst, 1'b1);
+        repeat (3) 		#(10ns);  
+        `FORCE_JTAG(ce_exec_inst, 1'b0);
+        repeat (3) 		#(10ns);
+
+        `FORCE_JTAG(ce_inst, 3'b100);
+        `FORCE_JTAG(ce_addr, 2);
+        `FORCE_JTAG(ce_val, 25);
+        repeat (3) 		#(10ns);    
+        `FORCE_JTAG(ce_exec_inst, 1'b1);
+        repeat (3) 		#(10ns);  
+        `FORCE_JTAG(ce_exec_inst, 1'b0);  
         // Toggle the en_v2t signal to re-initialize the V2T ordering
         $display("Toggling en_v2t...");
         `FORCE_JTAG(en_v2t, 0);
@@ -343,7 +369,7 @@ module test;
         `FORCE_JTAG(en_v2t, 1);
         #(5ns);
 
-        `FORCE_JTAG(ce_gain, 11);
+        `FORCE_JTAG(ce_gain, 9);
         `FORCE_JTAG(fe_adapt_gain, 7);
         #(5ns);
         run_ffe_adaptation();
@@ -354,21 +380,21 @@ module test;
 		    #(100ns);
 		end
         `FORCE_JTAG(fe_adapt_gain, 6);
-        `FORCE_JTAG(ce_gain, 10);
+        `FORCE_JTAG(ce_gain, 8);
 
 		$display("Waiting for Channel to adapt");
 		for (loop_var=0; loop_var<400; loop_var=loop_var+1) begin
 		    $display("Interval %0d/400", loop_var);
 		    #(100ns);
 		end
-        `FORCE_JTAG(ce_gain, 9);
+        `FORCE_JTAG(ce_gain, 7);
         `FORCE_JTAG(fe_adapt_gain, 5);
 		$display("Waiting for Channel to adapt");
 		for (loop_var=0; loop_var<400; loop_var=loop_var+1) begin
 		    $display("Interval %0d/400", loop_var);
 		    #(100ns);
 		end
-        `FORCE_JTAG(ce_gain, 8);
+        `FORCE_JTAG(ce_gain, 6);
 
         // Run the PRBS tester
         $display("Running the PRBS tester");
