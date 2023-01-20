@@ -26,6 +26,7 @@ from .tester     	 import DragonTester
 from .directory      import Directory
 from .graph.graph    import BuildGraph
 from .viterbi        import ViterbiState, create_init_viterbi_state, run_error_viterbi, run_iteration_error_viterbi
+from .trellis_neighbor_checker.trellis_neighbor_checker import ErrorInjectionEngine, TrellisNeighborCheckerSlice, TrellisNeighborChecker
 
 # Some analysis libraries
 from .analysis.histogram import Histogram

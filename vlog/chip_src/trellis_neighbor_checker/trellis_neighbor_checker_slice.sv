@@ -9,7 +9,8 @@ module trellis_neighbor_checker_slice #(
     input logic signed [est_err_bitwidth-1:0] est_error [seq_length-1:0],
     input logic signed [ener_bitwidth-1:0] null_energy,
 
-    output logic [$clog2(2*num_of_trellis_patterns+1)-1:0] best_ener_idx
+    output logic [$clog2(2*num_of_trellis_patterns+1)-1:0] best_ener_idx,
+    output logic [ener_bitwidth-1:0] best_energy
 );
 
     logic [ener_bitwidth-1:0] energies [2*num_of_trellis_patterns:0];
@@ -39,7 +40,7 @@ module trellis_neighbor_checker_slice #(
     ) argmin_i (
         .energies(energies),
         .lowest_energy_idx(best_ener_idx),
-        .lowest_energy()
+        .lowest_energy(best_energy)
     );
 
-endmodule 
+endmodule

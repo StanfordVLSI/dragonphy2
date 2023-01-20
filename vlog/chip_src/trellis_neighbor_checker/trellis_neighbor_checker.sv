@@ -4,7 +4,7 @@ module trellis_neighbor_checker #(
     parameter integer width = 16,
     parameter integer branch_bitwidth  = 2,
     parameter integer trellis_neighbor_checker_depth = 2,
-    parameter integer num_of_trellis_patterns = 3,
+    parameter integer num_of_trellis_patterns = 4,
     parameter integer trellis_pattern_depth = 4,
     parameter integer seq_length = 3,
     parameter integer ener_bitwidth = 18,
@@ -22,6 +22,8 @@ module trellis_neighbor_checker #(
     logic signed [est_err_bitwidth-1:0] errstream_slice [width-1:0][seq_length-1:0];
     logic signed [est_err_bitwidth-1:0] injection_error_seqs [2*num_of_trellis_patterns-1:0][seq_length-1:0];
     logic [ener_bitwidth-1:0] null_energies [width-1:0];
+    logic [ener_bitwidth-1:0] null_diff_sq  [width-1:0][seq_length-1:0];
+    logic [ener_bitwidth-1:0] best_energies [width-1:0];
 
     assign channel_slice = channel[seq_length+trellis_pattern_depth-1-1:0];
 
@@ -35,6 +37,7 @@ module trellis_neighbor_checker #(
         .est_channel_bitwidth(est_channel_bitwidth)
     ) eie_i (
         .channel(channel_slice),
+        .channel_shift(3),
         .trellis_patterns(trellis_patterns),
         .nrz_mode(0),
         .injection_error_seqs(injection_error_seqs)
@@ -51,8 +54,32 @@ module trellis_neighbor_checker #(
             always_comb begin
                 null_energies[gi] = 0;
                 for(int ii =0; ii < seq_length; ii += 1) begin
-                        null_energies[gi] += (errstream_slice[gi][ii]**2) >> 4;
+                    null_diff_sq[gi][ii] = errstream_slice[gi][ii]**2;
+                    null_energies[gi] += null_diff_sq[gi][ii];
                 end
+                null_energies[gi] = null_energies[gi];
+                //$display("channel_slice = %p", format_channel_array(channel_slice));
+                //$display("trellis_patterns[0] = %p", trellis_patterns[0]);
+                //$display("trellis_patterns[1] = %p", trellis_patterns[1]);
+                //$display("trellis_patterns[2] = %p", trellis_patterns[2]);
+                //$display("trellis_patterns[3] = %p", trellis_patterns[3]);
+                //$display("injection_error_seqs[0] = %s", format_ies_array(injection_error_seqs[0]));
+                //$display("injection_error_seqs[1] = %s", format_ies_array(injection_error_seqs[1]));
+                //$display("injection_error_seqs[2] = %s", format_ies_array(injection_error_seqs[2]));
+                //$display("injection_error_seqs[3] = %s", format_ies_array(injection_error_seqs[3]));
+                //$display("injection_error_seqs[4] = %s", format_ies_array(injection_error_seqs[4]));
+                //$display("injection_error_seqs[5] = %s", format_ies_array(injection_error_seqs[5]));
+                //$display("injection_error_seqs[6] = %s", format_ies_array(injection_error_seqs[6]));
+                //$display("injection_error_seqs[7] = %s", format_ies_array(injection_error_seqs[7]));
+                //$display("errstream_slice[%0d] = %p", gi, format_errstream_array(errstream_slice[gi]));
+                //if( flags[gi] == 0) begin
+                //    $display("injection_error_seqs[0] = %s", format_ies_array({0,0,0}));
+                //end else begin
+                //    $display("injection_error_seqs[%0d] = %s", flags[gi], format_ies_array(injection_error_seqs[flags[gi]-1]));
+                //end
+                //$display("null_energies[%0d] = %0d", gi, null_energies[gi]);
+                //$display("flags[%0d] = %0d", gi, flags[gi]);
+                //$display("best_energies[%0d] = %0d", gi, best_energies[gi]);
             end
 
             trellis_neighbor_checker_slice #(
@@ -64,9 +91,44 @@ module trellis_neighbor_checker #(
                 .injection_error_seqs(injection_error_seqs),
                 .est_error(errstream_slice[gi]),
                 .null_energy(null_energies[gi]),
-                .best_ener_idx(flags[gi])
+                .best_ener_idx(flags[gi]),
+                .best_energy(best_energies[gi])
             );
         end
     endgenerate
+
+    function automatic string format_channel_array(input  logic signed [est_channel_bitwidth-1:0] channel [seq_length+trellis_pattern_depth-1-1:0]);
+        string str;
+        str = {"{", $sformatf("%d", channel[seq_length + trellis_pattern_depth -1 -1])};
+        for(int ii = seq_length + trellis_pattern_depth -1 -2 ; ii >= 0; ii = ii - 1) begin
+            str = {str, $sformatf(", %d", channel[ii])};
+        end
+        str = {str, "}"};
+
+        return str;
+    endfunction
+
+    function automatic string format_errstream_array(input  logic signed [est_err_bitwidth-1:0] errstream [seq_length-1:0]);
+        string str;
+        str = {"{", $sformatf("%d", errstream[seq_length-1])};
+        for(int ii = seq_length -2 ; ii >= 0; ii = ii - 1) begin
+            str = {str, $sformatf(", %d", errstream[ii])};
+        end
+        str = {str, "}"};
+
+        return str;
+    endfunction
+
+    function automatic string format_ies_array(input  logic signed [est_err_bitwidth-1:0] injection_error_seq [seq_length-1:0]);
+        string str;
+        str = {"{", $sformatf("%d", injection_error_seq[seq_length-1])};
+        for(int ii = seq_length -2 ; ii >= 0; ii = ii - 1) begin
+            str = {str, $sformatf(", %d", injection_error_seq[ii])};
+        end
+        str = {str, "}"};
+
+        return str;
+    endfunction
+
 
 endmodule 
