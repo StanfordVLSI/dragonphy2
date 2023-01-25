@@ -9,8 +9,10 @@ module test;
     localparam integer est_channel_bitwidth = 10;
     localparam integer ener_bitwidth = 24;
     localparam integer branch_bitwidth = 2;
+    localparam integer shift_bitwidth = 4;
 
     logic signed [est_channel_bitwidth-1:0] channel [depth-1:0];
+    logic [shift_bitwidth-1:0] channel_shift;
     logic signed [branch_bitwidth-1:0] trellis_patterns [num_of_trellis_patterns-1:0][trellis_pattern_depth-1:0];
     logic signed [est_err_bitwidth-1:0] errstream [2*width-1:0];
 
@@ -21,7 +23,8 @@ module test;
         .est_channel_bitwidth(est_channel_bitwidth), 
         .depth(30),  
         .width(width),  
-        .branch_bitwidth(2),  
+        .branch_bitwidth(2),
+        .shift_bitwidth(shift_bitwidth),
         .trellis_neighbor_checker_depth(2),  
         .num_of_trellis_patterns(num_of_trellis_patterns),  
         .trellis_pattern_depth(4),  
@@ -30,6 +33,7 @@ module test;
         .est_err_bitwidth(est_err_bitwidth) 
     ) tnc_i (
         .channel(channel),
+        .channel_shift(channel_shift),
         .trellis_patterns(trellis_patterns),
         .nrz_mode(0),
         .errstream(errstream),
@@ -37,7 +41,7 @@ module test;
     );
 
     initial begin
-        read_tnc_inputs_from_file("tnc_inputs.txt", channel, trellis_patterns, errstream);
+        read_tnc_inputs_from_file("tnc_inputs.txt", channel, channel_shift, trellis_patterns, errstream);
         #(1ns);
         write_tnc_outputs_to_file("tnc_outputs.txt", flags);
         $finish;
@@ -46,6 +50,7 @@ module test;
     task read_tnc_inputs_from_file(
         input string filename, 
         output logic signed [est_channel_bitwidth-1:0] channel [depth-1:0],
+        output logic [shift_bitwidth-1:0] channel_shift,
         output logic signed [branch_bitwidth-1:0] trellis_patterns [num_of_trellis_patterns-1:0][trellis_pattern_depth-1:0],
         output logic signed [est_err_bitwidth-1:0] errstream [2*width-1:0]
     );
@@ -55,6 +60,8 @@ module test;
         for(int ii = 0; ii < seq_length + trellis_pattern_depth -1; ii = ii + 1) begin
             $fscanf(file_id, "%d", channel[ii]);
         end
+
+        $fscanf(file_id, "%d", channel_shift);
 
         for(int ii = 0; ii < num_of_trellis_patterns; ii = ii + 1) begin
             for(int jj = 0; jj < trellis_pattern_depth; jj = jj + 1) begin

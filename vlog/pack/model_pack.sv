@@ -7,6 +7,7 @@ package model_pack;
     // Some general class
     ////////////////////
 
+
     class Delay; // Inverter delay
         integer seed;    // seed initialized randomly
         real td;         // delay

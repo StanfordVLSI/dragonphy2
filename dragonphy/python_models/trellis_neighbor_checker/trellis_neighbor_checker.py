@@ -50,12 +50,13 @@ def TrellisNeighborChecker(num_of_channels, seq_length, num_of_trellis_patterns,
     null_energies = [0]*num_of_channels
     chunked_est_errors = [[0]*seq_length]*num_of_channels
     flags = [0]*num_of_channels
+    eners = [8]*num_of_channels
 
     for ii in range(num_of_channels):
         for jj in range(seq_length):
-            chunked_est_errors[ii][jj] = est_errors[num_of_channels-seq_length+ii+jj]
+            chunked_est_errors[ii][jj] = est_errors[num_of_channels - seq_length + ii+jj]
             null_energies[ii] += (chunked_est_errors[ii][jj])**2 
         null_energies[ii] = null_energies[ii] 
-        (flags[ii], lowest_energy) = TrellisNeighborCheckerSlice(seq_length, 4, injection_error_seqs, chunked_est_errors[ii], null_energies[ii])
+        (flags[ii], eners[ii]) = TrellisNeighborCheckerSlice(seq_length, 4, injection_error_seqs, chunked_est_errors[ii], null_energies[ii])
     
-    return flags
+    return flags, eners

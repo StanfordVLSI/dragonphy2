@@ -28,30 +28,32 @@ def test_sim():
 
     injection_error_seqs = ErrorInjectionEngine(3, 4, channel_shift, nrz_mode, channel, trellis_patterns)
 
-    est_errors = np.random.randint(-10, 10, size=32)
-    for ii, val in enumerate(injection_error_seqs[0]):
-        est_errors[ii + 16] += val
-        est_errors[ii + 16 + 2] += val
+    for jj in range(100):
+        est_errors = np.random.randint(-10, 10, size=32)
+        offset = + np.random.randint(0,15)
+        for ii, val in enumerate(injection_error_seqs[np.random.randint(0,8)]):
+            est_errors[ii + 16 - 3 + offset] += val
 
-    gold_model_flags = TrellisNeighborChecker(16, 3, 4, channel, trellis_patterns, nrz_mode, est_errors, cp=2)
+        gold_model_flags = TrellisNeighborChecker(16, 3, 4, channel, trellis_patterns, nrz_mode, est_errors, cp=2)
 
-    write_tnc_inputs(BUILD_DIR / 'tnc_inputs.txt', channel, trellis_patterns, est_errors)
+        write_tnc_inputs(BUILD_DIR / 'tnc_inputs.txt', channel, channel_shift, trellis_patterns, est_errors)
 
-    DragonTester(
-        ext_srcs=deps,
-        directory=BUILD_DIR,
-        defines={}
-    ).run()
+        DragonTester(
+            ext_srcs=deps,
+            directory=BUILD_DIR,
+            defines={}
+        ).run()
 
-    actual_flag = read_tnc_outputs(BUILD_DIR / 'tnc_outputs.txt')
-    print(actual_flag)
-    print(gold_model_flags)
-    assert check_flags(gold_model_flags, actual_flag) == 0
+        actual_flag = read_tnc_outputs(BUILD_DIR / 'tnc_outputs.txt')
+        print(actual_flag)
+        print(gold_model_flags)
+        assert check_flags(gold_model_flags, actual_flag) == 0
 
-def write_tnc_inputs(filename, channel, trellis_patterns, est_errors):
+def write_tnc_inputs(filename, channel, channel_shift, trellis_patterns, est_errors):
     with open(filename, 'w') as f:
         for val in channel:
             print(f'{val}', file=f)
+        print(f'{channel_shift}', file=f)
         for arr in trellis_patterns:
             for val in arr:
                 print(f'{val}', file=f)
