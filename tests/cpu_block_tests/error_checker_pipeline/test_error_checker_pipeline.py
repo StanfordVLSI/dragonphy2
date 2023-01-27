@@ -30,10 +30,10 @@ def test_sim():
                             [+1,  0,  0,  0],
                             [+1, -1,  0,  0],
                             [+1,  0,  0, -1],
-                            [+1, -1, +1, -1]
+                            [+1, -1, +1, -1] 
     ]
 
-
+    
     error_checker_i = ErrorCheckerPipeline(16, seq_length, num_of_trellis_patterns, trellis_pattern_depth, 1)
     injection_error_seqs = ErrorInjectionEngine(seq_length, 4, channel_shift, nrz_mode, channel_est, trellis_patterns)
 

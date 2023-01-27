@@ -28,6 +28,9 @@ module test;
     logic [ener_bitwidth-1:0] flag_eners [width-1:0];
     logic  [1:0] syms_out [width-1:0]; 
 
+    //This test bench needs to be redesigned to have flopped inputs
+    //When the path is zero-delay, the output is not correct () 
+
     error_checker_datapath #(
         .seq_length(seq_length),
         .ener_bitwidth(ener_bitwidth),
