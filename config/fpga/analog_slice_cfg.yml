@@ -16,6 +16,8 @@ freq_tx: 16.0e+9
 freq_rx: 4.0e+9
 use_jitter: true
 use_noise: true
+
+bits_per_symbol: 2
 vp3: 0.3
 vp1: 0.1
 vn1: -0.1

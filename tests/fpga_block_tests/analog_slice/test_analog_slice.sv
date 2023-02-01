@@ -6,12 +6,13 @@
 
 module test_analog_slice #(
     parameter integer chunk_width=8,
+    parameter integer bits_per_symbol=2,
     parameter integer num_chunks=4,
     parameter integer pi_ctl_width=9,
     parameter integer slices_per_bank=4,
     parameter integer n_adc=8
 ) (
-    input wire logic [(chunk_width-1):0] chunk,
+    input wire logic [(chunk_width*bits_per_symbol-1):0] chunk,
     input wire logic [($clog2(num_chunks)-1):0] chunk_idx,
     input wire logic [(pi_ctl_width-1):0] pi_ctl,
     input wire logic [($clog2(slices_per_bank)-1):0] slice_offset,
