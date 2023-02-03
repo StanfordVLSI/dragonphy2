@@ -9,11 +9,11 @@ module symbol_adjust_reflector_datapath #(
     input logic clk,
     input logic rstb,
 
-    input logic signed [sym_bitwidth-1:0]                      symbol_adjust_in  [constant_gpack::channel_width-1:0],
-    input logic        [sym_bitwidth-1:0]                      symbols_in  [constant_gpack::channel_width-1:0],
+    input logic signed [(2**sym_bitwidth-1)-1:0]                      symbol_adjust_in  [constant_gpack::channel_width-1:0],
+    input logic signed [(2**sym_bitwidth-1)-1:0]                      symbols_in  [constant_gpack::channel_width-1:0],
     input logic signed [error_gpack::est_error_precision-1:0]  res_errors_in   [constant_gpack::channel_width-1:0],
 
-    output logic       [sym_bitwidth-1:0]                      symbols_out  [constant_gpack::channel_width-1:0],
+    output logic signed [(2**sym_bitwidth-1)-1:0]                      symbols_out  [constant_gpack::channel_width-1:0],
     output logic signed [error_gpack::est_error_precision-1:0] res_errors_out   [constant_gpack::channel_width-1:0],
     
     input logic signed [channel_gpack::est_channel_precision-1:0] channel_est            [constant_gpack::channel_width-1:0][channel_gpack::est_channel_depth-1:0],
@@ -26,11 +26,11 @@ module symbol_adjust_reflector_datapath #(
     localparam integer corrected_symbols_buffer_depth = error_channel_pipeline_depth + residual_error_output_pipeline_depth; 
     localparam integer rse_buffer_depth               = error_channel_pipeline_depth;
 
-    logic signed  [sym_bitwidth-1:0]                    symbol_adjust_buffer     [constant_gpack::channel_width-1:0][symbol_adjust_buffer_depth:0];
-    logic         [sym_bitwidth-1:0]                    symbols_buffer           [constant_gpack::channel_width-1:0][symbols_buffer_depth:0];
-    logic signed [error_gpack::est_error_precision-1:0] rse_buffer               [constant_gpack::channel_width-1:0][rse_buffer_depth:0];
+    logic signed  [(2**sym_bitwidth-1)-1:0]                    symbol_adjust_buffer     [constant_gpack::channel_width-1:0][symbol_adjust_buffer_depth:0];
+    logic signed  [(2**sym_bitwidth-1)-1:0]                    symbols_buffer           [constant_gpack::channel_width-1:0][symbols_buffer_depth:0];
+    logic signed  [error_gpack::est_error_precision-1:0]       rse_buffer               [constant_gpack::channel_width-1:0][rse_buffer_depth:0];
 
-    logic         [sym_bitwidth-1:0]                    corrected_symbols_buffer [constant_gpack::channel_width-1:0][corrected_symbols_buffer_depth:0];
+    logic signed  [(2**sym_bitwidth-1)-1:0]                    corrected_symbols_buffer [constant_gpack::channel_width-1:0][corrected_symbols_buffer_depth:0];
 
 
     logic signed [error_gpack::est_error_precision-1:0] inj_err_buffer           [constant_gpack::channel_width-1:0][error_channel_pipeline_depth:0];
@@ -43,23 +43,21 @@ module symbol_adjust_reflector_datapath #(
         end
     endgenerate
 
-    logic signed      [constant_gpack::sym_bitwidth:0]                    signed_corrected_symbols      [constant_gpack::channel_width-1:0];
-    logic             [constant_gpack::sym_bitwidth-1:0]                  corrected_symbols            [constant_gpack::channel_width-1:0];
+    logic signed      [(2**sym_bitwidth-1)-1:0]                  corrected_symbols            [constant_gpack::channel_width-1:0];
 
 
 
     //Update residual error trace
     always_comb begin
         for(int ii=0; ii<constant_gpack::channel_width; ii=ii+1) begin
-            signed_corrected_symbols[ii] = symbol_adjust_in[ii] + $signed(symbols_in[ii]);
-            corrected_symbols[ii] = $unsigned(signed_corrected_symbols[ii][sym_bitwidth-1:0]);
+            corrected_symbols[ii] =  symbols_in[ii] - 2*symbol_adjust_in[ii];
         end
     end
 
     //Detector pipeline
     signed_buffer #(
         .numChannels(constant_gpack::channel_width),
-        .bitwidth   (sym_bitwidth),
+        .bitwidth   ((2**sym_bitwidth-1)),
         .depth      (symbol_adjust_buffer_depth)
     )symbol_adjust_reg_i  (
         .in (symbol_adjust_in),
@@ -69,9 +67,9 @@ module symbol_adjust_reflector_datapath #(
     );
 
     //Detector pipeline
-    buffer #(
+    signed_buffer #(
         .numChannels(constant_gpack::channel_width),
-        .bitwidth   (sym_bitwidth),
+        .bitwidth   ((2**sym_bitwidth-1)),
         .depth      (corrected_symbols_buffer_depth)
     ) corr_symbols_reg_i (
         .in (corrected_symbols),
@@ -82,9 +80,9 @@ module symbol_adjust_reflector_datapath #(
 
 
     //Detector pipeline
-    buffer #(
+    signed_buffer #(
         .numChannels(constant_gpack::channel_width),
-        .bitwidth   (sym_bitwidth),
+        .bitwidth   ((2**sym_bitwidth-1)),
         .depth      (symbols_buffer_depth)
     ) symbols_reg_i (
         .in (symbols_in),
@@ -107,21 +105,21 @@ module symbol_adjust_reflector_datapath #(
     );
 
 
-    logic [sym_bitwidth-1:0] flat_symbols [constant_gpack::channel_width*3-1:0];
+    logic signed [(2**sym_bitwidth-1)-1:0] flat_symbols [constant_gpack::channel_width*3-1:0];
 
-    flatten_buffer #(
+    signed_flatten_buffer #(
         .numChannels(constant_gpack::channel_width),
-        .bitwidth   (sym_bitwidth),
+        .bitwidth   ((2**sym_bitwidth-1)),
         .depth (2)
     ) flag_out_fb_i (
         .buffer    (symbols_buffer),
         .flat_buffer(flat_symbols)
     );
 
-    logic signed [sym_bitwidth-1:0] flat_symbol_adjust [constant_gpack::channel_width*3-1:0];
+    logic signed [(2**sym_bitwidth-1)-1:0] flat_symbol_adjust [constant_gpack::channel_width*3-1:0];
     signed_flatten_buffer #(
         .numChannels(constant_gpack::channel_width),
-        .bitwidth   (sym_bitwidth),
+        .bitwidth   ((2**sym_bitwidth-1)),
         .depth (2)
     ) flag_ener_out_fb_i (
         .buffer    (symbol_adjust_buffer),

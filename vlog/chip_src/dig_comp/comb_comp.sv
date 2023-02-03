@@ -4,22 +4,16 @@ module comb_comp #(
 	parameter integer numChannels=16,
 	parameter integer inputBitwidth=8,
 	parameter integer thresholdBitwidth=8,
-	parameter integer delay_width=4,
-	parameter integer width_width=4,
 	parameter integer sym_bitwidth=2,
 	parameter logic [sym_bitwidth-1:0] sym_table [(2**sym_bitwidth)-1:0] = '{2'b10, 2'b11, 2'b01, 2'b00},
 	parameter logic signed [sym_bitwidth+1-1:0] sym_thrsh_table [(2**sym_bitwidth)-2:0] = '{2, 0, -2}
 ) (
 	input wire logic signed [inputBitwidth-1:0] codes [numChannels-1:0],
-	input wire logic [delay_width+width_width-1:0] codes_delay,
-
 	input wire logic signed [inputBitwidth-1:0] bit_level,
 
-	output logic [sym_bitwidth-1:0] sym_out [numChannels-1:0],
-	output logic [delay_width+width_width-1:0] bit_out_delay
+	output logic signed [(2**sym_bitwidth-1)-1:0] sym_out [numChannels-1:0]
 );
     logic [(2**sym_bitwidth)-2:0] therm_enc_slicer_outputs [numChannels-1:0];
-	assign bit_out_delay = codes_delay;
 
 	// I am not sure how this synthesizes vs explicitly having three thresholds and a thermometer decoder
 
@@ -34,10 +28,10 @@ module comb_comp #(
 
 
 				unique case (therm_enc_slicer_outputs[gc])
-					3'b000: sym_out[gc] = sym_table[0];
-					3'b001: sym_out[gc] = sym_table[1];
-					3'b011: sym_out[gc] = sym_table[2];
-					3'b111: sym_out[gc] = sym_table[3];
+					3'b000: sym_out[gc] = -3;
+					3'b001: sym_out[gc] = -1;
+					3'b011: sym_out[gc] = 1;
+					3'b111: sym_out[gc] = 3;
 					default: begin
 						$display("Exception!");
 						$display("therm_enc_slicer_outputs[%d] = %b", gc, therm_enc_slicer_outputs[gc]);

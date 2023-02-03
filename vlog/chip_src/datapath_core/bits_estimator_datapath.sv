@@ -12,7 +12,7 @@ module bits_estimator_datapath #(
     input wire logic rstb,
 
     output logic signed [ffe_gpack::output_precision-1:0]      est_syms_out   [constant_gpack::channel_width-1:0],
-    output logic       [sym_bitwidth-1:0]                      symbols_out [constant_gpack::channel_width-1:0],
+    output logic signed [(2**sym_bitwidth-1)-1:0]                      symbols_out [constant_gpack::channel_width-1:0],
     output logic signed [constant_gpack::code_precision-1:0]   act_codes_out [constant_gpack::channel_width-1:0],
 
     input wire logic signed [ffe_gpack::weight_precision-1:0]          weights [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0],
@@ -105,7 +105,7 @@ module bits_estimator_datapath #(
 
 
     //Slicer
-    wire logic [sym_bitwidth-1:0] cmp_out [constant_gpack::channel_width-1:0];
+    wire logic signed [(2**sym_bitwidth-1)-1:0] cmp_out [constant_gpack::channel_width-1:0];
 
     comb_comp #(
         .numChannels(cmp_gpack::width),
@@ -119,10 +119,10 @@ module bits_estimator_datapath #(
 
 
     //Bits Pipeline
-    logic [1:0] cmp_out_buffer  [constant_gpack::channel_width-1:0][1:0];
-    buffer #(
+    logic signed [(2**sym_bitwidth-1)-1:0] cmp_out_buffer  [constant_gpack::channel_width-1:0][1:0];
+    signed_buffer #(
         .numChannels (constant_gpack::channel_width),
-        .bitwidth    (sym_bitwidth),
+        .bitwidth    ((2**sym_bitwidth-1)),
         .depth       (1)
     ) cmp_out_buff_i (
         .in      (cmp_out),
@@ -131,19 +131,19 @@ module bits_estimator_datapath #(
         .buffer  (cmp_out_buffer)
     );
 
-    logic [sym_bitwidth-1:0] flat_cmp_out_bits [constant_gpack::channel_width*2-1:0];
-    flatten_buffer #(
+    logic signed [(2**sym_bitwidth-1)-1:0] flat_cmp_out_bits [constant_gpack::channel_width*2-1:0];
+    signed_flatten_buffer #(
         .numChannels(constant_gpack::channel_width),
-        .bitwidth   (sym_bitwidth),
+        .bitwidth   ((2**sym_bitwidth-1)),
         .depth (1)
     ) cmp_out_fb_i (
         .buffer    (cmp_out_buffer),
         .flat_buffer(flat_cmp_out_bits)
     );
 
-    data_aligner #(
+    signed_data_aligner #(
         .width (constant_gpack::channel_width),
-        .bitwidth(sym_bitwidth),
+        .bitwidth((2**sym_bitwidth-1)),
         .depth(2)
     ) b_algn_i (
         .data_segment(flat_cmp_out_bits),

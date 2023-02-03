@@ -37,7 +37,7 @@ module trellis_neighbor_checker #(
         .branch_bitwidth(branch_bitwidth),
         .shift_bitwidth(shift_bitwidth),
         .num_of_trellis_patterns(num_of_trellis_patterns),
-        .cp(2),
+        .cp(0),
         .est_channel_bitwidth(est_channel_bitwidth)
     ) eie_i (
         .channel(channel_slice),

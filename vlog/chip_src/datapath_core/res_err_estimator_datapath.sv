@@ -11,11 +11,11 @@ module res_err_estimator_datapath #(
     input logic clk,
     input logic rstb,
 
-    input logic [sym_bitwidth-1:0]                                         symbols_in [constant_gpack::channel_width-1:0],
-    input logic signed [constant_gpack::code_precision-1:0]   act_codes_in [constant_gpack::channel_width-1:0],
+    input logic signed [(2**sym_bitwidth-1)-1:0]               symbols_in [constant_gpack::channel_width-1:0],
+    input logic signed [constant_gpack::code_precision-1:0]    act_codes_in [constant_gpack::channel_width-1:0],
 
     output logic signed [error_gpack::est_error_precision-1:0] res_err_out  [constant_gpack::channel_width-1:0],
-    output logic [sym_bitwidth-1:0]                                          symbols_out [constant_gpack::channel_width-1:0],
+    output logic signed [(2**sym_bitwidth-1)-1:0]              symbols_out [constant_gpack::channel_width-1:0],
 
     input logic signed [channel_gpack::est_channel_precision-1:0] channel_est [constant_gpack::channel_width-1:0][channel_gpack::est_channel_depth-1:0],
     input logic        [channel_gpack::shift_precision-1:0]       channel_shift [constant_gpack::channel_width-1:0]
@@ -35,7 +35,7 @@ module res_err_estimator_datapath #(
     localparam actual_channel_bit_depth = constant_gpack::channel_width + channel_gpack::est_channel_depth - main_cursor_position; // This minus two is covertly performing a bit alignment!
 
     //Bits Pipeline
-    logic [1:0]                                         symbols_buffer  [constant_gpack::channel_width-1:0][bits_pipeline_depth:0];
+    logic signed [(2**sym_bitwidth-1)-1:0]              symbols_buffer  [constant_gpack::channel_width-1:0][bits_pipeline_depth:0];
     logic signed [constant_gpack::code_precision-1:0]   act_codes_buffer    [constant_gpack::channel_width-1:0][code_pipeline_depth:0];
     logic signed [error_gpack::est_error_precision-1:0] est_error_buffer    [constant_gpack::channel_width-1:0][error_pipeline_depth:0];
 
@@ -46,9 +46,9 @@ module res_err_estimator_datapath #(
         end
     endgenerate
 
-    buffer #(
+    signed_buffer #(
         .numChannels (constant_gpack::channel_width),
-        .bitwidth    (sym_bitwidth),
+        .bitwidth    ((2**sym_bitwidth-1)),
         .depth       (bits_pipeline_depth)
     ) sliced_bits_buff_i (
         .in      (symbols_in),
@@ -69,11 +69,11 @@ module res_err_estimator_datapath #(
         .buffer(act_codes_buffer)
     );
 
-    logic [1:0] flat_symbols [total_channel_bit_depth-1:0];
+    logic signed [(2**sym_bitwidth-1)-1:0] flat_symbols [total_channel_bit_depth-1:0];
 
-    flatten_buffer_slice #(
+    signed_flatten_buffer_slice #(
         .numChannels(constant_gpack::channel_width),
-        .bitwidth   (sym_bitwidth),
+        .bitwidth   ((2**sym_bitwidth-1)),
         .buff_depth (bits_pipeline_depth),
         .slice_depth(2),
         .start      (0)
@@ -84,7 +84,7 @@ module res_err_estimator_datapath #(
 
 
     //Channel Filter
-    logic signed [channel_gpack::est_code_precision-1:0] estimated_codes [constant_gpack::channel_width-1:0];
+    logic signed [channel_gpack::est_code_precision+1-1:0] estimated_codes [constant_gpack::channel_width-1:0];
 
     channel_filter #(
         .sym_bitwidth(sym_bitwidth),
@@ -92,9 +92,9 @@ module res_err_estimator_datapath #(
         .depth(channel_gpack::est_channel_depth),
         .shift_bitwidth(channel_gpack::shift_precision),
         .est_channel_bitwidth(channel_gpack::est_channel_precision),
-        .est_code_bitwidth(channel_gpack::est_code_precision)
+        .est_code_bitwidth(channel_gpack::est_code_precision+1)
     ) chan_filt_i (
-        .bitstream(flat_symbols[total_channel_bit_depth-1:total_channel_bit_depth-1 - actual_channel_bit_depth]),
+        .symstream(flat_symbols[total_channel_bit_depth-1:total_channel_bit_depth-1 - actual_channel_bit_depth]),
         .channel(channel_est),
         .shift(channel_shift),
         .est_code(estimated_codes)
@@ -102,11 +102,11 @@ module res_err_estimator_datapath #(
 
 
     //Channel pipeline
-    logic signed [channel_gpack::est_code_precision-1:0] estimated_codes_buffer [constant_gpack::channel_width-1:0][channel_pipeline_depth:0];
+    logic signed [channel_gpack::est_code_precision+1-1:0] estimated_codes_buffer [constant_gpack::channel_width-1:0][channel_pipeline_depth:0];
 
     signed_buffer #(
         .numChannels(constant_gpack::channel_width),
-        .bitwidth   (channel_gpack::est_code_precision),
+        .bitwidth   (channel_gpack::est_code_precision+1),
         .depth      (channel_pipeline_depth)
     ) chan_reg_i (
         .in (estimated_codes),
@@ -118,7 +118,7 @@ module res_err_estimator_datapath #(
     //Create Error by subtracting codes from channel filter
     logic signed [error_gpack::est_error_precision-1:0] est_error [constant_gpack::channel_width-1:0];
     logic signed [constant_gpack::code_precision-1:0]   end_buffer_adc_codes[constant_gpack::channel_width-1:0];
-    logic signed [constant_gpack::code_precision-1:0]   end_buffer_est_codes[constant_gpack::channel_width-1:0];
+    logic signed [constant_gpack::code_precision+1-1:0]   end_buffer_est_codes[constant_gpack::channel_width-1:0];
 
     always_comb begin
         for(int ii=0; ii<constant_gpack::channel_width; ii=ii+1) begin

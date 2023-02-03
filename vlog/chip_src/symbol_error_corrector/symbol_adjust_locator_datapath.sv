@@ -11,14 +11,14 @@ module symbol_adjust_locator_datapath #(
     input logic clk,
     input logic rstb,
 
-    input logic        [$clog2(2*num_of_trellis_patterns+1)-1:0]    sd_flags        [constant_gpack::channel_width-1:0],
-    input logic        [error_gpack::ener_bitwidth-1:0]        sd_flags_ener   [constant_gpack::channel_width-1:0],
-    input logic        [sym_bitwidth-1:0]                      symbols_in      [constant_gpack::channel_width-1:0],
-    input logic signed [error_gpack::est_error_precision-1:0]  res_errors_in   [constant_gpack::channel_width-1:0],
+    input logic        [$clog2(2*num_of_trellis_patterns+1)-1:0] sd_flags         [constant_gpack::channel_width-1:0],
+    input logic        [error_gpack::ener_bitwidth-1:0]          sd_flags_ener    [constant_gpack::channel_width-1:0],
+    input logic signed [(2**sym_bitwidth-1)-1:0]                 symbols_in       [constant_gpack::channel_width-1:0],
+    input logic signed [error_gpack::est_error_precision-1:0]    res_errors_in    [constant_gpack::channel_width-1:0],
 
-    output logic        [sym_bitwidth-1:0]                     symbols_out     [constant_gpack::channel_width-1:0],
-    output logic signed [error_gpack::est_error_precision-1:0] res_errors_out  [constant_gpack::channel_width-1:0],
-    output logic signed [sym_bitwidth-1:0]                     symbol_adjust_out[constant_gpack::channel_width-1:0],
+    output logic signed [(2**sym_bitwidth-1)-1:0]                symbols_out      [constant_gpack::channel_width-1:0],
+    output logic signed [error_gpack::est_error_precision-1:0]   res_errors_out   [constant_gpack::channel_width-1:0],
+    output logic signed [(2**sym_bitwidth-1)-1:0]                symbol_adjust_out[constant_gpack::channel_width-1:0],
 
     input  logic signed [branch_bitwidth-1:0]  trellis_patterns [num_of_trellis_patterns-1:0][trellis_pattern_depth-1:0]
 ); 
@@ -40,11 +40,11 @@ module symbol_adjust_locator_datapath #(
 
     logic [flag_width-1:0]                              flags_buffer             [constant_gpack::channel_width-1:0][flags_buffer_depth:0];
     logic [error_gpack::ener_bitwidth-1:0]              flag_ener_buffer         [constant_gpack::channel_width-1:0][flags_buffer_depth:0];
-    logic signed [sym_bitwidth-1:0]                     symbol_adjust_buffer         [constant_gpack::channel_width-1:0][symbol_adjust_output_pipeline_depth:0];
-    logic [sym_bitwidth-1:0]                            symbols_buffer       [constant_gpack::channel_width-1:0][symbols_buffer_depth:0];
+    logic signed [(2**sym_bitwidth-1)-1:0]              symbol_adjust_buffer         [constant_gpack::channel_width-1:0][symbol_adjust_output_pipeline_depth:0];
+    logic signed [(2**sym_bitwidth-1)-1:0]              symbols_buffer       [constant_gpack::channel_width-1:0][symbols_buffer_depth:0];
     logic signed [error_gpack::est_error_precision-1:0] rse_buffer               [constant_gpack::channel_width-1:0][rse_buffer_depth:0];
 
-    logic [sym_bitwidth-1:0]                            aligned_symbols_buffer       [constant_gpack::channel_width-1:0][aligned_symbols_buffer_depth:0];
+    logic signed [(2**sym_bitwidth-1)-1:0]              aligned_symbols_buffer       [constant_gpack::channel_width-1:0][aligned_symbols_buffer_depth:0];
     logic signed [error_gpack::est_error_precision-1:0] aligned_rse_buffer               [constant_gpack::channel_width-1:0][aligned_rse_buffer_depth:0];
 
 
@@ -57,9 +57,9 @@ module symbol_adjust_locator_datapath #(
     endgenerate
 
     //Detector pipeline
-    buffer #(
+    signed_buffer #(
         .numChannels(constant_gpack::channel_width),
-        .bitwidth   (sym_bitwidth),
+        .bitwidth   ((2**sym_bitwidth-1)),
         .depth      (symbols_buffer_depth)
     ) symbols_reg_i (
         .in (symbols_in),
@@ -80,10 +80,10 @@ module symbol_adjust_locator_datapath #(
         .buffer(rse_buffer)
     );
 
-    logic [sym_bitwidth-1:0] flat_u_symbols [constant_gpack::channel_width*(3)-1:0];
-    flatten_buffer_slice #(
+    logic signed [(2**sym_bitwidth-1)-1:0] flat_u_symbols [constant_gpack::channel_width*(3)-1:0];
+    signed_flatten_buffer_slice #(
         .numChannels(constant_gpack::channel_width),
-        .bitwidth   (sym_bitwidth),
+        .bitwidth   ((2**sym_bitwidth-1)),
         .buff_depth (symbols_buffer_depth),
         .slice_depth(2),
         .start(0)
@@ -92,14 +92,14 @@ module symbol_adjust_locator_datapath #(
         .flat_slice(flat_u_symbols)
     );
 
-    logic [sym_bitwidth-1:0] aligned_symbols [constant_gpack::channel_width-1:0];
-    data_aligner #(
+    logic signed [(2**sym_bitwidth-1)-1:0] aligned_symbols [constant_gpack::channel_width-1:0];
+    signed_data_aligner #(
         .width(constant_gpack::channel_width),
         .depth(3),
-        .bitwidth(sym_bitwidth)
+        .bitwidth((2**sym_bitwidth-1))
     ) symbols_aligner_i (
         .data_segment(flat_u_symbols),
-        .align_pos   (32-seq_length-8-2),
+        .align_pos   (32-seq_length-8),
         .aligned_data(aligned_symbols)
     );
 
@@ -122,13 +122,13 @@ module symbol_adjust_locator_datapath #(
         .bitwidth(error_gpack::est_error_precision)
     ) res_errors_aligner_i (
         .data_segment(flat_u_res),
-        .align_pos   (32-seq_length-8-2),
+        .align_pos   (32-seq_length-8),
         .aligned_data(aligned_rse)
     );
 
-    buffer #(
+    signed_buffer #(
         .numChannels(constant_gpack::channel_width),
-        .bitwidth   (sym_bitwidth),
+        .bitwidth   ((2**sym_bitwidth-1)),
         .depth      (aligned_symbols_buffer_depth)
     ) aligned_symbols_reg_i (
         .in (aligned_symbols),
@@ -192,7 +192,7 @@ module symbol_adjust_locator_datapath #(
         .flat_buffer(flat_flags_ener)
     );
 
-    logic signed [sym_bitwidth-1:0] symbol_adjusts [constant_gpack::channel_width-1:0];
+    logic signed [(2**sym_bitwidth-1)-1:0] symbol_adjusts [constant_gpack::channel_width-1:0];
     //subframe_flip_bit_locator -- unfortunately incurs a delay of 1 :( to borrow from future
     logic [flag_width-1:0] flat_flags_slice [constant_gpack::channel_width*(1+flags_buffer_depth)-8-1:0];
     logic [error_gpack::ener_bitwidth-1:0] flat_flags_ener_slice [constant_gpack::channel_width*(1+flags_buffer_depth)-8-1:0];
@@ -225,7 +225,7 @@ module symbol_adjust_locator_datapath #(
     // Pipeline Stage
     signed_buffer #(
         .numChannels(constant_gpack::channel_width),
-        .bitwidth   (2),
+        .bitwidth   ((2**sym_bitwidth-1)),
         .depth      (symbol_adjust_output_pipeline_depth)
     ) symbol_adjust_reg_i (
         .in (symbol_adjusts),

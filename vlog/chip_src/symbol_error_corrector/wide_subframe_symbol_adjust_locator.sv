@@ -13,7 +13,7 @@ module wide_subframe_symbol_adjust_locator #(
     input logic [$clog2(2*num_of_trellis_patterns+1)-1:0] flags [3*width-subframe_width-1:0],
     input logic [ener_bitwidth-1:0]                  flag_ener [3*width-subframe_width-1:0],
 
-    output logic signed [sym_bitwidth-1:0] symbol_adjust [width-1:0],
+    output logic signed [(2**sym_bitwidth-1)-1:0] symbol_adjust [width-1:0],
 
     input  logic signed [branch_bitwidth-1:0]  trellis_patterns [num_of_trellis_patterns-1:0][trellis_pattern_depth-1:0]
 
@@ -31,7 +31,7 @@ module wide_subframe_symbol_adjust_locator #(
     logic [$clog2(2*num_of_trellis_patterns+1)-1:0] combined_red_subframe_flags [2*width-1:0];
     logic [$clog2(2*num_of_trellis_patterns+1)-1:0] selected_flags [2*width-1:0];
 
-    logic unskewed_symbol_adjust [2*width-1:0];
+    logic signed [(2**sym_bitwidth-1)-1:0] unskewed_symbol_adjust [2*width-1:0];
     logic signed [sym_bitwidth-1:0] unfolded_trellis_patterns [2*num_of_trellis_patterns+1-1:0][trellis_pattern_depth-1:0];
 
 

@@ -12,14 +12,14 @@ module error_checker_datapath #(
     input logic rstb,
 
 
-    input logic        [sym_bitwidth-1:0]                         symbols_in             [constant_gpack::channel_width-1:0],
+    input logic signed [(2**sym_bitwidth-1)-1:0]                  symbols_in             [constant_gpack::channel_width-1:0],
     input logic signed [error_gpack::est_error_precision-1:0]     res_errors_in          [constant_gpack::channel_width-1:0],
 
 
     output logic        [error_gpack::ener_bitwidth-1:0]          sd_flags_ener          [constant_gpack::channel_width-1:0],
     output logic signed [error_gpack::est_error_precision-1:0]    res_errors_out         [constant_gpack::channel_width-1:0],
     output logic        [$clog2(2*num_of_trellis_patterns+1)-1:0] sd_flags               [constant_gpack::channel_width-1:0],
-    output logic        [sym_bitwidth-1:0]                        symbols_out            [constant_gpack::channel_width-1:0],
+    output logic signed [(2**sym_bitwidth-1)-1:0]                 symbols_out            [constant_gpack::channel_width-1:0],
 
     input logic signed [channel_gpack::est_channel_precision-1:0] channel_est            [channel_gpack::est_channel_depth-1:0],
     input logic        [channel_gpack::shift_precision-1:0]       channel_shift          ,
@@ -38,7 +38,7 @@ module error_checker_datapath #(
     localparam integer error_pipeline_end   = sliding_detector_output_pipeline_depth;
 
     logic signed [error_gpack::est_error_precision-1:0]  res_error_buffer   [constant_gpack::channel_width-1:0][error_pipeline_depth:0]; 
-    logic  [sym_bitwidth-1:0]                                              symbol_buffer [constant_gpack::channel_width-1:0][bits_pipeline_depth:0]; 
+    logic signed [(2**sym_bitwidth-1)-1:0]               symbol_buffer [constant_gpack::channel_width-1:0][bits_pipeline_depth:0]; 
 
     logic [error_gpack::ener_bitwidth-1:0] mmse_vals_buffer          [constant_gpack::channel_width-1:0][sliding_detector_output_pipeline_depth:0];
     logic [flag_width-1:0]                 argmin_mmse_buffer        [constant_gpack::channel_width-1:0][sliding_detector_output_pipeline_depth:0];
@@ -46,14 +46,14 @@ module error_checker_datapath #(
     //Flatten and slice bitstreams and errstreams
     generate
         for(gi = 0; gi < constant_gpack::channel_width; gi += 1) begin
-            assign res_errors_out[gi]   = res_error_buffer[gi][error_pipeline_end];
-            assign symbols_out[gi] = symbol_buffer[gi][bits_pipeline_end];
+            assign res_errors_out[gi] = res_error_buffer[gi][error_pipeline_end];
+            assign symbols_out[gi]    = symbol_buffer[gi][bits_pipeline_end];
         end
     endgenerate
 
-    buffer #(
+    signed_buffer #(
         .numChannels (constant_gpack::channel_width),
-        .bitwidth    (sym_bitwidth),
+        .bitwidth    ((2**sym_bitwidth-1)),
         .depth       (bits_pipeline_depth)
     ) sliced_bits_buff_i (
         .in      (symbols_in),

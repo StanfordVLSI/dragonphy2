@@ -68,7 +68,7 @@ module digital_core import const_pack::*; (
     wire logic packed_prbs_flags [Nti-1:0];
 
     wire logic        sliced_bits [Nti-1:0];
-    wire logic [constant_gpack::sym_bitwidth-1:0] tmp_sliced_bits [Nti-1:0];
+    wire logic signed [(2**constant_gpack::sym_bitwidth-1)-1:0] tmp_sliced_bits [Nti-1:0];
 
     wire logic signed [error_gpack::est_error_precision-1:0] est_errors [Nti-1:0];
     wire logic        [$clog2(2*detector_gpack::num_of_trellis_patterns+1)-1:0] sd_flags [Nti-1:0];
@@ -82,11 +82,11 @@ module digital_core import const_pack::*; (
     wire logic signed [7:0] trunc_est_bits_ext [Nti+Nti_rep-1:0];
 
     logic signed [constant_gpack::code_precision-1:0] act_codes [constant_gpack::channel_width-1:0];
-    logic [1:0] tmp_sliced_est_bits [constant_gpack::channel_width-1:0];
+    logic signed [(2**constant_gpack::sym_bitwidth-1)-1:0] tmp_sliced_est_bits [constant_gpack::channel_width-1:0];
     logic sliced_est_bits [constant_gpack::channel_width-1:0];
 
     wire logic checked_bits [constant_gpack::channel_width-1:0];
-    wire logic [constant_gpack::sym_bitwidth-1:0] tmp_checked_bits [constant_gpack::channel_width-1:0];
+    wire logic signed [(2**constant_gpack::sym_bitwidth-1)-1:0] tmp_checked_bits [constant_gpack::channel_width-1:0];
 
     //Sample the FFE output
     genvar gi, gj;
@@ -94,8 +94,8 @@ module digital_core import const_pack::*; (
         for(gi=0; gi<constant_gpack::channel_width; gi = gi + 1 ) begin
             assign trunc_est_bits[gi] = estimated_bits[gi][9:2];
             assign trunc_est_bits_ext[gi] = estimated_bits[gi][9:2];
-            assign sliced_bits[gi] = tmp_sliced_bits[gi][constant_gpack::sym_bitwidth-1];
-            assign checked_bits[gi] = tmp_checked_bits[gi][constant_gpack::sym_bitwidth-1];
+            assign sliced_bits[gi] = tmp_sliced_bits[gi] > 0 ? 1: 0;
+            assign checked_bits[gi] = tmp_checked_bits[gi] > 0 ? 1 : 0;
         end
     endgenerate
 
@@ -331,8 +331,8 @@ module digital_core import const_pack::*; (
     logic signed [8:0] stage2_est_errors [15:0];
     logic signed [8:0] stage2_est_errors_buffer [15:0][1:0];
     logic signed [8:0] flat_stage2_est_errors [31:0];
-    logic         [1:0]   stage2_slcd_bits [15:0];
-    logic         [1:0]     stage2_slcd_bits_buffer [15:0][1:0];
+    logic signed [(2**constant_gpack::sym_bitwidth-1)-1:0]   stage2_slcd_bits [15:0];
+    logic signed [(2**constant_gpack::sym_bitwidth-1)-1:0]   stage2_slcd_bits_buffer [15:0][1:0];
 
     logic signed [channel_gpack::est_channel_precision-1:0] single_chan_est [29:0];
 
@@ -402,9 +402,9 @@ module digital_core import const_pack::*; (
         .ffe_est(single_weights)
     );
     
-    buffer #(
+    signed_buffer #(
         .numChannels (16),
-        .bitwidth    (2),
+        .bitwidth    (2**constant_gpack::sym_bitwidth-1),
         .depth       (1)
     ) sb_buff_i (
         .in      (stage2_slcd_bits),
@@ -502,7 +502,6 @@ module digital_core import const_pack::*; (
 
     // PRBS
     // TODO: refine data decision from ADC (custom threshold, gain, invert option, etc.)
-    // TODO: mux PRBS input between ADC, FFE, and MLSD
 
     logic [Nti-1:0]   mux_prbs_rx_bits [3:0];
 
@@ -515,11 +514,11 @@ module digital_core import const_pack::*; (
     logic bits_adc [Nti-1:0];
     logic bits_ffe [Nti-1:0];
 
-    wire logic [1:0] tmp_cmp_out [constant_gpack::channel_width-1:0];
+    wire logic signed [(2**constant_gpack::sym_bitwidth-1)-1:0] tmp_cmp_out [constant_gpack::channel_width-1:0];
 
     generate
         for(gi=0; gi<constant_gpack::channel_width; gi = gi + 1) begin
-            assign bits_adc[gi] = tmp_cmp_out[gi][1];
+            assign bits_adc[gi] = (tmp_cmp_out[gi] > 0) ? 1 : 0;
         end
     endgenerate
 

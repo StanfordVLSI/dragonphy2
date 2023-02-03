@@ -16,21 +16,21 @@ module datapath_core #(
 
     //Stage 1
     output logic signed [ffe_gpack::output_precision-1:0]      stage1_est_bits_out    [constant_gpack::channel_width-1:0],
-    output logic        [sym_bitwidth-1:0]                     stage1_symbols_out [constant_gpack::channel_width-1:0],
+    output logic signed [(2**sym_bitwidth-1)-1:0]              stage1_symbols_out [constant_gpack::channel_width-1:0],
     output logic signed [constant_gpack::code_precision-1:0]   stage1_act_codes_out [constant_gpack::channel_width-1:0],
 
     //Stage 2
     output logic signed [error_gpack::est_error_precision-1:0] stage2_res_errors_out  [constant_gpack::channel_width-1:0],
-    output logic        [sym_bitwidth-1:0]                     stage2_symbols_out [constant_gpack::channel_width-1:0],
+    output logic signed [(2**sym_bitwidth-1)-1:0]              stage2_symbols_out [constant_gpack::channel_width-1:0],
     // Stage 3
     output logic        [error_gpack::ener_bitwidth-1:0]       stage3_sd_flags_ener   [constant_gpack::channel_width-1:0],
     output logic        [$clog2(2*detector_gpack::num_of_trellis_patterns+1)-1:0]                                  stage3_sd_flags        [constant_gpack::channel_width-1:0],
     // Stage 4
-    output logic        [sym_bitwidth-1:0]                     stage4_symbols_out [constant_gpack::channel_width-1:0],
+    output logic signed [(2**sym_bitwidth-1)-1:0]              stage4_symbols_out [constant_gpack::channel_width-1:0],
     output logic signed [error_gpack::est_error_precision-1:0] stage4_res_errors_out  [constant_gpack::channel_width-1:0],
   
     output logic signed [error_gpack::est_error_precision-1:0] stage4_aligned_stage2_res_errors_out  [constant_gpack::channel_width-1:0],
-    output logic        [sym_bitwidth-1:0]                     stage4_aligned_stage2_symbols_out [constant_gpack::channel_width-1:0],
+    output logic signed [(2**sym_bitwidth-1)-1:0]              stage4_aligned_stage2_symbols_out [constant_gpack::channel_width-1:0],
     output logic        [$clog2(2*detector_gpack::num_of_trellis_patterns+1)-1:0]                                  stage4_aligned_stage3_sd_flags        [constant_gpack::channel_width-1:0],
 
     dsp_debug_intf.dsp dsp_dbg_intf_i //Stand in for Debug Interface
@@ -43,13 +43,13 @@ module datapath_core #(
 
     parameter integer total_depth  = stage4_depth; //stage6_depth;
 
-    logic        [sym_bitwidth-1:0]                         stage2_symbols_buffer  [constant_gpack::channel_width-1:0][stage4_depth-stage2_depth+2:0];
+    logic signed [(2**sym_bitwidth-1)-1:0]                         stage2_symbols_buffer  [constant_gpack::channel_width-1:0][stage4_depth-stage2_depth+2:0];
     logic signed [error_gpack::est_error_precision-1:0]     stage2_res_error_buffer    [constant_gpack::channel_width-1:0][stage4_depth-stage2_depth+2:0];
     logic        [$clog2(2*detector_gpack::num_of_trellis_patterns+1)-1:0]                                      stage3_sd_flags_buffer     [constant_gpack::channel_width-1:0][stage4_depth-stage3_depth+2:0];
 
-    buffer #(
+    signed_buffer #(
         .numChannels (constant_gpack::channel_width),
-        .bitwidth    (sym_bitwidth),
+        .bitwidth    ((2**sym_bitwidth-1)),
         .depth       (stage4_depth-stage2_depth+2)
     ) s2_sliced_bits_buff_i (
         .in      (stage2_symbols_out),
@@ -89,13 +89,13 @@ module datapath_core #(
         end
     end
 
-    wire logic signed [ffe_gpack::weight_precision-1:0] weights [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0];
-    wire logic [ffe_gpack::shift_precision-1:0] ffe_shift [constant_gpack::channel_width-1:0];
-    wire logic signed [ffe_gpack::output_precision-1:0] bit_level;
-    wire logic signed [channel_gpack::est_channel_precision-1:0] channel_est [constant_gpack::channel_width-1:0][channel_gpack::est_channel_depth-1:0];
-    wire logic [channel_gpack::shift_precision-1:0] channel_shift [constant_gpack::channel_width-1:0];
-    wire logic [$clog2(constant_gpack::channel_width)-1:0] align_pos;
-    wire logic signed [branch_bitwidth-1:0] trellis_patterns       [num_of_trellis_patterns-1:0][trellis_pattern_depth-1:0];
+    wire logic signed [ffe_gpack::weight_precision-1:0]           weights [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0];
+    wire logic        [ffe_gpack::shift_precision-1:0]            ffe_shift [constant_gpack::channel_width-1:0];
+    wire logic signed [ffe_gpack::output_precision-1:0]           bit_level;
+    wire logic signed [channel_gpack::est_channel_precision-1:0]  channel_est [constant_gpack::channel_width-1:0][channel_gpack::est_channel_depth-1:0];
+    wire logic        [channel_gpack::shift_precision-1:0]        channel_shift [constant_gpack::channel_width-1:0];
+    wire logic        [$clog2(constant_gpack::channel_width)-1:0] align_pos;
+    wire logic signed [branch_bitwidth-1:0]                       trellis_patterns       [num_of_trellis_patterns-1:0][trellis_pattern_depth-1:0];
 
     simplify_dsp_dbg_intf simp_dsp_i (
         //Input 
@@ -149,7 +149,7 @@ module datapath_core #(
         .channel_shift(channel_shift)
     );
 
-    logic        [sym_bitwidth-1:0]                     stage3_symbols_out [constant_gpack::channel_width-1:0];
+    logic signed [(2**sym_bitwidth-1)-1:0]              stage3_symbols_out [constant_gpack::channel_width-1:0];
     logic signed [error_gpack::est_error_precision-1:0] stage3_res_errors_out  [constant_gpack::channel_width-1:0];
 
     error_checker_datapath  #(

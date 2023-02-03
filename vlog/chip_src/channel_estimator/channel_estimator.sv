@@ -12,7 +12,7 @@ module channel_estimator #(
     input wire logic rst_n,
 
     input wire logic signed [err_bitwidth-1:0] error [31:0],
-    input wire logic [1:0] current_bit,
+    input wire logic signed [2:0] current_bit,
 
     input wire logic [$clog2(adapt_bitwidth)-1:0] gain,
     input wire logic [2:0]  inst,
@@ -33,17 +33,20 @@ module channel_estimator #(
 
     always_comb begin
         unique case (current_bit)
-            2'b10: begin 
+            3: begin 
                 adjust_val = -(error[tap_pos] <<< gain);
             end
-            2'b11: begin 
+            1: begin 
                 adjust_val = -3*(error[tap_pos] <<< gain);
             end
-            2'b01: begin 
+            -1'b01: begin 
                 adjust_val = 3*(error[tap_pos] <<< gain);
             end
-            2'b00: begin 
+            -3: begin 
                 adjust_val = (error[tap_pos] <<< gain);
+            end
+            default : begin
+                adjust_val = 0;
             end
         endcase
     end

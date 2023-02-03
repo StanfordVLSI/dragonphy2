@@ -4,7 +4,7 @@ module error_injection_engine #(
         parameter integer trellis_pattern_depth = 3,
         parameter integer branch_bitwidth = 2,
         parameter integer num_of_trellis_patterns = 3,
-        parameter integer cp=2,
+        parameter integer cp=0,
         parameter integer shift_width = 3,
         parameter integer est_channel_bitwidth = 8
 ) (
@@ -16,7 +16,7 @@ module error_injection_engine #(
     output logic signed [est_err_bitwidth-1:0] injection_error_seqs [2*num_of_trellis_patterns-1:0][seq_length-1:0]
 ) ;
 
-    logic signed [est_channel_bitwidth + $clog2(trellis_pattern_depth)-1:0] internal_injection_error_seqs [num_of_trellis_patterns-1:0][seq_length-1:0];
+    logic signed [est_channel_bitwidth + $clog2(trellis_pattern_depth) + 1 -1:0] internal_injection_error_seqs [num_of_trellis_patterns-1:0][seq_length-1:0];
 
     always_comb begin
         // Initialize Injection Error Sequences to Zero
@@ -31,8 +31,8 @@ module error_injection_engine #(
         for(int ii = 0; ii < num_of_trellis_patterns; ii += 1) begin
             for (int jj = 0; jj < seq_length; jj += 1) begin
                 for(int kk =0; kk < trellis_pattern_depth; kk += 1) begin
-                    if( cp - kk + jj > 0) begin
-                        internal_injection_error_seqs[ii][jj]   += ((nrz_mode) ? 3 : 1)*trellis_patterns[ii][kk]*2*channel[(cp-kk) + jj];
+                    if( cp - kk + jj >= 0) begin
+                        internal_injection_error_seqs[ii][jj]   += trellis_patterns[ii][kk]*2*channel[(cp-kk) + jj];
                     end
                 end
             end
