@@ -12,6 +12,10 @@
     `define FUNC_DATA_WIDTH 18
 `endif
 
+`ifndef FUNC_NUMEL
+    `define FUNC_NUMEL 2048
+`endif
+
 module sim_ctrl(
     output reg rstb=1'b0,
     output reg tdi=1'b0,
@@ -24,7 +28,7 @@ module sim_ctrl(
     output reg [31:0] prbs_eqn,
     output reg [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_0,
     output reg [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_1,
-    output reg [8:0] chan_waddr,
+    output reg [$clog2(`FUNC_NUMEL)-1:0] chan_waddr,
     output reg chan_we,
     input wire tdo
 );
@@ -37,7 +41,7 @@ module sim_ctrl(
 
     // function parameters
     localparam real dt_samp=1.0e-9/511.0;
-    localparam integer numel=512;
+    localparam integer numel=FUNC_NUMEL;
     localparam real chan_delay=10.0*dt_samp;
 
     // calculate FFE coefficients
