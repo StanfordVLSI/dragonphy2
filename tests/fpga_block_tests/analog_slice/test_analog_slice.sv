@@ -26,7 +26,7 @@ module test_analog_slice #(
     input real noise_rms,
     input wire logic [((`FUNC_DATA_WIDTH)-1):0] wdata0,
     input wire logic [((`FUNC_DATA_WIDTH)-1):0] wdata1,
-    input wire logic [8:0] waddr,
+    input wire logic [10:0] waddr,
     input wire logic we
 );
     // declare svreal types for jitter and noise
