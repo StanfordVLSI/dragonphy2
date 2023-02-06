@@ -16,6 +16,13 @@
     `define FUNC_NUMEL 2048
 `endif
 
+
+
+`ifndef TC
+    `define TC 4e-9
+`endif
+
+
 module sim_ctrl(
     output reg rstb=1'b0,
     output reg tdi=1'b0,
@@ -40,7 +47,7 @@ module sim_ctrl(
     import constant_gpack::channel_width;
 
     // function parameters
-    localparam real dt_samp=1.0e-9/511.0;
+    localparam real dt_samp=`TC/(`FUNC_NUMEL - 1);
     localparam integer numel=FUNC_NUMEL;
     localparam real chan_delay=10.0*dt_samp;
 
@@ -98,7 +105,7 @@ module sim_ctrl(
 
         // update the step response function
         chan_we = 1'b1;
-        for (int idx=0; idx<512; idx=idx+1) begin
+        for (int idx=0; idx<FUNC_NUMEL; idx=idx+1) begin
             `ifndef HARD_FLOAT
                 chan_wdata_0 = `FLOAT_TO_FIXED(chan_func(idx*dt_samp), -16);
                 chan_wdata_1 = `FLOAT_TO_FIXED(chan_func((idx+1)*dt_samp)-chan_func(idx*dt_samp), -16);
