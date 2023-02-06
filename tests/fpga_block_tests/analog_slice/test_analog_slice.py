@@ -220,6 +220,9 @@ def test_analog_slice(simulator_name, slice_offset, dump_waveforms, num_tests=10
         defines['HARD_FLOAT'] = None
         defines['FUNC_DATA_WIDTH'] = DEF_HARD_FLOAT_WIDTH
 
+    #Added in NUMEL information
+    defines['FUNC_NUMEL'] = CFG['func_numel']
+
     # waveform dumping options
     flags = []
     if simulator_name == 'ncsim':

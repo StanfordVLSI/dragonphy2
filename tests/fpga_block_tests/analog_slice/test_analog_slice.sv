@@ -4,6 +4,10 @@
     `define FUNC_DATA_WIDTH 18
 `endif
 
+`ifndef FUNC_NUMEL
+    `define FUNC_NUMEL 2048
+`endif
+
 module test_analog_slice #(
     parameter integer chunk_width=8,
     parameter integer num_chunks=4,
@@ -26,7 +30,7 @@ module test_analog_slice #(
     input real noise_rms,
     input wire logic [((`FUNC_DATA_WIDTH)-1):0] wdata0,
     input wire logic [((`FUNC_DATA_WIDTH)-1):0] wdata1,
-    input wire logic [10:0] waddr,
+    input wire logic [($clog2(`FUNC_NUMEL))-1:0] waddr,
     input wire logic we
 );
     // declare svreal types for jitter and noise
