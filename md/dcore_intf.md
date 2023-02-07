@@ -56,6 +56,9 @@
 | fe_sampled_value           |   yes   | 9:0                    |                  | System       | in       |           |
 | cmp_thresh                 |   yes   | 9:0                    | Nti-1:0          | Test         | out      |   0       |
 | ffe_thresh                 |   yes   | 9:0                    | Nti-1:0          | Test         | out      |   0       |
+| new_trellis_pattern        |   yes   | 1:0                    | 3:0              | Test         | out      |   0       |
+| new_trellis_pattern_idx    |         | 1:0                    |                  | Test         | out      |   0       |
+| update_trellis_pattern     |         |                        |                  | Test         | out      |   0       |
 | adc_thresh                 |   yes   | 7:0                    | Nti-1:0          | Test         | out      |   0       |
 | sel_prbs_mux               |         | 1:0                    |                  | System       | out      |   0       |
 | sel_trig_prbs_mux          |         | 1:0                    |                  | System       | out      |   0       |

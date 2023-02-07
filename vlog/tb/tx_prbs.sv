@@ -4,10 +4,11 @@
 
 module tx_prbs #(
 	parameter real freq=16e9,
+	parameter integer sym_bitwidth = 1,
 	parameter real td=66.2e-12
 ) (
 	output wire logic clk,
-	output wire logic out
+	output wire logic [sym_bitwidth-1:0] out
 );
 
 	// Internal signals
@@ -34,12 +35,18 @@ module tx_prbs #(
 
 	// TX data
 
- 	prbs21 xprbs (
- 		.clk(clk),
- 		.rst(rst),
- 		.out(out)
- 	); 
-
+	genvar gi;
+	generate 
+		for(gi = 0; gi < sym_bitwidth; gi = gi + 1) begin
+			adv_prbs21  #(
+				.init('1 - gi)
+			) xprbs (
+				.clk(clk),
+				.rst(rst),
+				.out(out[gi])
+			); 
+		end
+	endgenerate 
 endmodule
 
 `default_nettype wire

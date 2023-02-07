@@ -9,11 +9,21 @@ module energy_metric #(
     output logic [ener_bitwidth-1:0] energy
 );
 
+    logic signed [est_err_bitwidth:0] error_diff [seq_length-1:0];
+    logic        [ener_bitwidth-1:0] error_diff_sq [seq_length-1:0];
+
     always_comb begin
+        for(int ii =0; ii < seq_length; ii = ii + 1) begin
+            error_diff[ii] =  est_error[ii] - injection_error_seq[ii];
+            error_diff_sq[ii] = error_diff[ii]**2;
+        end
+
         energy = 0;
         for(int ii =0; ii < seq_length; ii = ii + 1) begin
-            energy += ((injection_error_seq[ii]+est_error[ii])**2) >> 4;
+            energy += error_diff_sq[ii];
+            //$display("energy at iteration %d = %d", ii, energy);
         end
+        energy = energy;
     end
 
 endmodule 

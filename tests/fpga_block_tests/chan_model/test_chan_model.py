@@ -21,7 +21,7 @@ DELTA = 100e-9
 TPER = 1e-6
 
 # read YAML file that was used to configure the generated model
-CFG = yaml.load(open(get_file('config/fpga/chan.yml'), 'r'))
+CFG = yaml.load(open(get_file('config/fpga/chan.yml'), 'r'), Loader=yaml.Loader)
 
 # read channel data
 CHAN = Filter.from_file(get_file('build/chip_src/adapt_fir/chan.npy'))
