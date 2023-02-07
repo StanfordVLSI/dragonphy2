@@ -316,4 +316,4 @@ class AnalogSlice:
                 'n_adc', 'freq_tx', 'freq_rx', 'func_widths',
                 'func_exps', 'func_domain', 'use_jitter', 'use_noise',
                 #'vref_tx',
-                'vn3', 'vn1', 'vp1', 'vp3']
+                'bits_per_symbol', 'vn3', 'vn1', 'vp1', 'vp3']

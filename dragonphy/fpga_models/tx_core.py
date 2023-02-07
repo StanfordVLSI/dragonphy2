@@ -50,4 +50,4 @@ class TXCore:
 
     @staticmethod
     def required_values():
-        return ['dt', 'vp3', 'vp1', 'vn1', 'vn3']
+        return ['dt', 'bits_per_symbol', 'vp3', 'vp1', 'vn1', 'vn3']
