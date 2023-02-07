@@ -47,14 +47,26 @@ def adc_model(in_):
     # return result
     return sgn, mag
 
+def map_symbol(symbol):
+    if CFG['bits_per_symbol'] == 1:
+        return (2*(symbol[0]-0.5)) * CFG['vref_tx']
+    elif CFG['bits_per_symbol'] == 2:
+        mapping = {
+                    (0, 0): CFG['vn3'],
+                    (0, 1): CFG['vn1'],
+                    (1, 1): CFG['vp1'],
+                    (1, 0): CFG['vp3'],
+                  }
+        return mapping[tuple(symbol)]
+
 def channel_model(slice_offset, pi_ctl, all_bits):
     # compute sample time
     t_samp = (slice_offset + (pi_ctl / (2 ** CFG['pi_ctl_width']))) / CFG['freq_rx']
 
     # build up the sample value through superposition
     sample_value = 0
-    for k, bit in enumerate(all_bits):
-        weight = (2*(bit-0.5)) * CFG['vref_tx']  # +/- vref_tx
+    for k, symbol in enumerate(all_bits):
+        weight = map_symbol(symbol)  # +/- vref_tx
         t_rise = (CFG['slices_per_bank'] / CFG['freq_rx']) - (k + 1) * (1.0 / CFG['freq_tx'])
         t_fall = t_rise + (1.0 / CFG['freq_tx'])
         sample_value += weight * (CHAN.interp(t_samp-t_rise)-CHAN.interp(t_samp-t_fall))
@@ -78,6 +90,7 @@ def check_adc_result(sgn_meas, mag_meas, sgn_expct, mag_expct):
         raise Exception('BAD!')
 
 def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
+    print(CFG)
     # set seed for repeatable behavior
     random.seed(0)
 
@@ -133,7 +146,9 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
         return int(''.join(str(elem) for elem in lis), 2)
 
     def poke_bits(bits):
-        t.poke(dut.bits, to_bv(bits))
+        # even if there are multiple bits per symbol, t expects them to be packed flat
+        bits_flat = [b for symbol in bits for b in symbol]
+        t.poke(dut.bits, to_bv(bits_flat))
 
     def poke_pi_ctl(pi_ctl):
         for k in range(4):
@@ -149,7 +164,8 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
     test_cases = []
     for x in range(num_tests):
         pi_ctl = [random.randint(0, (1 << CFG['pi_ctl_width']) - 1) for _ in range(4)]
-        new_bits = [random.randint(0, 1) for _ in range(16)]
+        new_bits = [[random.randint(0, 1) for i in range(CFG['bits_per_symbol'])]
+                    for _ in range(16)]
         test_cases.append([pi_ctl, new_bits])
 
     # initialize
@@ -269,3 +285,6 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
 
     # declare success
     print('Success!')
+
+if __name__ == '__main__':
+    test_analog_core('vivado', False)
