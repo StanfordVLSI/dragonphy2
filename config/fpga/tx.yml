@@ -1,4 +1,5 @@
 dt: 0.1e-6
+bits_per_symbol: 2
 vp3: 0.3
 vp1: 0.1
 vn1: -0.1
