@@ -11,6 +11,9 @@ parameter_list:
   - &sequence_length 3
   - &channel_shift_precision 4
   - &ffe_shift_precision 5
+  - &num_of_trellis_patterns 4
+  - &trellis_pattern_depth 4
+  - &sym_bitwidth 2
 
 
 
@@ -23,6 +26,7 @@ generic:
     ffe_weight_precision: *ffe_weight_precision
     ffe_shift: 8
     mlsd_shift: 8
+    sym_bitwidth: 2
     stage1_ffe_pipeline_depth:             1
     stage2_chan_pipeline_depth:            1
     stage2_err_out_pipeline_depth:         0
@@ -71,7 +75,8 @@ generic:
       seq_length: *sequence_length
       est_error_precision : *est_error_precision
       est_channel_precision: *est_channel_precision
-
-
+      branch_bitwidth: 2
+      num_of_trellis_patterns: *num_of_trellis_patterns
+      trellis_pattern_depth: *trellis_pattern_depth
 
 

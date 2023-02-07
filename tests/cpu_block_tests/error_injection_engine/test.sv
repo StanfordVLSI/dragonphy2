@@ -1,195 +1,84 @@
-`include "mLingua_pwl.vh"
-
-`ifndef W_INP_TXT
-    `define W_INP_TXT
-`endif
-
-`ifndef W_OUT_TXT
-    `define W_OUT_TXT
-`endif
-
-`ifndef W_INC_TXT
-    `define W_INC_TXT
-`endif
-
-`ifndef W_PLS_TXT
-    `define W_PLS_TXT
-`endif
-
-
-
-
 module test;
-
-    localparam integer width = 16;
-    localparam integer depth = 30;
     localparam integer bitwidth=8;
+    localparam integer seq_length = 3;
+    localparam integer est_err_bitwidth = 9;
+    localparam integer trellis_pattern_depth = 4;
+    localparam integer branch_bitwidth = 2;
+    localparam integer num_of_trellis_patterns = 4;
+    localparam integer cp = 2;
+    localparam integer est_channel_bitwidth = 10;
 
-    logic clk, rstb;
+    logic signed [est_channel_bitwidth-1:0] channel [(seq_length+trellis_pattern_depth-1)-1:0];
+    logic signed [branch_bitwidth-1:0] trellis_patterns [num_of_trellis_patterns-1:0][trellis_pattern_depth-1:0];
+    logic nrz_mode;
+    logic signed [est_err_bitwidth-1:0] injection_error_seqs [2*num_of_trellis_patterns-1:0][seq_length-1:0];
+    logic [2:0] channel_shift;
 
-    logic [width*2-1:0] data_reg;
-    logic [width*2-1:0] d_reg_arr;
-    logic signed [1:0] arr [width-1:0];
-    logic  [1+$clog2(width)+$clog2(depth)-1:0] inst_reg;
-    logic exec = 0;
-
-    logic signed [bitwidth-1:0] value;
-    logic signed [1:0] onebit_val;
-    logic signed [bitwidth-1:0] read_reg;
-    logic signed [bitwidth-1:0] weights [width-1:0][depth-1:0];
-
-    logic pul_wr;
-    logic pul_wr_in;
-    logic pul_wr_inc;
-    logic pul_wr_plsone;
-
-    weight_clock #(.period(2ns)) clk_gen (.clk(clk));
-
-    weight_manager #(.width(width), .depth(depth), .bitwidth(bitwidth)) wm_i (
-        .data(data_reg),
-        .inst(inst_reg),
-        .exec(exec),
-        .clk(clk),
-        .rstb(rstb),
-
-        .read_reg(read_reg),
-        .weights(weights)
-    );
-
-    arr2dregconv #(.width(width)) adregc_i (.arr(arr), .d_reg(d_reg_arr));
-
-    weight_recorder #(.width(width), .depth(depth), .filename(`W_OUT_TXT)) wr_i (
-        .read_reg(read_reg),
-        .d_idx(inst_reg[$clog2(depth)-1:0]),
-        .w_idx(inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)]),
-        .clk     (pul_wr),
-        .en      (1'b1)
-    );
-
-    weight_recorder #(.width(width), .depth(depth), .filename(`W_INP_TXT)) wr_in_i (
-        .read_reg(value),
-        .d_idx(inst_reg[$clog2(depth)-1:0]),
-        .w_idx(inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)]),
-        .clk     (pul_wr_in),
-        .en      (1'b1)
-    );
-
-    weight_recorder #(.width(width), .depth(depth), .bitwidth(2), .filename(`W_INC_TXT)) wr_inc_i (
-        .read_reg(onebit_val),
-        .d_idx(inst_reg[$clog2(depth)-1:0]),
-        .w_idx(inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)]),
-        .clk     (pul_wr_inc),
-        .en      (1'b1)
-    );
-
-    weight_recorder #(.width(width), .depth(depth), .filename(`W_PLS_TXT)) wr_plone_i (
-        .read_reg(read_reg),
-        .d_idx(inst_reg[$clog2(depth)-1:0]),
-        .w_idx(inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)]),
-        .clk     (pul_wr_plsone),
-        .en      (1'b1)
-    );
-
-    genvar gj;
-    generate
-    for(gj=0; gj<width; gj=gj+1) begin
-        initial begin
-            arr[gj] = 0;
-        end
-    end
-    endgenerate
+    error_injection_engine #(
+        .seq_length(seq_length),
+        .est_err_bitwidth(est_err_bitwidth),
+        .trellis_pattern_depth(trellis_pattern_depth),
+        .branch_bitwidth(branch_bitwidth),
+        .num_of_trellis_patterns(num_of_trellis_patterns),
+        .cp(2),
+        .shift_width(3),
+        .est_channel_bitwidth(est_channel_bitwidth)
+    ) eie_i (
+        .channel(channel),
+        .trellis_patterns(trellis_patterns),
+        .nrz_mode(nrz_mode),
+        .channel_shift(channel_shift),
+        .injection_error_seqs(injection_error_seqs)
+    ) ;
 
     initial begin
-        integer ii, jj;
-        rstb      = 0;
-        data_reg  = 0;
-        inst_reg  = 0; 
-        @(posedge clk) rstb = 1;
-
-        for(ii = 0; ii < width; ii = ii + 1) begin
-            for(jj = 0; jj < depth; jj=jj+1) begin
-                value = $signed($random%(2**bitwidth));
-                load(jj, ii, value);
-                pulse_wr_in();
-            end
-        end
-
-        for(ii = 0; ii < width; ii = ii + 1) begin
-            for(jj = 0; jj < depth; jj=jj+1) begin
-                read(jj, ii);
-                pulse_wr();
-            end
-        end
-
-        for(jj = 0; jj < depth; jj=jj+1) begin
-            for(ii = 0; ii < width; ii = ii + 1) begin
-                onebit_val = $signed($random%(2));
-                arr[ii] = onebit_val;
-                inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)] = ii;
-                inst_reg[$clog2(depth)-1:0] = jj;
-                @(posedge clk);
-                pulse_wr_inc();
-            end
-            increment(jj, ii);
-        end
-
-        for(ii = 0; ii < width; ii = ii + 1) begin
-            for(jj = 0; jj < depth; jj=jj+1) begin
-                read(jj, ii);
-                pulse_wr_plsone();
-            end
-        end
-
+        read_inputs_from_file("eie_inputs.txt", channel_shift, nrz_mode, channel, trellis_patterns);
         #(1ns);
+        write_outputs_to_file("eie_outputs.txt", injection_error_seqs);
         $finish;
     end
 
-    task increment(input logic [$clog2(depth)-1:0] d_idx, logic [$clog2(width)-1:0] w_idx);
-        inst_reg[$clog2(depth)+$clog2(width)] = 1;
-        inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)] = w_idx;
-        inst_reg[$clog2(depth)-1:0] = d_idx;
-        data_reg = d_reg_arr;
-        toggle_exec();
-    endtask
+task read_inputs_from_file(input string filename, output logic [2:0] channel_shift, output logic nrz_mode, output logic signed [est_channel_bitwidth-1:0] channel [(seq_length+trellis_pattern_depth-1)-1:0], output logic signed [branch_bitwidth-1:0] trellis_patterns [num_of_trellis_patterns-1:0][trellis_pattern_depth-1:0]);
+    integer file_id;
+    file_id =  $fopen(filename, "r");
 
-    task read(input logic [$clog2(depth)-1:0] d_idx, logic [$clog2(width)-1:0] w_idx);
-        inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)] = w_idx;
-        inst_reg[$clog2(depth)-1:0] = d_idx;
-        @(posedge clk);
-    endtask
+    $fscanf(file_id, "%d", channel_shift);
+    $fscanf(file_id, "%d", nrz_mode);
 
-    task load(input logic [$clog2(depth)-1:0] d_idx, logic [$clog2(width)-1:0] w_idx, logic [bitwidth-1:0] value);
-        inst_reg[$clog2(depth)+$clog2(width)] = 0;
-        inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)] = w_idx;
-        inst_reg[$clog2(depth)-1:0] = d_idx;
-        data_reg[bitwidth-1:0] = value;
-        toggle_exec();
-    endtask
+    for(int ii = 0; ii < seq_length+trellis_pattern_depth-1; ii = ii + 1) begin
+        $fscanf(file_id, "%d", channel[ii]);
+    end
 
-    task pulse_wr;
-        pul_wr = 1;
-        #0 pul_wr = 0;
-    endtask
+    for(int ii = 0; ii < num_of_trellis_patterns; ii = ii + 1) begin
+        for(int jj = 0; jj < trellis_pattern_depth; jj = jj + 1) begin
+            $fscanf(file_id, "%d", trellis_patterns[ii][jj]);
+        end
+    end
 
-    task pulse_wr_in;
-        pul_wr_in = 1;
-        #0 pul_wr_in = 0;
-    endtask
+    $fclose(file_id);
+endtask
 
-    task pulse_wr_inc;
-        pul_wr_inc = 1;
-        #0 pul_wr_inc = 0;
-    endtask
+task write_outputs_to_file(input string filename, input logic signed [est_err_bitwidth-1:0] injection_error_seqs [2*num_of_trellis_patterns-1:0][seq_length-1:0]);
+    integer file_id;
+    file_id = $fopen(filename, "w");
 
-    task pulse_wr_plsone;
-        pul_wr_plsone = 1;
-        #0 pul_wr_plsone = 0;
-    endtask
+    for(int ii = 0; ii < 2*num_of_trellis_patterns; ii = ii + 1) begin
+        $fwrite(file_id, "%s\n", format_array(injection_error_seqs[ii]));
+    end
 
-    task toggle_exec;
-        @(posedge clk) exec=1;
-        @(posedge clk) exec=0;
-    endtask
+    $fclose(file_id);
+endtask
+
+function automatic string format_array(input  logic signed [est_err_bitwidth-1:0] injection_error_seq [seq_length-1:0]);
+    string str;
+    str = {"{", $sformatf("%d", injection_error_seq[seq_length-1])};
+    for(int ii = seq_length -2 ; ii >= 0; ii = ii - 1) begin
+        str = {str, $sformatf(", %d", injection_error_seq[ii])};
+    end
+    str = {str, "}"};
+
+    return str;
+endfunction
 
 
 endmodule : test

@@ -1,195 +1,88 @@
-`include "mLingua_pwl.vh"
-
-`ifndef W_INP_TXT
-    `define W_INP_TXT
-`endif
-
-`ifndef W_OUT_TXT
-    `define W_OUT_TXT
-`endif
-
-`ifndef W_INC_TXT
-    `define W_INC_TXT
-`endif
-
-`ifndef W_PLS_TXT
-    `define W_PLS_TXT
-`endif
-
-
-
-
 module test;
 
+    localparam integer seq_length = 3;
     localparam integer width = 16;
     localparam integer depth = 30;
-    localparam integer bitwidth=8;
+    localparam integer est_err_bitwidth = 9;
+    localparam integer num_of_trellis_patterns = 4;
+    localparam integer trellis_pattern_depth = 4;
+    localparam integer est_channel_bitwidth = 10;
+    localparam integer ener_bitwidth = 24;
+    localparam integer branch_bitwidth = 2;
+    localparam integer shift_bitwidth = 4;
 
-    logic clk, rstb;
+    logic signed [est_channel_bitwidth-1:0] channel [depth-1:0];
+    logic [shift_bitwidth-1:0] channel_shift;
+    logic signed [branch_bitwidth-1:0] trellis_patterns [num_of_trellis_patterns-1:0][trellis_pattern_depth-1:0];
+    logic signed [est_err_bitwidth-1:0] errstream [2*width-1:0];
 
-    logic [width*2-1:0] data_reg;
-    logic [width*2-1:0] d_reg_arr;
-    logic signed [1:0] arr [width-1:0];
-    logic  [1+$clog2(width)+$clog2(depth)-1:0] inst_reg;
-    logic exec = 0;
+    logic [$clog2(2*num_of_trellis_patterns+1)-1:0] flags [width-1:0];
 
-    logic signed [bitwidth-1:0] value;
-    logic signed [1:0] onebit_val;
-    logic signed [bitwidth-1:0] read_reg;
-    logic signed [bitwidth-1:0] weights [width-1:0][depth-1:0];
 
-    logic pul_wr;
-    logic pul_wr_in;
-    logic pul_wr_inc;
-    logic pul_wr_plsone;
-
-    weight_clock #(.period(2ns)) clk_gen (.clk(clk));
-
-    weight_manager #(.width(width), .depth(depth), .bitwidth(bitwidth)) wm_i (
-        .data(data_reg),
-        .inst(inst_reg),
-        .exec(exec),
-        .clk(clk),
-        .rstb(rstb),
-
-        .read_reg(read_reg),
-        .weights(weights)
+    trellis_neighbor_checker #(
+        .est_channel_bitwidth(est_channel_bitwidth), 
+        .depth(30),  
+        .width(width),  
+        .branch_bitwidth(2),
+        .shift_bitwidth(shift_bitwidth),
+        .trellis_neighbor_checker_depth(2),  
+        .num_of_trellis_patterns(num_of_trellis_patterns),  
+        .trellis_pattern_depth(4),  
+        .seq_length(seq_length),  
+        .ener_bitwidth(ener_bitwidth),  
+        .est_err_bitwidth(est_err_bitwidth) 
+    ) tnc_i (
+        .channel(channel),
+        .channel_shift(channel_shift),
+        .trellis_patterns(trellis_patterns),
+        .nrz_mode(0),
+        .errstream(errstream),
+        .flags(flags)
     );
-
-    arr2dregconv #(.width(width)) adregc_i (.arr(arr), .d_reg(d_reg_arr));
-
-    weight_recorder #(.width(width), .depth(depth), .filename(`W_OUT_TXT)) wr_i (
-        .read_reg(read_reg),
-        .d_idx(inst_reg[$clog2(depth)-1:0]),
-        .w_idx(inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)]),
-        .clk     (pul_wr),
-        .en      (1'b1)
-    );
-
-    weight_recorder #(.width(width), .depth(depth), .filename(`W_INP_TXT)) wr_in_i (
-        .read_reg(value),
-        .d_idx(inst_reg[$clog2(depth)-1:0]),
-        .w_idx(inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)]),
-        .clk     (pul_wr_in),
-        .en      (1'b1)
-    );
-
-    weight_recorder #(.width(width), .depth(depth), .bitwidth(2), .filename(`W_INC_TXT)) wr_inc_i (
-        .read_reg(onebit_val),
-        .d_idx(inst_reg[$clog2(depth)-1:0]),
-        .w_idx(inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)]),
-        .clk     (pul_wr_inc),
-        .en      (1'b1)
-    );
-
-    weight_recorder #(.width(width), .depth(depth), .filename(`W_PLS_TXT)) wr_plone_i (
-        .read_reg(read_reg),
-        .d_idx(inst_reg[$clog2(depth)-1:0]),
-        .w_idx(inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)]),
-        .clk     (pul_wr_plsone),
-        .en      (1'b1)
-    );
-
-    genvar gj;
-    generate
-    for(gj=0; gj<width; gj=gj+1) begin
-        initial begin
-            arr[gj] = 0;
-        end
-    end
-    endgenerate
 
     initial begin
-        integer ii, jj;
-        rstb      = 0;
-        data_reg  = 0;
-        inst_reg  = 0; 
-        @(posedge clk) rstb = 1;
-
-        for(ii = 0; ii < width; ii = ii + 1) begin
-            for(jj = 0; jj < depth; jj=jj+1) begin
-                value = $signed($random%(2**bitwidth));
-                load(jj, ii, value);
-                pulse_wr_in();
-            end
-        end
-
-        for(ii = 0; ii < width; ii = ii + 1) begin
-            for(jj = 0; jj < depth; jj=jj+1) begin
-                read(jj, ii);
-                pulse_wr();
-            end
-        end
-
-        for(jj = 0; jj < depth; jj=jj+1) begin
-            for(ii = 0; ii < width; ii = ii + 1) begin
-                onebit_val = $signed($random%(2));
-                arr[ii] = onebit_val;
-                inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)] = ii;
-                inst_reg[$clog2(depth)-1:0] = jj;
-                @(posedge clk);
-                pulse_wr_inc();
-            end
-            increment(jj, ii);
-        end
-
-        for(ii = 0; ii < width; ii = ii + 1) begin
-            for(jj = 0; jj < depth; jj=jj+1) begin
-                read(jj, ii);
-                pulse_wr_plsone();
-            end
-        end
-
+        read_tnc_inputs_from_file("tnc_inputs.txt", channel, channel_shift, trellis_patterns, errstream);
         #(1ns);
+        write_tnc_outputs_to_file("tnc_outputs.txt", flags);
         $finish;
     end
 
-    task increment(input logic [$clog2(depth)-1:0] d_idx, logic [$clog2(width)-1:0] w_idx);
-        inst_reg[$clog2(depth)+$clog2(width)] = 1;
-        inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)] = w_idx;
-        inst_reg[$clog2(depth)-1:0] = d_idx;
-        data_reg = d_reg_arr;
-        toggle_exec();
+    task read_tnc_inputs_from_file(
+        input string filename, 
+        output logic signed [est_channel_bitwidth-1:0] channel [depth-1:0],
+        output logic [shift_bitwidth-1:0] channel_shift,
+        output logic signed [branch_bitwidth-1:0] trellis_patterns [num_of_trellis_patterns-1:0][trellis_pattern_depth-1:0],
+        output logic signed [est_err_bitwidth-1:0] errstream [2*width-1:0]
+    );
+        integer file_id;
+        file_id =  $fopen(filename, "r");
+
+        for(int ii = 0; ii < seq_length + trellis_pattern_depth -1; ii = ii + 1) begin
+            $fscanf(file_id, "%d", channel[ii]);
+        end
+
+        $fscanf(file_id, "%d", channel_shift);
+
+        for(int ii = 0; ii < num_of_trellis_patterns; ii = ii + 1) begin
+            for(int jj = 0; jj < trellis_pattern_depth; jj = jj + 1) begin
+                $fscanf(file_id, "%d", trellis_patterns[ii][jj]);
+            end
+        end
+
+        for(int ii = 0; ii < 2*width; ii = ii + 1) begin
+            $fscanf(file_id, "%d", errstream[ii]);
+        end
+
+        $fclose(file_id);
     endtask
 
-    task read(input logic [$clog2(depth)-1:0] d_idx, logic [$clog2(width)-1:0] w_idx);
-        inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)] = w_idx;
-        inst_reg[$clog2(depth)-1:0] = d_idx;
-        @(posedge clk);
+    task write_tnc_outputs_to_file(input string filename, input logic [$clog2(2*num_of_trellis_patterns+1)-1:0] flags [width-1:0]);
+        integer file_id;
+        file_id = $fopen(filename, "w");
+        for(int ii = 0; ii < width; ii = ii + 1) begin
+            $fwrite(file_id, "%d\n", flags[ii]);
+        end
+        $fclose(file_id);
     endtask
-
-    task load(input logic [$clog2(depth)-1:0] d_idx, logic [$clog2(width)-1:0] w_idx, logic [bitwidth-1:0] value);
-        inst_reg[$clog2(depth)+$clog2(width)] = 0;
-        inst_reg[$clog2(depth)+$clog2(width)-1:$clog2(depth)] = w_idx;
-        inst_reg[$clog2(depth)-1:0] = d_idx;
-        data_reg[bitwidth-1:0] = value;
-        toggle_exec();
-    endtask
-
-    task pulse_wr;
-        pul_wr = 1;
-        #0 pul_wr = 0;
-    endtask
-
-    task pulse_wr_in;
-        pul_wr_in = 1;
-        #0 pul_wr_in = 0;
-    endtask
-
-    task pulse_wr_inc;
-        pul_wr_inc = 1;
-        #0 pul_wr_inc = 0;
-    endtask
-
-    task pulse_wr_plsone;
-        pul_wr_plsone = 1;
-        #0 pul_wr_plsone = 0;
-    endtask
-
-    task toggle_exec;
-        @(posedge clk) exec=1;
-        @(posedge clk) exec=0;
-    endtask
-
 
 endmodule : test

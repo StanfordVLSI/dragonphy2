@@ -25,7 +25,7 @@ DELTA = 100e-9
 TPER = 1e-6
 
 # read YAML file that was used to configure the generated model
-CFG = yaml.safe_load(open(get_file('config/fpga/analog_slice_cfg.yml'), 'r'))
+CFG = yaml.load(open(get_file('config/fpga/analog_slice_cfg.yml'), 'r'), Loader=yaml.Loader)
 
 # read channel data
 CHAN = Filter.from_file(get_file('build/chip_src/adapt_fir/chan.npy'))
@@ -117,7 +117,7 @@ def test_analog_slice(simulator_name, slice_offset, dump_waveforms, num_tests=10
             noise_rms=fault.RealIn,
             wdata0=m.In(m.Bits[func_widths[0]]),
             wdata1=m.In(m.Bits[func_widths[1]]),
-            waddr=m.In(m.Bits[9]),
+            waddr=m.In(m.Bits[int(ceil(log2(CFG['func_numel'])))]),
             we=m.BitIn
         )
 
@@ -227,6 +227,9 @@ def test_analog_slice(simulator_name, slice_offset, dump_waveforms, num_tests=10
         inc_dirs = get_hard_float_inc_dirs() + inc_dirs
         defines['HARD_FLOAT'] = None
         defines['FUNC_DATA_WIDTH'] = DEF_HARD_FLOAT_WIDTH
+
+    #Added in NUMEL information
+    defines['FUNC_NUMEL'] = CFG['func_numel']
 
     # waveform dumping options
     flags = []

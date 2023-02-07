@@ -278,7 +278,6 @@ module jtag (
     genvar ig;
     generate
         for (ig=0; ig<ffe_gpack::length; ig=ig+1) begin
-            assign ddbg_intf_i.disable_product[ig] = 0;
        		assign ddbg_intf_i.init_ffe_taps[ig]		 = rjtag_intf_i.init_ffe_taps[ig];
         end
     endgenerate
@@ -313,6 +312,10 @@ module jtag (
     assign ddbg_intf_i.sample_pos       = rjtag_intf_i.sample_pos;
     assign rjtag_intf_i.ce_sampled_value = ddbg_intf_i.ce_sampled_value;
     assign rjtag_intf_i.fe_sampled_value = ddbg_intf_i.fe_sampled_value;
+
+    assign ddbg_intf_i.new_trellis_pattern      = rjtag_intf_i.new_trellis_pattern;
+    assign ddbg_intf_i.new_trellis_pattern_idx  = rjtag_intf_i.new_trellis_pattern_idx;
+    assign ddbg_intf_i.update_trellis_pattern   = rjtag_intf_i.update_trellis_pattern;
 
     assign ddbg_intf_i.en_cgra_clk = rjtag_intf_i.en_cgra_clk;
 

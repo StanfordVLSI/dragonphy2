@@ -4,6 +4,16 @@
     `define FUNC_DATA_WIDTH 18
 `endif
 
+`ifndef FUNC_NUMEL
+    `define FUNC_NUMEL 2048
+`endif
+
+
+`ifndef TC
+    `define TC 4e-9
+`endif
+
+
 module tb;
     //////////////////
     // External IOs //
@@ -42,7 +52,7 @@ module tb;
     (* dont_touch = "true" *) logic [31:0] prbs_eqn;
     (* dont_touch = "true" *) logic [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_0;
     (* dont_touch = "true" *) logic [((`FUNC_DATA_WIDTH)-1):0] chan_wdata_1;
-    (* dont_touch = "true" *) logic [8:0] chan_waddr;
+    (* dont_touch = "true" *) logic [$clog2(`FUNC_NUMEL)-1:0] chan_waddr;
     (* dont_touch = "true" *) logic chan_we;
 
     //////////////

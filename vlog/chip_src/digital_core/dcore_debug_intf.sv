@@ -70,7 +70,11 @@ interface dcore_debug_intf import const_pack::*; (
         logic fe_exec_inst;
         logic signed [ffe_gpack::weight_precision-1:0] init_ffe_taps [ffe_gpack::length-1:0];
         logic [4:0] fe_adapt_gain;
-        logic [ffe_gpack::weight_precision-1:0] fe_bit_target_level;
+        logic [9:0] fe_bit_target_level;
+
+    	logic signed [1:0] new_trellis_pattern [3:0];
+    	logic [1:0] new_trellis_pattern_idx;
+    	logic update_trellis_pattern;
 
         logic [3:0] ce_gain;
 		logic [2:0] ce_inst;
@@ -163,6 +167,10 @@ interface dcore_debug_intf import const_pack::*; (
 		output ce_sampled_value,
 		output fe_sampled_value,
 
+		input new_trellis_pattern,
+		input new_trellis_pattern_idx,
+		input update_trellis_pattern,
+
         input en_int_dump_start,
         input int_dump_start,
         input tx_en_ext_max_sel_mux,
@@ -254,6 +262,10 @@ interface dcore_debug_intf import const_pack::*; (
 		output ce_exec_inst,
 		output ce_addr,
 		output ce_val,
+
+		output new_trellis_pattern,
+		output new_trellis_pattern_idx,
+		output update_trellis_pattern,
 
 		output sample_fir_est,
 		output sample_pos,
