@@ -264,7 +264,18 @@ module test;
 
             $shm_probe(top_i.idcore.datapath_i.err_corr_stage_4_i.fb_loc_sub_stage_1_i.subframe_fp_loc_i.unfolded_trellis_patterns);
 
+            $shm_probe(top_i.idcore.errt_i.prbs_flags);
+            $shm_probe(top_i.idcore.errt_i.prbs_flags_trigger);
+            $shm_probe(top_i.idcore.errt_i.est_error);
+            $shm_probe(top_i.idcore.errt_i.encoded_symbols);
+            $shm_probe(top_i.idcore.errt_i.sd_flags);
 
+            $shm_probe(top_i.idcore.errt_i.errt_i.trigger);
+            $shm_probe(top_i.idcore.errt_i.errt_i.prbs_flags);
+            $shm_probe(top_i.idcore.errt_i.errt_i.errors);
+            $shm_probe(top_i.idcore.errt_i.errt_i.symstream);
+            $shm_probe(top_i.idcore.errt_i.errt_i.sd_flags);
+        
 
             // data in digital_core
             $shm_probe(top_i.idcore.ddbg_intf_i.int_rstb);
@@ -462,7 +473,7 @@ module test;
         `FORCE_JTAG(en_v2t, 1);
         #(5ns);
 
-        `FORCE_JTAG(ce_gain, 7);
+        `FORCE_JTAG(ce_gain, 2);
         `FORCE_JTAG(fe_adapt_gain, 5);
         #(5ns);
         run_ffe_adaptation();
@@ -472,7 +483,7 @@ module test;
 		    $display("Interval %0d/300", loop_var);
 		    #(100ns);
 		end
-        `FORCE_JTAG(fe_adapt_gain, 4);
+        `FORCE_JTAG(fe_adapt_gain, 2);
         `FORCE_JTAG(ce_gain, 6);
 
 		$display("Waiting for Channel to adapt");
@@ -480,14 +491,14 @@ module test;
 		    $display("Interval %0d/400", loop_var);
 		    #(100ns);
 		end
-        `FORCE_JTAG(ce_gain, 5);
+        `FORCE_JTAG(ce_gain, 2);
         `FORCE_JTAG(fe_adapt_gain, 3);
 		$display("Waiting for Channel to adapt");
 		for (loop_var=0; loop_var<400; loop_var=loop_var+1) begin
 		    $display("Interval %0d/400", loop_var);
 		    #(100ns);
 		end
-        `FORCE_JTAG(ce_gain, 4);
+        `FORCE_JTAG(ce_gain, 2);
 
         // Run the PRBS tester
         $display("Running the PRBS tester");

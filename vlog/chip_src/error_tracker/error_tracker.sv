@@ -2,21 +2,16 @@ module error_tracker #(
     parameter integer width=16,
     parameter integer error_bitwidth=8,
     parameter integer addrwidth= 10,
-    parameter integer flag_width=3
+    parameter integer flag_width=3,
+    parameter integer sym_bitwidth=2
 )(
-    input logic        [width-1:0]          prbs_flags,
-    input logic        [width-1:0]          prbs_flags_trigger,
+    input logic        [sym_bitwidth*width-1:0]  prbs_flags,
+    input logic        [sym_bitwidth*width-1:0]  prbs_flags_trigger,
 
 
-    input logic signed [error_bitwidth-1:0] est_error   [width-1:0],
-    input logic                             sliced_bits [width-1:0],
-    input logic        [flag_width-1:0]     sd_flags    [width-1:0],
-
-    input logic [7:0] prbs_flags_delay,
-    input logic [7:0] prbs_flags_trigger_delay,
-    input logic [7:0] est_error_delay,
-    input logic [7:0] sliced_bits_delay,
-    input logic [7:0] sd_flags_delay,
+    input logic signed [error_bitwidth-1:0]      est_error       [width-1:0],
+    input logic signed [(2**sym_bitwidth-1)-1:0] encoded_symbols [width-1:0],
+    input logic        [flag_width-1:0]          sd_flags        [width-1:0],
 
 
     input logic clk,
@@ -24,32 +19,23 @@ module error_tracker #(
 
     error_tracker_debug_intf.tracker errt_dbg_intf_i
 );
+    localparam integer sw = (2**sym_bitwidth-1);
     genvar gi, gj;
 
-    logic sliced_bits_buffer [width-1:0][6:0];
-    logic [width-1:0] prbs_flags_buffer [0:0][2:0];
+    logic signed [sw-1:0]             encoded_symbols_buffer [width-1:0][6:0];
+    logic [width*2-1:0]               prbs_flags_buffer [0:0][2:0];
     logic signed [error_bitwidth-1:0] est_error_buffer [width-1:0][6:0];
-    logic [flag_width-1:0] sd_flags_buffer [width-1:0][6:0];
-    
-    logic [7:0]     sliced_bits_buffer_delay[6:0];
-    logic [7:0]     prbs_flags_buffer_delay[2:0];
-    logic [7:0]     est_error_buffer_delay[6:0];
-    logic [7:0]     sd_flags_buffer_delay[6:0];
+    logic [flag_width-1:0]            sd_flags_buffer [width-1:0][6:0];
 
-    logic [width-1:0] delayed_prbs_flags_trigger;
-    logic [7:0] delayed_prbs_flags_trigger_delay;
 
-    logic [width-1:0] unpacked_prbs_flags [0:0];
-    logic [7:0] unpacked_prbs_flags_delay;
+    logic [width*2-1:0] delayed_prbs_flags_trigger;
+    logic [width*2-1:0] unpacked_prbs_flags [0:0];
 
     logic delayed_trigger; 
 
     assign unpacked_prbs_flags[0] = prbs_flags;
-    assign unpacked_prbs_flags_delay = prbs_flags_delay;
-    assign delayed_prbs_flags_trigger_delay = prbs_flags_trigger_delay + 16;
 
     logic [$clog2(width)-1:0] ones;
-
 
     always_ff @(posedge clk or negedge rstb) begin 
         if(~rstb) begin
@@ -61,7 +47,7 @@ module error_tracker #(
 
     always_comb  begin
         ones = 0;
-        for(int ii = 0; ii < width; ii += 1) begin
+        for(int ii = 0; ii < 2*width; ii += 1) begin
             ones += delayed_prbs_flags_trigger[ii];
         end
         case (errt_dbg_intf_i.mode)
@@ -82,54 +68,28 @@ module error_tracker #(
             end
         endcase
     end 
-    /*
-    // synthesis translate off
-    always_ff @(posedge clk or negedge rstb) begin 
-        $display("sliced_bits_buffer_delay: %p", sliced_bits_buffer_delay);
-        $display("prbs_flags_buffer_delay:  %p", prbs_flags_buffer_delay);
-        $display("est_error_buffer_delay:   %p", est_error_buffer_delay);
-        $display("sd_flags_buffer_delay:    %p", sd_flags_buffer_delay);
-        $display("flat_sliced_bits_delay:   %p", flat_sliced_bits_delay);
-        $display("flat_prbs_flags_delay:    %p", flat_prbs_flags_delay);
-        $display("flat_est_error_delay:     %p", flat_est_error_delay);
-        $display("flat_sd_flags_delay:      %p", flat_sd_flags_delay);
-        $display("delayed_trigger: %p", prbs_flags_buffer_delay[1]);
-        $display("sliced_bits:          %p",flat_sliced_bits);
-        $display("unpacked_prbs_flags:  %p",flat_prbs_flags);
-        $display("est_error:            %p",flat_est_error);
-        $display("prbs_flags_trigger:             %p",prbs_flags_trigger);
-        $display("prbs_flags_trigger:             %p",prbs_flags_trigger);
-        $display("prbs_flags_trigger_delay:             %p",prbs_flags_trigger_delay);
-        $display("delayed_prbs_flags_trigger:             %p",delayed_prbs_flags_trigger);
-        $display("delayed_prbs_flags_trigger_delay: %p", delayed_prbs_flags_trigger_delay);
-    end
-    // synthesis translate_on
-*/
+
     //Bits Pipeline
-    buffer #(
+    signed_buffer #(
         .numChannels (width),
-        .bitwidth    (1),
+        .bitwidth    ((2**sym_bitwidth-1)),
         .depth       (6)
     ) sb_buff_i (
-        .in      (sliced_bits),
-        .in_delay(sliced_bits_delay),
+        .in      (encoded_symbols),
         .clk     (clk),
         .rstb    (1'b1),
-        .buffer  (sliced_bits_buffer),
-        .buffer_delay(sliced_bits_buffer_delay)
+        .buffer  (encoded_symbols_buffer)
     );
 
     buffer #(
         .numChannels (1),
-        .bitwidth    (width),
+        .bitwidth    (width*2),
         .depth       (2)
     ) ps_buff_i (
         .in      (unpacked_prbs_flags),
-        .in_delay(unpacked_prbs_flags_delay),
         .clk     (clk),
         .rstb    (1'b1),
-        .buffer  (prbs_flags_buffer),
-        .buffer_delay(prbs_flags_buffer_delay)
+        .buffer  (prbs_flags_buffer)
     );
 
     signed_buffer #(
@@ -138,11 +98,9 @@ module error_tracker #(
         .depth       (6)
     ) ee_buff_i (
         .in      (est_error),
-        .in_delay(est_error_delay),
         .clk     (clk),
         .rstb    (1'b1),
-        .buffer  (est_error_buffer),
-        .buffer_delay(est_error_buffer_delay)
+        .buffer  (est_error_buffer)
     );
 
     buffer #(
@@ -151,50 +109,39 @@ module error_tracker #(
         .depth       (6)
     ) sf_buff_i (
         .in      (sd_flags),
-        .in_delay(sd_flags_delay),
         .clk     (clk),
         .rstb    (1'b1),
-        .buffer  (sd_flags_buffer),
-        .buffer_delay(sd_flags_buffer_delay)
+        .buffer  (sd_flags_buffer)
     );
 
-    logic flat_sliced_bits [width*3-1:0];
-    logic [width-1:0] flat_prbs_flags [2:0];
+    logic signed [sw-1:0] flat_encoded_symbols [width*3-1:0];
+    logic [width*2-1:0] flat_prbs_flags [2:0];
 
     logic signed [error_bitwidth-1:0] flat_est_error   [width*3-1:0];
     logic [flag_width-1:0] flat_sd_flags [width*3-1:0];
-    logic [width*3-1:0] pf_sliced_bits;
-    logic [width*3-1:0] pf_prbs_flags;
+    logic pf_prbs_flags [width*3*sym_bitwidth-1:0];
 
-    logic [7:0] flat_sliced_bits_delay;
-    logic [7:0] flat_prbs_flags_delay;
-    logic [7:0] flat_est_error_delay;
-    logic [7:0] flat_sd_flags_delay;
 
-    flatten_buffer_slice #(
+    signed_flatten_buffer_slice #(
         .numChannels(width),
-        .bitwidth   (1),
+        .bitwidth   (sw),
         .buff_depth (6),
         .slice_depth(2),
         .start      (2)
     ) sb_fb_i (
-        .buffer    (sliced_bits_buffer),
-        .buffer_delay(sliced_bits_buffer_delay),
-        .flat_slice(flat_sliced_bits),
-        .flat_slice_delay(flat_sliced_bits_delay)
+        .buffer    (encoded_symbols_buffer),
+        .flat_slice(flat_encoded_symbols)
     );
 
     flatten_buffer_slice #(
         .numChannels(1),
-        .bitwidth   (width),
+        .bitwidth   (width*2),
         .buff_depth (2),
         .slice_depth(2),
         .start      (0)
     ) ps_fb_i (
         .buffer    (prbs_flags_buffer),
-        .buffer_delay(prbs_flags_buffer_delay),
-        .flat_slice(flat_prbs_flags),
-        .flat_slice_delay(flat_prbs_flags_delay)
+        .flat_slice(flat_prbs_flags)
     );
 
     signed_flatten_buffer_slice #(
@@ -205,9 +152,7 @@ module error_tracker #(
         .start      (2)
     ) ee_fb_i (
         .buffer    (est_error_buffer),
-        .buffer_delay(est_error_buffer_delay),
-        .flat_slice(flat_est_error),
-        .flat_slice_delay(flat_est_error_delay)
+        .flat_slice(flat_est_error)
     );
 
     flatten_buffer_slice #(
@@ -218,18 +163,13 @@ module error_tracker #(
         .start      (2)
     ) sf_fb_i (
         .buffer    (sd_flags_buffer),
-        .buffer_delay(sd_flags_buffer_delay),
-        .flat_slice(flat_sd_flags),
-        .flat_slice_delay(flat_sd_flags_delay)
+        .flat_slice(flat_sd_flags)
     );
 
     generate 
-        for(gi =0 ; gi < width*3; gi = gi + 1) begin
-            assign pf_sliced_bits[gi] = flat_sliced_bits[gi]; 
-        end
         for(gi =0; gi < 3; gi = gi + 1) begin
-            for(gj = 0; gj < width; gj = gj + 1) begin
-                assign pf_prbs_flags[width*gi + gj]  = flat_prbs_flags[gi][gj];
+            for(gj = 0; gj < 2*width; gj = gj + 1) begin
+                assign pf_prbs_flags[width*2*gi + gj]  = flat_prbs_flags[gi][gj];
             end
         end
     endgenerate
@@ -238,13 +178,14 @@ module error_tracker #(
         .width(width),
         .error_bitwidth(error_bitwidth),
         .addrwidth(addrwidth),
-        .flag_width(flag_width)
+        .flag_width(flag_width),
+        .sym_bitwidth(sym_bitwidth)
     ) errt_i (
         .trigger(delayed_trigger),
 
         .prbs_flags(pf_prbs_flags),
         .errors(flat_est_error),
-        .bitstream(pf_sliced_bits),
+        .symstream(flat_encoded_symbols),
         .sd_flags(flat_sd_flags),
 
         .clk(clk),

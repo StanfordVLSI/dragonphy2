@@ -63,12 +63,16 @@ module digital_core import const_pack::*; (
     wire logic prbs_rstb;
     wire logic prbs_gen_rstb;
     wire logic signed [Nadc-1:0] adcout_unfolded [Nti+Nti_rep-1:0];
-    wire logic [Nti-1:0] prbs_flags;
-    wire logic [Nti-1:0] prbs_flags_trigger;
-    wire logic packed_prbs_flags [Nti-1:0];
+    wire logic [constant_gpack::sym_bitwidth*Nti-1:0] prbs_flags;
+    wire logic [constant_gpack::sym_bitwidth*Nti-1:0] prbs_flags_trigger;
 
-    wire logic        sliced_bits [Nti-1:0];
-    wire logic signed [(2**constant_gpack::sym_bitwidth-1)-1:0] tmp_sliced_bits [Nti-1:0];
+    logic [constant_gpack::sym_bitwidth-1:0] decoded_raw_symbols [Nti-1:0];
+    logic [constant_gpack::sym_bitwidth-1:0] decoded_symbols [Nti-1:0];
+    logic [constant_gpack::sym_bitwidth-1:0] decoded_corrected_symbols [constant_gpack::channel_width-1:0];
+
+    wire logic signed [(2**constant_gpack::sym_bitwidth-1)-1:0] encoded_raw_symbols [Nti-1:0];
+    wire logic signed [(2**constant_gpack::sym_bitwidth-1)-1:0] encoded_symbols [Nti-1:0];
+    wire logic signed [(2**constant_gpack::sym_bitwidth-1)-1:0] encoded_corrected_symbols [constant_gpack::channel_width-1:0];
 
     wire logic signed [error_gpack::est_error_precision-1:0] est_errors [Nti-1:0];
     wire logic        [$clog2(2*detector_gpack::num_of_trellis_patterns+1)-1:0] sd_flags [Nti-1:0];
@@ -85,8 +89,6 @@ module digital_core import const_pack::*; (
     logic signed [(2**constant_gpack::sym_bitwidth-1)-1:0] tmp_sliced_est_bits [constant_gpack::channel_width-1:0];
     logic sliced_est_bits [constant_gpack::channel_width-1:0];
 
-    wire logic checked_bits [constant_gpack::channel_width-1:0];
-    wire logic signed [(2**constant_gpack::sym_bitwidth-1)-1:0] tmp_checked_bits [constant_gpack::channel_width-1:0];
 
     //Sample the FFE output
     genvar gi, gj;
@@ -94,8 +96,54 @@ module digital_core import const_pack::*; (
         for(gi=0; gi<constant_gpack::channel_width; gi = gi + 1 ) begin
             assign trunc_est_bits[gi] = estimated_bits[gi][9:2];
             assign trunc_est_bits_ext[gi] = estimated_bits[gi][9:2];
-            assign sliced_bits[gi] = tmp_sliced_bits[gi] > 0 ? 1: 0;
-            assign checked_bits[gi] = tmp_checked_bits[gi] > 0 ? 1 : 0;
+
+            always_comb begin
+                unique case (encoded_raw_symbols[gi])
+                    3: begin
+                        decoded_raw_symbols[gi] = 2'b10;
+                    end
+                    1: begin
+                        decoded_raw_symbols[gi] = 2'b11;
+                    end
+                    -1: begin
+                        decoded_raw_symbols[gi] = 2'b01;
+                    end
+                    -3: begin
+                        decoded_raw_symbols[gi] = 2'b00;
+                    end
+                endcase
+
+                unique case (encoded_symbols[gi])
+                    3: begin 
+                        decoded_symbols[gi] = 2'b10;
+                    end
+                    1: begin 
+                        decoded_symbols[gi] = 2'b11;
+                    end
+                    -1: begin 
+                        decoded_symbols[gi] = 2'b01;
+                    end
+                    -3: begin 
+                        decoded_symbols[gi] = 2'b00;
+                    end
+                endcase
+
+                unique case(encoded_corrected_symbols[gi])
+                    3: begin 
+                        decoded_corrected_symbols[gi] = 2'b10;
+                    end
+                    1: begin 
+                        decoded_corrected_symbols[gi] = 2'b11;
+                    end
+                    -1: begin 
+                        decoded_corrected_symbols[gi] = 2'b01;
+                    end
+                    -3: begin 
+                        decoded_corrected_symbols[gi] = 2'b00;
+                    end
+                endcase
+            end
+
         end
     endgenerate
 
@@ -356,12 +404,12 @@ module digital_core import const_pack::*; (
         .stage3_sd_flags        (),
 
         // Stage 4
-        .stage4_symbols_out (tmp_checked_bits),
+        .stage4_symbols_out (encoded_corrected_symbols),
         .stage4_res_errors_out  (),
 
         //Aligned to Stage 4:
         .stage4_aligned_stage2_res_errors_out(est_errors),
-        .stage4_aligned_stage2_symbols_out(tmp_sliced_bits),
+        .stage4_aligned_stage2_symbols_out(encoded_symbols),
         .stage4_aligned_stage3_sd_flags(sd_flags),
 
         .dsp_dbg_intf_i(dsp_dbg_intf_i)
@@ -503,64 +551,38 @@ module digital_core import const_pack::*; (
     // PRBS
     // TODO: refine data decision from ADC (custom threshold, gain, invert option, etc.)
 
-    logic [Nti-1:0]   mux_prbs_rx_bits [3:0];
-
-    logic [(Nti-1):0] prbs_rx_bits;
-
-    logic [Nti-1:0]   mux_prbs_trig_rx_bits [3:0];
-
-    logic [(Nti-1):0] prbs_trig_rx_bits;
-
-    logic bits_adc [Nti-1:0];
-    logic bits_ffe [Nti-1:0];
-
-    wire logic signed [(2**constant_gpack::sym_bitwidth-1)-1:0] tmp_cmp_out [constant_gpack::channel_width-1:0];
-
-    generate
-        for(gi=0; gi<constant_gpack::channel_width; gi = gi + 1) begin
-            assign bits_adc[gi] = (tmp_cmp_out[gi] > 0) ? 1 : 0;
-        end
-    endgenerate
-
+    logic [constant_gpack::sym_bitwidth-1:0] mux_prbs_rx_syms       [3:0][Nti-1:0] ;
+    logic [constant_gpack::sym_bitwidth-1:0] prbs_rx_syms           [Nti-1:0];
+    logic [constant_gpack::sym_bitwidth-1:0] mux_prbs_trig_rx_syms  [3:0][Nti-1:0];
+    logic [constant_gpack::sym_bitwidth-1:0] prbs_trig_rx_syms      [Nti-1:0];
 
     comb_comp #(.numChannels(16), .inputBitwidth(Nadc), .thresholdBitwidth(Nadc)) dig_comp_adc_i (
         .codes     (adcout_unfolded_non_rep),
         .bit_level(ddbg_intf_i.fe_bit_target_level),
-        .sym_out   (tmp_cmp_out)
+        .sym_out   (encoded_raw_symbols)
     );
 
 
 
 
-    logic [Nti-1:0] bits_adc_r;
-    logic [Nti-1:0] bits_ffe_r;
-    logic [Nti-1:0] bits_mlsd_r;
+
     logic bit_bist_r;
 
-    assign mux_prbs_rx_bits[0] = bits_adc_r;
-    assign mux_prbs_rx_bits[1] = bits_ffe_r;
-    assign mux_prbs_rx_bits[2] = bits_mlsd_r;
-    assign mux_prbs_rx_bits[3] = {Nti{bit_bist_r}};
+    assign mux_prbs_rx_syms[0] = decoded_raw_symbols;
+    assign mux_prbs_rx_syms[1] = decoded_symbols;
+    assign mux_prbs_rx_syms[2] = decoded_corrected_symbols;
+    //assign mux_prbs_rx_bits[3] = {Nti{bit_bist_r}};
 
 
-    assign mux_prbs_trig_rx_bits[0] = bits_adc_r;
-    assign mux_prbs_trig_rx_bits[1] = bits_ffe_r;
-    assign mux_prbs_trig_rx_bits[2] = bits_mlsd_r;
-    assign mux_prbs_trig_rx_bits[3] = {Nti{bit_bist_r}};
+    assign mux_prbs_trig_rx_syms[0] = decoded_raw_symbols;
+    assign mux_prbs_trig_rx_syms[1] = decoded_symbols;
+    assign mux_prbs_trig_rx_syms[2] = decoded_corrected_symbols;
+    //assign mux_prbs_trig_rx_bits[3] = {Nti{bit_bist_r}};
 
 
+    assign prbs_rx_syms       = mux_prbs_rx_syms      [ddbg_intf_i.sel_prbs_mux];
 
-    generate
-        for (k=0; k<Nti; k=k+1) begin
-            assign bits_adc_r[k] = bits_adc[k];
-            assign bits_ffe_r[k] = sliced_bits[k];
-            assign bits_mlsd_r[k] = checked_bits[k];
-        end
-    endgenerate
-
-    assign prbs_rx_bits       = mux_prbs_rx_bits      [ddbg_intf_i.sel_prbs_mux];
-
-    assign prbs_trig_rx_bits       = mux_prbs_trig_rx_bits      [ddbg_intf_i.sel_trig_prbs_mux];
+    assign prbs_trig_rx_syms  = mux_prbs_trig_rx_syms      [ddbg_intf_i.sel_trig_prbs_mux];
     // PRBS generator for BIST
 
     prbs_generator_syn #(
@@ -593,8 +615,7 @@ module digital_core import const_pack::*; (
     assign pdbg_intf_i.prbs_total_bits_upper = ddbg_intf_i.sel_prbs_bits ? prbs_total_bits_trigger[63:32] : prbs_total_bits[63:32];
     assign pdbg_intf_i.prbs_total_bits_lower = ddbg_intf_i.sel_prbs_bits ? prbs_total_bits_trigger[31:0] : prbs_total_bits[31:0];
 
-
-    prbs_checker #(
+    sym_prbs_checker #(
         .n_prbs(Nprbs),
         .n_channels(Nti)
     ) prbs_checker_i (
@@ -610,7 +631,7 @@ module digital_core import const_pack::*; (
         // "chicken" bits for flipping the sign of various bits
         .inv_chicken(pdbg_intf_i.prbs_inv_chicken),
         // recovered data from ADC, FFE, MLSD, etc.
-        .rx_bits(prbs_rx_bits),
+        .rx_syms(prbs_rx_syms),
         // checker mode
         .checker_mode(pdbg_intf_i.prbs_checker_mode),
         // outputs
@@ -619,7 +640,7 @@ module digital_core import const_pack::*; (
         .prbs_flags(prbs_flags)
     );
 
-    prbs_checker #(
+    sym_prbs_checker #(
         .n_prbs(Nprbs),
         .n_channels(Nti)
     ) prbs_checker_trigger_i (
@@ -635,7 +656,7 @@ module digital_core import const_pack::*; (
         // "chicken" bits for flipping the sign of various bits
         .inv_chicken(pdbg_intf_i.prbs_inv_chicken),
         // recovered data from ADC, FFE, MLSD, etc.
-        .rx_bits(prbs_trig_rx_bits),
+        .rx_syms(prbs_trig_rx_syms),
         // checker mode
         .checker_mode(pdbg_intf_i.prbs_checker_mode),
         // outputs
@@ -644,21 +665,22 @@ module digital_core import const_pack::*; (
         .prbs_flags(prbs_flags_trigger)
     );
 
-    /*
+    
     error_tracker #(
         .width(Nti),
         .error_bitwidth(error_gpack::est_error_precision),
-        .addrwidth(10)
+        .addrwidth(10),
+        .flag_width(4)
     ) errt_i (
         .prbs_flags_trigger(prbs_flags_trigger),
         .prbs_flags(prbs_flags),
         .est_error(est_errors),
-        .sliced_bits(sliced_bits),
+        .encoded_symbols(encoded_symbols),
         .sd_flags(sd_flags),
         .clk(clk_adc),
         .rstb(dcore_rstb),
         .errt_dbg_intf_i(edbg_intf_i)
-    );*/
+    );
 
     // Histogram data generator for BIST
 
