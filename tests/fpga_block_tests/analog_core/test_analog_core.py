@@ -90,6 +90,7 @@ def check_adc_result(sgn_meas, mag_meas, sgn_expct, mag_expct):
         raise Exception('BAD!')
 
 def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
+    dump_waveforms = True
     print(CFG)
     # set seed for repeatable behavior
     random.seed(0)
@@ -109,7 +110,7 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
 
     # set up the IO definitions
     io_dict = {}
-    io_dict['bits'] = m.In(m.Bits[16])
+    io_dict['bits'] = m.In(m.Bits[16*CFG['bits_per_symbol']])
     for k in range(4):
         io_dict[f'ctl_pi_{k}'] = m.In(m.Bits[9])
     for k in range(16):
@@ -246,7 +247,7 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
         ext_srcs=ext_srcs,
         ext_model_file=True,
         disp_type='realtime',
-        dump_waveforms=False,
+        dump_waveforms=dump_waveforms,
         flags=flags,
         timescale='1fs/1fs',
         num_cycles=1e12

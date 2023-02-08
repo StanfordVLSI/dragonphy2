@@ -13,13 +13,18 @@
     `define NUM_CHUNKS 4
 `endif
 
+`ifndef BITS_PER_SYMBOL
+    `define BITS_PER_SYMBOL 2
+`endif
+
 `ifndef NUMEL
     `define NUMEL 2048
 `endif
 
 module analog_core import const_pack::*; #(
     parameter integer chunk_width=`CHUNK_WIDTH,
-    parameter integer num_chunks=`NUM_CHUNKS
+    parameter integer num_chunks=`NUM_CHUNKS,
+    parameter integer bits_per_symbol=`BITS_PER_SYMBOL
 ) (
     input `pwl_t rx_inp,                                 // RX input (+) (from pad)
 	input `pwl_t rx_inn,                                 // RX input (-) (from pad)
@@ -164,13 +169,13 @@ module analog_core import const_pack::*; #(
 
     // save history of input bits
 
-    logic [((num_chunks*chunk_width)-1):0] history;
+    logic [((num_chunks*chunk_width*bits_per_symbol)-1):0] history;
 
     always @(posedge emu_clk) begin
         if (emu_rst) begin
             history <= 0;
         end else if (last_cycle) begin
-            history <= {rx_inp, history[((num_chunks*chunk_width)-1):((num_chunks*chunk_width)-16)]};
+            history <= {rx_inp, history[((num_chunks*chunk_width*bits_per_symbol)-1):((num_chunks*chunk_width*bits_per_symbol)-(16*bits_per_symbol))]};
         end else begin
             history <= history;
         end
@@ -178,10 +183,10 @@ module analog_core import const_pack::*; #(
 
     // select chunk of input bits
 
-    logic [($clog2(num_chunks*chunk_width)-1):0] history_shift;
+    logic [($clog2(num_chunks*chunk_width*bits_per_symbol)-1):0] history_shift;
 
-    assign history_shift = ((num_chunks*chunk_width)-chunk_width) - chunk_width*chunk_idx;
-    assign chunk = (history >> history_shift) & {chunk_width{1'b1}};
+    assign history_shift = (num_chunks - 1 - chunk_idx)*chunk_width*bits_per_symbol;
+    assign chunk = (history >> history_shift) & {chunk_width*bits_per_symbol{1'b1}};
 
     // main state machine
 

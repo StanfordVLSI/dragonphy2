@@ -10,7 +10,8 @@
 module test_analog_core import const_pack::*; #(
 ) (
     // Input bits
-    input [(Nti-1):0] bits,
+    // Nti*bits_per_symbol
+    input [(Nti*2-1):0] bits,
 
     // PI control bits
     input [Npi-1:0] ctl_pi_0,
