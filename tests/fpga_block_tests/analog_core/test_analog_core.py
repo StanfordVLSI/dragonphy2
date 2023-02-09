@@ -3,6 +3,8 @@ from pathlib import Path
 import random
 from math import log2, ceil, floor
 
+import matplotlib.pyplot as plt
+
 import yaml
 
 # AHA imports
@@ -148,8 +150,8 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
     # build up a list of test cases
     test_cases = []
     for x in range(num_tests):
-        pi_ctl = [random.randint(0, (1 << CFG['pi_ctl_width']) - 1) for _ in range(4)]
-        new_bits = [random.randint(0, 1) for _ in range(16)]
+        pi_ctl = [0, 128, 256, 384] #[random.randint(0, (1 << CFG['pi_ctl_width']) - 1) for _ in range(4)]
+        new_bits = [0]*7 + [1] + [0]*8 # [random.randint(0, 1) for _ in range(16)]
         test_cases.append([pi_ctl, new_bits])
 
     # initialize
@@ -257,6 +259,14 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
         # extract out results
         sgn_meas = [(results[k+1][0].value >> idx) & 1 for idx in range(16)]
         mag_meas = [elem.value for elem in results[k+1][1]]
+
+        def find_values(signs, vals):
+            act_pos = [0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15]
+            return [vals[ii] if signs[ii] else -vals[ii] for ii in act_pos]
+
+        plt.plot(find_values(sgn_meas, mag_meas))
+        plt.plot(find_values(sgn_expct, mag_expct))
+        plt.show()
 
         # print measured and expected
         print(f'Test case #{k}: pi_ctl={pi_ctl}, all_bits={new_bits}')
