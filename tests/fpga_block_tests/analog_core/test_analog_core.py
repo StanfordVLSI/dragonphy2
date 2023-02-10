@@ -90,8 +90,6 @@ def check_adc_result(sgn_meas, mag_meas, sgn_expct, mag_expct):
         raise Exception('BAD!')
 
 def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
-    dump_waveforms = True
-    print(CFG)
     # set seed for repeatable behavior
     random.seed(0)
 
@@ -152,7 +150,6 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
                      for symbol in bits
                         for b in symbol]
         t.poke(dut.bits, to_bv(bits_flat))
-        print()
 
     def poke_pi_ctl(pi_ctl):
         for k in range(4):
@@ -168,16 +165,10 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
     test_cases = []
     for x in range(num_tests):
         pi_ctl = [random.randint(0, (1 << CFG['pi_ctl_width']) - 1) for _ in range(4)]
-        #pi_ctl = [255 for _ in range(4)]
-        #pi_ctl = [0, 128, 256, 384]
         new_bits = [[random.randint(0, 1) for i in range(CFG['bits_per_symbol'])]
                     for _ in range(16)]
-        #new_bits = [(0,0)]*4 + [(1,1)]*(x+1) + [(0,0)]*(11-x)
-        #new_bits = [(0,0)]*2 + [(1,0)] + [(0,0)]*5 + [(0, 0)] * 2 + [(1, 0)] + [(0, 0)] * 5
         test_cases.append([pi_ctl, new_bits])
 
-    print('test cases:')
-    print(test_cases)
 
     # initialize
     t.zero_inputs()
@@ -272,8 +263,6 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
         # compute the expected ADC value
         analog_sample, sgn_expct, mag_expct = [], [], []
         all_bits = new_bits + prev_bits
-        print('all_bits is', all_bits)
-        print('pi_ctl is', pi_ctl)
         for idx in range(16):
             # determine the analog value sampled on this channel
             analog_sample.append(channel_model(idx%4, pi_ctl[idx//4], all_bits))
@@ -294,20 +283,22 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
 
 
         def align(sgn, mag):
+            # this might still have a global shift, I'm not sure
             val = [(2*s-1)*m for s, m in zip(sgn, mag)]
             mapping = [0,4,8,12,1,5,9,13,2,6,10,14,3,7,11,15]
             ans = [val[i] for i in mapping]
             return ans
 
-        meas = align(sgn_meas, mag_meas)
-        expct = align(sgn_expct, mag_expct)
 
-        #import matplotlib.pyplot as plt
-        #plt.figure()
-        #plt.plot(meas)
-        #plt.figure()
-        #plt.plot(expct)
-        #plt.show()
+        # Plot measured and expected recovered signals
+        # meas = align(sgn_meas, mag_meas)
+        # expct = align(sgn_expct, mag_expct)
+        # import matplotlib.pyplot as plt
+        # plt.figure()
+        # plt.plot(meas)
+        # plt.figure()
+        # plt.plot(expct)
+        # plt.show()
 
 
         # check results
@@ -326,11 +317,3 @@ def plot_channel_response():
     plt.plot(xs, ys)
     plt.show()
 
-
-
-
-
-if __name__ == '__main__':
-    #plot_channel_response()
-    #exit()
-    test_analog_core('vivado', False)
