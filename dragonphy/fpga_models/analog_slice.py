@@ -18,6 +18,7 @@ class AnalogSlice:
     def __init__(self, filename=None, **system_values):
         # PAM4 constants
         BITS_PER_SYMBOL = 2
+        # these are listed from lowest to highets; gray coding is applied later if desired
         TX_LEVELS = [
             system_values['vn3'],
             system_values['vn1'],
@@ -125,13 +126,21 @@ class AnalogSlice:
                             if system_values['chunk_width'] and BITS_PER_SYMBOL == 1
                             else m.chunk[chunk_start_i + BITS_PER_SYMBOL-1 : chunk_start_i])
 
+            # gray coding
+            symbol_mapping = {
+                (0, 0): TX_LEVELS[0],
+                (0, 1): TX_LEVELS[1],
+                (1, 0): TX_LEVELS[2],
+                (1, 1): TX_LEVELS[3],
+            }
+
             # write the weight value
             m.set_next_cycle(
                 weights[-1],
                 if_(
                     chunk_symbol[1],
-                    if_(chunk_symbol[0], TX_LEVELS[3], TX_LEVELS[2]),
-                    if_(chunk_symbol[0], TX_LEVELS[1], TX_LEVELS[0])
+                    if_(chunk_symbol[0], symbol_mapping[(1, 1)], symbol_mapping[(1, 0)]),
+                    if_(chunk_symbol[0], symbol_mapping[(0, 1)], symbol_mapping[(0, 0)])
                 ),
                 clk=m.clk,
                 rst=m.rst

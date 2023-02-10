@@ -54,8 +54,8 @@ def map_symbol(symbol):
         mapping = {
                     (0, 0): CFG['vn3'],
                     (0, 1): CFG['vn1'],
-                    (1, 1): CFG['vp1'],
-                    (1, 0): CFG['vp3'],
+                    (1, 0): CFG['vp1'],
+                    (1, 1): CFG['vp3'],
                   }
         return mapping[tuple(symbol)]
 
@@ -66,7 +66,7 @@ def channel_model(slice_offset, pi_ctl, all_bits):
     # build up the sample value through superposition
     sample_value = 0
     for k, symbol in enumerate(all_bits):
-        weight = map_symbol(symbol)  # +/- vref_tx
+        weight = map_symbol(symbol)
         t_rise = (CFG['slices_per_bank'] / CFG['freq_rx']) - (k + 1) * (1.0 / CFG['freq_tx'])
         t_fall = t_rise + (1.0 / CFG['freq_tx'])
         sample_value += weight * (CHAN.interp(t_samp-t_rise)-CHAN.interp(t_samp-t_fall))
@@ -148,8 +148,11 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
 
     def poke_bits(bits):
         # even if there are multiple bits per symbol, t expects them to be packed flat
-        bits_flat = [b for symbol in bits for b in symbol]
+        bits_flat = [b
+                     for symbol in bits
+                        for b in symbol]
         t.poke(dut.bits, to_bv(bits_flat))
+        print()
 
     def poke_pi_ctl(pi_ctl):
         for k in range(4):
@@ -165,9 +168,16 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
     test_cases = []
     for x in range(num_tests):
         pi_ctl = [random.randint(0, (1 << CFG['pi_ctl_width']) - 1) for _ in range(4)]
+        #pi_ctl = [255 for _ in range(4)]
+        #pi_ctl = [0, 128, 256, 384]
         new_bits = [[random.randint(0, 1) for i in range(CFG['bits_per_symbol'])]
                     for _ in range(16)]
+        #new_bits = [(0,0)]*4 + [(1,1)]*(x+1) + [(0,0)]*(11-x)
+        #new_bits = [(0,0)]*2 + [(1,0)] + [(0,0)]*5 + [(0, 0)] * 2 + [(1, 0)] + [(0, 0)] * 5
         test_cases.append([pi_ctl, new_bits])
+
+    print('test cases:')
+    print(test_cases)
 
     # initialize
     t.zero_inputs()
@@ -250,7 +260,7 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
         dump_waveforms=dump_waveforms,
         flags=flags,
         timescale='1fs/1fs',
-        num_cycles=1e12
+        num_cycles=1e12,
     )
 
     # process the results
@@ -262,6 +272,8 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
         # compute the expected ADC value
         analog_sample, sgn_expct, mag_expct = [], [], []
         all_bits = new_bits + prev_bits
+        print('all_bits is', all_bits)
+        print('pi_ctl is', pi_ctl)
         for idx in range(16):
             # determine the analog value sampled on this channel
             analog_sample.append(channel_model(idx%4, pi_ctl[idx//4], all_bits))
@@ -280,6 +292,24 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
         print(f'[measured] sgn: {sgn_meas}, mag: {mag_meas}')
         print(f'[expected] sgn: {sgn_expct}, mag: {mag_expct}, analog_sample: {analog_sample}')
 
+
+        def align(sgn, mag):
+            val = [(2*s-1)*m for s, m in zip(sgn, mag)]
+            mapping = [0,4,8,12,1,5,9,13,2,6,10,14,3,7,11,15]
+            ans = [val[i] for i in mapping]
+            return ans
+
+        meas = align(sgn_meas, mag_meas)
+        expct = align(sgn_expct, mag_expct)
+
+        #import matplotlib.pyplot as plt
+        #plt.figure()
+        #plt.plot(meas)
+        #plt.figure()
+        #plt.plot(expct)
+        #plt.show()
+
+
         # check results
         for sm, mm, se, me in zip(sgn_meas, mag_meas, sgn_expct, mag_expct):
             check_adc_result(sm, mm, se, me)
@@ -287,5 +317,20 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
     # declare success
     print('Success!')
 
+
+def plot_channel_response():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    xs = np.linspace(-5/CFG['freq_rx'], 35/CFG['freq_rx'], 40*5+1)
+    ys = [CHAN.interp(x) for x in xs]
+    plt.plot(xs, ys)
+    plt.show()
+
+
+
+
+
 if __name__ == '__main__':
+    #plot_channel_response()
+    #exit()
     test_analog_core('vivado', False)

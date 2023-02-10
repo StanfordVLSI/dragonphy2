@@ -83,7 +83,7 @@ module analog_core import const_pack::*; #(
 
     // instantiate analog slices
 
-    logic [(chunk_width-1):0] chunk;
+    logic [(chunk_width*bits_per_symbol-1):0] chunk;
     logic [($clog2(num_chunks)-1):0] chunk_idx;
     logic incr_sum;
     logic last_cycle;
