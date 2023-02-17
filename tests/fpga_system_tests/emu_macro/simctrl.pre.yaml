@@ -120,10 +120,7 @@ digital_probes:
     abspath: 'tb_i.top_i.idcore.chan_est_i.tap_decimal'
     width: 26
     signed: 1
-  overflow_0:
-    abspath: 'tb_i.top_i.idcore.datapath_i.err_chk_stage_3_i.sld_dtct_i.genblk1[0].sd_slice_i.overflow'
-    width: 5
-    signed: 0
+
 #  stage1_act_codes_out_0:
 #    abspath: 'tb_i.top_i.idcore.datapath_i.stage1_act_codes_out[0]'
 #    width: 8
