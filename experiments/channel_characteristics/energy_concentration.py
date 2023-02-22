@@ -28,7 +28,7 @@ for ii, sparam_file in enumerate(sparam_file_list):
 
     _, pulse = chan.get_pulse_resp(f_sig=16e9, resp_depth=350, t_delay=0)
     #Try to center the sample!
-    am_idx = np.argmax(pulse)
+    am_idx = np.argmax(pulse)-3
     shift_delay = (am_idx*625 - im_idx)*0.1e-12
     _, pulse = chan.get_pulse_resp(f_sig=16e9, resp_depth=350, t_delay=-shift_delay)
 
@@ -62,7 +62,7 @@ for ii, sparam_file in enumerate(sparam_file_list):
         else:
             post_idx += 1
             partial_energy = partial_energy + next_pst_ener
-        finished = partial_energy >= 0.80*total_energy
+        finished = partial_energy >= 0.90*total_energy
 
     print(pre_idx, post_idx, partial_energy/total_energy)
     name = sparam_file.split('.')[0]
@@ -72,7 +72,7 @@ for ii, sparam_file in enumerate(sparam_file_list):
     print(color)
     plt.stem((st[(cur_pos-pre_idx):(cur_pos+post_idx+1)] - st_max)*1e9 + 2*ii, pulse[(cur_pos-pre_idx):(cur_pos+post_idx+1)], markerfmt='ko', linefmt=color)
 
-plt.legend(prop={'size' : 36})
+#plt.legend(prop={'size' : 36})
 plt.xlim((-2.5, 12))
 plt.xlabel('time (ns)', fontdict={'fontsize':32})
 plt.title('Impulse Response for Five Channels, with 99% Energy Samples', fontdict={'fontsize':32})
