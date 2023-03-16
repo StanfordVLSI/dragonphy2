@@ -41,8 +41,8 @@ def chan_pam4_adaptation(chan, chan_err, syms, gain):
 def convert_amd_txt():
     with open('amd_adc.txt') as f:
         lines = f.readlines()
-        tokens = lines[0].split(' ')
-        tokens = [float(int(val)) for val in tokens]
+        tokens = lines[0].split()
+        tokens = [int(float(val)) for val in tokens]
         np.savetxt('amd_adc.csv', tokens, delimiter=',')
 
 def process_amd_data():
@@ -114,20 +114,67 @@ def error_checker():
         #plt.show()
     
     flags = np.zeros((len(est_errs),))
-
+    energies = np.zeros((len(est_errs),))
     for ii in range(len(est_errs)-3):
         flags[ii] = 0
         lowest_energy = np.sum(np.square(est_errs[ii:ii+3]))
+        energies[ii] = lowest_energy
         #print(lowest_energy, est_errs[ii:ii+3])
         for jj in range(2*len(check_patterns)):
             energy = np.sum(np.square(est_errs[ii:ii+3] - precomputed_errs[jj, :]))
             #print(energy, est_errs[ii:ii+3] - precomputed_errs[jj, :])
             if energy < lowest_energy:
                 flags[ii] = jj
+                energies[ii] = energy
                 lowest_energy = energy
         #print(flags[ii])
     np.savetxt('flags.csv', flags, delimiter=',')
+    np.savetxt('energies.csv', energies, delimiter=',')
 
+def bin_and_collect_error_traces():
+    flags = np.loadtxt('flags.csv', delimiter=',')
+    energies = np.loadtxt('energies.csv', delimiter=',')
+    est_err = np.loadtxt('est_err.csv', delimiter=',')
+    red_flags = flags
+    red_energies = energies
+    print(int((1- (len(red_flags)/8 - int(len(red_flags)/8)))*8))
+    red_flags = np.pad(red_flags, (0, int((1- (len(red_flags)/8 - int(len(red_flags)/8)))*8)), 'constant', constant_values=(0,0))
+    red_energies = np.pad(red_energies, (0, int((1- (len(red_energies)/8 - int(len(red_energies)/8)))*8)), 'constant', constant_values=(0,9999))
+
+    red_flag_blocks = red_flags.reshape((-1, 8))
+    red_energy_blocks = red_energies.reshape((-1, 8))
+
+    best_red_flag_blocks = np.zeros((len(red_flag_blocks), 8))
+
+    for ii in range(len(red_flag_blocks)):
+        if not any(red_flag_blocks[ii, :]):
+            continue
+        print(red_energy_blocks[ii, :])
+        print(red_flag_blocks[ii, :])
+        nonzero_flags = np.nonzero(red_flag_blocks[ii, :])[0]
+        idx = nonzero_flags[np.argmin(red_energy_blocks[ii, nonzero_flags])]
+        best_red_flag_blocks[ii, idx] = red_flag_blocks[ii, idx]
+        print(best_red_flag_blocks[ii, :])
+
+    traces = []
+    for ii in range(len(best_red_flag_blocks)):
+        if not any(best_red_flag_blocks[ii, :]):
+            continue
+        traces += [(ii-1)*8]
+
+    print(traces)
+    print(len(traces)/len(flags))
+    np.savetxt('traces.csv', np.array(traces), delimiter=',')
+
+def plot_traces():
+    traces = np.loadtxt('traces.csv', delimiter=',')
+    est_err = np.loadtxt('est_err.csv', delimiter=',')
+    flags = np.loadtxt('flags.csv', delimiter=',')
+    plt.plot(est_err)
+    plt.plot(flags)
+    for ii in range(len(traces)):
+        plt.axvline(traces[ii], color='r')
+    plt.show()
 
 def plot_processed_data():
     est_channel = np.loadtxt('est_channel.csv', delimiter=',')
@@ -189,4 +236,10 @@ def process_test_data():
 
 
 if __name__ == '__main__':
-    plot_error_checker_results()
+    #convert_amd_txt()
+    #process_amd_data()
+    #plot_processed_data()
+    #error_checker()
+    #plot_error_checker_results()
+    #bin_and_collect_error_traces()
+    plot_traces()
