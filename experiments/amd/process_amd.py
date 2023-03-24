@@ -3,7 +3,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 from scipy import signal
 import scipy
-
+from copy import deepcopy
+from dragonphy import create_init_viterbi_state, run_error_viterbi, run_iteration_error_viterbi
 
 def slicer(val, slice_level):
     if val > 2*slice_level:
@@ -134,17 +135,20 @@ def error_checker():
 def bin_and_collect_error_traces():
     flags = np.loadtxt('flags.csv', delimiter=',')
     energies = np.loadtxt('energies.csv', delimiter=',')
-    est_err = np.loadtxt('est_err.csv', delimiter=',')
+    #est_err = np.loadtxt('est_err.csv', delimiter=',')
     red_flags = flags
     red_energies = energies
-    print(int((1- (len(red_flags)/8 - int(len(red_flags)/8)))*8))
-    red_flags = np.pad(red_flags, (0, int((1- (len(red_flags)/8 - int(len(red_flags)/8)))*8)), 'constant', constant_values=(0,0))
-    red_energies = np.pad(red_energies, (0, int((1- (len(red_energies)/8 - int(len(red_energies)/8)))*8)), 'constant', constant_values=(0,9999))
 
-    red_flag_blocks = red_flags.reshape((-1, 8))
-    red_energy_blocks = red_energies.reshape((-1, 8))
+    block_size = 4
 
-    best_red_flag_blocks = np.zeros((len(red_flag_blocks), 8))
+    print(int((1- (len(red_flags)/block_size - int(len(red_flags)/block_size)))*block_size))
+    red_flags = np.pad(red_flags, (0, int((1- (len(red_flags)/block_size - int(len(red_flags)/block_size)))*block_size)), 'constant', constant_values=(0,0))
+    red_energies = np.pad(red_energies, (0, int((1- (len(red_energies)/block_size - int(len(red_energies)/block_size)))*block_size)), 'constant', constant_values=(0,9999))
+
+    red_flag_blocks = red_flags.reshape((-1, block_size))
+    red_energy_blocks = red_energies.reshape((-1, block_size))
+
+    best_red_flag_blocks = np.zeros((len(red_flag_blocks), block_size))
 
     for ii in range(len(red_flag_blocks)):
         if not any(red_flag_blocks[ii, :]):
@@ -160,20 +164,72 @@ def bin_and_collect_error_traces():
     for ii in range(len(best_red_flag_blocks)):
         if not any(best_red_flag_blocks[ii, :]):
             continue
-        traces += [(ii-1)*8]
+        traces += [(ii-1)*block_size]
 
     print(traces)
     print(len(traces)/len(flags))
     np.savetxt('traces.csv', np.array(traces), delimiter=',')
 
+def process_error_traces():
+    traces = np.loadtxt('traces.csv', delimiter=',')
+    est_err = np.loadtxt('est_err.csv', delimiter=',')
+    new_est_err = deepcopy(est_err)
+    est_channel = np.loadtxt('est_channel.csv', delimiter=',')
+    #est_channel = [1, 0.5, 0.25, 0.125, 0.0625] + [0]*19
+
+
+    current_trace = int(traces[0])
+    viterbi_list = []
+    for trace in traces[1:]:
+        if trace - current_trace < 32:
+            continue
+        else:
+            viterbi_list +=[current_trace]
+            current_trace = int(trace)
+
+    est_channel = np.array(list(est_channel)[3:])
+    est_channel = np.array(list(est_channel) + [0]*(32-len(est_channel)))
+    correction = np.zeros((len(est_err),))
+    for (ii, trace_pos) in enumerate(viterbi_list):
+        if trace_pos < 200000:
+            continue
+        trace = est_err[trace_pos:trace_pos+32]
+
+        viterbi_state = create_init_viterbi_state(len(est_channel), est_channel, 4)
+        for val in trace:
+            viterbi_state = run_iteration_error_viterbi(viterbi_state, val)
+        #print(viterbi_state)
+        err, trc = viterbi_state.get_best_path()
+        print(f'{ii/len(viterbi_list)*100:.2f}%')
+#        plt.plot(trc)
+#        plt.plot(trace)
+#        plt.plot(err)
+#        plt.show()
+        #input()
+        correction[trace_pos:trace_pos+29] = err[:29]
+        new_est_err[trace_pos:trace_pos+32] = trc
+    correction = np.convolve(est_channel, correction, 'same')
+    #plt.plot(new_est_err)
+    np.savetxt('post_est_err.csv', new_est_err, delimiter=',')
+    np.savetxt('viterbi_list.csv', np.array(viterbi_list), delimiter=',')
+    np.savetxt('correction.csv', correction, delimiter=',')
 def plot_traces():
     traces = np.loadtxt('traces.csv', delimiter=',')
     est_err = np.loadtxt('est_err.csv', delimiter=',')
+    new_est_err = np.loadtxt('post_est_err.csv', delimiter=',')
+    correction = np.loadtxt('correction.csv', delimiter=',')
+    viterbi_list = np.loadtxt('viterbi_list.csv', delimiter=',')
     flags = np.loadtxt('flags.csv', delimiter=',')
-    plt.plot(est_err)
-    plt.plot(flags)
-    for ii in range(len(traces)):
-        plt.axvline(traces[ii], color='r')
+    #plt.plot(est_err)
+    #plt.plot(flags)
+    fig, ax = plt.subplots(2, 1)
+    ax[0].plot(new_est_err)
+    ax[1].plot(est_err + np.array([0]*15 + list(correction[:-15])))
+    #plt.plot(np.array([0]*15 + list(correction[:-15])))
+    #for ii in range(len(traces)):
+    #    plt.axvline(traces[ii], color='r')
+    for ii in range(len(viterbi_list)):
+        plt.axvline(viterbi_list[ii], color='g')
     plt.show()
 
 def plot_processed_data():
@@ -243,3 +299,4 @@ if __name__ == '__main__':
     #plot_error_checker_results()
     #bin_and_collect_error_traces()
     plot_traces()
+    #process_error_traces()
