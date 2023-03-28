@@ -6,6 +6,11 @@ import scipy
 from copy import deepcopy
 from dragonphy import create_init_viterbi_state, run_error_viterbi, run_iteration_error_viterbi
 
+def prbs_checker(current_prbs_state, new_bit, eqn, width):
+    new_prbs_state = (current_prbs_state >> 1) | (new_bit << (width-1))
+    new_prbs_state = new_prbs_state & ((1 << width) - 1)
+    return new_prbs_state, (new_prbs_state & eqn) == 0
+
 def slicer(val, slice_level):
     if val > 2*slice_level:
         return 3
@@ -85,6 +90,7 @@ def process_amd_data():
     np.savetxt('eq_signal.csv', eq_signal, delimiter=',')
     np.savetxt('est_err.csv', est_err, delimiter=',')
     np.savetxt('est_codes.csv', est_codes, delimiter=',')
+
 
 def plot_error_checker_results():
     est_errs = np.loadtxt('est_err.csv', delimiter=',')
@@ -186,7 +192,6 @@ def process_error_traces():
         else:
             viterbi_list +=[current_trace]
             current_trace = int(trace)
-
     est_channel = np.array(list(est_channel)[3:])
     est_channel = np.array(list(est_channel) + [0]*(32-len(est_channel)))
     correction = np.zeros((len(est_err),))
@@ -222,15 +227,14 @@ def plot_traces():
     flags = np.loadtxt('flags.csv', delimiter=',')
     #plt.plot(est_err)
     #plt.plot(flags)
-    fig, ax = plt.subplots(2, 1)
-    ax[0].plot(new_est_err)
-    ax[1].plot(est_err + np.array([0]*15 + list(correction[:-15])))
-    #plt.plot(np.array([0]*15 + list(correction[:-15])))
-    #for ii in range(len(traces)):
-    #    plt.axvline(traces[ii], color='r')
-    for ii in range(len(viterbi_list)):
-        plt.axvline(viterbi_list[ii], color='g')
-    plt.show()
+    for trc_pos in traces:
+        if trc_pos < 200000:
+            continue
+        trc_pos = int(trc_pos)
+        plt.plot(new_est_err[trc_pos:trc_pos+32])
+        plt.plot(est_err[trc_pos:trc_pos+32])
+        plt.plot(correction[-15+trc_pos:-15+trc_pos+32])
+        plt.show()
 
 def plot_processed_data():
     est_channel = np.loadtxt('est_channel.csv', delimiter=',')
@@ -250,6 +254,56 @@ def plot_processed_data():
     plt.hist(eq_signal, bins=100)
     plt.show()
     plt.plot(est_err)
+    plt.show()
+
+
+def post_viterbi_error_checker():
+    est_channel = np.loadtxt('est_channel.csv', delimiter=',')
+    est_errs = np.loadtxt('post_est_err.csv', delimiter=',')
+
+    check_patterns = [
+        [+2,0,0,0],
+        [+2,-2,0,0],
+        [+2,-2,+2,0],
+        [+2,-2,+2,-2]
+    ]
+
+    precomputed_errs = np.zeros((2*len(check_patterns), 3))
+    for ii in range(len(check_patterns)):
+        precomputed_errs[ii, :] = np.convolve(est_channel, check_patterns[ii])[3:6]
+        precomputed_errs[ii+len(check_patterns), :] = np.convolve(est_channel, -np.array(check_patterns[ii]))[3:6]
+
+        #plt.plot(precomputed_errs[ii, :])
+        #plt.plot(np.convolve(est_channel, check_patterns[ii]))
+        #plt.show()
+    
+    flags = np.zeros((len(est_errs),))
+    energies = np.zeros((len(est_errs),))
+    for ii in range(len(est_errs)-3):
+        flags[ii] = 0
+        lowest_energy = np.sum(np.square(est_errs[ii:ii+3]))
+        energies[ii] = lowest_energy
+        #print(lowest_energy, est_errs[ii:ii+3])
+        for jj in range(2*len(check_patterns)):
+            energy = np.sum(np.square(est_errs[ii:ii+3] - precomputed_errs[jj, :]))
+            #print(energy, est_errs[ii:ii+3] - precomputed_errs[jj, :])
+            if energy < lowest_energy:
+                flags[ii] = jj
+                energies[ii] = energy
+                lowest_energy = energy
+        #print(flags[ii])
+    np.savetxt('post_viterbi_flags.csv', flags, delimiter=',')
+    np.savetxt('post_viterbi_energies.csv', energies, delimiter=',')
+
+
+def plot_post_viterbi_error_checker_results():
+    est_errs = np.loadtxt('post_est_err.csv', delimiter=',')
+    pv_flags = np.loadtxt('post_viterbi_flags.csv', delimiter=',')
+    flags = np.loadtxt('flags.csv', delimiter=',')
+    fig, ax = plt.subplots(2,1)
+    ax[0].plot(est_errs)
+    ax[1].plot(flags)
+    ax[1].plot(pv_flags)
     plt.show()
 
 def process_test_data():
@@ -291,6 +345,7 @@ def process_test_data():
     plt.show()
 
 
+
 if __name__ == '__main__':
     #convert_amd_txt()
     #process_amd_data()
@@ -298,5 +353,7 @@ if __name__ == '__main__':
     #error_checker()
     #plot_error_checker_results()
     #bin_and_collect_error_traces()
-    plot_traces()
     #process_error_traces()
+    #plot_traces()
+    #post_viterbi_error_checker()
+    plot_post_viterbi_error_checker_results()

@@ -35,7 +35,6 @@ class ViterbiState:
         return self.err_history[best_idx,::-1], self.trc_history[best_idx,::-1]
 
 def create_init_viterbi_state(depth, pulse_resp, num_bits):
-
     assert(depth <= len(pulse_resp))
 
     parent_table = dict()
