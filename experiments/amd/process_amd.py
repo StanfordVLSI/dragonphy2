@@ -6,10 +6,72 @@ import scipy
 from copy import deepcopy
 from dragonphy import create_init_viterbi_state, run_error_viterbi, run_iteration_error_viterbi
 
-def prbs_checker(current_prbs_state, new_bit, eqn, width):
-    new_prbs_state = (current_prbs_state >> 1) | (new_bit << (width-1))
-    new_prbs_state = new_prbs_state & ((1 << width) - 1)
-    return new_prbs_state, (new_prbs_state & eqn) == 0
+def pam4_to_bits(sym, mapping={3: [1,1], 1: [1,0], -1: [0,1], -3: [0,0]}):
+    return np.array(mapping[sym], dtype=int)
+
+def prbs_generator(prev_bits, eqn):
+
+    def bitwise_and(a, b):
+        return [a[ii] & b[ii] for ii in range(len(a))]
+    
+    def total_xor(a):
+        result = a[0]
+        for ii in range(1, len(a)):
+            result ^= a[ii]
+        return result
+
+    select_bits = bitwise_and(prev_bits, eqn)
+    new_bit = total_xor(select_bits)
+    return new_bit
+
+def prbs_checker(new_bit, prev_checked_bits, eqn):
+
+    def bitwise_and(a, b):
+        return [a[ii] & b[ii] for ii in range(len(a))]
+    
+    def total_xor(a):
+        result = a[0]
+        for ii in range(1, len(a)):
+            result ^= a[ii]
+        return result
+
+    select_bits = bitwise_and(prev_checked_bits, eqn)
+    correct_bit = total_xor(select_bits)
+    error   = new_bit ^ correct_bit
+
+    return error, correct_bit
+
+def test_prbs_checker():
+    eqn = np.zeros((24,), dtype=int)
+    eqn[0] = 1
+    eqn[18] = 1
+    eqn[23] = 1
+
+    num_of_bits = 100000
+
+    errors = np.zeros((num_of_bits,), dtype=int)
+    test_bits = np.zeros((num_of_bits,), dtype=int)
+    test_bits[0] = 1
+    received_bits = np.zeros((num_of_bits,), dtype=int)
+    received_bits[0] = 1
+    checked_bits = np.zeros((num_of_bits,), dtype=int)
+    checked_bits[0] = 1
+    for ii in range(24, len(test_bits)):
+        test_bits[ii] = prbs_generator(test_bits[ii-24:ii], eqn)
+        if np.random.rand() < 0.0005:
+            received_bits[ii] = test_bits[ii] ^ 1
+        else:
+            received_bits[ii] = test_bits[ii]
+    print(eqn)
+    for ii in range(24, len(received_bits)):
+        errors[ii], checked_bits[ii] = prbs_checker(received_bits[ii], checked_bits[ii-24:ii], eqn)
+
+    #plt.plot(test_bits)
+    #plt.plot(checked_bits)
+    plt.stem(errors)
+    plt.show()
+
+
 
 def slicer(val, slice_level):
     if val > 2*slice_level:
@@ -344,7 +406,58 @@ def process_test_data():
     plt.plot(est_err)
     plt.show()
 
+def prbs_check_symbols():
+    eqn = np.zeros((24,), dtype=int)
+    eqn[0] = 1
+    eqn[18]= 1
+    eqn[23]= 1
 
+    mapping = {}
+    mapping[3]  = [1, 0]
+    mapping[1]  = [0, 0] 
+    mapping[-1] = [0, 1]
+    mapping[-3] = [1, 1]
+
+    eq_signal = np.loadtxt('eq_signal.csv', delimiter=',')[100000:100000+100000]
+    syms = [slicer(eq_signal[ii], 2.2) for ii in range(len(eq_signal))]
+
+    bits = np.zeros((2*len(syms),), dtype=int)
+    for ii in range(len(syms)):
+        bits[2*ii:2*ii+2] = pam4_to_bits(syms[ii], mapping=mapping)
+
+
+    checked_bits = np.zeros((2*len(syms),), dtype=int)
+    errors = np.zeros((2*len(syms),), dtype=int)
+    for ii in range(24, 2*len(syms)):
+        errors[ii], checked_bits[ii] = prbs_checker(bits[ii], bits[ii-24:ii], eqn)
+    fig, axes = plt.subplots(2,1)
+    axes[0].stem(errors[100:320])
+    axes[1].plot(bits[100:320], 'g')
+    plt.show()
+ 
+
+    return 
+    even_bits = np.zeros((len(syms),), dtype=int)
+    odd_bits = np.zeros((len(syms),), dtype=int)
+    for ii in range(len(syms)):
+        bits = pam4_to_bits(syms[ii], mapping=mapping)
+        even_bits[ii] = bits[0]
+        odd_bits[ii] = bits[1]
+
+    checked_even_bits = np.zeros((len(syms),), dtype=int)
+    checked_odd_bits = np.zeros((len(syms),), dtype=int)
+
+    even_errors = np.zeros((len(syms),), dtype=int)
+    odd_errors = np.zeros((len(syms),), dtype=int)
+    for ii in range(24, len(syms)):
+        even_errors[ii], checked_even_bits[ii] = prbs_checker(even_bits[ii], even_bits[ii-24:ii], eqn)
+        odd_errors[ii], checked_odd_bits[ii] = prbs_checker(odd_bits[ii], odd_bits[ii-24:ii], eqn)
+    fig, axes = plt.subplots(4,1)
+    axes[0].stem(even_errors[100:160])
+    axes[1].stem(odd_errors[100:160])
+    axes[2].plot(even_bits[100:160], 'g')
+    axes[3].plot(odd_bits[100:160], 'y')
+    plt.show()
 
 if __name__ == '__main__':
     #convert_amd_txt()
@@ -356,4 +469,6 @@ if __name__ == '__main__':
     #process_error_traces()
     #plot_traces()
     #post_viterbi_error_checker()
-    plot_post_viterbi_error_checker_results()
+    #plot_post_viterbi_error_checker_results()
+    #test_prbs_checker()
+    prbs_check_symbols()
