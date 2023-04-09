@@ -1,10 +1,58 @@
 import numpy as np
 from pathlib import Path
+import matplotlib
 import matplotlib.pyplot as plt
 from scipy import signal
 import scipy
 from copy import deepcopy
 from dragonphy import create_init_viterbi_state, run_error_viterbi, run_iteration_error_viterbi
+#matplotlib.use('TkAgg')
+
+
+def gray_code_mappings(select_mapping):
+    mappings = [{}, {}, {}, {}, {}, {}, {}, {}]
+    mappings[0][3]  = [1, 0]
+    mappings[0][1]  = [0, 0] 
+    mappings[0][-1] = [0, 1]
+    mappings[0][-3] = [1, 1]
+
+    mappings[1][3]  = [1, 1]
+    mappings[1][1]  = [1, 0] 
+    mappings[1][-1] = [0, 0]
+    mappings[1][-3] = [0, 1]
+
+
+    mappings[2][3]  = [0, 1]
+    mappings[2][1]  = [1, 1] 
+    mappings[2][-1] = [1, 0]
+    mappings[2][-3] = [0, 0]
+
+    mappings[3][3]  = [0, 0]
+    mappings[3][1]  = [0, 1] 
+    mappings[3][-1] = [1, 1]
+    mappings[3][-3] = [1, 0]
+
+    mappings[4][3]  = [0, 1]
+    mappings[4][1]  = [0, 0] 
+    mappings[4][-1] = [1, 0]
+    mappings[4][-3] = [1, 1]
+
+    mappings[5][3]  = [1, 1]
+    mappings[5][1]  = [0, 1] 
+    mappings[5][-1] = [0, 0]
+    mappings[5][-3] = [1, 0]
+
+
+    mappings[6][3]  = [1, 0]
+    mappings[6][1]  = [1, 1] 
+    mappings[6][-1] = [0, 1]
+    mappings[6][-3] = [0, 0]
+
+    mappings[7][3]  = [0, 0]
+    mappings[7][1]  = [1, 0] 
+    mappings[7][-1] = [1, 1]
+    mappings[7][-3] = [0, 1]
+    return mappings[select_mapping]
 
 def pam4_to_bits(sym, mapping={3: [1,1], 1: [1,0], -1: [0,1], -3: [0,0]}):
     return np.array(mapping[sym], dtype=int)
@@ -20,7 +68,7 @@ def prbs_generator(prev_bits, eqn):
             result ^= a[ii]
         return result
 
-    select_bits = bitwise_and(prev_bits, eqn)
+    select_bits = bitwise_and(prev_bits, eqn[::-1])
     new_bit = total_xor(select_bits)
     return new_bit
 
@@ -35,17 +83,23 @@ def prbs_checker(new_bit, prev_checked_bits, eqn):
             result ^= a[ii]
         return result
 
-    select_bits = bitwise_and(prev_checked_bits, eqn)
+    select_bits = bitwise_and(prev_checked_bits, eqn[::-1])
     correct_bit = total_xor(select_bits)
     error   = new_bit ^ correct_bit
 
     return error, correct_bit
 
 def test_prbs_checker():
-    eqn = np.zeros((24,), dtype=int)
-    eqn[0] = 1
-    eqn[18] = 1
-    eqn[23] = 1
+    prbs_depth = 8
+    eqn = np.zeros((prbs_depth,), dtype=int)
+
+    if prbs_depth == 8:
+        eqn[5] = 1
+        eqn[6] = 1
+    elif prbs_depth == 24:
+        eqn[0] = 0
+        eqn[18] = 1
+        eqn[23] = 1
 
     num_of_bits = 100000
 
@@ -56,15 +110,17 @@ def test_prbs_checker():
     received_bits[0] = 1
     checked_bits = np.zeros((num_of_bits,), dtype=int)
     checked_bits[0] = 1
-    for ii in range(24, len(test_bits)):
-        test_bits[ii] = prbs_generator(test_bits[ii-24:ii], eqn)
+    for ii in range(prbs_depth, len(test_bits)):
+        test_bits[ii] = prbs_generator(test_bits[ii-prbs_depth:ii], eqn)
+        print(test_bits[ii], test_bits[ii-prbs_depth:ii])
+        input()
         if np.random.rand() < 0.0005:
             received_bits[ii] = test_bits[ii] ^ 1
         else:
             received_bits[ii] = test_bits[ii]
     print(eqn)
-    for ii in range(24, len(received_bits)):
-        errors[ii], checked_bits[ii] = prbs_checker(received_bits[ii], checked_bits[ii-24:ii], eqn)
+    for ii in range(prbs_depth, len(received_bits)):
+        errors[ii], checked_bits[ii] = prbs_checker(received_bits[ii], checked_bits[ii-prbs_depth:ii], eqn)
 
     #plt.plot(test_bits)
     #plt.plot(checked_bits)
@@ -245,22 +301,27 @@ def process_error_traces():
     est_channel = np.loadtxt('est_channel.csv', delimiter=',')
     #est_channel = [1, 0.5, 0.25, 0.125, 0.0625] + [0]*19
 
+    viterbi_depth = 20
 
     current_trace = int(traces[0])
     viterbi_list = []
     for trace in traces[1:]:
-        if trace - current_trace < 32:
+        if trace - current_trace < (viterbi_depth -4):
             continue
         else:
             viterbi_list +=[current_trace]
             current_trace = int(trace)
     est_channel = np.array(list(est_channel)[3:])
-    est_channel = np.array(list(est_channel) + [0]*(32-len(est_channel)))
+    if len(est_channel) < viterbi_depth:
+        est_channel = np.array(list(est_channel) + [0]*(viterbi_depth-len(est_channel)))
+    elif len(est_channel) > viterbi_depth:
+        est_channel = est_channel[:viterbi_depth]
+
     correction = np.zeros((len(est_err),))
     for (ii, trace_pos) in enumerate(viterbi_list):
         if trace_pos < 200000:
             continue
-        trace = est_err[trace_pos:trace_pos+32]
+        trace = est_err[trace_pos:trace_pos+viterbi_depth]
 
         viterbi_state = create_init_viterbi_state(len(est_channel), est_channel, 4)
         for val in trace:
@@ -273,9 +334,9 @@ def process_error_traces():
 #        plt.plot(err)
 #        plt.show()
         #input()
-        correction[trace_pos:trace_pos+29] = err[:29]
-        new_est_err[trace_pos:trace_pos+32] = trc
-    correction = np.convolve(est_channel, correction, 'same')
+        correction[trace_pos:trace_pos+viterbi_depth-4] = err[:viterbi_depth-4]
+        new_est_err[trace_pos:trace_pos+viterbi_depth-4] = trc[:viterbi_depth-4]
+    #correction = np.convolve(est_channel, correction, 'same')
     #plt.plot(new_est_err)
     np.savetxt('post_est_err.csv', new_est_err, delimiter=',')
     np.savetxt('viterbi_list.csv', np.array(viterbi_list), delimiter=',')
@@ -407,57 +468,72 @@ def process_test_data():
     plt.show()
 
 def prbs_check_symbols():
-    eqn = np.zeros((24,), dtype=int)
-    eqn[0] = 1
-    eqn[18]= 1
-    eqn[23]= 1
+    eqn = np.zeros((23,), dtype=int)
+    eqn[17]= 1
+    eqn[22]= 1
+    
+ 
+    def limit(val):
+        if val > 3 or val < -3:
+            return 3*np.sign(val)
+        else:
+            return val
 
-    mapping = {}
-    mapping[3]  = [1, 0]
-    mapping[1]  = [0, 0] 
-    mapping[-1] = [0, 1]
-    mapping[-3] = [1, 1]
-
-    eq_signal = np.loadtxt('eq_signal.csv', delimiter=',')[100000:100000+100000]
+    eq_signal = np.loadtxt('eq_signal.csv', delimiter=',')[1000000:1000000+1000000]
+    est_errors = np.loadtxt('est_err.csv', delimiter=',')[1000004:1000004+1000000]
+    pv_est_errors = np.loadtxt('post_est_err.csv', delimiter=',')[1000004:1000004+1000000]
+    corrections = np.loadtxt('correction.csv', delimiter=',')[1000004:1000004+1000000]
+    viterbi_list = np.loadtxt('viterbi_list.csv', delimiter=',')
+    wide_correction = np.zeros(2*len(corrections))
+    wide_correction[::2] = corrections
+    wide_est_errors = np.zeros(2*len(est_errors))
+    wide_est_errors[::2] = est_errors
+    wide_est_errors[1::2] = est_errors
+    wide_pv_est_errors = np.zeros(2*len(pv_est_errors))
+    wide_pv_est_errors[::2] = pv_est_errors
+    wide_pv_est_errors[1::2] = pv_est_errors
     syms = [slicer(eq_signal[ii], 2.2) for ii in range(len(eq_signal))]
+    corrected_syms = [limit(slicer(eq_signal[ii], 2.2)  +  corrections[ii]) for ii in range(len(eq_signal))]
+    mapping = gray_code_mappings(6)
+    #fig, axes = plt.subplots(4,1)
+
 
     bits = np.zeros((2*len(syms),), dtype=int)
+    pv_bits = np.zeros((2*len(syms),), dtype=int)
+    test_bits = np.zeros((2*len(syms),), dtype=int)
     for ii in range(len(syms)):
         bits[2*ii:2*ii+2] = pam4_to_bits(syms[ii], mapping=mapping)
+        pv_bits[2*ii:2*ii+2] = pam4_to_bits(corrected_syms[ii], mapping=mapping)
+    errors = np.zeros((len(bits),), dtype=int)
+    pv_errors = np.zeros((len(bits),), dtype=int)
+
+    checked_bits = np.zeros((len(bits),), dtype=int)
+    pv_checked_bits = np.zeros((len(bits),), dtype=int)
+    for ii in range(23, len(test_bits)):
+        errors[ii], checked_bits[ii] = prbs_checker(bits[ii], bits[ii-23:ii], eqn)
+        pv_errors[ii], checked_bits[ii] = prbs_checker(pv_bits[ii], pv_bits[ii-23:ii], eqn)
+
+    print(np.sum(errors)/len(errors)/3)
+    print(np.sum(pv_errors)/len(pv_errors)/3)
+#    plt.plot(errors*10)
+#    plt.plot(pv_errors*10)
+#    plt.plot(wide_est_errors)
+#    plt.plot(wide_pv_est_errors)
 
 
-    checked_bits = np.zeros((2*len(syms),), dtype=int)
-    errors = np.zeros((2*len(syms),), dtype=int)
-    for ii in range(24, 2*len(syms)):
-        errors[ii], checked_bits[ii] = prbs_checker(bits[ii], bits[ii-24:ii], eqn)
-    fig, axes = plt.subplots(2,1)
-    axes[0].stem(errors[100:320])
-    axes[1].plot(bits[100:320], 'g')
-    plt.show()
- 
+    for val in viterbi_list:
+        val = int(val)
+        if val > 1000004 and val < 2000004:
+            plt.plot(wide_est_errors[(val-1000004)*2:(val-1000004)*2+64])
+            plt.plot(wide_pv_est_errors[(val-1000004)*2:(val-1000004)*2+64])
+            plt.plot(errors[(val-1000004)*2:(val-1000004)*2+64]*10)
+            plt.plot(pv_errors[(val-1000004)*2:(val-1000004)*2+64]*10)
+
+            plt.savefig('viterbi_list/{}.png'.format(val))
+            plt.clf()
 
     return 
-    even_bits = np.zeros((len(syms),), dtype=int)
-    odd_bits = np.zeros((len(syms),), dtype=int)
-    for ii in range(len(syms)):
-        bits = pam4_to_bits(syms[ii], mapping=mapping)
-        even_bits[ii] = bits[0]
-        odd_bits[ii] = bits[1]
 
-    checked_even_bits = np.zeros((len(syms),), dtype=int)
-    checked_odd_bits = np.zeros((len(syms),), dtype=int)
-
-    even_errors = np.zeros((len(syms),), dtype=int)
-    odd_errors = np.zeros((len(syms),), dtype=int)
-    for ii in range(24, len(syms)):
-        even_errors[ii], checked_even_bits[ii] = prbs_checker(even_bits[ii], even_bits[ii-24:ii], eqn)
-        odd_errors[ii], checked_odd_bits[ii] = prbs_checker(odd_bits[ii], odd_bits[ii-24:ii], eqn)
-    fig, axes = plt.subplots(4,1)
-    axes[0].stem(even_errors[100:160])
-    axes[1].stem(odd_errors[100:160])
-    axes[2].plot(even_bits[100:160], 'g')
-    axes[3].plot(odd_bits[100:160], 'y')
-    plt.show()
 
 if __name__ == '__main__':
     #convert_amd_txt()
@@ -466,9 +542,9 @@ if __name__ == '__main__':
     #error_checker()
     #plot_error_checker_results()
     #bin_and_collect_error_traces()
-    #process_error_traces()
+    process_error_traces()
     #plot_traces()
-    #post_viterbi_error_checker()
+    post_viterbi_error_checker()
     #plot_post_viterbi_error_checker_results()
     #test_prbs_checker()
     prbs_check_symbols()
