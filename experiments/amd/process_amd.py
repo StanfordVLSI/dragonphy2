@@ -9,6 +9,61 @@ from dragonphy import create_init_viterbi_state, run_error_viterbi, run_iteratio
 #matplotlib.use('TkAgg')
 
 
+def amd_viterbi(viterbi_depth, trace_pos):
+    est_err = np.loadtxt('est_err.csv', delimiter=',')
+    est_channel = np.loadtxt('est_channel.csv', delimiter=',')
+
+    est_channel = np.array(list(est_channel)[3:])
+    if len(est_channel) < viterbi_depth:
+        est_channel = np.array(list(est_channel) + [0]*(viterbi_depth-len(est_channel)))
+    elif len(est_channel) > viterbi_depth:
+        est_channel = est_channel[:viterbi_depth]
+
+
+    trace = est_err[trace_pos:trace_pos+viterbi_depth]
+
+    viterbi_state = create_init_viterbi_state(len(est_channel), est_channel, 4)
+    for val in trace:
+        viterbi_state = run_iteration_error_viterbi(viterbi_state, val)
+
+    err, trc = viterbi_state.get_best_path()
+
+    return err, trc, trace
+def amd_error_checker(est_channel, est_errs):
+    check_patterns = [
+        [+2,0,0,0],
+        [+2,-2,0,0],
+        [+2,-2,+2,0],
+        [+2,-2,+2,-2]
+    ]
+
+    precomputed_errs = np.zeros((2*len(check_patterns), 3))
+    for ii in range(len(check_patterns)):
+        precomputed_errs[ii, :] = np.convolve(est_channel, check_patterns[ii])[3:6]
+        precomputed_errs[ii+len(check_patterns), :] = np.convolve(est_channel, -np.array(check_patterns[ii]))[3:6]
+
+        plt.plot(precomputed_errs[ii, :])
+        plt.plot(np.convolve(est_channel, check_patterns[ii]))
+        plt.show()
+    
+    flags = np.zeros((len(est_errs),))
+    energies = np.zeros((len(est_errs),))
+    for ii in range(len(est_errs)-3):
+        flags[ii] = 0
+        lowest_energy = np.sum(np.square(est_errs[ii:ii+3]))
+        energies[ii] = lowest_energy
+        print(f'------------------ {ii} ------------------')
+        print(0, lowest_energy, est_errs[ii:ii+3])
+        for jj in range(2*len(check_patterns)):
+            energy = np.sum(np.square(est_errs[ii:ii+3] - precomputed_errs[jj, :]))
+            print(jj+1, energy, est_errs[ii:ii+3] - precomputed_errs[jj, :])
+            if energy < lowest_energy:
+                flags[ii] = jj+1
+                energies[ii] = energy
+                lowest_energy = energy
+    
+    return flags, energies
+
 def gray_code_mappings(select_mapping):
     mappings = [{}, {}, {}, {}, {}, {}, {}, {}]
     mappings[0][3]  = [1, 0]
@@ -249,7 +304,7 @@ def error_checker():
             energy = np.sum(np.square(est_errs[ii:ii+3] - precomputed_errs[jj, :]))
             #print(energy, est_errs[ii:ii+3] - precomputed_errs[jj, :])
             if energy < lowest_energy:
-                flags[ii] = jj
+                flags[ii] = jj+1
                 energies[ii] = energy
                 lowest_energy = energy
         #print(flags[ii])
@@ -288,29 +343,39 @@ def bin_and_collect_error_traces():
     for ii in range(len(best_red_flag_blocks)):
         if not any(best_red_flag_blocks[ii, :]):
             continue
-        traces += [(ii-1)*block_size]
+        traces += [(ii)*block_size]
 
     print(traces)
     print(len(traces)/len(flags))
     np.savetxt('traces.csv', np.array(traces), delimiter=',')
 
-def process_error_traces():
+def identify_viterbi_locations(base_viterbi_depth):
     traces = np.loadtxt('traces.csv', delimiter=',')
-    est_err = np.loadtxt('est_err.csv', delimiter=',')
-    new_est_err = deepcopy(est_err)
-    est_channel = np.loadtxt('est_channel.csv', delimiter=',')
-    #est_channel = [1, 0.5, 0.25, 0.125, 0.0625] + [0]*19
-
-    viterbi_depth = 20
 
     current_trace = int(traces[0])
     viterbi_list = []
-    for trace in traces[1:]:
-        if trace - current_trace < (viterbi_depth -4):
-            continue
-        else:
-            viterbi_list +=[current_trace]
-            current_trace = int(trace)
+    viterbi_depth = []
+
+    for ii in range(len(traces)):
+        if traces[ii] - current_trace == base_viterbi_depth:
+            print(f'touching {traces[ii]} - {current_trace}')
+        if traces[ii] - current_trace < base_viterbi_depth - 4:
+            print(f'jumping {traces[ii]} - {current_trace}')
+        if traces[ii] - current_trace > base_viterbi_depth - 4:
+            viterbi_list += [traces[ii]]
+            current_trace = traces[ii]
+            print(f'new trace {traces[ii]} - {current_trace}')
+
+    np.savetxt('viterbi_list.csv', np.array(viterbi_list), delimiter=',')
+
+
+def process_error_traces(viterbi_depth):
+    viterbi_list = np.loadtxt('viterbi_list.csv', delimiter=',')
+    viterbi_list = np.array(viterbi_list, dtype=int)
+    est_err = np.loadtxt('est_err.csv', delimiter=',')
+    new_est_err = deepcopy(est_err)
+    est_channel = np.loadtxt('est_channel.csv', delimiter=',')
+
     est_channel = np.array(list(est_channel)[3:])
     if len(est_channel) < viterbi_depth:
         est_channel = np.array(list(est_channel) + [0]*(viterbi_depth-len(est_channel)))
@@ -339,7 +404,6 @@ def process_error_traces():
     #correction = np.convolve(est_channel, correction, 'same')
     #plt.plot(new_est_err)
     np.savetxt('post_est_err.csv', new_est_err, delimiter=',')
-    np.savetxt('viterbi_list.csv', np.array(viterbi_list), delimiter=',')
     np.savetxt('correction.csv', correction, delimiter=',')
 def plot_traces():
     traces = np.loadtxt('traces.csv', delimiter=',')
@@ -411,7 +475,7 @@ def post_viterbi_error_checker():
             energy = np.sum(np.square(est_errs[ii:ii+3] - precomputed_errs[jj, :]))
             #print(energy, est_errs[ii:ii+3] - precomputed_errs[jj, :])
             if energy < lowest_energy:
-                flags[ii] = jj
+                flags[ii] = jj+1
                 energies[ii] = energy
                 lowest_energy = energy
         #print(flags[ii])
@@ -467,7 +531,7 @@ def process_test_data():
     plt.plot(est_err)
     plt.show()
 
-def prbs_check_symbols():
+def prbs_check_symbols(v_depth):
     eqn = np.zeros((23,), dtype=int)
     eqn[17]= 1
     eqn[22]= 1
@@ -484,6 +548,17 @@ def prbs_check_symbols():
     pv_est_errors = np.loadtxt('post_est_err.csv', delimiter=',')[1000004:1000004+1000000]
     corrections = np.loadtxt('correction.csv', delimiter=',')[1000004:1000004+1000000]
     viterbi_list = np.loadtxt('viterbi_list.csv', delimiter=',')
+    viterbi_list = viterbi_list[np.where(viterbi_list >= 1000004)]
+    _viterbi_list = viterbi_list[np.where(viterbi_list <= 1000004+1000000)]
+    viterbi_list = (_viterbi_list + 4 - 1000004)*2
+
+    traces = np.loadtxt('traces.csv', delimiter=',')
+    traces = traces[np.where(traces >= 1000004)]
+    traces = traces[np.where(traces <= 1000004+1000000)]
+    traces = (traces + 4 - 1000004)*2
+    flags = np.loadtxt('flags.csv', delimiter=',')[1000004:1000004+1000000]
+    wide_flags = np.zeros(2*len(flags))
+    wide_flags[::2] = flags
     wide_correction = np.zeros(2*len(corrections))
     wide_correction[::2] = corrections
     wide_est_errors = np.zeros(2*len(est_errors))
@@ -510,27 +585,104 @@ def prbs_check_symbols():
     checked_bits = np.zeros((len(bits),), dtype=int)
     pv_checked_bits = np.zeros((len(bits),), dtype=int)
     for ii in range(23, len(test_bits)):
-        errors[ii], checked_bits[ii] = prbs_checker(bits[ii], bits[ii-23:ii], eqn)
-        pv_errors[ii], checked_bits[ii] = prbs_checker(pv_bits[ii], pv_bits[ii-23:ii], eqn)
+        errors[ii], __ = prbs_checker(bits[ii], bits[ii-23:ii], eqn)
+        pv_errors[ii],__ = prbs_checker(pv_bits[ii], pv_bits[ii-23:ii], eqn)
 
     print(np.sum(errors)/len(errors)/3)
     print(np.sum(pv_errors)/len(pv_errors)/3)
-#    plt.plot(errors*10)
-#    plt.plot(pv_errors*10)
-#    plt.plot(wide_est_errors)
-#    plt.plot(wide_pv_est_errors)
 
 
-    for val in viterbi_list:
-        val = int(val)
-        if val > 1000004 and val < 2000004:
-            plt.plot(wide_est_errors[(val-1000004)*2:(val-1000004)*2+64])
-            plt.plot(wide_pv_est_errors[(val-1000004)*2:(val-1000004)*2+64])
-            plt.plot(errors[(val-1000004)*2:(val-1000004)*2+64]*10)
-            plt.plot(pv_errors[(val-1000004)*2:(val-1000004)*2+64]*10)
+    red_arr = np.zeros((len(errors),))
+    blue_arr = np.zeros((len(errors),))
 
-            plt.savefig('viterbi_list/{}.png'.format(val))
-            plt.clf()
+    locs = np.where(pv_errors > 0)[0]
+
+    ii = 0
+    prev_loc = 0
+    while ii < len(locs):
+        loc = locs[ii]
+        if loc - prev_loc > 20:
+            blue_arr[loc-4:loc+36] = 1
+        prev_loc = loc
+        ii += 1
+
+    locs = np.where(errors > 0)[0]
+    ii = 0
+    prev_loc = 0
+
+    while ii < len(locs):
+        loc = locs[ii]
+        if loc - prev_loc > 20:
+            red_arr[loc-4:loc+36] = 1
+        prev_loc = loc
+        ii += 1
+
+
+
+    edge_red_arr = np.diff(red_arr)
+    ext_red_arr = np.zeros((len(red_arr),))
+    start_locs = np.where(edge_red_arr > 0)[0]
+    end_locs = np.where(edge_red_arr < 0)[0]
+
+    #viterbi_start_indices = []
+    start_indices = []
+    for (start, end) in zip(start_locs, end_locs):
+        if any(blue_arr[start:end] > 0):
+            start_indices += [start]
+    #        #viterbi_start_indices += np.where(viterbi_list > start and viterbi_list < end)[0]
+    #        print(start, end)
+    #        print(np.where(viterbi_list >= start)[0])
+    #        print(viterbi_list[np.where(viterbi_list <= end)[0]])
+    #        print(viterbi_list[np.where(viterbi_list >= start)[0]])
+#
+    #        vx = np.where((viterbi_list >= start ) & (viterbi_list <= end))[0]
+#
+    #        if len(vx) > 0:
+    #            vx = vx[0]
+    #            plt.axvline(x=viterbi_list[vx])
+    #        plt.plot(errors[start-4:start+48]*10)
+    #        plt.plot(pv_errors[start-4:start+48]*10)
+    #        plt.plot(wide_pv_est_errors[start-4:start+48])
+    #        plt.plot(wide_est_errors[start-4:start+48])
+    #        plt.show()
+        
+
+    #plt.plot(red_arr*15+10)
+    #plt.plot(blue_arr*15+10)
+    #plt.plot((errors)*10+12)
+    #plt.plot((pv_errors)*10+8)
+    #plt.plot(wide_pv_est_errors)
+    #plt.plot(wide_est_errors)
+    #plt.plot((wide_flags-5))
+    #plt.plot(traces, 15*np.ones((len(traces),)), 'bo')
+    #plt.plot(viterbi_list, 15*np.ones((len(viterbi_list),)), 'ro')
+    #plt.plot(viterbi_list+40, 15*np.ones((len(viterbi_list),)), 'go')
+
+
+    for start in viterbi_list:
+        start = int(start)
+        #plt.axvline(x=start, color='red')
+        print(int(start/2 + 1000004))
+        skip_inp = input('skip?')
+        if not skip_inp == 'n':
+            continue
+        trc, err, trace = amd_viterbi(v_depth+4, int(start/2 + 1000004))
+        w_trc = np.zeros((2*len(trc),))
+        w_err = np.zeros((2*len(err),))
+        w_err[::2] = err
+        w_err[1::2] = err
+        w_trc[::2] = trc
+        w_trc[1::2] = trc
+        plt.plot(w_trc[:-4], marker='o', markersize=2)
+        plt.plot(w_err[:-4], marker='o', markersize=2)
+        plt.plot(errors[start:start+48]*10)
+        plt.plot(pv_errors[start:start+48]*10)
+        plt.plot(wide_pv_est_errors[start:start+48])
+        plt.plot(wide_est_errors[start:start+48])
+        plt.show()
+        #plt.savefig(f'escapes/trace_{start}_{v_depth}.png')
+        #plt.clf()
+    #plt.show()
 
     return 
 
@@ -541,10 +693,21 @@ if __name__ == '__main__':
     #plot_processed_data()
     #error_checker()
     #plot_error_checker_results()
-    #bin_and_collect_error_traces()
-    process_error_traces()
+    bin_and_collect_error_traces()
+    identify_viterbi_locations(24)
+    process_error_traces(24)
     #plot_traces()
     post_viterbi_error_checker()
     #plot_post_viterbi_error_checker_results()
     #test_prbs_checker()
-    prbs_check_symbols()
+    prbs_check_symbols(20)
+    #amd_viterbi(60,1026652 )
+    #est_channel = np.loadtxt('est_channel.csv', delimiter=',')
+    #est_err = np.loadtxt('est_err.csv', delimiter=',')
+    #est_err = est_err[1010826:1010826+40]
+    #flags, energies = amd_error_checker(est_channel, est_err)
+    #plt.plot(est_err)
+#
+    #plt.plot(flags)
+    #plt.plot(energies)
+    #plt.show()
