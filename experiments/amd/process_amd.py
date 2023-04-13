@@ -236,21 +236,27 @@ def convert_amd_txt():
         np.save('amd_adc.npy', tokens)
 
 def process_amd_data(use_eq_taps=False, use_chan=False, whiten=False):
-    amd_adc_vals = np.load('amd_adc.npy')
+    amd_adc_vals = np.load('amd_adc.npy').astype(float)
+
+    for ii in range(40):
+        amd_adc_vals[ii::40] -= np.mean(amd_adc_vals[ii::40])
+
     if whiten:
         wf_taps = np.load('noise_eq_taps.npy')
         plt.plot(amd_adc_vals)
         amd_adc_vals = np.convolve(amd_adc_vals, wf_taps)
         plt.plot(amd_adc_vals)
         plt.show()
+    eq_taps = np.zeros((40, 21))
     if use_eq_taps:
-        init_eq_filt = np.load('eq_taps.npy')
+        eq_taps = np.load('eq_taps.npy')
     else:
         init_eq_filt = signal.firls(11, [0, 0.45, 0.45, 0.8, 0.8, 1], [0.5, 0.5, 0.5, 0.7, 0.7, 1.2])
         init_eq_filt = np.convolve(init_eq_filt, init_eq_filt)
         init_eq_filt[:16] = init_eq_filt[5:]
         init_eq_filt[16:] = 0
-
+        for ii in range(40):
+            eq_taps[ii,:]   = init_eq_filt
 
     
     num_of_samples = int(len(amd_adc_vals))
@@ -259,20 +265,22 @@ def process_amd_data(use_eq_taps=False, use_chan=False, whiten=False):
     eq_signal = np.zeros((num_of_samples,))
     est_codes = np.zeros((num_of_samples,))
     est_err   = np.zeros((num_of_samples,))
-    eq_taps   = init_eq_filt
-    est_channel = np.zeros(30)
-    est_channel[1] = 1
+
+    est_channel = np.zeros((40, 30))
+    est_channel[:,1] = 1
+
     if use_chan:
         est_channel = np.load('est_channel.npy')
+        
 
     for ii in track(range(10,num_of_samples), description='Processing Initial Estimates'):
-        eq_signal[ii] = filter(amd_adc_vals[ii-10:ii+11], eq_taps, 21)
-        syms[ii] = slicer(eq_signal[ii], 2.2)
-        eq_taps = pam4_adaptation(eq_taps, eq_signal[ii], amd_adc_vals[ii-10:ii+11], 2.2, 0.000005)
+        eq_signal[ii] = filter(amd_adc_vals[ii-10:ii+11], eq_taps[ii % 40, :], 21)
+        syms[ii] = slicer(eq_signal[ii], 2.13)
+        eq_taps[ii % 40, :] = pam4_adaptation(eq_taps[ii % 40, :], eq_signal[ii], amd_adc_vals[ii-10:ii+11], 2.13, 0.000005)
         if ii > 30:
-            est_codes[ii] = filter(syms[ii-30:ii], est_channel, 30)
+            est_codes[ii] = filter(syms[ii-30:ii], est_channel[ii % 40, :], 30)
             est_err[ii] = est_codes[ii] - amd_adc_vals[ii]
-            est_channel = chan_pam4_adaptation(est_channel, est_err[ii] , syms[ii-30:ii], 0.00001)
+            est_channel[ii % 40, :] = chan_pam4_adaptation(est_channel[ii % 40, :], est_err[ii] , syms[ii-30:ii], 0.00001)
 
 
 
@@ -289,18 +297,21 @@ def plot_processed_data(whiten=False):
     amd_adc_vals = np.load('amd_adc.npy')
     if whiten:
         wf_taps = np.load('noise_eq_taps.npy')
-        amd_adc_vals = np.convolve(amd_adc_vals, wf_taps)[10:]
+        amd_adc_vals = np.convolve(amd_adc_vals, wf_taps)
     est_err = np.load('est_err.npy')
     eq_signal = np.load('eq_signal.npy')
 
-    plt.plot(est_channel)
+    plt.plot(est_channel.T)
     plt.show()
-    plt.plot(eq_taps)
+    plt.plot(eq_taps.T)
+    plt.title('Equalizer Taps')
     plt.show()
     plt.plot(est_codes)
     plt.plot(amd_adc_vals)
     plt.show()
     plt.hist(eq_signal, bins=100)
+    plt.show()
+    plt.plot(eq_signal)
     plt.show()
     plt.plot(est_err)
     plt.show()
@@ -316,7 +327,9 @@ def plot_error_checker_results():
     plt.show()
 
 def error_checker():
-    est_channel = np.load('est_channel.npy')
+    est_channel = np.mean(np.load('est_channel.npy'), axis=0)
+
+
     est_errs = np.load('est_err.npy')
 
     check_patterns = [
@@ -331,9 +344,6 @@ def error_checker():
         precomputed_errs[ii, :] = np.convolve(est_channel, check_patterns[ii])[3:6]
         precomputed_errs[ii+len(check_patterns), :] = np.convolve(est_channel, -np.array(check_patterns[ii]))[3:6]
 
-        plt.plot(precomputed_errs[ii, :])
-        plt.plot(np.convolve(est_channel, check_patterns[ii]))
-        plt.show()
     
     flags = np.zeros((len(est_errs),))
     energies = np.zeros((len(est_errs),))
@@ -431,15 +441,12 @@ def identify_viterbi_locations(base_viterbi_depth):
     np.save('viterbi_depth.npy', np.array(viterbi_depth))
 
 def process_error_traces():
-    viterbi_list = np.load('viterbi_list.npy')
-    viterbi_list = np.array(viterbi_list, dtype=int)
-    viterbi_depths = np.load('viterbi_depth.npy')
-    viterbi_depths = np.array(viterbi_depths, dtype=int)
+    viterbi_list = np.load('viterbi_list.npy').astype(int)
+    viterbi_depths = np.load('viterbi_depth.npy').astype(int)
     est_err = np.load('est_err.npy')
     new_est_err = deepcopy(est_err)
-    est_channel = np.load('est_channel.npy')
+    est_channel = np.mean(np.load('est_channel.npy'), axis=0)[3:]
 
-    est_channel = np.array(list(est_channel)[3:])
 
     max_viterbi_depth = max(viterbi_depths)
 
@@ -604,8 +611,8 @@ def prbs_check_symbols():
     wide_pv_est_errors = np.zeros(2*len(pv_est_errors))
     wide_pv_est_errors[::2] = pv_est_errors
     wide_pv_est_errors[1::2] = pv_est_errors
-    syms = [slicer(eq_signal[ii], 2.2) for ii in range(len(eq_signal))]
-    corrected_syms = [limit(slicer(eq_signal[ii], 2.2)  +  corrections[ii]) for ii in range(len(eq_signal))]
+    syms = [slicer(eq_signal[ii], 2.13) for ii in range(len(eq_signal))]
+    corrected_syms = [limit(slicer(eq_signal[ii], 2.13)  +  corrections[ii]) for ii in range(len(eq_signal))]
     mapping = gray_code_mappings(6)
 
 
@@ -690,21 +697,32 @@ def prbs_check_symbols():
     plt.title('PSD of Post Viterbi Residual Estimated Error')
     plt.show()
 
-    plt.plot(red_arr*15+10)
-    plt.plot(blue_arr*15+10)
-    plt.plot((errors)*10+12)
-    plt.plot((pv_errors)*10+8)
-    plt.plot(wide_pv_est_errors)
-    plt.plot(wide_est_errors)
-    plt.plot((wide_flags-5))
-    plt.plot(viterbi_list, 15*np.ones((len(viterbi_list),)), 'ro')
-    plt.plot(viterbi_list+40, 15*np.ones((len(viterbi_list),)), 'go')
+    #plt.plot(red_arr*15+10)
+    #plt.plot(blue_arr*15+10)
+    plt.plot((errors)*10+12, label='Pre Viterbi Errors')
+    plt.plot((pv_errors)*10+8, label='Post Viterbi Errors')
+    plt.plot(wide_pv_est_errors - 20, label='Post Viterbi Est Error')
+    plt.plot(wide_est_errors, label='Pre Viterbi Est Error')
+    #plt.plot((wide_flags-5))
+    #plt.plot(viterbi_list, 15*np.ones((len(viterbi_list),)), 'ro')
+    #plt.plot(viterbi_list+40, 15*np.ones((len(viterbi_list),)), 'go')
+    #plt.legend()
+    plt.title('Pre Viterbi vs Post Viterbi Errors')
     plt.show()
     return
 
 
-def whiten_noise():
-    pv_est_errors = np.load('mark_data_pv_est_err.npy')
+def whiten_noise(use_est_err=False):
+    pv_est_errors = np.load('post_est_err.npy')
+    if use_est_err:
+        pv_est_errors = np.load('est_err.npy')[100000:]
+    plt.psd(pv_est_errors, NFFT=int(2**14), label='Window Size - 2^14')
+    plt.psd(pv_est_errors, NFFT=1024, label='Window Size - 1024')
+    plt.psd(pv_est_errors, NFFT=256, label='Window Size - 256')
+    plt.legend()
+    plt.title('PSD of Post Viterbi Residual Estimated Error')
+    plt.show()
+
     whiten_filter_length = 21
     num_of_samples = len(pv_est_errors)
     covariance_est = np.zeros((whiten_filter_length,whiten_filter_length))
@@ -721,39 +739,34 @@ def whiten_noise():
 
     zf_taps = np.reshape(sqr_inv_mat @ imp, (whiten_filter_length,))
     zf_taps = zf_taps/np.sum(zf_taps)
-    tot_zf_taps = np.load('noise_eq_taps.npy')
     plt.plot(zf_taps)
     plt.show()
     freq_auto = np.abs(np.fft.fft(np.convolve(zf_taps, zf_taps[::-1])))[0:int(len(zf_taps))]
-    tot_freq_auto = np.abs(np.fft.fft(np.convolve(tot_zf_taps, tot_zf_taps[::-1])))[0:int(len(tot_zf_taps))]
 
     plt.plot(np.arange(0, 1, 1/len(freq_auto)), freq_auto, label='Mark Data Filter' )
-    plt.plot(np.arange(0, 1, 1/len(tot_freq_auto)), tot_freq_auto, label='All Data Filter')
     plt.psd(pv_est_errors, NFFT=128, label='Mark Data')
-    plt.psd(np.convolve(pv_est_errors, zf_taps), NFFT=128, label='Mark Data Filtered')
-    plt.psd(np.convolve(pv_est_errors, tot_zf_taps), NFFT=128, label='Mark Data with All Data Filtered')
-    plt.legend()
+    plt.psd(np.convolve(pv_est_errors, zf_taps), NFFT=1024, label='Mark Data Filtered')
+    #plt.legend()
     plt.show()
     #np.save('noise_eq_taps.npy',zf_taps)
 
 if __name__ == '__main__':
     #convert_amd_txt()
     console = Console()
-    md = Markdown('# Processing AMD Data')
+    md = Markdown('# Running Error Checker Algorithm')
     console.print(md)
-    #whiten_noise()
+    #whiten_noise(use_est_err=False)
 
     #process_amd_data(use_chan=False, use_eq_taps=False, whiten=False)
-    #process_amd_data(use_chan=True, use_eq_taps=True, whiten=True)
-
-    #plot_processed_data(whiten=True)
+    #process_amd_data(use_chan=True, use_eq_taps=True, whiten=False)
+    #plot_processed_data(whiten=False)
     #error_checker()
     #plot_error_checker_results()
     #bin_and_collect_error_traces()
-    #identify_viterbi_locations(12)
+    identify_viterbi_locations(16)
     #process_error_traces()
     #plot_traces()
     #post_viterbi_error_checker()
     #plot_post_viterbi_error_checker_results()
     #test_prbs_checker()
-    prbs_check_symbols()
+    #prbs_check_symbols()
