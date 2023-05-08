@@ -60,6 +60,7 @@ def create_init_viterbi_state(depth, pulse_resp, num_bits):
 def run_iteration_error_viterbi(viterbi_state, trace_val):
 
     next_viterbi_state = deepcopy(viterbi_state)
+    decisions = np.zeros((3**viterbi_state.tot_num_bits, 3))
     if(viterbi_state.cur_num_bits < viterbi_state.tot_num_bits):
         viterbi_state.cur_num_bits += 1
         next_viterbi_state.cur_num_bits += 1
@@ -91,10 +92,13 @@ def run_iteration_error_viterbi(viterbi_state, trace_val):
                 new_err_histories[ii, 1:] = viterbi_state.err_history[parent, :-1]
                 new_err_histories[ii, 0]  = ((node % 3) -1) * -2
 
+                err_total = np.sum(np.abs(new_err_histories[ii,:])/2.0)
+
                 new_trace_histories[ii, 1:] = viterbi_state.trc_history[parent, :-1]
                 new_trace_histories[ii, 0]  = trace_val + np.dot(new_err_histories[ii,:], viterbi_state.pulse_resp)
 
-                branch_energy_vect[ii]  =  viterbi_state.energies[parent] + np.square(trace_val + np.dot(new_err_histories[ii,:], viterbi_state.pulse_resp))
+
+                branch_energy_vect[ii]  =  viterbi_state.energies[parent] + np.square(trace_val + np.dot(new_err_histories[ii,:], viterbi_state.pulse_resp))*(np.abs(((node % 3) -1)) * (1.01)**err_total + ((node % 3) == 1)*1)
                 #if node == 13:
                 #    print(parent)
                 #    print(trace_val + np.dot(new_err_histories[ii,:], viterbi_state.pulse_resp))
@@ -109,12 +113,14 @@ def run_iteration_error_viterbi(viterbi_state, trace_val):
             #    print(f'node {node}: energy{ii} - {branch_energy_vect[ii]} - {trace_str}')
             next_viterbi_state.err_history[node, :] = new_err_histories[best_branch_idx, :]
             next_viterbi_state.trc_history[node, :] = new_trace_histories[best_branch_idx, :]
-
+            decisions[node][0] = viterbi_state.parent_table[node][best_branch_idx]
+            decisions[node][1] =  next_viterbi_state.err_history[node, 3]
+            decisions[node][2] =  branch_energy_vect[best_branch_idx]
             next_viterbi_state.energies[node] = branch_energy_vect[best_branch_idx]
     #input()
     #print(next_viterbi_state)
     #input()
-    return next_viterbi_state
+    return next_viterbi_state, decisions
 
 def run_error_viterbi(viterbi_state, bits, trace, num_iterations = 4):
     for ii in range(num_iterations):

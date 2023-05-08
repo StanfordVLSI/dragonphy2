@@ -15,7 +15,7 @@ from rich.markdown import Markdown
 def convert_csv_to_npy(filename):
     np.save(filename + '.npy', np.loadtxt(filename+'.csv'))
 
-def amd_viterbi(viterbi_depth, trace_pos, est_channel, est_err):#=None):
+def model_viterbi(viterbi_depth, trace_pos, est_channel, est_err):#=None):
     #est_err = np.load('est_err.npy') if est_err is None else est_err
     #est_channel = np.load('est_channel.npy') if est_channel is None else est_channel
 
@@ -35,7 +35,7 @@ def amd_viterbi(viterbi_depth, trace_pos, est_channel, est_err):#=None):
 
     return err[:-4], trc[:-4], trace[:-4]
 
-def amd_error_checker(est_channel, est_errs):
+def model_error_checker(est_channel, est_errs):
     check_patterns = [
         [+2,0,0,0],
         [+2,-2,0,0],
@@ -228,18 +228,18 @@ def chan_pam4_adaptation(chan, chan_err, syms, gain):
     return new_chan
 
 
-def convert_amd_txt():
-    with open('amd_adc.txt') as f:
+def convert_model_txt():
+    with open('adc.txt') as f:
         lines = f.readlines()
         tokens = lines[0].split()
         tokens = [int(float(val)) for val in tokens]
-        np.save('amd_adc.npy', tokens)
+        np.save('model_adc.npy', tokens)
 
-def process_amd_data(use_eq_taps=False, use_chan=False, slicer_val=2.13, gains=[1e-6,1e-5]):
-    amd_adc_vals = np.load('amd_adc.npy').astype(float)
+def process_model_data(use_eq_taps=False, use_chan=False, slicer_val=2.13, gains=[1e-6,1e-5]):
+    model_adc_vals = np.load('model_adc.npy').astype(float)
 
     for ii in range(40):
-        amd_adc_vals[ii::40] -= np.mean(amd_adc_vals[ii::40])
+        model_adc_vals[ii::40] -= np.mean(model_adc_vals[ii::40])
 
     eq_taps = np.zeros((40, 21))
     if use_eq_taps:
@@ -253,7 +253,7 @@ def process_amd_data(use_eq_taps=False, use_chan=False, slicer_val=2.13, gains=[
             eq_taps[ii,:]   = init_eq_filt
 
     
-    num_of_samples = int(len(amd_adc_vals))
+    num_of_samples = int(len(model_adc_vals))
 
     syms = np.zeros((num_of_samples,))
     eq_signal = np.zeros((num_of_samples,))
@@ -268,12 +268,12 @@ def process_amd_data(use_eq_taps=False, use_chan=False, slicer_val=2.13, gains=[
         
 
     for ii in track(range(10,num_of_samples), description='Processing Initial Estimates'):
-        eq_signal[ii] = filter(amd_adc_vals[ii-10:ii+11], eq_taps[ii % 40, :], 21)
+        eq_signal[ii] = filter(model_adc_vals[ii-10:ii+11], eq_taps[ii % 40, :], 21)
         syms[ii] = slicer(eq_signal[ii], slicer_val)
-        eq_taps[ii % 40, :] = pam4_adaptation(eq_taps[ii % 40, :], eq_signal[ii], amd_adc_vals[ii-10:ii+11], slicer_val, gains[0])
+        eq_taps[ii % 40, :] = pam4_adaptation(eq_taps[ii % 40, :], eq_signal[ii], model_adc_vals[ii-10:ii+11], slicer_val, gains[0])
         if ii > 30:
             est_codes[ii] = filter(syms[ii-30:ii], est_channel[ii % 40, :], 30)
-            est_err[ii] = est_codes[ii] - amd_adc_vals[ii]
+            est_err[ii] = est_codes[ii] - model_adc_vals[ii]
             est_channel[ii % 40, :] = chan_pam4_adaptation(est_channel[ii % 40, :], est_err[ii] , syms[ii-30:ii], gains[1])
 
     np.save('eq_taps.npy',eq_taps)
@@ -286,14 +286,14 @@ def plot_processed_data(whiten=False):
     est_channel = np.load('est_channel.npy')
     eq_taps = np.load('eq_taps.npy')
     est_codes = np.load('est_codes.npy')
-    amd_adc_vals = np.load('amd_adc.npy')
+    model_adc_vals = np.load('model_adc.npy')
     est_err = np.load('est_err.npy')
     eq_signal = np.load('eq_signal.npy')
 
     if whiten:
         wf_taps = np.load('noise_eq_taps.npy')
         for ii in range(40):
-            amd_adc_vals[ii::40] = np.convolve(amd_adc_vals[ii::40], wf_taps[ii,:])[:len(amd_adc_vals[ii::40])]
+            model_adc_vals[ii::40] = np.convolve(model_adc_vals[ii::40], wf_taps[ii,:])[:len(model_adc_vals[ii::40])]
             est_channel[ii,:] = np.convolve(est_channel[ii,:], wf_taps[ii,:])[:len(est_channel[ii,:])]
             eq_signal[ii::40] = np.convolve(eq_signal[ii::40], wf_taps[ii,:])[:len(eq_signal[ii::40])]
             est_err[ii::40] = np.convolve(est_err[ii::40], wf_taps[ii,:])[:len(est_err[ii::40])]
@@ -303,31 +303,34 @@ def plot_processed_data(whiten=False):
     #plt.title('Equalizer Taps')
     #plt.show()
     #plt.plot(est_codes)
-    #plt.plot(amd_adc_vals)
+    #plt.plot(model_adc_vals)
     #plt.show()
-    fig, axs = plt.subplots(8, 5)
-
-    for ii in track(range(40), description='Plotting Histograms'):
-        axs[ii//5, ii%5].hist(eq_signal[ii::40], bins=100)
-        axs[ii//5, ii%5].set_title(f'Interleave {ii}')
-        kmean_vals, dist = cluster.vq.kmeans(eq_signal[ii::40], 4, iter=20, thresh=1e-07)
-
-        kmean_vals = np.sort(kmean_vals)
-        mid_val = (kmean_vals[1:] + kmean_vals[:-1])/2
-        print(mid_val)
-
-        for jj in range(4):
-            axs[ii//5, ii%5].axvline(kmean_vals[jj], color='r')
-        for jj in range(3):
-            axs[ii//5, ii%5].axvline(mid_val[jj], color='b')
-
-    plt.show()
+    
+    #fig, axs = plt.subplots(8, 5)
+#
+    #for ii in track(range(40), description='Plotting Histograms'):
+    #    axs[ii//5, ii%5].hist(eq_signal[ii::40], bins=100)
+    #    axs[ii//5, ii%5].set_title(f'Interleave {ii}')
+    #    kmean_vals, dist = cluster.vq.kmeans(eq_signal[ii::40], 4, iter=20, thresh=1e-07)
+#
+    #    kmean_vals = np.sort(kmean_vals)
+    #    mid_val = (kmean_vals[1:] + kmean_vals[:-1])/2
+    #    print(mid_val)
+#
+    #    for jj in range(4):
+    #        axs[ii//5, ii%5].axvline(kmean_vals[jj], color='r')
+    #    for jj in range(3):
+    #        axs[ii//5, ii%5].axvline(mid_val[jj], color='b')
+#
+    #plt.show()
     #plt.plot(eq_signal)
     #plt.show()
-    #plt.plot(est_err)
-    #plt.show()
+    plt.plot(est_err)
+    plt.show()
 
-
+    plt.hist(est_err, bins=256, log=True)
+    print(np.max(np.abs(est_err)))
+    plt.show()
 
 def plot_error_checker_results(whiten=False):
     est_errs = np.load('est_err.npy')
@@ -467,6 +470,21 @@ def identify_viterbi_locations(base_viterbi_depth):
     np.save('viterbi_depth.npy', np.array(viterbi_depth))
 
 def process_error_traces(whiten=False):
+    def stringify(err):
+        err_str = ""
+        if isinstance(err, list):
+            err = np.array(err)
+        elif isinstance(err, np.float64):
+            err = np.array([err])
+
+        for ii in range(0, len(err)):
+            if err[ii] == 0:
+                err_str += '0'
+            elif err[ii] == 2:
+                err_str += '+'
+            elif err[ii] == -2:
+                err_str += '-'
+        return err_str
     viterbi_list = np.load('viterbi_list.npy').astype(int)
     viterbi_depths = np.load('viterbi_depth.npy').astype(int)
     est_err = np.load('est_err.npy')
@@ -484,25 +502,91 @@ def process_error_traces(whiten=False):
         est_channel = np.array(list(est_channel) + [0]*(max_viterbi_depth-len(est_channel)))
     elif len(est_channel) > max_viterbi_depth:
         est_channel = est_channel[:max_viterbi_depth]
+    history_of_differences = []
+    history_of_unique_traces = []
+    viterbi_size = 3
 
+    history_of_branches = { ii : 0 for ii in range(3**viterbi_size)}
     correction = np.zeros((len(est_err),))
+
+
     for (trace_pos, viterbi_depth) in track(list(zip(viterbi_list, viterbi_depths)), description='Running Viterbi'):
+        #print(f'------- Starting Trace {trace_pos} -------')
+        history_mat = np.zeros((3**viterbi_size, viterbi_depth-viterbi_size))
+        trace_history_branches = np.zeros((3**viterbi_size, viterbi_depth))
         trace = est_err[trace_pos:trace_pos+viterbi_depth]
 
-        viterbi_state = create_init_viterbi_state(viterbi_depth, est_channel[:viterbi_depth], 2)
-        for val in trace:
-            viterbi_state = run_iteration_error_viterbi(viterbi_state, val)
+        viterbi_state = create_init_viterbi_state(viterbi_depth, est_channel[:viterbi_depth], viterbi_size)
+        for (pos, val) in enumerate(trace):
+            set_of_traces = set()
+            viterbi_state, decisions = run_iteration_error_viterbi(viterbi_state, val)
+            for ii in range(3**viterbi_size):
+                history_mat[ii, :] = viterbi_state.err_history[ii][viterbi_size:]
+                if pos > viterbi_size:
+                    trace_history_branches[ii, pos] = trace_history_branches[int(decisions[ii][0]), pos-1] + abs(decisions[ii][1])/2
+                    set_of_traces.add(stringify(viterbi_state.err_history[ii][viterbi_size:]))
 
+                    history_of_branches[decisions[ii][0]] += 1
+            
+            history_of_unique_traces += [len(set_of_traces)]
+
+            median_arr = np.median(history_mat, axis=0)
+            location_of_differences = np.where(np.abs(history_mat - median_arr) > 0)[1]
+            if location_of_differences.size > 0:
+                history_of_differences += [np.max(location_of_differences)+1]
+                #if np.max(location_of_differences) > 6:
+                #    print(f'Error: {trace_pos} - {viterbi_depth} - {np.max(location_of_differences)}')
+                #    for ii in range(3**viterbi_size):
+                #        print(f'{ii}: {stringify(viterbi_state.err_history[ii][viterbi_size:])} - {trace_history_branches[ii, pos]}')
+
+            else: 
+                history_of_differences += [0]
         err, trc = viterbi_state.get_best_path()
-
         try:
-            correction[trace_pos:trace_pos+viterbi_depth-2] = err[:viterbi_depth-2]
-            new_est_err[trace_pos:trace_pos+viterbi_depth-2] = trc[:viterbi_depth-2]
+            correction[trace_pos:trace_pos+viterbi_depth-viterbi_size] = err[:viterbi_depth-viterbi_size]
+            new_est_err[trace_pos:trace_pos+viterbi_depth-viterbi_size] = trc[:viterbi_depth-viterbi_size]
         except ValueError:
             print(f'ValueError: {trace_pos} - {viterbi_depth} - {len(err)} - {len(trc)}')
-
+    print(history_of_branches)
+    #plt.hist(history_of_differences, bins=100, log=True)
+    #plt.show()
+    #plt.hist(history_of_unique_traces, bins=100, log=True)
+    #plt.show()
+    np.save('hist_diff.npy', np.array(history_of_differences))
+    np.save('hist_unique.npy', np.array(history_of_unique_traces))
     np.save('post_est_err.npy', new_est_err,)
     np.save('correction.npy', correction,)
+
+def plot_difference_history():
+    est_channel = np.mean(np.load('est_channel.npy'), axis=0)[6:]
+    viterbi_depths = np.load('viterbi_depth.npy').astype(int)
+
+    history_of_differences = np.load('hist_diff.npy')
+    fig, axes = plt.subplots()
+    N, bins, _ = axes.hist(history_of_differences, weights=np.square(est_channel)[history_of_differences], bins=19, log=True)
+    N, bins, _ = axes.hist(history_of_differences, bins=19, log=True, alpha=0.5)
+
+    plt.show()
+    history_of_unique_traces = np.load('hist_unique.npy')
+    plt.hist(history_of_unique_traces, bins=100, log=True)
+    plt.show()
+    prev_depth = 0
+
+    print(len(history_of_unique_traces), len(viterbi_depths))
+
+    sliced_history_of_unique_traces = []
+    for depth in np.cumsum(viterbi_depths): 
+        sliced_history_of_unique_traces += [history_of_unique_traces[prev_depth:depth]]
+        prev_depth = depth
+    sliced_history_of_unique_traces = np.array(sliced_history_of_unique_traces)
+    idx = np.argsort(viterbi_depths)
+    map_of_uniqueness = np.zeros((len(viterbi_depths), np.max(viterbi_depths)))
+    for ii, hist in enumerate(sliced_history_of_unique_traces[idx]):
+        map_of_uniqueness[ii, :len(hist)] = hist
+    plt.imshow(map_of_uniqueness, aspect='auto')
+
+    plt.show()
+
 def plot_traces():
     traces = np.load('traces.npy')
     est_err = np.load('est_err.npy')
@@ -624,7 +708,7 @@ def prbs_check_symbols(slice_val=2.13, whiten=False):
     eq_signal = np.load('eq_signal.npy')[32:-32-4]#[1000000:1000000+1000000]
     est_errors = np.load('est_err.npy')#[32+4:-32]#[1000004:1000004+1000000]
     pv_est_errors = np.load('post_est_err.npy')#[32+4:-32]#[1000004:1000004+1000000]
-    plt.psd(pv_est_errors, NFFT=int(2**14), label='Window Size - 2^14')
+    #plt.psd(pv_est_errors, NFFT=int(2**14), label='Window Size - 2^14')
 
     if whiten:
         wf_taps = np.load('noise_eq_taps.npy')
@@ -635,12 +719,12 @@ def prbs_check_symbols(slice_val=2.13, whiten=False):
     pv_est_errors = pv_est_errors[32+4:-32]
 
 
-    plt.psd(pv_est_errors, NFFT=int(2**14), label='Whitened - Window Size - 2^14')
+   #plt.psd(pv_est_errors, NFFT=int(2**14), label='Whitened - Window Size - 2^14')
     #plt.psd(pv_est_errors, NFFT=1024, label='Window Size - 1024')
     #plt.psd(pv_est_errors, NFFT=256, label='Window Size - 256')
-    plt.legend()
-    plt.title('PSD of Post Viterbi Residual Estimated Error')
-    plt.show()
+    #plt.legend()
+    #plt.title('PSD of Post Viterbi Residual Estimated Error')
+   # plt.show()
 
     if whiten:
         exit()
@@ -742,7 +826,7 @@ def prbs_check_symbols(slice_val=2.13, whiten=False):
     #        plt.plot(wide_est_errors[start-4:start+48])
     #        plt.show()
         
-
+    return 
     #plt.plot(red_arr*15+10)
     #plt.plot(blue_arr*15+10)
     plt.plot((errors)*10+12, label='Pre Viterbi Errors')
@@ -882,22 +966,23 @@ def whiten_noise(use_est_err=False):
     plt.show()
 
 if __name__ == '__main__':
-    #convert_amd_txt()
+    #convert_model_txt()
     console = Console()
     md = Markdown('# Running Error Checker Algorithm')
     console.print(md)
     #whiten_noise(use_est_err=False)
-    #process_amd_data(use_chan=False, use_eq_taps=False, slicer_val=2.13)
-    #process_amd_data(use_chan=True, use_eq_taps=True, slicer_val=2.13, gains=[1e-6, 1e-5])
-    #process_amd_data(use_chan=True, use_eq_taps=True, slicer_val=2.13, gains=[1e-7, 1e-6])
-    #process_amd_data(use_chan=True, use_eq_taps=True, slicer_val=2.13, gains=[1e-8, 1e-7])
-    #process_amd_data(use_chan=True, use_eq_taps=True, slicer_val=2.13, gains=[1e-9, 1e-8])
+    #process_model_data(use_chan=False, use_eq_taps=False, slicer_val=2.13)
+    #process_model_data(use_chan=True, use_eq_taps=True, slicer_val=2.13, gains=[1e-6, 1e-5])
+    #process_model_data(use_chan=True, use_eq_taps=True, slicer_val=2.13, gains=[1e-7, 1e-6])
+    #process_model_data(use_chan=True, use_eq_taps=True, slicer_val=2.13, gains=[1e-8, 1e-7])
+    #process_model_data(use_chan=True, use_eq_taps=True, slicer_val=2.13, gains=[1e-9, 1e-8])
     #plot_processed_data()
     #error_checker()
     #plot_error_checker_results(whiten=True)
     #bin_and_collect_error_traces()
     #identify_viterbi_locations(16)
     process_error_traces()
+    #plot_difference_history()
     #plot_traces()
     #post_viterbi_error_checker()
     #plot_post_viterbi_error_checker_results()

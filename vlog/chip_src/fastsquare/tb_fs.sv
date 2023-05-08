@@ -15,10 +15,11 @@ module tb_fs;
     );
 
     initial begin
-        for(value = 0; value < 256; value = value + 1) begin
+        for(value = 0; value < 100; value = value + 1) begin
             @(posedge clk);
             $display("value = %d, sqr_value = %d", value, sqr_value);
         end
+        $finish;
     end
 
 endmodule
