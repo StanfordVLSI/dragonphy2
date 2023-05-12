@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from scipy import signal, stats, cluster
 import scipy
 from copy import deepcopy
-from dragonphy import create_init_viterbi_state, run_error_viterbi, run_iteration_error_viterbi
+from dragonphy import create_init_viterbi_state, run_error_viterbi, run_iteration_error_viterbi, create_init_skip_viterbi_state, run_iteration_skip_error_viterbi
 from rich.progress import track
 from rich.console import Console
 from rich.markdown import Markdown
@@ -496,64 +496,77 @@ def process_error_traces(whiten=False):
         for ii in range(40):
             est_err[ii::40] = np.convolve(est_err[ii::40], wf_taps[ii,:])[:len(est_err[ii::40])]
             est_channel = np.convolve(est_channel, np.mean(wf_taps, axis=0))[:len(est_channel)]
-    max_viterbi_depth = max(viterbi_depths)
+
+    viterbi_size = 3
+    viterbi_skip_size = 2
+    branch_len = 5
+    correction = np.zeros((len(est_err),))
+
+    max_viterbi_depth = (max(viterbi_depths) // branch_len) * branch_len
+    if (max(viterbi_depths) % branch_len) > 0:
+        max_viterbi_depth += branch_len
+
+    print(f'viterbi depth {max_viterbi_depth}')
 
     if len(est_channel) < max_viterbi_depth:
         est_channel = np.array(list(est_channel) + [0]*(max_viterbi_depth-len(est_channel)))
     elif len(est_channel) > max_viterbi_depth:
         est_channel = est_channel[:max_viterbi_depth]
-    history_of_differences = []
-    history_of_unique_traces = []
-    viterbi_size = 3
-
-    history_of_branches = { ii : 0 for ii in range(3**viterbi_size)}
-    correction = np.zeros((len(est_err),))
 
 
+    early_mismatch = []
     for (trace_pos, viterbi_depth) in track(list(zip(viterbi_list, viterbi_depths)), description='Running Viterbi'):
+
+        adjusted_viterbi_depth = (viterbi_depth//branch_len)*branch_len
+        if viterbi_depth % branch_len > 0:
+            adjusted_viterbi_depth += branch_len
+        #print(f'viterbi depth {viterbi_depth} -> {adjusted_viterbi_depth}')
+
+        trace = est_err[trace_pos:trace_pos+adjusted_viterbi_depth]
+
+        viterbi_state_skip = create_init_skip_viterbi_state(adjusted_viterbi_depth, est_channel, viterbi_skip_size+branch_len, viterbi_skip_size)
+        #viterbi_state = create_init_viterbi_state(viterbi_depth, est_channel[:viterbi_depth], viterbi_size)
+        for vals in np.reshape(trace, (-1, branch_len)):
+            viterbi_state_skip = run_iteration_skip_error_viterbi(viterbi_state_skip, vals, 5)
+        err, trc = viterbi_state_skip.get_best_path()
+
         #print(f'------- Starting Trace {trace_pos} -------')
-        history_mat = np.zeros((3**viterbi_size, viterbi_depth-viterbi_size))
-        trace_history_branches = np.zeros((3**viterbi_size, viterbi_depth))
-        trace = est_err[trace_pos:trace_pos+viterbi_depth]
+        #print(f'skip: {stringify(err[:adjusted_viterbi_depth-viterbi_size-3])}')
+        #print(f'hist: {stringify(viterbi_state_skip.early_err_history[6:])}')
+        #diff = np.sum(np.abs(err[:adjusted_viterbi_depth-viterbi_size-3] - viterbi_state_skip.early_err_history[6:]))
+        #if diff > 0:
+        #    early_mismatch += [(trace_pos, diff)]
 
-        viterbi_state = create_init_viterbi_state(viterbi_depth, est_channel[:viterbi_depth], viterbi_size)
-        for (pos, val) in enumerate(trace):
-            set_of_traces = set()
-            viterbi_state, decisions = run_iteration_error_viterbi(viterbi_state, val)
-            for ii in range(3**viterbi_size):
-                history_mat[ii, :] = viterbi_state.err_history[ii][viterbi_size:]
-                if pos > viterbi_size:
-                    trace_history_branches[ii, pos] = trace_history_branches[int(decisions[ii][0]), pos-1] + abs(decisions[ii][1])/2
-                    set_of_traces.add(stringify(viterbi_state.err_history[ii][viterbi_size:]))
+        #err_norm, trc_norm = viterbi_state.get_best_path()
+        #print('skip', stringify(err))
+        #print('norm', stringify(err_norm))
+        #print('skip', stringify(err[1:1+viterbi_depth-viterbi_size]))
 
-                    history_of_branches[decisions[ii][0]] += 1
-            
-            history_of_unique_traces += [len(set_of_traces)]
+        #input()
 
-            median_arr = np.median(history_mat, axis=0)
-            location_of_differences = np.where(np.abs(history_mat - median_arr) > 0)[1]
-            if location_of_differences.size > 0:
-                history_of_differences += [np.max(location_of_differences)+1]
-                #if np.max(location_of_differences) > 6:
-                #    print(f'Error: {trace_pos} - {viterbi_depth} - {np.max(location_of_differences)}')
-                #    for ii in range(3**viterbi_size):
-                #        print(f'{ii}: {stringify(viterbi_state.err_history[ii][viterbi_size:])} - {trace_history_branches[ii, pos]}')
 
-            else: 
-                history_of_differences += [0]
-        err, trc = viterbi_state.get_best_path()
+        #print('norm', stringify(err[:viterbi_depth-viterbi_size]))
         try:
+            #print(len(err), len(trc), len(viterbi_state_skip.early_err_history[6:viterbi_depth-viterbi_size+6]))
+            #print(len(correction[trace_pos:trace_pos+viterbi_depth-viterbi_size]), len(viterbi_state_skip.early_err_history[6:]))
+            #correction[trace_pos:trace_pos+viterbi_depth-viterbi_size] = viterbi_state_skip.early_err_history[6:] #
+            #correction[trace_pos+viterbi_depth-viterbi_size-1:trace_pos+viterbi_depth-viterbi_size] = err[viterbi_depth-viterbi_size-1:viterbi_depth-viterbi_size]
             correction[trace_pos:trace_pos+viterbi_depth-viterbi_size] = err[:viterbi_depth-viterbi_size]
             new_est_err[trace_pos:trace_pos+viterbi_depth-viterbi_size] = trc[:viterbi_depth-viterbi_size]
         except ValueError:
             print(f'ValueError: {trace_pos} - {viterbi_depth} - {len(err)} - {len(trc)}')
-    print(history_of_branches)
+    print(f'Early Mismatch: {early_mismatch}, {len(early_mismatch)}')
+
+    #plt.hist([x[1]/2 for x in early_mismatch], bins=25, log=True)
+    #plt.show()
+
     #plt.hist(history_of_differences, bins=100, log=True)
     #plt.show()
     #plt.hist(history_of_unique_traces, bins=100, log=True)
     #plt.show()
-    np.save('hist_diff.npy', np.array(history_of_differences))
-    np.save('hist_unique.npy', np.array(history_of_unique_traces))
+    #np.save('hist_diff.npy', np.array(history_of_differences))
+    #np.save('hist_unique.npy', np.array(history_of_unique_traces))
+
     np.save('post_est_err.npy', new_est_err,)
     np.save('correction.npy', correction,)
 

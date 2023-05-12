@@ -1,34 +1,16 @@
 from copy import copy
 import numpy as np
 
-def build_error_pattern_set(num_of_errors):
-    def decrement_pattern(pattern):
-        new_pattern = copy(pattern)
-        borrow = 2
-        for ii in range(len(new_pattern)-1,-1,-1):
-            new_pattern[ii] -= borrow
-            if new_pattern[ii] < -2:
-                borrow = 2
-                new_pattern[ii] = 2
-            else:
-                borrow = 0
-        
-        return new_pattern
-
-    def insert_new_pattern(patterns, new_pattern):
-        for pattern in patterns:
-            if (sum([abs(ep) for ep in new_pattern]) == 0):
-                return
-            if (sum([ abs(p - ep) for (p, ep) in zip(pattern, new_pattern)]) == 0):
-                return
-
-        patterns.append(new_pattern)
-
-    error_patterns = [[2]*num_of_errors]
-    next_error    =  [2]*num_of_errors
+def build_error_pattern_set(num_of_errors, remove_zero_pattern=False):
+    error_patterns = []
     for ii in range(3**num_of_errors):
-        next_error = decrement_pattern(next_error)
-        insert_new_pattern(error_patterns, next_error)
+        new_err = np.base_repr(ii, base=3)
+        if len(new_err) < num_of_errors:
+            new_err = '0'*(num_of_errors - len(new_err)) + new_err
+        new_err = [(int(e)-1)*2 for e in new_err]
+        error_patterns += [new_err]
+    if remove_zero_pattern:
+        error_patterns.pop(int((3**num_of_errors-1)/2))
 
     return error_patterns
 
@@ -47,29 +29,32 @@ def delete_repeated_errors(error_patterns):
         return (odd_in_even + even_in_odd) > 0
 
     for pattern in error_patterns:
+        if all([e == 0 for e in pattern]):
+            constrained_error_patterns += [pattern]
+            continue
         if not detect_illegal_error(pattern):
             constrained_error_patterns += [pattern]
+
     return constrained_error_patterns
 
 def stringify(error):
-    return ''.join([str(e) for e in error])
+    mapper = {-2: '-', 0: '0', 2: '+'}
+    return ''.join([mapper[e] for e in error])
 
-print(build_error_pattern_set(3))
+def create_constrained_parent_table(trellis_size, storage_trellis_size):
+    trellis_size = 5
+    storage_trellis_size = 2
 
-trellis_size = 4
+    legal_errors = delete_repeated_errors(build_error_pattern_set(trellis_size)) 
+    legal_storage_states = delete_repeated_errors(build_error_pattern_set(storage_trellis_size)) 
 
-legal_errors = delete_repeated_errors(build_error_pattern_set(trellis_size)) + [[0]*trellis_size]
+    tton = {stringify(ss):ii for ii, ss in enumerate(legal_storage_states)}
 
-print(len(legal_errors))
+    parent_table = {tton[stringify(ss)]:[] for ss in legal_storage_states}
 
-connection_dictionary = {}
+    for error in legal_errors:
+        child = tton[stringify(error[:storage_trellis_size])]
+        parent_table[child] += [(tton[stringify(error[-storage_trellis_size:])], error[storage_trellis_size:])]
 
-for error in legal_errors:
-    print(error, error[0:-2], error[-2:])
-    if stringify(error[-2:]) not in connection_dictionary:
-        connection_dictionary[stringify(error[-2:])] = [error[0:-2]]
-    else:
-        connection_dictionary[stringify(error[-2:])] += [error[0:-2]]
+    return parent_table
 
-for key in connection_dictionary:
-    print(key, len(connection_dictionary[key]))
