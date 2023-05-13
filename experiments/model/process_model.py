@@ -499,7 +499,7 @@ def process_error_traces(whiten=False):
 
     viterbi_size = 3
     viterbi_skip_size = 2
-    branch_len = 5
+    branch_len = 2
     correction = np.zeros((len(est_err),))
 
     max_viterbi_depth = (max(viterbi_depths) // branch_len) * branch_len
@@ -527,7 +527,7 @@ def process_error_traces(whiten=False):
         viterbi_state_skip = create_init_skip_viterbi_state(adjusted_viterbi_depth, est_channel, viterbi_skip_size+branch_len, viterbi_skip_size)
         #viterbi_state = create_init_viterbi_state(viterbi_depth, est_channel[:viterbi_depth], viterbi_size)
         for vals in np.reshape(trace, (-1, branch_len)):
-            viterbi_state_skip = run_iteration_skip_error_viterbi(viterbi_state_skip, vals, 5)
+            viterbi_state_skip = run_iteration_skip_error_viterbi(viterbi_state_skip, vals, 6)
         err, trc = viterbi_state_skip.get_best_path()
 
         #print(f'------- Starting Trace {trace_pos} -------')
@@ -746,9 +746,9 @@ def prbs_check_symbols(slice_val=2.13, whiten=False):
     viterbi_list = (np.load('viterbi_list.npy') - 4 - 32)*2
 
 
-    flags = np.load('flags.npy')[32+4:-32]
-    wide_flags = np.zeros(2*len(flags))
-    wide_flags[::2] = flags
+    #flags = np.load('flags.npy')[32+4:-32]
+    #wide_flags = np.zeros(2*len(flags))
+    #wide_flags[::2] = flags
     wide_correction = np.zeros(2*len(corrections))
     wide_correction[::2] = corrections
     wide_est_errors = np.zeros(2*len(est_errors))
