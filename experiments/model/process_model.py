@@ -499,7 +499,7 @@ def process_error_traces(whiten=False):
 
     viterbi_size = 3
     viterbi_skip_size = 2
-    branch_len = 2
+    branch_len = 3
     correction = np.zeros((len(est_err),))
 
     max_viterbi_depth = (max(viterbi_depths) // branch_len) * branch_len
