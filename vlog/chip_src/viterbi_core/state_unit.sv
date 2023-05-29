@@ -5,14 +5,13 @@ module state_unit #(
     parameter integer N_B   = 4,
     parameter integer S_LEN = 2,
     parameter integer est_channel_width = 8,
-    parameter integer est_channel_depth = 30,
-    parameter integer STATE_TAG [S_LEN-1:0] = {S_LEN{1'b1}}
+    parameter integer est_channel_depth = 30
 ) (
     input logic clk,
     input logic rst_n,
 
     input logic signed [est_channel_width-1:0] est_channel [est_channel_depth-1:0],
-
+    input logic signed [1:0] state_symbols [S_LEN-1:0],
     input logic signed [B_WIDTH-1:0] precomputed_state_val [B_LEN-1:0],
 
     input logic [2*B_WIDTH-1:0] path_energies [N_B-1:0],
@@ -61,15 +60,16 @@ module state_unit #(
         .i_width(2),
         .i_depth(H_DEPTH),
         .f_width(est_channel_width),
-        .f_depth(H_DEPTH + B_LEN - 1),
+        .f_depth(est_channel_depth),
         .o_width(B_WIDTH),
         .o_depth(B_LEN),
+        .offset(B_LEN + S_LEN),
         .shift(1)
     ) conv_i (
         .in(state_history_reg),
         // (B_LEN + S_LEN) represents the shifting implicit in this convolution when you consider the entire history
         // The (B_LEN-1) represents the effect of sliding the filter along multiple values (for unrolling the branches)
-        .filter(est_channel[H_DEPTH + (B_LEN -1) + (B_LEN + S_LEN)- 1: (B_LEN + S_LEN)]),
+        .filter(est_channel),
         .out(base_path_val)
     );
 
@@ -84,7 +84,7 @@ module state_unit #(
     endgenerate
 
     // Combine the current state history and the state's symbolic values. These feed into the branches, which will attach the branch tag.
-    assign state_history[S_LEN-1:0] = STATE_TAG;
+    assign state_history[S_LEN-1:0] = state_symbols;
     assign state_history[H_DEPTH+S_LEN-1:S_LEN] = state_history_reg;
 
     always_ff @(posedge clk or negedge rst_n) begin

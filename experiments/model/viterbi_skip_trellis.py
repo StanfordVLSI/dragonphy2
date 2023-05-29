@@ -107,6 +107,7 @@ def create_viterbi_param_arrays(trellis_size, storage_trellis_size):
     print(bt_map)
 
     for (ii, error) in enumerate(legal_errors):
+        print(stringify(error))
         b_map[ii] = tton_b[stringify(error[storage_trellis_size:])]
         bs_map[tton[stringify(error[-storage_trellis_size:])]] += [ii]
         sb_map[ii] = tton[stringify(error[:storage_trellis_size])]

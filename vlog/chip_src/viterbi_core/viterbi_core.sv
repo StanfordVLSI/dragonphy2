@@ -68,26 +68,27 @@ module viterbi_core #(
     genvar gi, gj, gk;
     generate
         for (gi = 0; gi < number_of_state_units; gi += 1) begin : state_unit
+
+            logic signed [1:0] sru_tag [S_LEN-1:0];
+            assign sru_tag = s_map[gi];
             state_register_unit #(
                 .B_WIDTH(8),
                 .B_LEN(2),
                 .S_LEN(2),
                 .est_channel_width(est_channel_width),
                 .est_channel_depth(est_chan_depth),
-                .est_channel_shift(1),
-                .TAG(s_map[gi])
+                .est_channel_shift(1)
             ) sru_i (
                 .clk(clk),
                 .rst_n(rst_n),
 
+                .internal_tag_reg(sru_tag),
                 .est_channel(est_channel),
                 .update(update),
 
                 .precomputed_state_val(state_vals_reg[gi])
             );
-            initial begin
-                $display("s_map[%0d] = %p", gi, s_map[gi]);
-            end
+
 
             logic signed [1:0] branch_history_in_interconnect [number_of_branch_connections[gi]-1:0][H_DEPTH +S_LEN + B_LEN -1:0];
             logic [2*B_WIDTH-1:0] branch_energy_in_interconnect [number_of_branch_connections[gi]-1:0];
@@ -101,14 +102,13 @@ module viterbi_core #(
                 .H_DEPTH(H_DEPTH),
                 .B_LEN(2),
                 .N_B(number_of_branch_connections[gi]),
-                .S_LEN(2),
-                .STATE_TAG(s_map[gi])
+                .S_LEN(2)
             ) su_i (
                 .clk(clk),
                 .rst_n(rst_n),
                 
                 .est_channel(est_channel),
-
+                .state_symbols(sru_tag),
                 .precomputed_state_val(state_vals_reg[gi]),
     
                 .path_energies(branch_energy_in_interconnect),
@@ -126,36 +126,44 @@ module viterbi_core #(
             );
         end
 
-        for(gi = 0; gi < max_number_of_branch_connections; gi += 1) begin : branch_register_unit       
+        for(gi = 0; gi < max_number_of_branch_connections; gi += 1) begin : branch_register_unit
+            logic signed [1:0] bru_tag [B_LEN-1:0];
+            assign bru_tag = bt_map[gi];  
             branch_register_unit #(
                 .B_WIDTH(8),
                 .B_LEN(2),
                 .est_channel_width(est_channel_width),
                 .est_channel_depth(est_chan_depth),
-                .est_channel_shift(1),
-                .TAG(bt_map[gi])
+                .est_channel_shift(1)
             ) bru_i (
                 .clk(clk),
                 .rst_n(rst_n),
 
+                .internal_tag_reg(bru_tag),
                 .est_channel(est_channel),
+                
                 .update(update),
 
                 .precomputed_branch_val(branch_vals_reg[gi])
             );
         end
 
+
+
         for (gi =0; gi < number_of_branch_units; gi += 1) begin : branch_unit
+            logic signed [1:0] bru_tag [B_LEN-1:0];
+            assign bru_tag = bt_map[b_map[gi]];  
             branch_unit #(
                 .B_WIDTH(8),
                 .P_WIDTH(8),
                 .H_DEPTH(6),
                 .B_LEN(2),
-                .S_LEN(2),
-                .TAG(bt_map[b_map[gi]])
+                .S_LEN(2)
             ) bu_i (
                 .branch_val(branch_vals_reg[b_map[gi]]),
                 
+                .branch_symbols(bru_tag),
+
                 .precomp_val(state_val_interconnect[sb_map[gi]]),
                 .state_energy(state_energy_interconnect[sb_map[gi]]),
                 .state_history(state_history_interconnect[sb_map[gi]]),

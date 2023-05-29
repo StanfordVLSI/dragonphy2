@@ -34,15 +34,16 @@ module global_static_unit #(
         .i_width(2),
         .i_depth(SH_DEPTH),
         .f_width(est_channel_width),
-        .f_depth(SH_DEPTH + B_LEN - 1),
+        .f_depth(est_chan_depth),
         .o_width(B_WIDTH),
         .o_depth(B_LEN),
+        .offset(B_LEN + H_DEPTH + S_LEN),
         .shift(1)
     ) conv_i (
         .in(global_static_history),
         // (B_LEN + S_LEN) represents the shifting implicit in this convolution when you consider the entire history
         // The (B_LEN-1) represents the effect of sliding the filter along multiple values (for unrolling the branches)
-        .filter(est_channel[SH_DEPTH + (B_LEN -1) + (B_LEN + H_DEPTH + S_LEN)- 1: (B_LEN + H_DEPTH + S_LEN)]),
+        .filter(est_channel),
         .out(static_val)
     );
 
