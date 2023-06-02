@@ -29,7 +29,7 @@ class DragonTester:
 		else:
 			defines['NCVLOG'] = None
 		defines['SIMULATION'] = None
-		if (simulator == 'ncsim') and dump_waveforms:
+		if (simulator == 'ncsim') or (simulator == 'xcelium') and dump_waveforms:
 			defines['DUMP_WAVEFORMS'] = True
 
 		# save kwargs
@@ -42,7 +42,7 @@ class DragonTester:
 		kwargs['inc_dirs'] = inc_dirs
 		kwargs['defines'] = defines
 		kwargs['num_cycles'] = num_cycles
-		if (simulator == 'ncsim') and dump_waveforms:
+		if (simulator == 'ncsim')  or (simulator == 'xcelium') and dump_waveforms:
 			kwargs['dump_waveforms'] = False  # this is handled specially, see below...
 		else:
 			kwargs['dump_waveforms'] = dump_waveforms
@@ -80,7 +80,7 @@ class DragonTester:
 
 		# update flags for ncsim
 		flags = self.flags
-		if self.kwargs['simulator'] == 'ncsim':
+		if self.kwargs['simulator'] == 'ncsim' or self.kwargs['simulator'] == 'xcelium':
 			if self.clean:
 				flags += ['-clean']
 			if self.seed is not None:

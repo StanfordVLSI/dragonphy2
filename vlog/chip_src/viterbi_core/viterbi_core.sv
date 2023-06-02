@@ -12,6 +12,8 @@ module viterbi_core #(
 
     input logic signed [est_channel_width-1:0] est_channel [est_chan_depth-1:0],
     input logic update,
+    input logic initialize,
+    input logic run,
 
     input logic signed [B_WIDTH-1:0] rse_vals [B_LEN-1:0],
 
@@ -53,6 +55,7 @@ module viterbi_core #(
         .rst_n(rst_n),
 
         .est_channel(est_channel),
+        .run(run),
 
         .rse_vals(rse_vals),
 
@@ -68,13 +71,12 @@ module viterbi_core #(
     genvar gi, gj, gk;
     generate
         for (gi = 0; gi < number_of_state_units; gi += 1) begin : state_unit
-
             logic signed [1:0] sru_tag [S_LEN-1:0];
             assign sru_tag = s_map[gi];
             state_register_unit #(
-                .B_WIDTH(8),
-                .B_LEN(2),
-                .S_LEN(2),
+                .B_WIDTH(B_WIDTH),
+                .B_LEN(B_LEN),
+                .S_LEN(S_LEN),
                 .est_channel_width(est_channel_width),
                 .est_channel_depth(est_chan_depth),
                 .est_channel_shift(1)
@@ -98,18 +100,23 @@ module viterbi_core #(
             end
 
             state_unit #(
-                .B_WIDTH(8),
+                .B_WIDTH(B_WIDTH),
                 .H_DEPTH(H_DEPTH),
-                .B_LEN(2),
+                .B_LEN(B_LEN),
                 .N_B(number_of_branch_connections[gi]),
-                .S_LEN(2)
+                .S_LEN(S_LEN),
+                .initial_energy(initial_energy_map[gi])
             ) su_i (
                 .clk(clk),
                 .rst_n(rst_n),
+
+                .initialize(initialize),
+                .run(run),
                 
                 .est_channel(est_channel),
                 .state_symbols(sru_tag),
                 .precomputed_state_val(state_vals_reg[gi]),
+                .rse_vals(rse_vals),
     
                 .path_energies(branch_energy_in_interconnect),
                 .path_histories(branch_history_in_interconnect),
@@ -130,8 +137,8 @@ module viterbi_core #(
             logic signed [1:0] bru_tag [B_LEN-1:0];
             assign bru_tag = bt_map[gi];  
             branch_register_unit #(
-                .B_WIDTH(8),
-                .B_LEN(2),
+                .B_WIDTH(B_WIDTH),
+                .B_LEN(B_LEN),
                 .est_channel_width(est_channel_width),
                 .est_channel_depth(est_chan_depth),
                 .est_channel_shift(1)
@@ -154,12 +161,13 @@ module viterbi_core #(
             logic signed [1:0] bru_tag [B_LEN-1:0];
             assign bru_tag = bt_map[b_map[gi]];  
             branch_unit #(
-                .B_WIDTH(8),
-                .P_WIDTH(8),
-                .H_DEPTH(6),
-                .B_LEN(2),
-                .S_LEN(2)
+                .B_WIDTH(B_WIDTH),
+                .P_WIDTH(B_WIDTH),
+                .H_DEPTH(H_DEPTH),
+                .B_LEN(B_LEN),
+                .S_LEN(S_LEN)
             ) bu_i (
+                .clk(clk),
                 .branch_val(branch_vals_reg[b_map[gi]]),
                 
                 .branch_symbols(bru_tag),

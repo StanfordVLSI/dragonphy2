@@ -5,14 +5,18 @@ module state_unit #(
     parameter integer N_B   = 4,
     parameter integer S_LEN = 2,
     parameter integer est_channel_width = 8,
-    parameter integer est_channel_depth = 30
+    parameter integer est_channel_depth = 30,
+    parameter [2*B_WIDTH-1:0] initial_energy = 0
 ) (
     input logic clk,
     input logic rst_n,
+    input logic initialize,
+    input logic run,
 
     input logic signed [est_channel_width-1:0] est_channel [est_channel_depth-1:0],
     input logic signed [1:0] state_symbols [S_LEN-1:0],
     input logic signed [B_WIDTH-1:0] precomputed_state_val [B_LEN-1:0],
+    input logic signed [B_WIDTH-1:0] rse_vals [B_LEN-1:0],
 
     input logic [2*B_WIDTH-1:0] path_energies [N_B-1:0],
     input logic signed [1:0] path_histories [N_B-1:0][H_DEPTH + S_LEN + B_LEN-1:0],
@@ -28,19 +32,19 @@ module state_unit #(
     output logic signed [1:0] state_history [H_DEPTH+S_LEN-1:0]
 );
 
+    import test_pack::*;
     logic [2*B_WIDTH-1:0] state_energy_reg;
     logic signed [1:0] state_history_reg [H_DEPTH-1:0];
-
     logic signed [B_WIDTH-1:0] base_path_val [B_LEN-1:0];
 
-    logic [B_WIDTH-1:0] total_precomputed_val_reg [B_LEN-1:0];
+    logic signed [B_WIDTH-1:0] total_precomputed_val_reg [B_LEN-1:0];
 
     logic [2*B_WIDTH-1:0] best_path_energy;
     logic signed [1:0] best_path_history [H_DEPTH + S_LEN + B_LEN-1:0];
 
-    assign new_static_energy = state_energy_reg;
+    assign new_static_energy = state_energy;
     //Each branch adds two symbols to the history and pushes off two symbols from the dynamic history
-    assign new_static_history = state_history_reg[H_DEPTH-1:H_DEPTH-B_LEN];
+    assign new_static_history = state_history_reg[H_DEPTH-B_LEN-1:H_DEPTH-2*B_LEN];
 
 
     select_unit #(
@@ -76,7 +80,6 @@ module state_unit #(
     assign state_energy = state_energy_reg - static_energy; //Remove 'dead' energy from the system
 
     genvar gi;
-
     generate
         for(gi = 0; gi < B_LEN; gi += 1) begin 
             assign state_val[gi] = total_precomputed_val_reg[gi] + base_path_val[gi];
@@ -95,15 +98,36 @@ module state_unit #(
             state_energy_reg <= 0;
             for(int ii = 0; ii < H_DEPTH; ii++ ) begin 
                 state_history_reg[ii] <= 0; //Trim the state symbols from the history (implicit)
-            end        
+            end
         end else begin
-            for (int ii = 0; ii < B_LEN; ii++) begin
-                total_precomputed_val_reg[ii] <= precomputed_static_val[ii] + precomputed_state_val[ii];
+            if (initialize) begin
+                for (int ii = 0; ii < B_LEN; ii++) begin
+                    total_precomputed_val_reg[ii] <= rse_vals[ii] + precomputed_state_val[ii];
+                end
+                state_energy_reg <= initial_energy;
             end
-            state_energy_reg <= best_path_energy;
-            for(int ii = 0; ii < H_DEPTH; ii++ ) begin 
-                state_history_reg[ii] <= best_path_history[S_LEN+ii]; //Trim the state symbols from the history (implicit)
+            if (run) begin
+                for (int ii = 0; ii < B_LEN; ii++) begin
+                    total_precomputed_val_reg[ii] <= precomputed_static_val[ii] + precomputed_state_val[ii];
+                end
+                state_energy_reg <= best_path_energy;
+                for(int ii = 0; ii < H_DEPTH; ii++ ) begin 
+                    state_history_reg[ii] <= best_path_history[S_LEN+ii]; //Trim the state symbols from the history (implicit)
+                end
             end
+            $display("%m");
+            $display("\tbest_branch: %d", su_i.best_ii);
+            $display("\tbest_path_energy: %d", best_path_energy);
+            $write("\ttotal_precomputed_val_reg: ");
+            test_pack::array_io#(logic signed [B_WIDTH-1:0], B_LEN)::write_array(total_precomputed_val_reg);
+            $write("\tstate_energy_reg: %d\n", state_energy_reg);
+            $write("\tstatic_energy: %d\n", static_energy);
+            $write("\tstate_history_reg: ");
+            test_pack::array_io#(logic signed [1:0], H_DEPTH)::write_array(state_history_reg);
+            $write("\tstate_val: ");
+            test_pack::array_io#(logic signed [B_WIDTH-1:0], B_LEN)::write_array(state_val);
+            $write("\tprecomputed_state_val: ");
+            test_pack::array_io#(logic signed [B_WIDTH-1:0], B_LEN)::write_array(precomputed_state_val);
         end
     end
 
