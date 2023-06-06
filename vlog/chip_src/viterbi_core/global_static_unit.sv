@@ -24,6 +24,8 @@ module global_static_unit #(
     output logic [2*B_WIDTH-1:0] global_static_energy
 );
     logic signed [1:0] global_static_history [SH_DEPTH-1:0];
+    logic signed [1:0] next_global_static_history [SH_DEPTH-1:0];
+
     logic signed [B_WIDTH-1:0] static_val [B_LEN-1:0];
 
     logic signed [1:0] best_state_history [B_LEN-1:0];
@@ -70,6 +72,15 @@ module global_static_unit #(
         .best_state_history(best_state_history)
     );
 
+    always_comb begin
+        for(int ii = SH_DEPTH-1; ii >= B_LEN ; ii -= 1) begin
+            next_global_static_history[ii] = global_static_history[ii-i];
+        end
+        for(int ii = B_LEN-1; ii >= 0; ii -= 1) begin
+            next_global_static_history[ii] = best_state_history[ii];
+        end
+    end
+
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             for(int ii = 0; ii < SH_DEPTH; ii += 1) begin
@@ -78,11 +89,8 @@ module global_static_unit #(
             global_static_energy  <= 0;
         end else begin
             if(run) begin
-                for(int ii = SH_DEPTH-1; ii > 2; ii -= 1) begin
-                    global_static_history[ii] <= global_static_history[ii-1];
-                end
-                for(int ii = 0; ii < B_LEN; ii += 1) begin
-                    global_static_history[ii] <= best_state_history[ii];
+                for(int ii = 0; ii < SH_DEPTH; ii += 1) begin
+                    global_static_history[ii] <= next_global_static_history[ii];
                 end
                 global_static_energy  <=  best_state_energy;
                 $display("%m");

@@ -18,7 +18,7 @@
             out[o_depth - ii - 1] = 0;
             for(int jj = 0; jj < i_depth; jj += 1) begin
                 if (jj + offset >= ii) begin
-                    out[o_depth - ii - 1] += (filter[jj-ii + offset] * in[jj]) <<< 1;
+                    out[o_depth - ii - 1] += (filter[jj-ii + offset] * in[jj]);
                 end
             end
         end

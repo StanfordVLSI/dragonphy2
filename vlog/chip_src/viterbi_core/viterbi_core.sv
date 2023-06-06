@@ -10,7 +10,7 @@ module viterbi_core #(
     input logic clk,
     input logic rst_n,
 
-    input logic signed [est_channel_width-1:0] est_channel [est_chan_depth-1:0],
+    input logic signed [est_channel_width-1:0] input_est_channel [est_chan_depth-1:0],
     input logic update,
     input logic initialize,
     input logic run,
@@ -40,6 +40,21 @@ module viterbi_core #(
 
     logic [2*B_WIDTH-1:0] branch_energy_out_interconnect [number_of_branch_units-1:0];
     logic signed [1:0] branch_history_out_interconnect [number_of_branch_units-1:0][H_DEPTH +S_LEN + B_LEN -1:0];
+
+
+    logic signed [est_channel_width-1:0] est_channel [est_chan_depth-1:0];
+
+    always_ff @(posedge clk or negedge rst_n) begin
+        if(!rst_n) begin
+            for(int ii = 0; ii < est_chan_depth; ii += 1) begin
+                est_channel[ii] <= 0;
+            end
+        end else begin
+            for(int ii = 0; ii < est_chan_depth; ii += 1) begin
+                est_channel[ii] <= input_est_channel[ii];
+            end            
+        end
+    end
 
     global_static_unit #(
         .B_WIDTH(B_WIDTH),
