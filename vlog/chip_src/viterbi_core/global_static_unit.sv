@@ -74,7 +74,7 @@ module global_static_unit #(
 
     always_comb begin
         for(int ii = SH_DEPTH-1; ii >= B_LEN ; ii -= 1) begin
-            next_global_static_history[ii] = global_static_history[ii-i];
+            next_global_static_history[ii] = global_static_history[ii-1];
         end
         for(int ii = B_LEN-1; ii >= 0; ii -= 1) begin
             next_global_static_history[ii] = best_state_history[ii];

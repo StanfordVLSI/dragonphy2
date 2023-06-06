@@ -116,7 +116,6 @@ module state_unit #(
                 end
             end
             $display("%m");
-            $display("\tbest_branch: %d", su_i.best_ii);
             $display("\tbest_path_energy: %d", best_path_energy);
             $write("\ttotal_precomputed_val_reg: ");
             test_pack::array_io#(logic signed [B_WIDTH-1:0], B_LEN)::write_array(total_precomputed_val_reg);

@@ -38,7 +38,7 @@ module test;
         .rst_n(rst_n),
         .run(run),
 
-        .est_channel(est_channel),
+        .input_est_channel(est_channel),
         .update(update),
 
         .initialize(initialize),
