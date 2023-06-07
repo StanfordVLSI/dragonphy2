@@ -9,7 +9,19 @@ module select_two #(
     output logic signed [1:0] selected_history [H_DEPTH-1:0]
 );
 
-    assign selected_energy = (energies[0] < energies[1]) ? energies[0] : energies[1];
-    assign selected_history = (energies[0] < energies[1]) ? histories[0] : histories[1];
+	always_comb begin
+        if (energies[0] < energies[1]) begin
+            selected_energy = energies[0];
+            for(int ii = 0; ii < H_DEPTH; ii += 1) begin
+                selected_history[ii] = histories[0][ii];
+            end
+        end else begin
+            selected_energy = energies[1];
+            for(int ii = 0; ii < H_DEPTH; ii += 1) begin
+                selected_history[ii] = histories[1][ii];
+            end
+        end
+	end
+
 
 endmodule
