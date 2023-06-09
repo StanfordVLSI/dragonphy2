@@ -74,7 +74,7 @@ module global_static_unit #(
 
     always_comb begin
         for(int ii = SH_DEPTH-1; ii >= B_LEN ; ii -= 1) begin
-            next_global_static_history[ii] = global_static_history[ii-1];
+            next_global_static_history[ii] = global_static_history[ii-B_LEN];
         end
         for(int ii = B_LEN-1; ii >= 0; ii -= 1) begin
             next_global_static_history[ii] = best_state_history[ii];
@@ -94,6 +94,9 @@ module global_static_unit #(
                 end
                 global_static_energy  <=  best_state_energy;
                 $display("%m");
+                $display("\tstate_histories: %p", state_histories);
+                $display("\state_energies: %p", state_energies);
+                $display("\tbest_state_history: %p", best_state_history);
                 $write("\tprecomputed_static_val: ");
                 test_pack::array_io#(logic signed [B_WIDTH-1:0], B_LEN)::write_array(precomputed_static_val);
                 $write("\trse_vals: ");
@@ -102,6 +105,8 @@ module global_static_unit #(
                 test_pack::array_io#(logic signed [B_WIDTH-1:0], B_LEN)::write_array(static_val);
                 $write("\tglobal_static_history: ");
                 test_pack::array_io#(logic signed [1:0], SH_DEPTH)::write_array(global_static_history);
+                $write("\next_global_static_history: ");
+                test_pack::array_io#(logic signed [1:0], SH_DEPTH)::write_array(next_global_static_history);
             end
         end
     end

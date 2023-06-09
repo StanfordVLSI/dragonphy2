@@ -8,6 +8,6 @@ package viterbi_22_pkg;
 	parameter integer  sb_map [30:0]= '{6, 6, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0};
 	parameter logic signed [1:0]  s_map [6:0][1:0] = '{{0, 1}, {-1, 1}, {1, 0}, {0, 0}, {-1, 0}, {1, -1}, {0, -1}};
 	parameter logic signed [1:0]  bt_map [6:0][1:0]= '{{0, 1}, {-1, 1}, {1, 0}, {0, 0}, {-1, 0}, {1, -1}, {0, -1}};
-	parameter [15:0] initial_energy_map [6:0] = '{9999, 9999, 9999, 0, 9999, 9999, 9999};
+	parameter logic [15:0] initial_energy_map [6:0] = '{9999, 9999, 9999, 0, 9999, 9999, 9999};
 
 endpackage

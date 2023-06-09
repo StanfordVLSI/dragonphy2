@@ -22,7 +22,13 @@ module branch_unit #(
     logic signed [B_WIDTH-1:0] total_val [B_LEN-1:0];
 
     assign path_history[B_LEN + H_DEPTH + S_LEN - 1:B_LEN] = state_history;
-    assign path_history[B_LEN-1:0] = branch_symbols;
+
+    genvar gi;
+    generate 
+        for(gi = 0; gi < B_LEN; gi += 1) begin: branch_assign
+            assign path_history[gi] = branch_symbols[B_LEN-1-gi];
+        end
+    endgenerate
 
     logic signed [2*B_WIDTH-1:0] branch_energy;
 
@@ -43,6 +49,8 @@ module branch_unit #(
         test_pack::array_io#(logic signed [B_WIDTH-1:0], B_LEN)::write_array(precomp_val);
         $write("\ttotal_val: ");
         test_pack::array_io#(logic signed [B_WIDTH-1:0], B_LEN)::write_array(total_val);
+        $write("\tbranch_symbols: ");
+        test_pack::array_io#(logic signed [1:0], B_LEN)::write_array(branch_symbols);
         $write("\tstate_energy: %d\n", state_energy);
         $write("\tpath_energy: %d\n", path_energy);
     end

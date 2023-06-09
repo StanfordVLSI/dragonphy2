@@ -116,17 +116,25 @@ module state_unit #(
                 end
             end
             $display("%m");
+            $write("\path_energies: ");
+            test_pack::array_io#(logic [15:0], N_B)::write_array(path_energies);
+            $display("\path_histories: %p", path_histories);         
             $display("\tbest_path_energy: %d", best_path_energy);
+            $write("\tbest_path_history:");
+            test_pack::array_io#(logic signed [1:0], H_DEPTH + S_LEN + B_LEN)::write_array(best_path_history);
             $write("\ttotal_precomputed_val_reg: ");
             test_pack::array_io#(logic signed [B_WIDTH-1:0], B_LEN)::write_array(total_precomputed_val_reg);
             $write("\tstate_energy_reg: %d\n", state_energy_reg);
             $write("\tstatic_energy: %d\n", static_energy);
+            $write("\toutput bounds: %d %d\n", H_DEPTH-B_LEN-1,H_DEPTH-2*B_LEN);
             $write("\tstate_history_reg: ");
             test_pack::array_io#(logic signed [1:0], H_DEPTH)::write_array(state_history_reg);
             $write("\tstate_val: ");
             test_pack::array_io#(logic signed [B_WIDTH-1:0], B_LEN)::write_array(state_val);
             $write("\tprecomputed_state_val: ");
             test_pack::array_io#(logic signed [B_WIDTH-1:0], B_LEN)::write_array(precomputed_state_val);
+            $write("\tbase_path_val: ");
+            test_pack::array_io#(logic signed [B_WIDTH-1:0], B_LEN)::write_array(base_path_val);
         end
     end
 

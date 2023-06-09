@@ -14,7 +14,7 @@ def test_sim():
     print(deps)
 
     est_channel = [2**(5-ii) for ii in range(5)] + [0]*25
-    rse_val = np.convolve([0,0,-1,1,0,0,1,0,1,0], est_channel)[:32] * 2 + np.random.randint(-4, 4, 32)
+    rse_val = np.convolve([0,0,0,0,0,0,-1,1,0,-1,0,0,0,0], est_channel)[:32] * 2# + np.random.randint(-4, 4, 32)
 
     print(rse_val)
     write_vc_inputs(BUILD_DIR / 'vc_inputs.txt',

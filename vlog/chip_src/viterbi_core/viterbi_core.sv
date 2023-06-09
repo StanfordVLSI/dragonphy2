@@ -22,13 +22,13 @@ module viterbi_core #(
 
 );
 
-    import viterbi_22_pkg::*;
+    import viterbi_24_pkg::*;
 
     logic signed [B_WIDTH-1:0] branch_vals_reg [max_number_of_branch_connections-1:0][B_LEN-1:0];
     logic signed [B_WIDTH-1:0] state_vals_reg [number_of_state_units-1:0][B_LEN-1:0];
 
-    logic signed [1:0] state_history_interconnect [number_of_state_units-1:0][H_DEPTH + B_LEN - 1:0];
-    logic signed [1:0] old_state_histories [number_of_state_units-1:0][1:0];
+    logic signed [1:0] state_history_interconnect [number_of_state_units-1:0][H_DEPTH + S_LEN - 1:0];
+    logic signed [1:0] old_state_histories [number_of_state_units-1:0][B_LEN-1:0];
     logic [2*B_WIDTH-1:0] state_energies [number_of_state_units-1:0];
 
     logic signed [B_WIDTH-1:0] precomputed_static_val [B_LEN-1:0];
@@ -51,7 +51,7 @@ module viterbi_core #(
             end
         end else begin
             for(int ii = 0; ii < est_chan_depth; ii += 1) begin
-                est_channel[ii] <= input_est_channel[ii];
+                est_channel[ii] <= input_est_channel[ii] <<< 1;
             end            
         end
     end

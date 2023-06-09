@@ -1,11 +1,11 @@
 module test;
 
-    import viterbi_22_pkg::s_map;
+    import viterbi_23_pkg::s_map;
     localparam integer est_channel_width = 8;
     localparam integer est_channel_depth = 30;
     localparam integer est_error_width = 8;
 
-    localparam integer branch_length = 2;
+    localparam integer branch_length = 4;
     localparam integer rse_val_length = 32;
     localparam integer number_of_symbolic_states = 2;
 
@@ -66,7 +66,7 @@ module test;
         rst_n = 1;
 
         @(posedge clk);
-
+        $display("est_channel = %p", vc_i.est_channel);
         update = 1;
         @(posedge clk);
         @(posedge clk);
@@ -74,8 +74,10 @@ module test;
         @(posedge clk);
         
         update = 0;
-        rse_vals[0] = est_error[0];
-        rse_vals[1] = est_error[1];
+        for(int jj = 0; jj < branch_length; jj += 1) begin
+            rse_vals[jj] = est_error[jj];
+        end
+
         @(posedge clk);
         initialize = 1;
         @(posedge clk);
@@ -83,13 +85,13 @@ module test;
 
         @(posedge clk);
         run = 1;
-        for(int ii = 0; ii < 15; ii += 1) begin
+        for(int ii = 0; ii < 7; ii += 1) begin
             $display("Iteration %0d", ii);  
-            for(int jj = 0; jj < 2; jj += 1) begin
-                rse_vals[jj] = est_error[2*(ii+1) + jj];
+            for(int jj = 0; jj < branch_length; jj += 1) begin
+                rse_vals[jj] = est_error[branch_length*(ii+1) + jj];
                 $display("rse_vals[%0d] = %0d", jj, rse_vals[jj]);
 
-                viterbi_output[2*ii + jj] = final_symbols[1-jj];
+                viterbi_output[branch_length*ii + jj] = final_symbols[jj];
 
             end
             $display("final_symbols = %p", final_symbols);

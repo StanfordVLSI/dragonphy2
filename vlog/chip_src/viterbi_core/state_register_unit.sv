@@ -13,11 +13,11 @@ module state_register_unit #(
     input logic signed [est_channel_width-1:0] est_channel [est_channel_depth-1:0],
     input logic update,
 
-    output logic signed [B_WIDTH-1:0] precomputed_state_val [S_LEN-1:0]
+    output logic signed [B_WIDTH-1:0] precomputed_state_val [B_LEN-1:0]
 
 );
 
-    logic signed [B_WIDTH-1:0] internal_precomputed_state_val [S_LEN-1:0];
+    logic signed [B_WIDTH-1:0] internal_precomputed_state_val [B_LEN-1:0];
 
 
     always_ff @(posedge clk or negedge rst_n) begin

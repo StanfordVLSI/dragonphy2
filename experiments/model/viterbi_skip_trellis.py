@@ -21,27 +21,29 @@ def create_array_string(arr):
 
 def create_parameter_array(name, arr, dim=[], type='integer'):
     arr_size = "".join([f'[{d-1}:0]' for d in dim])
-    if type == 'integer':
-        arr_str = ""
         
-        arr_str = create_array_string(arr)
-        return f'parameter integer  {name} {arr_size}= \'{arr_str};'
-    else:
-        raise NotImplementedError
+    arr_str = create_array_string(arr)
+    return f'parameter {type} {name} {arr_size}= \'{arr_str};'
+
 
 def create_viterbi_package(trellis_size, storage_trellis_size):
 
     filename = f'viterbi_{storage_trellis_size}{trellis_size-storage_trellis_size}_pkg.sv'
     fo = open(filename, 'w')
-    bs_map, nmb_bc, b_map, sb_map, s_map, bt_map = create_viterbi_param_arrays(trellis_size, storage_trellis_size)
+
+    nmb_su, nmb_bu, mnmb_bu, bs_map, nmb_bc, b_map, sb_map, s_map, bt_map, initial_energy_map = create_viterbi_param_arrays(trellis_size, storage_trellis_size)
 
     print(f'package viterbi_{storage_trellis_size}{trellis_size-storage_trellis_size}_pkg;', file=fo)
+    print(f'\tparameter number_of_state_units = {nmb_su};', file=fo)
+    print(f'\tparameter number_of_branch_units = {nmb_bu};', file=fo)
+    print(f'\tparameter max_number_of_branch_connections = {mnmb_bu};', file=fo)
     print('\t' + bs_map, file=fo)
     print('\t' + nmb_bc, file=fo)
     print('\t' + b_map, file=fo)
     print('\t' + sb_map, file=fo)
     print('\t' + s_map, file=fo)
     print('\t' + bt_map, file=fo)
+    print('\t' + initial_energy_map, file=fo)
     print('endpackage', file=fo)
 
 
@@ -107,7 +109,7 @@ def create_viterbi_param_arrays(trellis_size, storage_trellis_size):
     print(bt_map)
 
     for (ii, error) in enumerate(legal_errors):
-        print(stringify(error))
+        print(ii, stringify(error))
         b_map[ii] = tton_b[stringify(error[storage_trellis_size:])]
         bs_map[tton[stringify(error[-storage_trellis_size:])]] += [ii]
         sb_map[ii] = tton[stringify(error[:storage_trellis_size])]
@@ -118,14 +120,22 @@ def create_viterbi_param_arrays(trellis_size, storage_trellis_size):
     for bs in bs_map:
         new_bs_map += [bs + [0]*(2**(trellis_size-storage_trellis_size+1) -1- len(bs))]
     
+    nmb_su = len(new_bs_map)
+    nmb_bu = len(b_map)
+    mnmb_bu = max([len(bs) for bs in new_bs_map])
+    initial_energy_map = np.ones((nmb_su,), dtype=np.int32) * (2**15 - 1)
+    initial_energy_map[(nmb_su-1)//2] = 0
+    initial_energy_map_str = create_parameter_array('initial_energy_map', list(initial_energy_map), dim=[nmb_su], type='logic [15:0]')
+
+
     bs_map_str = create_parameter_array('bs_map', new_bs_map, dim=[number_of_state_units, 2**(trellis_size-storage_trellis_size+1) - 1])
     number_of_branch_connections = [len(bs_map[ii]) for ii in range(number_of_state_units)]
     nmb_bc_str = create_parameter_array('number_of_branch_connections', number_of_branch_connections, dim=[number_of_state_units])
     b_map_str = create_parameter_array('b_map', list(b_map), dim=[number_of_branches_units])
     sb_map_str = create_parameter_array('sb_map', list(sb_map), dim=[number_of_branches_units])
-    s_map_str = create_parameter_array('s_map', s_map, dim=[number_of_state_units, storage_trellis_size])
-    bt_map_str = create_parameter_array('bt_map', bt_map, dim=[len(legal_branches), trellis_size-storage_trellis_size])
-    return bs_map_str, nmb_bc_str, b_map_str, sb_map_str, s_map_str, bt_map_str
+    s_map_str = create_parameter_array('s_map', s_map, dim=[number_of_state_units, storage_trellis_size], type='logic signed [1:0]')
+    bt_map_str = create_parameter_array('bt_map', bt_map, dim=[len(legal_branches), trellis_size-storage_trellis_size], type='logic signed [1:0]')
+    return nmb_su, nmb_bu, mnmb_bu, bs_map_str, nmb_bc_str, b_map_str, sb_map_str, s_map_str, bt_map_str, initial_energy_map_str
 
 def create_constrained_parent_table(trellis_size, storage_trellis_size):
 
@@ -144,4 +154,4 @@ def create_constrained_parent_table(trellis_size, storage_trellis_size):
     return parent_table
 
 if __name__ == "__main__":
-    create_viterbi_package(4,2)
+    create_viterbi_package(5,2)
