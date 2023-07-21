@@ -103,8 +103,8 @@ def create_viterbi_param_arrays(trellis_size, storage_trellis_size):
     bs_map = { tton[stringify(ss)]:[] for ss in legal_storage_states}
     sb_map = np.zeros((number_of_branches_units,), dtype=np.int32)
 
-    s_map = [[err//2 for err in error] for error in legal_storage_states]
-    bt_map = [[err//2 for err in error] for error in legal_branches]
+    s_map = [[err//2 for err in error][::-1] for error in legal_storage_states]
+    bt_map = [[err//2 for err in error][::-1] for error in legal_branches]
     print(s_map)
     print(bt_map)
 

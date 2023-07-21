@@ -91,7 +91,7 @@ module test;
                 rse_vals[jj] = est_error[branch_length*(ii+1) + jj];
                 $display("rse_vals[%0d] = %0d", jj, rse_vals[jj]);
 
-                viterbi_output[branch_length*ii + jj] = final_symbols[jj];
+                viterbi_output[branch_length*ii + jj] = final_symbols[branch_length-1-jj];
 
             end
             $display("final_symbols = %p", final_symbols);

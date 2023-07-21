@@ -26,7 +26,7 @@ module branch_unit #(
     genvar gi;
     generate 
         for(gi = 0; gi < B_LEN; gi += 1) begin: branch_assign
-            assign path_history[gi] = branch_symbols[B_LEN-1-gi];
+            assign path_history[gi] = branch_symbols[gi];
         end
     endgenerate
 
@@ -41,18 +41,18 @@ module branch_unit #(
         end
     end
 
-    always_ff @(posedge clk) begin
-        $display("%m");
-        $write("\tbranch_val: ");
-        test_pack::array_io#(logic signed [B_WIDTH-1:0], B_LEN)::write_array(branch_val);
-        $write("\tprecomp_val: ");
-        test_pack::array_io#(logic signed [B_WIDTH-1:0], B_LEN)::write_array(precomp_val);
-        $write("\ttotal_val: ");
-        test_pack::array_io#(logic signed [B_WIDTH-1:0], B_LEN)::write_array(total_val);
-        $write("\tbranch_symbols: ");
-        test_pack::array_io#(logic signed [1:0], B_LEN)::write_array(branch_symbols);
-        $write("\tstate_energy: %d\n", state_energy);
-        $write("\tpath_energy: %d\n", path_energy);
-    end
+   // always_ff @(posedge clk) begin
+        //$display("%m");
+        //$write("\tbranch_val: ");
+        //test_pack::array_io#(logic signed [B_WIDTH-1:0], B_LEN)::write_array(branch_val);
+        //$write("\tprecomp_val: ");
+        //test_pack::array_io#(logic signed [B_WIDTH-1:0], B_LEN)::write_array(precomp_val);
+        //$write("\ttotal_val: ");
+        //test_pack::array_io#(logic signed [B_WIDTH-1:0], B_LEN)::write_array(total_val);
+        //$write("\tbranch_symbols: ");
+        //test_pack::array_io#(logic signed [1:0], B_LEN)::write_array(branch_symbols);
+        //$write("\tstate_energy: %d\n", state_energy);
+        //$write("\tpath_energy: %d\n", path_energy);
+   // end
 
 endmodule 

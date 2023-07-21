@@ -23,6 +23,7 @@ module arbiter (
         .out(Qb)
     );
 
+
     inv_arb_fixed iinv_arb_dont_touch (.in(Q), .out(Q_inv));
     inv_arb_fixed iinv_arb_dmm_dont_touch (.in(Qb), .out(out_dmm));
     
