@@ -29,12 +29,12 @@ module dummy_viterbi_core #(
 
     logic [$clog2(num_of_channels)-1:0] fp_reg [H_DEPTH-1:0];
     logic fe_reg[H_DEPTH-1:0];
-    logic run_reg[H_DEPTH-2:0];
-    logic init_reg[H_DEPTH-2:0];
+    logic run_reg[H_DEPTH-1:0];
+    logic init_reg[H_DEPTH-1:0];
 
-    assign final_symbols = shift_reg[H_DEPTH-1];
-    assign delayed_run = run_reg[H_DEPTH-2];
-    assign delayed_initialize = init_reg[H_DEPTH-2];
+    assign final_symbols = (delayed_initialize || delayed_run) ? shift_reg[H_DEPTH-1] : {0,0};
+    assign delayed_run = run_reg[H_DEPTH-1];
+    assign delayed_initialize = init_reg[H_DEPTH-1];
     assign delayed_frame_end = fe_reg[H_DEPTH-1];
     assign delayed_frame_position = fp_reg[H_DEPTH-1];
 
@@ -42,7 +42,7 @@ module dummy_viterbi_core #(
     always_ff @(posedge clk or negedge rst_n) begin
         if (~rst_n) begin
             for(int jj = 0; jj < B_LEN; jj++)
-                shift_reg[0][jj] <= 1;
+                shift_reg[0][jj] <= 2;
             for(int ii = 1; ii < H_DEPTH; ii++)
                 for(int jj = 0; jj < B_LEN; jj++)
                     shift_reg[ii][jj] <= 0;
@@ -56,13 +56,13 @@ module dummy_viterbi_core #(
         end else begin
             if (initialize) begin
                 for(int jj = 0; jj < B_LEN; jj++)
-                    shift_reg[0][jj] <= 1;
-                for(int ii = 0; ii < H_DEPTH; ii++)
+                    shift_reg[0][jj] <= 2;
+                for(int ii = 1; ii < H_DEPTH; ii++)
                     for(int jj = 0; jj < B_LEN; jj++)
                         shift_reg[ii][jj] <= 0;
             end else if (run) begin
                 for(int jj = 0; jj < B_LEN; jj++)
-                    shift_reg[0][jj] <= shift_reg[0][jj] + 1;
+                    shift_reg[0][jj] <= -1*shift_reg[0][jj];
             end
 
 
@@ -72,15 +72,13 @@ module dummy_viterbi_core #(
             end
             fp_reg[0]   <= frame_position;
             fe_reg[0]   <= frame_end;
-            run_reg[0]  <= run;
+            run_reg[0]  <= run || initialize;
             init_reg[0] <= initialize;
             for(int ii=H_DEPTH-1; ii>0; ii--) begin
                 fp_reg[ii] <= fp_reg[ii-1];
                 fe_reg[ii] <= fe_reg[ii-1];
-                if(ii < H_DEPTH-1) begin
-                    run_reg[ii] <= run_reg[ii-1];
-                    init_reg[ii] <= init_reg[ii-1];
-                end
+                run_reg[ii] <= run_reg[ii-1];
+                init_reg[ii] <= init_reg[ii-1];
             end
         end
     end

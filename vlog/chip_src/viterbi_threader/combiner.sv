@@ -23,8 +23,7 @@ module combiner #(
 );
 
 
-    logic global_done, syms_pop_n_d;
-    logic [num_of_viterbis-1:0] corr_pop_n_d;
+    logic global_done;
     logic [num_of_viterbis-1:0] and_vec;
 
     logic signed [csym_width-1:0] gated_corr [num_of_viterbis-1:0][num_of_channels-1:0];
@@ -46,6 +45,7 @@ module combiner #(
             for(int jj = 0; jj < num_of_viterbis; jj += 1) begin
                 summed_corr[ii] |= gated_corr[jj][ii];
             end
+
             ext_corr_syms[ii] = syms[ii] + summed_corr[ii];
             corr_syms_d[ii] = (ext_corr_syms[ii] > 3) ? 3 : (ext_corr_syms[ii] < -3) ? -3 : ext_corr_syms[ii];
         end

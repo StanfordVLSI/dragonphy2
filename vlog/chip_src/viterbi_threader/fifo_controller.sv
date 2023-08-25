@@ -8,9 +8,9 @@ module fifo_controller #(
     input logic en_fifo,
 
     input logic is_there_edge,
-    input logic loc_1,
-    input logic loc_2,
-    input logic [1:0] num_of_writes,
+    input logic [$clog2(num_of_chunks)-1:0] loc_1,
+    input logic [$clog2(num_of_chunks)-1:0] loc_2,
+    input logic [$clog2(num_of_chunks)-1:0] num_of_writes,
 
     output logic [num_of_viterbi_fifos-1:0] push_n,
     output logic [num_of_viterbi_fifos-1:0] clr,
@@ -19,6 +19,7 @@ module fifo_controller #(
 );
 
     logic [1:0] inc_val;
+    logic [num_of_viterbi_fifos-1:0] push;
     logic [$clog2(num_of_viterbi_fifos)-1:0] w_ptr [1:0];
     logic [$clog2(num_of_viterbi_fifos)-1:0] next_w_ptr [1:0];
 
@@ -26,20 +27,36 @@ module fifo_controller #(
     logic enabled;
 
     assign inc_val = num_of_writes + prev_edge - is_there_edge;
-    assign init_n = (!enabled && en_fifo) ? 0 : 1;
-
+    genvar gi;
+    generate
+        for(gi = 0; gi < num_of_viterbi_fifos; gi+=1) begin
+            assign init_n[gi] = (enabled && en_fifo);
+        end
+    endgenerate
+    assign push_n = ~push;
 
     always_comb begin
         clr = 0;
-        push_n = 0;
+
         for(int ii = 0; ii < num_of_viterbi_fifos; ii += 1) begin
             start_loc[ii] = 0;
         end
 
-        for(int ii = 0; ii < num_of_writes + prev_edge; ii++) begin
-            push_n += (1 << w_ptr[ii]);
-            start_loc[w_ptr[ii]] = (ii == 0) ? loc_1 : loc_2; // might be insane!
-        end
+        case (num_of_writes + prev_edge) 
+            0: begin
+                push = 0;
+            end
+            1 : begin
+                push = 1 << w_ptr[0];
+                start_loc[w_ptr[0]] = prev_edge ? 0 : loc_1;
+            end
+            2 : begin
+                push = (1 << w_ptr[0]) | (1 << w_ptr[1]);
+                start_loc[w_ptr[0]] = prev_edge ? 0 : loc_1;
+                start_loc[w_ptr[1]] = prev_edge ? loc_1 : loc_2;
+            end
+        endcase
+
 
         for(int ii = 0; ii < 2; ii += 1) begin
             next_w_ptr[ii] = w_ptr[ii] + inc_val;
@@ -54,7 +71,7 @@ module fifo_controller #(
             prev_edge <= 0;
             enabled <= 0;
             for(int ii = 0; ii < 2; ii += 1) begin
-                w_ptr[ii] <= 0;
+                w_ptr[ii] <= ii;
             end
         end
         else begin

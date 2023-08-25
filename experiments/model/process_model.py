@@ -498,8 +498,8 @@ def process_error_traces(whiten=False):
             est_channel = np.convolve(est_channel, np.mean(wf_taps, axis=0))[:len(est_channel)]
 
     viterbi_size = 3
-    viterbi_skip_size = 2
-    branch_len = 3
+    viterbi_skip_size = 4
+    branch_len = 2
     correction = np.zeros((len(est_err),))
 
     max_viterbi_depth = (max(viterbi_depths) // branch_len) * branch_len
@@ -526,10 +526,16 @@ def process_error_traces(whiten=False):
 
         viterbi_state_skip = create_init_skip_viterbi_state(adjusted_viterbi_depth, est_channel, viterbi_skip_size+branch_len, viterbi_skip_size)
         #viterbi_state = create_init_viterbi_state(viterbi_depth, est_channel[:viterbi_depth], viterbi_size)
+        diff_vect = []
         for vals in np.reshape(trace, (-1, branch_len)):
             viterbi_state_skip = run_iteration_skip_error_viterbi(viterbi_state_skip, vals, 6)
+            #print(viterbi_state_skip.energy_difference)
+            #print(viterbi_state_skip.nodes)
+            #print([viterbi_state_skip.energy_difference[node, pos] for (pos, node) in enumerate(viterbi_state_skip.nodes[::-1])])
+            #input()
         err, trc = viterbi_state_skip.get_best_path()
 
+        plt.plot([viterbi_state_skip.energy_difference[node, pos] for (pos, node) in enumerate(viterbi_state_skip.nodes[::-1])])
         #print(f'------- Starting Trace {trace_pos} -------')
         #print(f'skip: {stringify(err[:adjusted_viterbi_depth-viterbi_size-3])}')
         #print(f'hist: {stringify(viterbi_state_skip.early_err_history[6:])}')
@@ -556,6 +562,7 @@ def process_error_traces(whiten=False):
         except ValueError:
             print(f'ValueError: {trace_pos} - {viterbi_depth} - {len(err)} - {len(trc)}')
     print(f'Early Mismatch: {early_mismatch}, {len(early_mismatch)}')
+    plt.show()
 
     #plt.hist([x[1]/2 for x in early_mismatch], bins=25, log=True)
     #plt.show()
@@ -994,7 +1001,7 @@ if __name__ == '__main__':
     #plot_error_checker_results(whiten=True)
     #bin_and_collect_error_traces()
     #identify_viterbi_locations(16)
-    process_error_traces()
+    #process_error_traces()
     #plot_difference_history()
     #plot_traces()
     #post_viterbi_error_checker()

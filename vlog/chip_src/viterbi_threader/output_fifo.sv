@@ -1,7 +1,7 @@
 module output_fifo #(
     parameter integer num_of_channels = 40,
     parameter integer sym_width = 3,
-    parameter integer fifo_depth = 16
+    parameter integer fifo_depth = 32
 ) (
     input logic i_clk,
     input logic i_rstn,
@@ -19,8 +19,12 @@ module output_fifo #(
     input logic pop_n,
 
     output logic signed [sym_width-1:0] o_data [num_of_channels-1:0],
-    output logic fifo_empty
+    output logic fifo_empty,
+    output logic fifo_almost_empty
 );
+
+    parameter logic [$clog2(fifo_depth):0] fifo_almost_empty_level = 1;
+    parameter logic [$clog2(fifo_depth):0] fifo_almost_full_level = fifo_depth*2 -1;
 
     logic [sym_width*num_of_channels-1:0] i_data_flat;
     logic [sym_width*num_of_channels-1:0] o_data_flat;
@@ -37,12 +41,12 @@ module output_fifo #(
     DW_fifo_2c_df #(
         .width(sym_width*num_of_channels),
         .ram_depth(fifo_depth),
-        .mem_mode(1),
+        .mem_mode(0),
         .f_sync_type(2),
         .r_sync_type(2),
-        .clk_ratio(2),
+        .clk_ratio(1),
         .rst_mode(0),
-        .err_mode(0),
+        .err_mode(1),
         .tst_mode(0),
         .verif_en(0),
         .clr_dual_domain(1),
@@ -52,8 +56,8 @@ module output_fifo #(
         .rst_s_n(i_rstn),
         .init_s_n(i_init_n),
         .clr_s(i_clr),
-        .ae_level_s(5'b00001),
-        .af_level_s(5'b01111),
+        .ae_level_s(fifo_almost_empty_level),
+        .af_level_s(fifo_almost_full_level),
         .push_s_n(push_n),
         .data_s(i_data_flat),
 
@@ -74,8 +78,8 @@ module output_fifo #(
         .rst_d_n(o_rstn),
         .init_d_n(o_init_n),
         .clr_d(o_clr),
-        .ae_level_d(5'b00001),
-        .af_level_d(5'b01111),
+        .ae_level_d(fifo_almost_empty_level),
+        .af_level_d(fifo_almost_full_level),
         .pop_d_n(pop_n),
 
         .clr_sync_d(),
@@ -84,7 +88,7 @@ module output_fifo #(
         .data_d(o_data_flat),
         .word_cnt_d(),
         .empty_d(fifo_empty),
-        .almost_empty_d(),
+        .almost_empty_d(fifo_almost_empty),
         .half_full_d(),
         .almost_full_d(),
         .full_d(),

@@ -65,9 +65,11 @@ class SkipViterbiState:
     err_history: np.ndarray
     trc_history: np.ndarray
     early_err_history: np.ndarray
+    energy_difference: np.ndarray
     energies: np.ndarray
     pulse_resp: np.ndarray
     trellis_size: int
+    nodes: list
     storage_trellis_size: int
     depth: int
     parent_table: dict
@@ -92,6 +94,8 @@ def create_init_skip_viterbi_state(depth, pulse_resp, trellis_size, storage_trel
             trc_history = np.zeros((len(parent_table), depth)),
             early_err_history = np.zeros((depth,)),
             energies    = energies,
+            energy_difference = np.zeros((len(parent_table),depth)),
+            nodes = [],
             pulse_resp  = np.array(pulse_resp)[:depth],
             trellis_size = trellis_size,
             storage_trellis_size = storage_trellis_size,
@@ -131,10 +135,18 @@ def run_iteration_skip_error_viterbi(viterbi_state, trace_vals, ehs):
             #print(np.convolve(new_err_histories[ii,:], viterbi_state.pulse_resp[:len(new_err_histories[ii,:])])[1:len(branch)+1])
             #input()
         #print(branch_energy_vect)
-        best_branch_idx = np.argmin(branch_energy_vect)
+        #best_branch_idx = np.argmin(branch_energy_vect)
+        sorted_branch_idx = np.argsort(branch_energy_vect)
+        best_branch_idx = sorted_branch_idx[0]
+        second_best_branch_idx = sorted_branch_idx[1]
 
         next_viterbi_state.err_history[node, :] = new_err_histories[best_branch_idx, :]
+        next_viterbi_state.energy_difference[node, 1:] = next_viterbi_state.energy_difference[node, :-1]
+        next_viterbi_state.energy_difference[node, :1] = branch_energy_vect[best_branch_idx]
+
         next_viterbi_state.energies[node] = branch_energy_vect[best_branch_idx]
+    
+    next_viterbi_state.nodes += [np.argmin(next_viterbi_state.energies)]
     next_viterbi_state.early_err_history[len(trace_vals):] = viterbi_state.early_err_history[:-len(trace_vals)]
     next_viterbi_state.early_err_history[:len(trace_vals)] = next_viterbi_state.err_history[np.argmin(next_viterbi_state.energies), ehs + 2 :ehs + 2 +len(trace_vals)]
     

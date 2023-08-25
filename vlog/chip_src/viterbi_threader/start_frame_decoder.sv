@@ -4,36 +4,49 @@ module start_frame_decoder #(
     input logic clk,
     input logic rst_n,
 
+    input logic en_fifo,
+
     input logic [num_of_chunks-1:0] coarse_flags,
     
     output logic is_there_edge,
-    output logic loc_1,
-    output logic loc_2,
-    output logic [1:0] num_of_writes
+    output logic [$clog2(num_of_chunks)-1:0] loc_1,
+    output logic [$clog2(num_of_chunks)-1:0]loc_2,
+    output logic [$clog2(num_of_chunks)-1:0] num_of_writes
 );
 
     logic [2+num_of_chunks-1:0] decoder_input;
     logic [num_of_chunks-1:0] previous_coarse_flags;
     logic [4:0] first_stage_decode;
 
-    assign decoder_input = {coarse_flags, previous_coarse_flags};
-
+    always_comb begin
+        for(int ii = 0; ii < num_of_chunks; ii++) begin
+            decoder_input[ii+2] = coarse_flags[ii];
+        end
+        decoder_input[1] = previous_coarse_flags[1];
+        decoder_input[0] = previous_coarse_flags[0];
+    end
     always_ff @(posedge clk, negedge rst_n) begin
         if (!rst_n) begin
             previous_coarse_flags[0] <= 0;
             previous_coarse_flags[1] <= 0;
         end
         else begin
-            previous_coarse_flags <= coarse_flags[num_of_chunks-1:num_of_chunks-2];
+            if (!en_fifo) begin
+                previous_coarse_flags[0] <= 0;
+                previous_coarse_flags[1] <= 0;
+            end else begin
+                previous_coarse_flags[1] <= coarse_flags[num_of_chunks-1];
+                previous_coarse_flags[0] <= coarse_flags[num_of_chunks-2];
+            end
         end
     end
 
     always_comb begin : decoder
         for (int ii = 0; ii < num_of_chunks; ii++) begin
-            first_stage_decode[ii] = decoder_input[ii+2] | !decoder_input[ii+1] | !decoder_input[ii];
+            first_stage_decode[ii] = decoder_input[ii+2] & !decoder_input[ii+1] & !decoder_input[ii];
         end
 
-        is_there_edge = first_stage_decode[num_of_chunks-1];        
+        is_there_edge = decoder_input[num_of_chunks+1] | decoder_input[num_of_chunks];        
 
         num_of_writes = 0;
         for (int ii = 0; ii < num_of_chunks; ii++) begin

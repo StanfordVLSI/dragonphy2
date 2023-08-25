@@ -4,10 +4,12 @@ module coarse_flag_blocker #(
     parameter integer num_of_channels = 40
 ) (
     input logic signed [flag_width-1:0] flags [num_of_channels-1:0],
-    output logic [num_of_chunks-1:0] coarse_flags
+    output logic [num_of_chunks-1:0] coarse_flags,
+    output logic unpacked_bit_flags [num_of_channels-1:0]
 );
 
     logic [num_of_channels-1:0] bit_flags;
+
 
     always_comb begin : blocker
         for(int ii = 0; ii < num_of_channels; ii += 1) begin
@@ -20,6 +22,9 @@ module coarse_flag_blocker #(
     generate
         for(gi = 0; gi < num_of_chunks; gi += 1) begin
             assign coarse_flags[gi] = |bit_flags[(gi+1)*num_of_channels/num_of_chunks-1:gi*num_of_channels/num_of_chunks];
+        end
+        for(gi = 0; gi < num_of_channels; gi += 1) begin
+            assign unpacked_bit_flags[gi] = bit_flags[gi];
         end
     endgenerate
 

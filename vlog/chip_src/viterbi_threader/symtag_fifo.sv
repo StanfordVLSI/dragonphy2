@@ -1,7 +1,8 @@
 module symtag_fifo #(
     parameter integer num_of_channels = 40,
     parameter integer num_of_viterbis =4,
-    parameter integer sym_width = 3
+    parameter integer sym_width = 3,
+    parameter integer fifo_depth = 64
 ) (
     input logic i_clk,
     input logic i_rstn,
@@ -24,6 +25,10 @@ module symtag_fifo #(
     output logic fifo_empty
 );
 
+
+    parameter logic [$clog2(fifo_depth):0] fifo_almost_empty_level = 1;
+    parameter logic [$clog2(fifo_depth):0] fifo_almost_full_level = fifo_depth*2 -1;
+
     logic [sym_width*num_of_channels  + num_of_viterbis -1:0] i_data_flat;
     logic [sym_width*num_of_channels  + num_of_viterbis -1:0] o_data_flat;
 
@@ -40,13 +45,13 @@ module symtag_fifo #(
 
     DW_fifo_2c_df #(
         .width(sym_width*num_of_channels  + num_of_viterbis),
-        .ram_depth(32),
+        .ram_depth(fifo_depth),
         .mem_mode(1),
         .f_sync_type(2),
         .r_sync_type(2),
         .clk_ratio(2),
         .rst_mode(0),
-        .err_mode(0),
+        .err_mode(1),
         .tst_mode(0),
         .verif_en(0),
         .clr_dual_domain(1),
@@ -56,8 +61,8 @@ module symtag_fifo #(
         .rst_s_n(i_rstn),
         .init_s_n(i_init_n),
         .clr_s(i_clr),
-        .ae_level_s(6'b000001),
-        .af_level_s(6'b011111),
+        .ae_level_s(fifo_almost_empty_level),
+        .af_level_s(fifo_almost_full_level),
         .push_s_n(push_n),
         .data_s(i_data_flat),
 
@@ -78,8 +83,8 @@ module symtag_fifo #(
         .rst_d_n(o_rstn),
         .init_d_n(o_init_n),
         .clr_d(o_clr),
-        .ae_level_d(6'b000001),
-        .af_level_d(6'b011111),
+        .ae_level_d(fifo_almost_empty_level),
+        .af_level_d(fifo_almost_full_level),
         .pop_d_n(pop_n),
 
         .clr_sync_d(),

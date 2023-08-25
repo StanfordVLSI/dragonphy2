@@ -21,21 +21,25 @@ module viterbi_output_controller #(
 
 );
 
-    assign push_n = !frame_end;
+    assign push_n = frame_end;
     assign init_n = !clr;
     
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            clr <= 1;
+            clr <= 1;   
             for(int ii = 0; ii < num_of_channels; ii++) begin
                 corrections_frame[ii] <= 0;
             end
         end else begin
             clr <= 0;
+            if (initialize || !frame_end) begin
+                for(int ii = 0; ii < num_of_channels; ii++) begin
+                    corrections_frame[ii] <= 0;
+                end
+            end
             if (run) begin 
                 for(int ii =0; ii < branch_length; ii++ ) begin
                     corrections_frame[frame_position+ii] <= corrections[ii];
-                    $display("corrections_frame[%0d] = %0d", frame_position+ii, corrections[ii]);
                 end
             end
         end

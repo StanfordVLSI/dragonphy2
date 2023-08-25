@@ -33,6 +33,7 @@ module tb();
 
     logic signed [2:0] stored_corrections [num_of_channels-1:0];
     logic stored_corrections_empty;
+    logic signed [2:0] read_corrections [num_of_channels-1:0];
 
     initial begin
         clk_s = 0;
@@ -199,8 +200,6 @@ module tb();
         end
         rstn = 1;
 
-        repeat(100) @(posedge clk_s);
-        $finish;
     end
 
     initial begin
@@ -213,11 +212,24 @@ module tb();
         end
         flags[37] = 1;
         write_to_viterbi_fifo(data, flags, start_frame, 1);
+
+        start_frame = 0;
+        for(int ii = 0; ii < num_of_channels; ii++) begin
+            data[ii] = 0;
+            flags[ii] = 0;
+        end
+        flags[37] = 1;
+        write_to_viterbi_fifo(data, flags, start_frame, 1);
     end
 
     initial begin
         fast_domain_init();
         @(posedge rstn);
+        read_output_fifo(read_corrections);
+        $display("corrections: %p", read_corrections);
+        read_output_fifo(read_corrections);
+        $display("corrections: %p", read_corrections);
+        $finish;
     end
 
 
@@ -260,6 +272,9 @@ module tb();
     task read_output_fifo(
         output logic signed [sym_width-1:0] corrections [num_of_channels-1:0]
     );
+        while(stored_corrections_empty == 1) begin
+            @(posedge clk_f);
+        end
         pop_n_fd = 0;
         for(int ii = 0; ii < num_of_channels; ii += 1) begin
             corrections[ii] = stored_corrections[ii];
