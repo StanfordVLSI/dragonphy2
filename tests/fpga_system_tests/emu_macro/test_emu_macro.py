@@ -77,8 +77,8 @@ def test_1(board_name, emu_clk_freq, fpga_sim_ctrl):
     prj.set_emu_clk_freq(emu_clk_freq)
 
     #uncomment for debug probing
-    #prj.config['PROJECT']['cpu_debug_mode'] = 1
-    #prj.config['PROJECT']['cpu_debug_hierarchies'] = [[0, 'top']]
+    prj.config['PROJECT']['cpu_debug_mode'] = 1
+    prj.config['PROJECT']['cpu_debug_hierarchies'] = [[0, 'top']]
 
     prj.write_to_file(THIS_DIR / 'prj.yaml')
 

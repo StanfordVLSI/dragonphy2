@@ -66,9 +66,9 @@ module sim_ctrl(
 
     // calculate FFE coefficients
     localparam real dt=1.0/(16.0e9);
-    localparam real tau=100.0e-12;
-    localparam integer coeff0 = 64.0/(1.0-$exp(-dt/tau));
-    localparam integer coeff1 = -64.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
+    localparam real tau=10.0e-12;
+    localparam integer coeff0 = 128.0/(1.0-$exp(-dt/tau));
+    localparam integer coeff1 = -128.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
 
     logic [3:0] random_delay;
 
@@ -307,7 +307,7 @@ module sim_ctrl(
 
         // Set up the FFE
         `FORCE_JTAG(fe_adapt_gain, 0);
-        `FORCE_JTAG(fe_bit_target_level, 10'd12);
+        `FORCE_JTAG(fe_bit_target_level, 10'd34);
         // Pushing init_ffe_taps into ffe_estimator / ffe
         `FORCE_JTAG(init_ffe_taps, ffe_coeffs);
         `CLK_ADC_DLY;
@@ -323,19 +323,12 @@ module sim_ctrl(
         `FORCE_JTAG(ce_inst, 3'b100);
         for(loop_var=0; loop_var<30; loop_var=loop_var+1) begin
             `FORCE_JTAG(ce_addr, loop_var);
-            `FORCE_JTAG(ce_val, 0);//chan_coeffs[loop_var]);
+            `FORCE_JTAG(ce_val, chan_coeffs[loop_var]);
             repeat (3) `CLK_ADC_DLY;
             `FORCE_JTAG(ce_exec_inst, 1'b1);
             repeat (3) `CLK_ADC_DLY;
             `FORCE_JTAG(ce_exec_inst, 1'b0);
         end
-        `FORCE_JTAG(ce_addr, 18);
-        `FORCE_JTAG(ce_val, 128);//chan_coeffs[loop_var]);
-        repeat (3) `CLK_ADC_DLY;
-        `FORCE_JTAG(ce_exec_inst, 1'b1);
-        repeat (3) `CLK_ADC_DLY;
-        `FORCE_JTAG(ce_exec_inst, 1'b0);
-        repeat (3) `CLK_ADC_DLY;
         `FORCE_JTAG(ce_exec_inst, 1'b1);
         
         `FORCE_JTAG(ffe_shift, tmp_ffe_shift);
@@ -383,7 +376,7 @@ module sim_ctrl(
         `FORCE_JTAG(en_v2t, 1);
         `CLK_ADC_DLY;
         //inp_sel = 1;
-        `FORCE_JTAG(fe_exec_inst, 1'b1);
+        `FORCE_JTAG(fe_exec_inst, 1'b0);
 
         // De-assert the CDR reset
         // TODO: do we really need to wait three cycles of clk_adc?
@@ -401,11 +394,11 @@ module sim_ctrl(
         //#inp_sel = 1;
 
         `FORCE_JTAG(ce_gain, 14);
-        `FORCE_JTAG(ce_exec_inst, 1);
+        `FORCE_JTAG(ce_exec_inst, 0);
 
 
         repeat (5000) `CLK_ADC_DLY;
-        `FORCE_JTAG(fe_bit_target_level, 10'd12);
+        `FORCE_JTAG(fe_bit_target_level, 10'd34);
         `FORCE_JTAG(ce_gain, 14);
         repeat (5000) `CLK_ADC_DLY;
         `FORCE_JTAG(ce_gain, 14);
