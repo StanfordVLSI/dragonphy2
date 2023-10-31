@@ -43,6 +43,7 @@ module symbol_adjust_reflector_datapath #(
         end
     endgenerate
 
+    logic signed      [2+(2**sym_bitwidth-1)-1:0]            int_corrected_symbols            [constant_gpack::channel_width-1:0];
     logic signed      [(2**sym_bitwidth-1)-1:0]                  corrected_symbols            [constant_gpack::channel_width-1:0];
 
 
@@ -50,7 +51,14 @@ module symbol_adjust_reflector_datapath #(
     //Update residual error trace
     always_comb begin
         for(int ii=0; ii<constant_gpack::channel_width; ii=ii+1) begin
-            corrected_symbols[ii] =  symbols_in[ii] - 2*symbol_adjust_in[ii];
+            int_corrected_symbols[ii] =  symbols_in[ii] - 2*symbol_adjust_in[ii];
+            if(int_corrected_symbols[ii] > 2**sym_bitwidth-1) begin
+                corrected_symbols[ii] = 2**sym_bitwidth-1;
+            end else if(int_corrected_symbols[ii] < -2**sym_bitwidth+1) begin
+                corrected_symbols[ii] = -2**sym_bitwidth+1;
+            end else begin
+                corrected_symbols[ii] = int_corrected_symbols[ii];
+            end
         end
     end
 

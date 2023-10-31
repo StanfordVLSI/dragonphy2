@@ -2,7 +2,8 @@
 
 # general imports
 from pathlib import Path
-
+import matplotlib.pyplot as plt
+import numpy as np
 # AHA imports
 import magma as m
 import fault
@@ -36,7 +37,7 @@ t.step(2)
 
 # read out bits
 hist = []
-for _ in range(32*16):
+for _ in range(32*32):
     hist.append(t.get_value(dut.out))
     t.step(2)
 
@@ -54,9 +55,12 @@ t.compile_and_run(
 
 # print result
 hist = [elem.value for elem in hist]
-inits = [list() for _ in range(16)]
+
+
+
+inits = [list() for _ in range(32)]
 for k, elem in enumerate(hist):
-    inits[k%16].append(elem)
+    inits[k%32].append(elem)
 for k, init in enumerate(inits):
     assert len(init) == 32
     bin_str = ''.join(str(elem) for elem in init)

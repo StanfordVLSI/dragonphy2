@@ -32,7 +32,6 @@ from .python_models.error_checker_pipeline.error_checker_pipeline import ErrorCh
 
 # Some analysis libraries
 from .analysis.histogram import Histogram
-
 # Some Python Verification Libraries
 from .channel   	import Channel, Filter, DelayChannel
 from .adaptation 	import Wiener

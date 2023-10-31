@@ -76,7 +76,10 @@ interface dcore_debug_intf import const_pack::*; (
     	logic [1:0] new_trellis_pattern_idx;
     	logic update_trellis_pattern;
 
-        logic [3:0] ce_gain;
+		logic [4:0] se_gain;
+		logic force_slicers;
+
+        logic [4:0] ce_gain;
 		logic [2:0] ce_inst;
 		logic ce_exec_inst;
 		logic [4:0] ce_addr;
@@ -149,6 +152,9 @@ interface dcore_debug_intf import const_pack::*; (
         input en_pfd_cal_ext_ave,
         input pfd_cal_ext_ave,
         input align_pos,
+
+		input se_gain,
+		input force_slicers,
 
 		input fe_inst,
 		input fe_exec_inst,
@@ -250,7 +256,8 @@ interface dcore_debug_intf import const_pack::*; (
         output tx_bypass_pi_ctl,
         output tx_rst,
         output tx_ctl_valid,
-
+		output se_gain,
+		output force_slicers,
 		output fe_inst,
 		output fe_exec_inst,
 		output init_ffe_taps,

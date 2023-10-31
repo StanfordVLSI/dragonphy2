@@ -16,6 +16,16 @@ from dragonphy import (Filter, get_file, get_dragonphy_real_type,
 
 class AnalogSlice:
     def __init__(self, filename=None, **system_values):
+        # PAM4 constants
+        BITS_PER_SYMBOL = 2
+        # these are listed from lowest to highets; gray coding is applied later if desired
+        TX_LEVELS = [
+            system_values['vn3'],
+            system_values['vn1'],
+            system_values['vp1'],
+            system_values['vp3']
+        ]
+
         # set a fixed random seed for repeatability
         np.random.seed(0)
 
@@ -34,7 +44,7 @@ class AnalogSlice:
         m.add_digital_input('noise_seed', width=32)
 
         # Chunk of bits from the history; corresponding delay is bit_idx/freq_tx delay
-        m.add_digital_input('chunk', width=system_values['chunk_width'])
+        m.add_digital_input('chunk', width=system_values['chunk_width']*BITS_PER_SYMBOL)
         m.add_digital_input('chunk_idx', width=int(ceil(log2(system_values['num_chunks']))))
 
         # Control code for the corresponding PI slice
@@ -85,25 +95,52 @@ class AnalogSlice:
         weights = []
         for k in range(system_values['chunk_width']):
             # create a weight value for this bit
+            tx_range = max(abs(v) for v in TX_LEVELS)
             weights.append(
                 m.add_analog_state(
                     f'weights_{k}',
-                    range_=system_values['vref_tx']
+                    range_=tx_range
                 )
             )
 
-            # select a single bit from the chunk.  chunk_width=1 is unfortunately
+            # select a single symbol from the chunk.  len(m.chunk)==1 is unfortunately
             # a special case because some simulators don't support the bit-selection
             # syntax on a single-bit variable
-            chunk_bit = m.chunk[k] if system_values['chunk_width'] > 1 else m.chunk
+            #chunk_bit = m.chunk[k] if system_values['chunk_width'] > 1 else m.chunk
+
+            # Interpreting each pair of bits as a 2-bit symbol.
+            # THE LOWER INDEX IS THE LOW-ORDER BIT
+            # It's strange to look at the python because we are used to seeing
+            # Verilog where the bits are listed high-index to low-index.
+            # Example list of 5 symbols: [0, 0, 1, 2, 3]
+            # In Verilog, that might be
+            # [2'b00, 2'b00, 2'b01, 2'b10, 2'b11]
+            # or
+            # 10'b11_10_01_00_00
+            # But in this python function, we use
+            # [0, 0,   0, 0,   1, 0,   0, 1,   1, 1]
+            # Notice that each pair bits looks reversed! But the important thing
+            # is that low index is low order, always.
+            chunk_start_i = k*BITS_PER_SYMBOL
+            chunk_symbol = (m.chunk
+                            if system_values['chunk_width'] and BITS_PER_SYMBOL == 1
+                            else m.chunk[chunk_start_i + BITS_PER_SYMBOL-1 : chunk_start_i])
+
+            # gray coding
+            symbol_mapping = {
+                (0, 0): TX_LEVELS[0],
+                (0, 1): TX_LEVELS[1],
+                (1, 1): TX_LEVELS[2],
+                (1, 0): TX_LEVELS[3],
+            }
 
             # write the weight value
             m.set_next_cycle(
                 weights[-1],
                 if_(
-                    chunk_bit,
-                    system_values['vref_tx'],
-                    -system_values['vref_tx']
+                    chunk_symbol[1],
+                    if_(chunk_symbol[0], symbol_mapping[(1, 1)], symbol_mapping[(1, 0)]),
+                    if_(chunk_symbol[0], symbol_mapping[(0, 1)], symbol_mapping[(0, 0)])
                 ),
                 clk=m.clk,
                 rst=m.rst
@@ -285,5 +322,7 @@ class AnalogSlice:
     def required_values():
         return ['dt', 'func_order', 'func_numel', 'chunk_width', 'num_chunks',
                 'slices_per_bank', 'num_banks', 'pi_ctl_width', 'vref_rx',
-                'vref_tx', 'n_adc', 'freq_tx', 'freq_rx', 'func_widths',
-                'func_exps', 'func_domain', 'use_jitter', 'use_noise']
+                'n_adc', 'freq_tx', 'freq_rx', 'func_widths',
+                'func_exps', 'func_domain', 'use_jitter', 'use_noise',
+                #'vref_tx',
+                'bits_per_symbol', 'vn3', 'vn1', 'vp1', 'vp3']

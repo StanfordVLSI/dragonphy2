@@ -241,16 +241,21 @@ def process_model_data(use_eq_taps=False, use_chan=False, slicer_val=2.13, gains
     for ii in range(40):
         model_adc_vals[ii::40] -= np.mean(model_adc_vals[ii::40])
 
-    eq_taps = np.zeros((40, 21))
+    eq_taps = np.zeros((40, 51))
     if use_eq_taps:
         eq_taps = np.load('eq_taps.npy')
     else:
-        init_eq_filt = signal.firls(11, [0, 0.45, 0.45, 0.8, 0.8, 1], [0.5, 0.5, 0.5, 0.7, 0.7, 1.2])
+        init_eq_filt = signal.firls(27, [0, 0.45, 0.45, 0.8, 0.8, 1], [0.5, 0.5, 0.5, 0.7, 0.7, 1.2])
         init_eq_filt = np.convolve(init_eq_filt, init_eq_filt)
-        init_eq_filt[:16] = init_eq_filt[5:]
-        init_eq_filt[16:] = 0
+        print(init_eq_filt.shape)
+        plt.plot(init_eq_filt)
+        init_eq_filt[:51-5] = init_eq_filt[5:51]
+        init_eq_filt[51-5:51] = 0
+        plt.plot(init_eq_filt)
+        plt.show()
+
         for ii in range(40):
-            eq_taps[ii,:]   = init_eq_filt
+            eq_taps[ii,:]   = init_eq_filt[:51]
 
     
     num_of_samples = int(len(model_adc_vals))
@@ -260,21 +265,21 @@ def process_model_data(use_eq_taps=False, use_chan=False, slicer_val=2.13, gains
     est_codes = np.zeros((num_of_samples,))
     est_err   = np.zeros((num_of_samples,))
 
-    est_channel = np.zeros((40, 30))
+    est_channel = np.zeros((40, 60))
     est_channel[:,1] = 1
 
     if use_chan:
         est_channel = np.load('est_channel.npy')
         
 
-    for ii in track(range(10,num_of_samples), description='Processing Initial Estimates'):
-        eq_signal[ii] = filter(model_adc_vals[ii-10:ii+11], eq_taps[ii % 40, :], 21)
+    for ii in track(range(40,num_of_samples), description='Processing Initial Estimates'):
+        eq_signal[ii] = filter(model_adc_vals[ii-40:ii+11], eq_taps[ii % 40, :], 51)
         syms[ii] = slicer(eq_signal[ii], slicer_val)
-        eq_taps[ii % 40, :] = pam4_adaptation(eq_taps[ii % 40, :], eq_signal[ii], model_adc_vals[ii-10:ii+11], slicer_val, gains[0])
-        if ii > 30:
-            est_codes[ii] = filter(syms[ii-30:ii], est_channel[ii % 40, :], 30)
+        eq_taps[ii % 40, :] = pam4_adaptation(eq_taps[ii % 40, :], eq_signal[ii], model_adc_vals[ii-40:ii+11], slicer_val, gains[0])
+        if ii > 60+40:
+            est_codes[ii] = filter(syms[ii-60:ii], est_channel[ii % 40, :], 60)
             est_err[ii] = est_codes[ii] - model_adc_vals[ii]
-            est_channel[ii % 40, :] = chan_pam4_adaptation(est_channel[ii % 40, :], est_err[ii] , syms[ii-30:ii], gains[1])
+            est_channel[ii % 40, :] = chan_pam4_adaptation(est_channel[ii % 40, :], est_err[ii] , syms[ii-60:ii], gains[1])
 
     np.save('eq_taps.npy',eq_taps)
     np.save('est_channel.npy',est_channel)
@@ -297,15 +302,16 @@ def plot_processed_data(whiten=False):
             est_channel[ii,:] = np.convolve(est_channel[ii,:], wf_taps[ii,:])[:len(est_channel[ii,:])]
             eq_signal[ii::40] = np.convolve(eq_signal[ii::40], wf_taps[ii,:])[:len(eq_signal[ii::40])]
             est_err[ii::40] = np.convolve(est_err[ii::40], wf_taps[ii,:])[:len(est_err[ii::40])]
-    #plt.plot(est_channel.T) 
-    #plt.show()
-    #plt.plot(eq_taps.T)
-    #plt.title('Equalizer Taps')
-    #plt.show()
-    #plt.plot(est_codes)
-    #plt.plot(model_adc_vals)
-    #plt.show()
-    
+
+    plt.plot(est_channel.T) 
+    plt.show()
+    plt.plot(eq_taps.T)
+    plt.title('Equalizer Taps')
+    plt.show()
+    plt.plot(est_codes)
+    plt.plot(model_adc_vals)
+    plt.show()
+        
     #fig, axs = plt.subplots(8, 5)
 #
     #for ii in track(range(40), description='Plotting Histograms'):
@@ -346,11 +352,12 @@ def plot_error_checker_results(whiten=False):
 
 def error_checker(whiten=False):
     est_channel = np.mean(np.load('est_channel.npy'), axis=0)
-    wf_taps = np.load('noise_eq_taps.npy')
 
 
     est_errs = np.load('est_err.npy')
     if whiten:
+        wf_taps = np.load('noise_eq_taps.npy')
+
         plt.plot(est_errs)
         for ii in range(40):
             est_errs[ii::40] = np.convolve(est_errs[ii::40], wf_taps[ii,:])[:len(est_errs[ii::40])]
@@ -372,8 +379,11 @@ def error_checker(whiten=False):
     for ii in range(len(check_patterns)):
         precomputed_errs[ii, :] = np.convolve(est_channel, check_patterns[ii])[3:6]
         precomputed_errs[ii+len(check_patterns), :] = np.convolve(est_channel, -np.array(check_patterns[ii]))[3:6]
-
+        plt.plot(precomputed_errs[ii, :])
+        plt.show()
     
+
+    return
     flags = np.zeros((len(est_errs),))
     energies = np.zeros((len(est_errs),))
     for ii in track(range(len(est_errs)-3), description='Processing Error Checker'):
@@ -846,7 +856,6 @@ def prbs_check_symbols(slice_val=2.13, whiten=False):
     #        plt.plot(wide_est_errors[start-4:start+48])
     #        plt.show()
         
-    return 
     #plt.plot(red_arr*15+10)
     #plt.plot(blue_arr*15+10)
     plt.plot((errors)*10+12, label='Pre Viterbi Errors')
@@ -857,7 +866,7 @@ def prbs_check_symbols(slice_val=2.13, whiten=False):
     #plt.plot((wide_flags-5))
     #plt.plot(viterbi_list, 15*np.ones((len(viterbi_list),)), 'ro')
     #plt.plot(viterbi_list+40, 15*np.ones((len(viterbi_list),)), 'go')
-    #plt.legend()
+    plt.legend()
     plt.title('Pre Viterbi vs Post Viterbi Errors')
     plt.show()
     return
@@ -993,15 +1002,15 @@ if __name__ == '__main__':
     #whiten_noise(use_est_err=False)
     #process_model_data(use_chan=False, use_eq_taps=False, slicer_val=2.13)
     #process_model_data(use_chan=True, use_eq_taps=True, slicer_val=2.13, gains=[1e-6, 1e-5])
-    #process_model_data(use_chan=True, use_eq_taps=True, slicer_val=2.13, gains=[1e-7, 1e-6])
+    process_model_data(use_chan=True, use_eq_taps=True, slicer_val=2.13, gains=[1e-7, 1e-6])
     #process_model_data(use_chan=True, use_eq_taps=True, slicer_val=2.13, gains=[1e-8, 1e-7])
     #process_model_data(use_chan=True, use_eq_taps=True, slicer_val=2.13, gains=[1e-9, 1e-8])
     #plot_processed_data()
-    #error_checker()
+    error_checker()
     #plot_error_checker_results(whiten=True)
-    #bin_and_collect_error_traces()
-    #identify_viterbi_locations(16)
-    #process_error_traces()
+    bin_and_collect_error_traces()
+    identify_viterbi_locations(16)
+    process_error_traces()
     #plot_difference_history()
     #plot_traces()
     #post_viterbi_error_checker()

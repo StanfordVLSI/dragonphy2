@@ -296,6 +296,8 @@ module jtag (
 	assign ddbg_intf_i.fe_inst				 = rjtag_intf_i.fe_inst;
 	assign ddbg_intf_i.fe_exec_inst			 = rjtag_intf_i.fe_exec_inst;
 
+	assign ddbg_intf_i.se_gain		     = rjtag_intf_i.se_gain;
+	assign ddbg_intf_i.force_slicers	 = rjtag_intf_i.force_slicers;
 
 	assign ddbg_intf_i.fe_adapt_gain		 = rjtag_intf_i.fe_adapt_gain;
 	assign ddbg_intf_i.fe_bit_target_level	 = rjtag_intf_i.fe_bit_target_level;

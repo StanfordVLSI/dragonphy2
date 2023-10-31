@@ -91,7 +91,7 @@ module datapath_core #(
 
     wire logic signed [ffe_gpack::weight_precision-1:0]           weights [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0];
     wire logic        [ffe_gpack::shift_precision-1:0]            ffe_shift [constant_gpack::channel_width-1:0];
-    wire logic signed [ffe_gpack::output_precision-1:0]           bit_level;
+    wire logic signed [ffe_gpack::output_precision-1:0]           slice_levels [2:0];
     wire logic signed [channel_gpack::est_channel_precision-1:0]  channel_est [constant_gpack::channel_width-1:0][channel_gpack::est_channel_depth-1:0];
     wire logic        [channel_gpack::shift_precision-1:0]        channel_shift [constant_gpack::channel_width-1:0];
     wire logic        [$clog2(constant_gpack::channel_width)-1:0] align_pos;
@@ -104,7 +104,7 @@ module datapath_core #(
         .align_pos(align_pos),
         .weights(weights),
         .ffe_shift(ffe_shift),
-        .bit_level(bit_level),
+        .slice_levels(slice_levels),
         .channel_est(channel_est),
         .trellis_patterns(trellis_patterns),
         .channel_shift(channel_shift)
@@ -125,7 +125,7 @@ module datapath_core #(
         // JTAG Registers
         .weights(weights),
         .ffe_shift(ffe_shift),
-        .bit_level(bit_level),
+        .slice_levels(slice_levels),
         .align_pos(align_pos)
     );
 

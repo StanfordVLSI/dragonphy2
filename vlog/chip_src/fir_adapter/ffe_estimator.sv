@@ -22,7 +22,8 @@ module ffe_estimator #(
     input wire logic signed [code_bitwidth-1:0] current_code,
 
     input wire logic [$clog2(adapt_bitwidth)-1:0] gain,
-    input wire logic signed [est_bit_bitwidth-1:0] bit_level,
+    input wire logic signed [est_bit_bitwidth-1:0] bit_target_level,
+    input wire logic signed [est_bit_bitwidth-1:0] slice_levels [2:0],
 
     input wire logic fe_nrz_mode,
 
@@ -43,18 +44,17 @@ module ffe_estimator #(
     
     logic signed [est_bit_bitwidth-1:0] sliced_sym_val;
     logic signed [est_bit_bitwidth-1:0] est_bit_val;
-    logic signed [ffe_bitwidth + adapt_bitwidth-1:0] err;
-    logic signed [ffe_bitwidth + adapt_bitwidth-1:0] adjust_val;
-    logic signed [est_bit_bitwidth-1:0] tmp_thresh;
+    logic signed [ffe_bitwidth + adapt_bitwidth - 1:0] err;
+    logic signed [ffe_bitwidth + adapt_bitwidth - 1:0] adjust_val;
+
     logic load_init, shift_left, shift_right;
 
     always_comb begin
         est_bit_val = est_bits[tap_pos];
 
-
-        for(int ii = 0; ii < (2**sym_bitwidth)-1; ii += 1) begin
-            therm_enc_slicer_outputs[ii] = (est_bit_val >  bit_level * sym_thrsh_table[ii]) ? 1 : 0;
-        end
+        therm_enc_slicer_outputs[0] = (est_bit_val >  slice_levels[0]) ? 1 : 0;
+        therm_enc_slicer_outputs[1] = (est_bit_val >  slice_levels[1]) ? 1 : 0;
+        therm_enc_slicer_outputs[2] = (est_bit_val >  slice_levels[2]) ? 1 : 0;
 
         if(fe_nrz_mode) begin
             unique case (therm_enc_slicer_outputs)
@@ -76,22 +76,22 @@ module ffe_estimator #(
         unique case (therm_enc_slicer_outputs)
             3'b000: begin 
                 sym_idx = 0;
-                sliced_sym_val = -3 * bit_level;
+                sliced_sym_val = -3 * bit_target_level;
                 err = (sliced_sym_val - est_bit_val) * 1;
             end
             3'b001: begin 
                 sym_idx = 1; 
-                sliced_sym_val = -1 * bit_level;
+                sliced_sym_val = -1 * bit_target_level;
                 err = (sliced_sym_val - est_bit_val) * 3;
             end
             3'b011: begin 
                 sym_idx = 2; 
-                sliced_sym_val = 1 * bit_level;
+                sliced_sym_val = 1 * bit_target_level;
                 err = (sliced_sym_val - est_bit_val) * 3;
             end
             3'b111: begin 
                 sym_idx = 3; 
-                sliced_sym_val = 3 * bit_level;
+                sliced_sym_val = 3 * bit_target_level;
                 err = (sliced_sym_val - est_bit_val) * 1;
             end
         endcase

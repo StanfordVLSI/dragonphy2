@@ -20,7 +20,9 @@ class TXCore:
 
         m = MixedSignalModel(module_name, dt=system_values['dt'], build_dir=build_dir,
                              real_type=get_dragonphy_real_type())
-        m.add_digital_input('in_')
+
+        # Imagining verilog syntax in_[1:0], with in_[1] being high-order
+        m.add_digital_input('in_', width=2)
         m.add_analog_output('out')
         m.add_digital_input('cke')
         m.add_digital_input('clk')
@@ -35,8 +37,11 @@ class TXCore:
         m.set_this_cycle(m.cke_posedge, m.cke & (~m.cke_prev))
 
         # define model behavior
-        vp, vn = system_values['vp'], system_values['vn']
-        m.set_next_cycle(m.out, if_(m.in_, vp, vn), clk=m.clk, rst=m.rst, ce=m.cke_posedge)
+        vp3, vn3 = system_values['vp3'], system_values['vn3']
+        vp1, vn1 = system_values['vp1'], system_values['vn1']
+        m.set_next_cycle(m.out,
+            if_(m.in_[1], if_(m.in_[0], vp3, vp1), if_(m.in_[0], vn1, vn3)),
+            clk=m.clk, rst=m.rst, ce=m.cke_posedge)
 
         # generate the model
         m.compile_to_file(VerilogGenerator())
@@ -45,4 +50,4 @@ class TXCore:
 
     @staticmethod
     def required_values():
-        return ['dt', 'vp', 'vn']
+        return ['dt', 'bits_per_symbol', 'vp3', 'vp1', 'vn1', 'vn3']

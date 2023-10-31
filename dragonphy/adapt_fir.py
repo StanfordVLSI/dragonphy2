@@ -15,7 +15,7 @@ class AdaptFir:
 
 
         # create channel model
-        chan_resp_depth = 512
+        chan_resp_depth = 2048
         chan_samp_step = 1e-9/(chan_resp_depth-1)
         kwargs = dict(
             channel_type='exponent',

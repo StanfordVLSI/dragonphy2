@@ -27,17 +27,14 @@ generic:
     ffe_shift: 8
     mlsd_shift: 8
     sym_bitwidth: 2
-    stage1_ffe_pipeline_depth:             1
-    stage2_chan_pipeline_depth:            1
-    stage2_err_out_pipeline_depth:         0
+    stage1_ffe_pipeline_depth:             2
+    stage2_chan_pipeline_depth:            2
+    stage2_err_out_pipeline_depth:         1
     stage3_sld_dtct_out_pipeline_depth:    2
     stage4_fp_bits_out_pipeline_depth:     1
-    stage4_err_chan_out_pipeline_depth:    1
+    stage4_err_chan_out_pipeline_depth:    2
     stage4_res_err_out_pipeline_depth:     0
-    stage5_sld_dtct_out_pipeline_depth:    2
-    stage6_fp_bits_out_pipeline_depth:     1
-    stage6_err_chan_out_pipeline_depth:    1
-    stage6_res_err_out_pipeline_depth:     0
+
   ffe:
     parameters:
       length : *ffe_length

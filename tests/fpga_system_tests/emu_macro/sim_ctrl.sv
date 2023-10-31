@@ -17,11 +17,11 @@
 `endif
 
 `ifndef TC
-    `define TC 4e-9
+    `define TC 2e-9
 `endif
 
 `ifndef NUMEL
-    `define NUMEL 2048
+    `define NUMEL 1024
 `endif
 
 // macro to delay for slightly more than one "tick" of emu_clk
@@ -158,7 +158,7 @@ module sim_ctrl(
         if (t <= chan_delay) begin
             chan_func = 0.0;
         end else begin
-            chan_func = 1.0-$exp(-(t-chan_delay)/tau);
+            chan_func = 0.45-0.45*$exp(-(t-chan_delay)/tau);// + 0.025-0.025*$exp(-(t-chan_delay-18*62.5e-12)/tau);
         end
     endfunction
 
@@ -172,8 +172,8 @@ module sim_ctrl(
 
     initial begin
         //Initialize Channel
-        //chan_coeffs   = '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 3, 5, 9, 16, 30, 56,  2};
-        ffe_coeffs = '{0,0,0,0,0,32,0,0,0,0,0,0,0,0,0,0};
+        chan_coeffs   = '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  302};
+        ffe_coeffs = '{0,0,0,0,0,0,0,0,0,0,0,0,0,0,coeff1,coeff0};
         random_delay = 0;
         //chan_coeffs = '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 127, 127};
         //inp_sel = 1;
@@ -183,7 +183,7 @@ module sim_ctrl(
         // initialize control signals
         jitter_rms_int = 0;
         noise_rms_int = 0;
-        prbs_eqn = 32'h100002;  // matches equation used by prbs21 in DaVE
+        prbs_eqn = 32'h4800_0000;  // matches equation used by prbs21 in DaVE
         chan_wdata_0 = 0;
         chan_wdata_1 = 0;
         chan_waddr = 0;
@@ -197,45 +197,66 @@ module sim_ctrl(
 
         // Download the channel data in steven's step response form
 
-        fd_0 = $fopen("/home/zamyers/Development/dragonphy2/tests/fpga_system_tests/emu_macro/chan_vals_0.txt", "r");
-        fd_1 = $fopen("/home/zamyers/Development/dragonphy2/tests/fpga_system_tests/emu_macro/chan_vals_1.txt", "r");
-
-
+        // update the step response function
         chan_we = 1'b1;
         for (int idx=0; idx<numel; idx=idx+1) begin
-            if ((idx % 32) == 0) begin
-                $display("Updating function coefficients %0d/32", idx/32);
-            end
-            $fscanf(fd_0, "%d,\n", chan_wdata_0);
-            $fscanf(fd_1, "%d,\n", chan_wdata_1);
-
+             if ((idx % 16) == 0) begin
+                $display("Updating function coefficients %0d/64", idx/16);
+                $display("NUMEL: %0d", numel);
+             end
+             `ifndef HARD_FLOAT
+                chan_wdata_0 = `FLOAT_TO_FIXED(chan_func(idx*dt_samp), -16);
+                chan_wdata_1 = `FLOAT_TO_FIXED(chan_func((idx+1)*dt_samp)-chan_func(idx*dt_samp), -16);
+            `else
+                chan_wdata_0 = `REAL_TO_REC_FN(chan_func(idx*dt_samp));
+                chan_wdata_1 = `REAL_TO_REC_FN(chan_func((idx+1)*dt_samp)-chan_func(idx*dt_samp));
+            `endif
             chan_waddr = idx;
             `EMU_CLK_DLY;
         end
         chan_we = 1'b0;
 
-        $fclose(fd_0);
-        $fclose(fd_1);
 
-        fd_2 = $fopen("/home/zamyers/Development/dragonphy2/tests/fpga_system_tests/emu_macro/ffe_vals.txt", "r");
-        $fscanf(fd_2, "%d\n", ffe_shift);
-        $fscanf(fd_2, "%d\n", align_pos);
+
+//        fd_0 = $fopen("/home/zamyers/Development/dragonphy2/tests/fpga_system_tests/emu_macro/chan_vals_0.txt", "r");
+//        fd_1 = $fopen("/home/zamyers/Development/dragonphy2/tests/fpga_system_tests/emu_macro/chan_vals_1.txt", "r");
+//
+//
+//        chan_we = 1'b1;
+//        for (int idx=0; idx<numel; idx=idx+1) begin
+//            if ((idx % 32) == 0) begin
+//                $display("Updating function coefficients %0d/32", idx/32);
+//            end
+//            $fscanf(fd_0, "%d,\n", chan_wdata_0);
+//            $fscanf(fd_1, "%d,\n", chan_wdata_1);
+//
+//            chan_waddr = idx;
+//            `EMU_CLK_DLY;
+//        end
+//        chan_we = 1'b0;
+//
+//        $fclose(fd_0);
+//        $fclose(fd_1);
+
+        //fd_2 = $fopen("/home/zamyers/Development/dragonphy2/tests/fpga_system_tests/emu_macro/ffe_vals.txt", "r");
+        //$fscanf(fd_2, "%d\n", ffe_shift);
+        //$fscanf(fd_2, "%d\n", align_pos);
         for (loop_var2=0; loop_var2<ffe_gpack::length; loop_var2=loop_var2+1) begin
-            $fscanf(fd_2, "%d\n", ffe_coeffs[loop_var2]);
+        //    $fscanf(fd_2, "%d\n", ffe_coeffs[loop_var2]);
             $display("%d,", ffe_coeffs[loop_var2]);
         end
-        $fclose(fd_2);
-
-        fd_1 = $fopen("/home/zamyers/Development/dragonphy2/tests/fpga_system_tests/emu_macro/chan_est_vals.txt", "r");
-        for (loop_var2=0; loop_var2<30; loop_var2=loop_var2+1) begin
-            $fscanf(fd_1, "%d\n", chan_coeffs[loop_var2]);
-            $display("%d,", chan_coeffs[loop_var2]);
-            chan_coeffs[loop_var2] = chan_coeffs[loop_var2] << 3;
-        end
-        $fclose(fd_1);     
+        //$fclose(fd_2);
+//
+        //fd_1 = $fopen("/home/zamyers/Development/dragonphy2/tests/fpga_system_tests/emu_macro/chan_est_vals.txt", "r");
+        //for (loop_var2=0; loop_var2<30; loop_var2=loop_var2+1) begin
+        //    $fscanf(fd_1, "%d\n", chan_coeffs[loop_var2]);
+        //    $display("%d,", chan_coeffs[loop_var2]);
+        //    chan_coeffs[loop_var2] = chan_coeffs[loop_var2] << 3;
+        //end
+        //$fclose(fd_1);     
 
         for (loop_var=0; loop_var<Nti; loop_var=loop_var+1) begin
-            tmp_ffe_shift[loop_var] = ffe_shift;
+            tmp_ffe_shift[loop_var] = 6;
             tmp_chan_shift[loop_var] = 3;
         end
 
@@ -285,8 +306,8 @@ module sim_ctrl(
         `CLK_ADC_DLY;
 
         // Set up the FFE
-        `FORCE_JTAG(fe_adapt_gain, 11);
-        `FORCE_JTAG(fe_bit_target_level, 10'd40);
+        `FORCE_JTAG(fe_adapt_gain, 0);
+        `FORCE_JTAG(fe_bit_target_level, 10'd12);
         // Pushing init_ffe_taps into ffe_estimator / ffe
         `FORCE_JTAG(init_ffe_taps, ffe_coeffs);
         `CLK_ADC_DLY;
@@ -302,15 +323,21 @@ module sim_ctrl(
         `FORCE_JTAG(ce_inst, 3'b100);
         for(loop_var=0; loop_var<30; loop_var=loop_var+1) begin
             `FORCE_JTAG(ce_addr, loop_var);
-            `FORCE_JTAG(ce_val, chan_coeffs[loop_var]);
+            `FORCE_JTAG(ce_val, 0);//chan_coeffs[loop_var]);
             repeat (3) `CLK_ADC_DLY;
             `FORCE_JTAG(ce_exec_inst, 1'b1);
             repeat (3) `CLK_ADC_DLY;
             `FORCE_JTAG(ce_exec_inst, 1'b0);
         end
+        `FORCE_JTAG(ce_addr, 18);
+        `FORCE_JTAG(ce_val, 128);//chan_coeffs[loop_var]);
+        repeat (3) `CLK_ADC_DLY;
         `FORCE_JTAG(ce_exec_inst, 1'b1);
-
-
+        repeat (3) `CLK_ADC_DLY;
+        `FORCE_JTAG(ce_exec_inst, 1'b0);
+        repeat (3) `CLK_ADC_DLY;
+        `FORCE_JTAG(ce_exec_inst, 1'b1);
+        
         `FORCE_JTAG(ffe_shift, tmp_ffe_shift);
         `FORCE_JTAG(channel_shift, tmp_chan_shift);
         `FORCE_JTAG(align_pos, align_pos);
@@ -334,6 +361,11 @@ module sim_ctrl(
         `FORCE_JTAG(retimer_mux_ctrl_2, 16'hFFFF);
         `CLK_ADC_DLY;
 
+
+        // Enable Slice Estimator
+        `FORCE_JTAG(force_slicers, 1);
+        `FORCE_JTAG(se_gain, 6);
+
         // Configure the CDR
         $display("Configuring the CDR...");
         `FORCE_JTAG(Kp, 9);
@@ -351,12 +383,12 @@ module sim_ctrl(
         `FORCE_JTAG(en_v2t, 1);
         `CLK_ADC_DLY;
         //inp_sel = 1;
-        `FORCE_JTAG(fe_exec_inst, 1'b0);
+        `FORCE_JTAG(fe_exec_inst, 1'b1);
 
         // De-assert the CDR reset
         // TODO: do we really need to wait three cycles of clk_adc?
         toggle_cdr_rstb();
-        repeat (10000) `CLK_ADC_DLY;
+        repeat (1000) `CLK_ADC_DLY;
 
         // Wait for PRBS checker to lock
 		$display("Waiting for PRBS checker to lock...");
@@ -368,15 +400,15 @@ module sim_ctrl(
         //repeat (50) `CLK_ADC_DLY;
         //#inp_sel = 1;
 
-        `FORCE_JTAG(ce_gain, 10);
-        `FORCE_JTAG(ce_exec_inst, 0);
+        `FORCE_JTAG(ce_gain, 14);
+        `FORCE_JTAG(ce_exec_inst, 1);
 
 
         repeat (5000) `CLK_ADC_DLY;
-
-        `FORCE_JTAG(ce_gain, 9);
+        `FORCE_JTAG(fe_bit_target_level, 10'd12);
+        `FORCE_JTAG(ce_gain, 14);
         repeat (5000) `CLK_ADC_DLY;
-        `FORCE_JTAG(ce_gain, 8);
+        `FORCE_JTAG(ce_gain, 14);
         repeat (5000) `CLK_ADC_DLY;
 
         for(int ii = 0; ii < 30; ii += 1) begin
@@ -384,7 +416,7 @@ module sim_ctrl(
         end
 
         `FORCE_JTAG(ce_gain, 6);
-        repeat (10000) `CLK_ADC_DLY;
+        repeat (5000) `CLK_ADC_DLY;
 
         // Run the PRBS tester
         $display("Running the PRBS tester");

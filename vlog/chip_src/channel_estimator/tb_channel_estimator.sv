@@ -180,21 +180,48 @@ module tb ();
         .est_code_delay()
     );
 
-    simple_datapath_core datapath_i (
-        .adc_codes(adc_codes_in),
+
+    bits_estimator_datapath  #(
+        .ffe_pipeline_depth(2)
+    )bit_est_stage_1_i(
         .clk(clk),
         .rstb(rst_n),
+        // Inputs
+        .act_codes_in(adc_codes),
+        // Outputs
+        .est_syms_out(stage1_est_bits_out),    
+        .symbols_out(stage1_symbols_out),
+        .act_codes_out(stage1_act_codes_out),
 
-        //Stage 1
-        .stage1_est_bits_out(est_bits),
-        .stage1_sliced_bits_out(),
-
-        //Stage 2
-        .stage2_res_errors_out  (est_errors),
-        .stage2_sliced_bits_out (sliced_bits),
-
-        .dsp_dbg_intf_i(dsp_dbg_intf_i)
+        // JTAG Registers
+        .weights(dsp_dbg_intf_i.weights),
+        .ffe_shift(dsp_dbg_intf_i.ffe_shift),
+        .slice_levels(slice_levels),
+        .align_pos(align_pos)
     );
+
+    res_err_estimator_datapath  #(
+        .channel_pipeline_depth(1),
+        .error_output_pipeline_depth(1),
+        .main_cursor_position(2)
+    ) res_err_stage_2_i (
+        .clk(clk),
+        .rstb(rst_n),
+        // Inputs
+        .symbols_in(stage1_symbols_out),
+        .act_codes_in(stage1_act_codes_out), 
+
+        // Outputs
+        .symbols_out(stage2_symbols_out),
+        .res_err_out(stage2_res_errors_out),
+
+        // JTAG Registers
+        .channel_est(dsp_dbg_intf_i.channel_est),
+        .channel_shift(dsp_dbg_intf_i.channel_shift)
+    );
+
+
+ 
 
     buffer #(
         .numChannels (16),

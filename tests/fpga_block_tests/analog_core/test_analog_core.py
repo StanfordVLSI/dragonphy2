@@ -49,14 +49,26 @@ def adc_model(in_):
     # return result
     return sgn, mag
 
+def map_symbol(symbol):
+    if CFG['bits_per_symbol'] == 1:
+        return (2*(symbol[0]-0.5)) * CFG['vref_tx']
+    elif CFG['bits_per_symbol'] == 2:
+        mapping = {
+                    (0, 0): CFG['vn3'],
+                    (0, 1): CFG['vn1'],
+                    (1, 1): CFG['vp1'],
+                    (1, 0): CFG['vp3'],
+                  }
+        return mapping[tuple(symbol)]
+
 def channel_model(slice_offset, pi_ctl, all_bits):
     # compute sample time
     t_samp = (slice_offset + (pi_ctl / (2 ** CFG['pi_ctl_width']))) / CFG['freq_rx']
 
     # build up the sample value through superposition
     sample_value = 0
-    for k, bit in enumerate(all_bits):
-        weight = (2*(bit-0.5)) * CFG['vref_tx']  # +/- vref_tx
+    for k, symbol in enumerate(all_bits):
+        weight = map_symbol(symbol)
         t_rise = (CFG['slices_per_bank'] / CFG['freq_rx']) - (k + 1) * (1.0 / CFG['freq_tx'])
         t_fall = t_rise + (1.0 / CFG['freq_tx'])
         sample_value += weight * (CHAN.interp(t_samp-t_rise)-CHAN.interp(t_samp-t_fall))
@@ -98,7 +110,7 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
 
     # set up the IO definitions
     io_dict = {}
-    io_dict['bits'] = m.In(m.Bits[16])
+    io_dict['bits'] = m.In(m.Bits[16*CFG['bits_per_symbol']])
     for k in range(4):
         io_dict[f'ctl_pi_{k}'] = m.In(m.Bits[9])
     for k in range(16):
@@ -135,7 +147,11 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
         return int(''.join(str(elem) for elem in lis), 2)
 
     def poke_bits(bits):
-        t.poke(dut.bits, to_bv(bits))
+        # even if there are multiple bits per symbol, t expects them to be packed flat
+        bits_flat = [b
+                     for symbol in bits
+                        for b in symbol]
+        t.poke(dut.bits, to_bv(bits_flat))
 
     def poke_pi_ctl(pi_ctl):
         for k in range(4):
@@ -150,9 +166,11 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
     # build up a list of test cases
     test_cases = []
     for x in range(num_tests):
-        pi_ctl = [0, 128, 256, 384] #[random.randint(0, (1 << CFG['pi_ctl_width']) - 1) for _ in range(4)]
-        new_bits = [0]*7 + [1] + [0]*8 # [random.randint(0, 1) for _ in range(16)]
+        pi_ctl = [random.randint(0, (1 << CFG['pi_ctl_width']) - 1) for _ in range(4)]
+        new_bits = [[random.randint(0, 1) for i in range(CFG['bits_per_symbol'])]
+                    for _ in range(16)]
         test_cases.append([pi_ctl, new_bits])
+
 
     # initialize
     t.zero_inputs()
@@ -232,10 +250,10 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
         ext_srcs=ext_srcs,
         ext_model_file=True,
         disp_type='realtime',
-        dump_waveforms=False,
+        dump_waveforms=dump_waveforms,
         flags=flags,
         timescale='1fs/1fs',
-        num_cycles=1e12
+        num_cycles=1e12,
     )
 
     # process the results
@@ -273,9 +291,39 @@ def test_analog_core(simulator_name, dump_waveforms, num_tests=100):
         print(f'[measured] sgn: {sgn_meas}, mag: {mag_meas}')
         print(f'[expected] sgn: {sgn_expct}, mag: {mag_expct}, analog_sample: {analog_sample}')
 
+
+        def align(sgn, mag):
+            # this might still have a global shift, I'm not sure
+            val = [(2*s-1)*m for s, m in zip(sgn, mag)]
+            mapping = [0,4,8,12,1,5,9,13,2,6,10,14,3,7,11,15]
+            ans = [val[i] for i in mapping]
+            return ans
+
+
+        # Plot measured and expected recovered signals
+        # meas = align(sgn_meas, mag_meas)
+        # expct = align(sgn_expct, mag_expct)
+        # import matplotlib.pyplot as plt
+        # plt.figure()
+        # plt.plot(meas)
+        # plt.figure()
+        # plt.plot(expct)
+        # plt.show()
+
+
         # check results
         for sm, mm, se, me in zip(sgn_meas, mag_meas, sgn_expct, mag_expct):
             check_adc_result(sm, mm, se, me)
 
     # declare success
     print('Success!')
+
+
+def plot_channel_response():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    xs = np.linspace(-5/CFG['freq_rx'], 35/CFG['freq_rx'], 40*5+1)
+    ys = [CHAN.interp(x) for x in xs]
+    plt.plot(xs, ys)
+    plt.show()
+

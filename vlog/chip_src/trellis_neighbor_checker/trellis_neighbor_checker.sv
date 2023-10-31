@@ -3,7 +3,7 @@ module trellis_neighbor_checker #(
     parameter integer depth = 30,
     parameter integer width = 16,
     parameter integer branch_bitwidth  = 2,
-    parameter integer shift_bitwidth = 3,
+    parameter integer shift_bitwidth = 4,
     parameter integer trellis_neighbor_checker_depth = 2,
     parameter integer num_of_trellis_patterns = 4,
     parameter integer trellis_pattern_depth = 4,
@@ -35,7 +35,7 @@ module trellis_neighbor_checker #(
         .est_err_bitwidth(est_err_bitwidth),
         .trellis_pattern_depth(trellis_pattern_depth),
         .branch_bitwidth(branch_bitwidth),
-        .shift_bitwidth(shift_bitwidth),
+        .shift_width(shift_bitwidth),
         .num_of_trellis_patterns(num_of_trellis_patterns),
         .cp(0),
         .est_channel_bitwidth(est_channel_bitwidth)

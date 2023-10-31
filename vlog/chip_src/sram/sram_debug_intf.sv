@@ -1,7 +1,7 @@
 `default_nettype none
 
 interface sram_debug_intf #(
-    parameter integer N_mem_tiles=4
+    parameter integer N_mem_tiles=2
 );
 
     localparam log_N_tiles = $clog2(N_mem_tiles);

@@ -29,7 +29,7 @@ module channel_filter_v2 #(
         for(ii=0; ii<width; ii=ii+1) begin
             int_est_code[ii] = 0;
             for(jj=0; jj<depth; jj=jj+1) begin
-                int_est_code[ii] = int_est_code[ii] + (bitstream[ii+idx-jj] ? channel[ii][jj] : -channel[ii][jj]);
+                int_est_code[ii] = int_est_code[ii] + (bitstream[ii+idx-jj] ? channel[0][jj] : -channel[0][jj]);
             end
             est_code[ii] = int_est_code[ii] >>> shift[ii];
         end

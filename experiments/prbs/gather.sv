@@ -12,8 +12,8 @@ module gather(
         .clk(clk),
         .rst(rst),
         .cke(1'b1),
-        .init_val(32'h00000001),
-        .eqn(32'h100002),
+        .init_val(32'h428f020c),
+        .eqn(32'h48000000),
         .inj_err(1'b0),
         .inv_chicken(2'b00),
         .out(out)

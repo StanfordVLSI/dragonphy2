@@ -43,16 +43,18 @@
 | fe_inst                    |         | 2:0                    |                  | Test         | out      |   0       |
 | fe_exec_inst               |         |                        |                  | Test         | out      |   0       |
 | init_ffe_taps              |  yes    | 9:0                    | 15:0             | Test         | out      |   0       |
+| se_gain                    |         | 4:0                    |                  | Test         | out      |   1       |
+| force_slicers              |         |                        |                  | Test         | out      |   1       |
 | fe_adapt_gain              |         | 4:0                    |                  | Test         | out      |   0       |
 | fe_bit_target_level        |  yes    | 9:0                    |                  | Test         | out      |   'd70    |
-| ce_gain                    |         | 3:0                    |                  | Test         | out      |   1       |
+| ce_gain                    |         | 4:0                    |                  | Test         | out      |   0       |
 | ce_inst                    |         | 2:0                    |                  | Test         | out      |   0       |
 | ce_exec_inst               |         |                        |                  | Test         | out      |   0       |
 | ce_addr                    |         | 4:0                    |                  | Test         | out      |   0       |
-| ce_val                     |   yes   | 9:0                    |                  | Test         | out      |   0       |
+| ce_val                     |   yes   | 10:0                   |                  | Test         | out      |   0       |
 | sample_fir_est             |         |                        |                  | Test         | out      |   0       |
 | sample_pos                 |         | 4:0                    |                  | Test         | out      |   0       |
-| ce_sampled_value           |   yes   | 9:0                    |                  | System       | in       |           |
+| ce_sampled_value           |   yes   | 10:0                   |                  | System       | in       |           |
 | fe_sampled_value           |   yes   | 9:0                    |                  | System       | in       |           |
 | cmp_thresh                 |   yes   | 9:0                    | Nti-1:0          | Test         | out      |   0       |
 | ffe_thresh                 |   yes   | 9:0                    | Nti-1:0          | Test         | out      |   0       |

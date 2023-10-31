@@ -78,6 +78,10 @@ def check_adc_result(sgn_meas, mag_meas, sgn_expct, mag_expct):
 
 @pytest.mark.parametrize('slice_offset', [0, 1, 2, 3])
 def test_analog_slice(simulator_name, slice_offset, dump_waveforms, num_tests=100):
+    print('dump_waveforms was', dump_waveforms)
+    dump_waveforms = True
+    print('dump_waveforms now', dump_waveforms)
+
     # set seed for repeatable behavior
     random.seed(0)
 
@@ -98,7 +102,7 @@ def test_analog_slice(simulator_name, slice_offset, dump_waveforms, num_tests=10
     class dut(m.Circuit):
         name = 'test_analog_slice'
         io = m.IO(
-            chunk=m.In(m.Bits[CFG['chunk_width']]),
+            chunk=m.In(m.Bits[CFG['chunk_width'] * CFG['bits_per_symbol']]),
             chunk_idx=m.In(m.Bits[int(ceil(log2(CFG['num_chunks'])))]),
             pi_ctl=m.In(m.Bits[CFG['pi_ctl_width']]),
             slice_offset=m.In(m.Bits[int(ceil(log2(CFG['slices_per_bank'])))]),
@@ -116,6 +120,9 @@ def test_analog_slice(simulator_name, slice_offset, dump_waveforms, num_tests=10
             waddr=m.In(m.Bits[int(ceil(log2(CFG['func_numel'])))]),
             we=m.BitIn
         )
+
+    print(dut)
+    print(dut.IO)
 
     # create the tester
     t = fault.Tester(dut)
@@ -135,7 +142,7 @@ def test_analog_slice(simulator_name, slice_offset, dump_waveforms, num_tests=10
     test_cases = []
     for x in range(num_tests):
         pi_ctl = random.randint(0, (1 << CFG['pi_ctl_width']) - 1)
-        all_bits = [random.randint(0, 1) for _ in range(CFG['chunk_width'] * CFG['num_chunks'])]
+        all_bits = [random.randint(0, 1) for _ in range(CFG['chunk_width'] * CFG['bits_per_symbol'] * CFG['num_chunks'])]
         test_cases.append([pi_ctl, all_bits])
 
     # initialize
@@ -173,7 +180,8 @@ def test_analog_slice(simulator_name, slice_offset, dump_waveforms, num_tests=10
     for i in range(num_tests):
         for j in range(2+CFG['num_chunks']):
             if j < CFG['num_chunks']:
-                t.poke(dut.chunk, to_bv(test_cases[i][1][(j*CFG['chunk_width']):((j+1)*CFG['chunk_width'])]))
+                bits_per_chunk = CFG['chunk_width'] * CFG['bits_per_symbol']
+                t.poke(dut.chunk, to_bv(test_cases[i][1][(j*bits_per_chunk):((j+1)*bits_per_chunk)]))
                 t.poke(dut.chunk_idx, j)
             else:
                 t.poke(dut.chunk, 0)
@@ -238,6 +246,7 @@ def test_analog_slice(simulator_name, slice_offset, dump_waveforms, num_tests=10
         ext_srcs=ext_srcs,
         parameters={
             'chunk_width': CFG['chunk_width'],
+            'bits_per_symbol': CFG['bits_per_symbol'],
             'num_chunks': CFG['num_chunks']
         },
         ext_model_file=True,

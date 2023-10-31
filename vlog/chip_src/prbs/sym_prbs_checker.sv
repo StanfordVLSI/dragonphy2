@@ -78,17 +78,17 @@ module sym_prbs_checker #(
     endgenerate
 
     // sum up number of errors for selected channels
-    logic [$clog2(n_channels):0] err_count;
-    logic [$clog2(n_channels):0] tot_count;
+    logic [$clog2(n_channels*sym_bitwidth):0] err_count;
+    logic [$clog2(n_channels*sym_bitwidth):0] tot_count;
 
     integer i, j;
     always @* begin
         err_count = 0;
         tot_count = 0;
         for (i=0; i< n_channels; i=i+1) begin
+            tot_count = tot_count + (chan_sel[i] << 1);
             for (j = 0; j < sym_bitwidth; j = j + 1) begin
                 err_count = err_count + (err_signals[i + j*n_channels] & chan_sel[i]);
-                tot_count = tot_count + chan_sel[i];
             end
         end
     end

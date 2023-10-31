@@ -4,8 +4,8 @@ module channel_estimator #(
     parameter string  file_name = "chan_internal_state.txt",
     // synthesis translate_on
     parameter integer est_depth = 30,
-    parameter integer est_bitwidth = 8,
-    parameter integer adapt_bitwidth = 16,
+    parameter integer est_bitwidth = 11,
+    parameter integer adapt_bitwidth = 18,
     parameter integer err_bitwidth = 9
 ) (
     input wire logic clk,
@@ -17,7 +17,7 @@ module channel_estimator #(
     input wire logic [$clog2(adapt_bitwidth)-1:0] gain,
     input wire logic [2:0]  inst,
     input wire logic        exec_inst,
-    input wire logic signed [est_bitwidth:0] load_val,
+    input wire logic signed [est_bitwidth-1:0] load_val,
     input wire logic [4:0] load_addr,
 
     output logic signed [est_bitwidth-1:0] est_chan [est_depth-1:0]
@@ -57,7 +57,7 @@ module channel_estimator #(
 
     always_comb begin
         for(int ii = 0; ii < est_depth; ii = ii + 1) begin
-            est_chan[ii] = (int_chan_est[ii] >>> adapt_bitwidth);
+            est_chan[ii] = ((int_chan_est[ii]-int_chan_est[est_depth-1]) >>> adapt_bitwidth);
         end
     end
  
@@ -106,7 +106,7 @@ module channel_estimator #(
             end
             CALC_AND_STORE: begin
                 next_chan_est_states  = LOAD_AND_CALC;
-                next_tap_decimal      = tap_decimal + adjust_val;
+                next_tap_decimal      = tap_decimal;
                 next_tap_pos          = (tap_pos_plus_one > est_depth - 1) ? 0 : tap_pos_plus_one;
             end
             EXEC : begin

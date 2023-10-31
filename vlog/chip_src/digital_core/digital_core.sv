@@ -41,7 +41,7 @@ module digital_core import const_pack::*; (
     // interfaces
 
     cdr_debug_intf cdbg_intf_i ();
-    sram_debug_intf #(.N_mem_tiles(4)) sm1_dbg_intf_i ();
+    sram_debug_intf #(.N_mem_tiles(2)) sm1_dbg_intf_i ();
 
     dcore_debug_intf ddbg_intf_i ();
     dsp_debug_intf dsp_dbg_intf_i();
@@ -49,7 +49,8 @@ module digital_core import const_pack::*; (
     hist_debug_intf hdbg_intf_i ();
     error_tracker_debug_intf #(.addrwidth(10)) edbg_intf_i  ();
     //tx_data_intf odbg_intf_i ();
-    
+
+
     // internal signals
     wire logic dcore_rstb;
     wire logic adc_unfolding_update;
@@ -65,6 +66,9 @@ module digital_core import const_pack::*; (
     wire logic signed [Nadc-1:0] adcout_unfolded [Nti+Nti_rep-1:0];
     wire logic [constant_gpack::sym_bitwidth*Nti-1:0] prbs_flags;
     wire logic [constant_gpack::sym_bitwidth*Nti-1:0] prbs_flags_trigger;
+
+    logic signed [ffe_gpack::output_precision-1:0] slice_levels [2:0];
+    logic force_slicers;
 
     logic [constant_gpack::sym_bitwidth-1:0] decoded_raw_symbols [Nti-1:0];
     logic [constant_gpack::sym_bitwidth-1:0] decoded_symbols [Nti-1:0];
@@ -157,7 +161,9 @@ module digital_core import const_pack::*; (
     //wire logic [(Npi-1):0] tx_scale_value [(Nout-1):0];
     //logic [(Npi-1):0] reg_tx_scale_value [(Nout-1):0];
     //wire logic [(Npi+Npi-1):0] tx_scaled_pi_ctl [(Nout-1):0];
-
+    initial begin
+        $dumpvars;
+    end
 //    initial begin
 //        $shm_open("waves.shm");
 //        $shm_probe("ACT"); 
@@ -364,25 +370,25 @@ module digital_core import const_pack::*; (
     trellis_pattern_manager tpm_i (
         .clk(clk_adc),
         .rstb(dcore_rstb),
-        .new_trellis_pattern(ddbg_intf_i.new_trellis_pattern),
-        .new_trellis_pattern_idx(ddbg_intf_i.new_trellis_pattern_idx),
-        .update_trellis_pattern(ddbg_intf_i.update_trellis_pattern),
-        .trellis_patterns(dsp_dbg_intf_i.trellis_patterns)
+        .new_trellis_pattern     (ddbg_intf_i.new_trellis_pattern),
+        .new_trellis_pattern_idx (ddbg_intf_i.new_trellis_pattern_idx),
+        .update_trellis_pattern  (ddbg_intf_i.update_trellis_pattern),
+        .trellis_patterns        (dsp_dbg_intf_i.trellis_patterns)
     );
 
     assign dsp_dbg_intf_i.ffe_shift       = ddbg_intf_i.ffe_shift;
-    assign dsp_dbg_intf_i.bit_level       = ddbg_intf_i.fe_bit_target_level;
+    assign dsp_dbg_intf_i.slice_levels    = slice_levels;
     assign dsp_dbg_intf_i.channel_shift   = ddbg_intf_i.channel_shift;
     assign dsp_dbg_intf_i.align_pos       = ddbg_intf_i.align_pos;
 
 
     logic signed [8:0] stage2_est_errors [15:0];
-    logic signed [8:0] stage2_est_errors_buffer [15:0][1:0];
+    logic signed [8:0] stage2_est_errors_buffer [15:0][2:0];
     logic signed [8:0] flat_stage2_est_errors [31:0];
     logic signed [(2**constant_gpack::sym_bitwidth-1)-1:0]   stage2_slcd_bits [15:0];
-    logic signed [(2**constant_gpack::sym_bitwidth-1)-1:0]   stage2_slcd_bits_buffer [15:0][1:0];
+    logic signed [(2**constant_gpack::sym_bitwidth-1)-1:0]   stage2_slcd_bits_buffer [15:0][2:0];
 
-    logic signed [channel_gpack::est_channel_precision-1:0] single_chan_est [29:0];
+    logic signed [channel_gpack::est_channel_precision-1:0] single_chan_est [channel_gpack::est_channel_depth-1:0];
 
 
     datapath_core datapath_i (
@@ -415,6 +421,25 @@ module digital_core import const_pack::*; (
         .dsp_dbg_intf_i(dsp_dbg_intf_i)
     );
 
+    slice_estimator #(
+        .num_of_channels(constant_gpack::channel_width),
+        .est_bit_bitwidth(ffe_gpack::output_precision),
+        .adapt_bitwidth(16)
+    ) slice_est_i (
+        .clk(clk_adc),
+        .rst_n(dcore_rstb),
+
+        .symbols(tmp_sliced_est_bits),
+        .est_symbols(estimated_bits),
+        .gain(ddbg_intf_i.se_gain),
+
+        .force_slicers(ddbg_intf_i.force_slicers),
+        .fe_bit_target_level(ddbg_intf_i.fe_bit_target_level),
+
+        .slice_levels(slice_levels)
+    );
+
+
     logic signed [9:0] sec_est_bits [ffe_gpack::length-1:0];
 
     always_comb begin
@@ -441,8 +466,8 @@ module digital_core import const_pack::*; (
         .fe_nrz_mode(0),
 
         .gain(ddbg_intf_i.fe_adapt_gain),
-        .bit_level(ddbg_intf_i.fe_bit_target_level),
-
+        .bit_target_level(ddbg_intf_i.fe_bit_target_level),
+        .slice_levels(slice_levels),
         .exec_inst(ddbg_intf_i.fe_exec_inst),
         .inst(ddbg_intf_i.fe_inst),
 
@@ -453,7 +478,7 @@ module digital_core import const_pack::*; (
     signed_buffer #(
         .numChannels (16),
         .bitwidth    (2**constant_gpack::sym_bitwidth-1),
-        .depth       (1)
+        .depth       (2)
     ) sb_buff_i (
         .in      (stage2_slcd_bits),
         .clk     (clk_adc),
@@ -464,7 +489,7 @@ module digital_core import const_pack::*; (
     signed_buffer #(
         .numChannels (16),
         .bitwidth    (9),
-        .depth       (1)
+        .depth       (2)
     ) est_err_buff_i (
         .in      (stage2_est_errors),
         .clk     (clk_adc),
@@ -475,24 +500,26 @@ module digital_core import const_pack::*; (
     signed_flatten_buffer_slice #(
         .numChannels(16),
         .bitwidth   (9),
-        .buff_depth (1),
+        .buff_depth (2),
         .slice_depth(1),
-        .start      (0)
+        .start      (1)
     ) est_err_fb_i (
         .buffer    (stage2_est_errors_buffer),
         .flat_slice(flat_stage2_est_errors)
     );
 
+
+
     channel_estimator #( 
         .est_depth(channel_gpack::est_channel_depth),
         .est_bitwidth(channel_gpack::est_channel_precision), 
-        .adapt_bitwidth(16), 
+        .adapt_bitwidth(21), 
         .err_bitwidth(detector_gpack::est_error_precision)
     ) chan_est_i (
         .clk(clk_adc),
         .rst_n(dcore_rstb),
         .error(flat_stage2_est_errors),
-        .current_bit(stage2_slcd_bits_buffer[0][1]),
+        .current_bit(stage2_slcd_bits_buffer[0][2]),
 
         .gain(ddbg_intf_i.ce_gain),
         .inst(ddbg_intf_i.ce_inst),
@@ -508,7 +535,7 @@ module digital_core import const_pack::*; (
             ddbg_intf_i.fe_sampled_value <= 0;
         end else begin
             if(ddbg_intf_i.sample_fir_est) begin
-                ddbg_intf_i.ce_sampled_value <= single_chan_est[ddbg_intf_i.sample_pos];
+                ddbg_intf_i.ce_sampled_value <= (chan_est_i.int_chan_est[ddbg_intf_i.sample_pos] >>> 21);
                 ddbg_intf_i.fe_sampled_value <= single_weights[ddbg_intf_i.sample_pos];
             end
         end
@@ -521,9 +548,7 @@ module digital_core import const_pack::*; (
             end
         end
         for(gj =0; gj < channel_gpack::est_channel_depth; gj = gj + 1) begin
-            for(gi = 0; gi < channel_gpack::width; gi = gi + 1) begin
-                assign dsp_dbg_intf_i.channel_est[gi][gj] = single_chan_est[gj]; 
-            end
+            assign dsp_dbg_intf_i.channel_est[0][gj] = single_chan_est[gj]; 
         end
     endgenerate
 
@@ -531,9 +556,9 @@ module digital_core import const_pack::*; (
 
 
     // SRAM
-
+    /*
     oneshot_multimemory #(
-        .N_mem_tiles(4)
+        .N_mem_tiles(2)
     ) oneshot_multimemory_i(
         .clk(clk_adc),
         .rstb(sram_rstb),
@@ -546,7 +571,7 @@ module digital_core import const_pack::*; (
 
         .out_data(sm1_dbg_intf_i.out_data),
         .addr(sm1_dbg_intf_i.addr)
-    );
+    );*/
 
     // PRBS
     // TODO: refine data decision from ADC (custom threshold, gain, invert option, etc.)
@@ -556,9 +581,9 @@ module digital_core import const_pack::*; (
     logic [constant_gpack::sym_bitwidth-1:0] mux_prbs_trig_rx_syms  [3:0][Nti-1:0];
     logic [constant_gpack::sym_bitwidth-1:0] prbs_trig_rx_syms      [Nti-1:0];
 
-    comb_comp #(.numChannels(16), .inputBitwidth(Nadc), .thresholdBitwidth(Nadc)) dig_comp_adc_i (
+    comb_comp #(.numChannels(16), .inputBitwidth(Nadc), .thresholdBitwidth(Nadc+2)) dig_comp_adc_i (
         .codes     (adcout_unfolded_non_rep),
-        .bit_level(ddbg_intf_i.fe_bit_target_level),
+        .slice_levels (slice_levels),
         .sym_out   (encoded_raw_symbols)
     );
 
@@ -584,7 +609,10 @@ module digital_core import const_pack::*; (
 
     assign prbs_trig_rx_syms  = mux_prbs_trig_rx_syms      [ddbg_intf_i.sel_trig_prbs_mux];
     // PRBS generator for BIST
-
+    initial begin
+        $dumpvars(0, prbs_checker_i);
+        $dumpvars(0, prbs_checker_trigger_i);
+    end
     prbs_generator_syn #(
         .n_prbs(Nprbs)
     ) prbs_generator_syn_i (

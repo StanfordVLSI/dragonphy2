@@ -24,7 +24,7 @@ module symbol_adjust_channel_filter #(
         for(ii=0; ii<width; ii=ii+1) begin
             unshifted_error_out[ii] = 0;
             for(jj=0; jj<depth; jj=jj+1) begin
-                product = flpstream[ii+idx-jj]*2*channel[ii][jj];
+                product = flpstream[ii+idx-jj]*2*channel[0][jj];
                 unshifted_error_out[ii] = unshifted_error_out[ii] - product;
             end
             error_out[ii] = unshifted_error_out[ii] >>> shift[ii];

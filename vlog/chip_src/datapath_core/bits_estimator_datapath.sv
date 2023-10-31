@@ -17,7 +17,7 @@ module bits_estimator_datapath #(
 
     input wire logic signed [ffe_gpack::weight_precision-1:0]          weights [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0],
     input wire logic        [ffe_gpack::shift_precision-1:0]           ffe_shift [constant_gpack::channel_width-1:0],
-    input wire logic signed [ffe_gpack::output_precision-1:0]          bit_level,
+    input wire logic signed [ffe_gpack::output_precision-1:0]          slice_levels [2:0],
 
     input wire logic [$clog2(constant_gpack::channel_width)-1:0] align_pos
 );
@@ -110,10 +110,10 @@ module bits_estimator_datapath #(
     comb_comp #(
         .numChannels(cmp_gpack::width),
         .inputBitwidth(cmp_gpack::input_precision),
-        .thresholdBitwidth (cmp_gpack::thresh_precision)
+        .thresholdBitwidth(cmp_gpack::input_precision)
     ) ccmp_i (
         .codes(buffered_estimated_bit),
-        .bit_level(bit_level),
+        .slice_levels(slice_levels),
         .sym_out   (cmp_out)
     );
 

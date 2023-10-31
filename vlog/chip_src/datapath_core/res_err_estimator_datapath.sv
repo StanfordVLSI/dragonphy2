@@ -84,7 +84,14 @@ module res_err_estimator_datapath #(
 
 
     //Channel Filter
-    logic signed [channel_gpack::est_code_precision+1-1:0] estimated_codes [constant_gpack::channel_width-1:0];
+    logic signed [channel_gpack::est_code_precision-1:0] estimated_codes [constant_gpack::channel_width-1:0];
+    logic signed [(2**sym_bitwidth-1)-1:0] section_of_flat_symbols [actual_channel_bit_depth:0];
+
+    generate
+        for(gi = 0; gi < actual_channel_bit_depth+1; gi += 1) begin
+            assign section_of_flat_symbols[gi] = flat_symbols[gi + total_channel_bit_depth-1-actual_channel_bit_depth];
+        end
+    endgenerate
 
     channel_filter #(
         .sym_bitwidth(sym_bitwidth),
@@ -92,9 +99,9 @@ module res_err_estimator_datapath #(
         .depth(channel_gpack::est_channel_depth),
         .shift_bitwidth(channel_gpack::shift_precision),
         .est_channel_bitwidth(channel_gpack::est_channel_precision),
-        .est_code_bitwidth(channel_gpack::est_code_precision+1)
+        .est_code_bitwidth(channel_gpack::est_code_precision)
     ) chan_filt_i (
-        .symstream(flat_symbols[total_channel_bit_depth-1:total_channel_bit_depth-1 - actual_channel_bit_depth]),
+        .symstream(section_of_flat_symbols),
         .channel(channel_est),
         .shift(channel_shift),
         .est_code(estimated_codes)
@@ -102,11 +109,11 @@ module res_err_estimator_datapath #(
 
 
     //Channel pipeline
-    logic signed [channel_gpack::est_code_precision+1-1:0] estimated_codes_buffer [constant_gpack::channel_width-1:0][channel_pipeline_depth:0];
+    logic signed [channel_gpack::est_code_precision-1:0] estimated_codes_buffer [constant_gpack::channel_width-1:0][channel_pipeline_depth:0];
 
     signed_buffer #(
         .numChannels(constant_gpack::channel_width),
-        .bitwidth   (channel_gpack::est_code_precision+1),
+        .bitwidth   (channel_gpack::est_code_precision),
         .depth      (channel_pipeline_depth)
     ) chan_reg_i (
         .in (estimated_codes),
@@ -118,7 +125,7 @@ module res_err_estimator_datapath #(
     //Create Error by subtracting codes from channel filter
     logic signed [error_gpack::est_error_precision-1:0] est_error [constant_gpack::channel_width-1:0];
     logic signed [constant_gpack::code_precision-1:0]   end_buffer_adc_codes[constant_gpack::channel_width-1:0];
-    logic signed [constant_gpack::code_precision+1-1:0]   end_buffer_est_codes[constant_gpack::channel_width-1:0];
+    logic signed [constant_gpack::code_precision-1:0]   end_buffer_est_codes[constant_gpack::channel_width-1:0];
 
     always_comb begin
         for(int ii=0; ii<constant_gpack::channel_width; ii=ii+1) begin

@@ -1,7 +1,7 @@
 dt: 0.1e-6
 func_order: 1
-func_numel: 2048
-func_domain: [0.0, 4.0e-9]
+func_numel: 1024
+func_domain: [0.0, 2.0e-9]
 func_widths: [18, 18]
 func_exps: [-16, -16]
 chunk_width: 8
@@ -9,10 +9,16 @@ num_chunks: 4
 slices_per_bank: 4
 num_banks: 4
 pi_ctl_width: 9
-vref_rx: 0.3
-vref_tx: 0.3
+vref_rx: 0.5
+vref_tx: 0.5
 n_adc: 8
 freq_tx: 16.0e+9
 freq_rx: 4.0e+9
 use_jitter: true
 use_noise: true
+
+bits_per_symbol: 2
+vp3: 0.45
+vp1: 0.15
+vn1: -0.15
+vn3: -0.45
