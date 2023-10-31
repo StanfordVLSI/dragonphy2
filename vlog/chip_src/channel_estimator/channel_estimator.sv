@@ -54,6 +54,9 @@ module channel_estimator #(
         endcase
     end
 
+    typedef enum logic [2:0] {RST, LOAD_AND_CALC, CALC_AND_STORE, EXEC, HALT} chan_est_states_t;
+    chan_est_states_t chan_est_states, next_chan_est_states;
+
     logic sample;
     assign sample = (tap_pos == 29) && (chan_est_states == CALC_AND_STORE);
     assign sampled_current_bit = sample ? current_bit : sampled_current_bit;
@@ -65,8 +68,7 @@ module channel_estimator #(
         end
     endgenerate
 
-    typedef enum logic [2:0] {RST, LOAD_AND_CALC, CALC_AND_STORE, EXEC, HALT} chan_est_states_t;
-    chan_est_states_t chan_est_states, next_chan_est_states;
+
 
     always_comb begin
         for(int ii = 0; ii < est_depth; ii = ii + 1) begin
