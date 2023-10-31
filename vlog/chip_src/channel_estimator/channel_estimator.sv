@@ -27,23 +27,26 @@ module channel_estimator #(
     logic signed [est_bitwidth + adapt_bitwidth-1:0] int_chan_est [est_depth-1:0];
     logic [$clog2(est_depth)-1:0] tap_pos, tap_pos_plus_one, next_tap_pos;
 
+    logic signed [est_bitwidth-1:0] sampled_error [31:0];
+    logic signed [2:0] sampled_current_bit;
+
     logic store_tap_decimal, load;
 
     assign tap_pos_plus_one = tap_pos + 1;
 
     always_comb begin
-        unique case (current_bit)
+        unique case (sampled_current_bit)
             3: begin 
-                adjust_val = -(error[tap_pos] <<< gain);
+                adjust_val = -(sampled_error[tap_pos] <<< gain);
             end
             1: begin 
-                adjust_val = -3*(error[tap_pos] <<< gain);
+                adjust_val = -3*(sampled_error[tap_pos] <<< gain);
             end
             -1'b01: begin 
-                adjust_val = 3*(error[tap_pos] <<< gain);
+                adjust_val = 3*(sampled_error[tap_pos] <<< gain);
             end
             -3: begin 
-                adjust_val = (error[tap_pos] <<< gain);
+                adjust_val = (sampled_error[tap_pos] <<< gain);
             end
             default : begin
                 adjust_val = 0;
@@ -51,6 +54,16 @@ module channel_estimator #(
         endcase
     end
 
+    logic sample;
+    assign sample = (tap_pos == 29) && (chan_est_states == CALC_AND_STORE);
+    assign sampled_current_bit = sample ? current_bit : sampled_current_bit;
+    
+    genvar gi;
+    generate
+        for(gi = 0; gi < est_depth; gi += 1) begin
+            assign sampled_error[gi] = sample ? error[gi] : sampled_error[gi];
+        end
+    endgenerate
 
     typedef enum logic [2:0] {RST, LOAD_AND_CALC, CALC_AND_STORE, EXEC, HALT} chan_est_states_t;
     chan_est_states_t chan_est_states, next_chan_est_states;
