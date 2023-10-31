@@ -761,7 +761,7 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     pulse            = get_real_channel_pulse(real_channels[channel_number], domain=CFG['func_domain'], numel=CFG['func_numel'])
     chan_func_values = chan_func_values.clip(0)
 
-    chan_func_values[350:] = chan_func_values[350:] - chan_func_values[:-350] * 0.2
+    chan_func_values[550:] = chan_func_values[550:] - chan_func_values[:-550] * 0.1
     #chan_func_values[400:] = chan_func_values[400:] + chan_func_values[96]*0.05
 
     def convert_to_pwl(values):

@@ -42,7 +42,7 @@ module channel_estimator #(
             1: begin 
                 adjust_val = -3*(sampled_error[tap_pos] <<< gain);
             end
-            -1'b01: begin 
+            -1: begin 
                 adjust_val = 3*(sampled_error[tap_pos] <<< gain);
             end
             -3: begin 
