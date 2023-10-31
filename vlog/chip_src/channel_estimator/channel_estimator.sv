@@ -27,8 +27,8 @@ module channel_estimator #(
     logic signed [est_bitwidth + adapt_bitwidth-1:0] int_chan_est [est_depth-1:0];
     logic [$clog2(est_depth)-1:0] tap_pos, tap_pos_plus_one, next_tap_pos;
 
-    logic signed [est_bitwidth-1:0] sampled_error [31:0];
-    logic signed [2:0] sampled_current_bit;
+    logic signed [est_bitwidth-1:0] sampled_error [31:0], next_sampled_error [31:0];
+    logic signed [2:0] sampled_current_bit, next_sampled_current_bit;
 
     logic store_tap_decimal, load;
 
@@ -59,12 +59,12 @@ module channel_estimator #(
 
     logic sample;
     assign sample = (tap_pos == 29) && (chan_est_states == CALC_AND_STORE);
-    assign sampled_current_bit = sample ? current_bit : sampled_current_bit;
+    assign next_sampled_current_bit = sample ? current_bit : sampled_current_bit;
     
     genvar gi;
     generate
         for(gi = 0; gi < est_depth; gi += 1) begin
-            assign sampled_error[gi] = sample ? error[gi] : sampled_error[gi];
+            assign next_sampled_error[gi] = sample ? error[gi] : sampled_error[gi];
         end
     endgenerate
 
@@ -91,7 +91,15 @@ module channel_estimator #(
             for(int ii = 0; ii < est_depth; ii = ii + 1) begin
                 int_chan_est[ii] <= 0;
             end
+            sampled_current_bit <= 0;
+            for(int ii = 0; ii < est_depth; ii = ii + 1) begin
+                sampled_error[ii] <= 0;
+            end
         end else begin
+            sampled_current_bit <= next_sampled_current_bit;
+            for(int ii = 0; ii < est_depth; ii = ii + 1) begin
+                sampled_error[ii] <= next_sampled_error[ii];
+            end
             tap_pos <= next_tap_pos;
             tap_decimal <= next_tap_decimal;
             chan_est_states <= next_chan_est_states;
