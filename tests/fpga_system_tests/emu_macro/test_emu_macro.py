@@ -77,8 +77,8 @@ def test_1(board_name, emu_clk_freq, fpga_sim_ctrl):
     prj.set_emu_clk_freq(emu_clk_freq)
 
     #uncomment for debug probing
-    #prj.config['PROJECT']['cpu_debug_mode'] = 1
-    #prj.config['PROJECT']['cpu_debug_hierarchies'] = [[0, 'top']]
+    prj.config['PROJECT']['cpu_debug_mode'] = 1
+    prj.config['PROJECT']['cpu_debug_hierarchies'] = [[0, 'top']]
 
     prj.write_to_file(THIS_DIR / 'prj.yaml')
 
@@ -112,7 +112,8 @@ def test_1(board_name, emu_clk_freq, fpga_sim_ctrl):
         'CHUNK_WIDTH': CFG['chunk_width'],
         'NUM_CHUNKS': CFG['num_chunks'],
         'NUMEL': CFG['func_numel'],
-        'TC' : CFG['func_domain'][1]
+        'TC' : CFG['func_domain'][1],
+        'FUNC_DATA_WIDTH' : CFG['func_widths'][1]
     })
     src_cfg.add_defines({'GIT_HASH': str(get_git_hash_short())}, fileset='sim')
 

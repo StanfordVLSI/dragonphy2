@@ -133,14 +133,14 @@ module tb;
     assign prbs_init_vals[30] = 32'h428f020c;
     assign prbs_init_vals[31] = 32'ha5de810f;
 
-    localparam integer pulse_width_period = 31*5;
+    localparam integer pulse_width_period = 32*31;
 
     logic [pulse_width_period-1:0] puls_count;
-    always_ff @(posedge emu_clk or negedge rstb) begin
+    always_ff @(posedge prbs_cke or negedge rstb) begin
         if(~rstb) begin
             puls_count <= 1;
         end else begin
-            puls_count <= {puls_count[30:0], puls_count[pulse_width_period-1:31]};
+            puls_count <= {puls_count[29:0], puls_count[pulse_width_period-1:30]};
         end
     end
 
@@ -148,7 +148,7 @@ module tb;
     generate
         for(i=0; i<Nti*2; i=i+1) begin
             assign puls_out[i] = puls_count[i];
-            assign data_rx_i[i] = prbs_out[i];
+            assign data_rx_i[i] = puls_out[i];
 
             prbs_generator_syn #(
                 .n_prbs(32)

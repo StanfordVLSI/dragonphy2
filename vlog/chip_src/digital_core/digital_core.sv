@@ -161,9 +161,6 @@ module digital_core import const_pack::*; (
     //wire logic [(Npi-1):0] tx_scale_value [(Nout-1):0];
     //logic [(Npi-1):0] reg_tx_scale_value [(Nout-1):0];
     //wire logic [(Npi+Npi-1):0] tx_scaled_pi_ctl [(Nout-1):0];
-    initial begin
-        $dumpvars;
-    end
 //    initial begin
 //        $shm_open("waves.shm");
 //        $shm_probe("ACT"); 
