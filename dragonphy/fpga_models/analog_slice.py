@@ -149,7 +149,7 @@ class AnalogSlice:
         # Compute the delay due to the PI control code
         delay_amt_pre = m.bind_name(
             'delay_amt_pre',
-            m.pi_ctl_sample / ((2.0**system_values['pi_ctl_width'])*system_values['freq_rx'])
+            (1+m.pi_ctl_sample) / ((2.0**system_values['pi_ctl_width'])*system_values['freq_rx'])
         )
 
         # Add jitter to the sampling time
@@ -183,7 +183,7 @@ class AnalogSlice:
         exceeds_period = m.bind_name('exceeds_period', t_samp_new >= t_one_period)
 
         # Save the previous sample time
-        t_samp_prev = m.add_analog_state('t_samp_prev', range_=system_values['slices_per_bank']/system_values['freq_rx'])
+        t_samp_prev = m.add_analog_state('t_samp_prev', range_=4*system_values['slices_per_bank']/system_values['freq_rx'])
         m.set_next_cycle(t_samp_prev, t_samp_new-t_one_period, clk=m.clk, rst=m.rst, ce=m.sample_ctl)
 
         # Save whether the previous sample time exceeded one period

@@ -33,7 +33,7 @@ generic:
     stage3_sld_dtct_out_pipeline_depth:    2
     stage4_fp_bits_out_pipeline_depth:     1
     stage4_err_chan_out_pipeline_depth:    2
-    stage4_res_err_out_pipeline_depth:     0
+    stage4_res_err_out_pipeline_depth:     1
 
   ffe:
     parameters:

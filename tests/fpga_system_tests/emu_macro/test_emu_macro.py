@@ -575,6 +575,7 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
         for coeff_tuple in coeff_tuples:
             args += coeff_tuple
         cmd = ' '.join(str(elem) for elem in args)
+        print(cmd)
         ser.write((cmd + '\n').encode('utf-8'))
 
         # stall until confirmation is received
@@ -761,7 +762,7 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     pulse            = get_real_channel_pulse(real_channels[channel_number], domain=CFG['func_domain'], numel=CFG['func_numel'])
     chan_func_values = chan_func_values.clip(0)
 
-    chan_func_values[550:] = chan_func_values[550:] - chan_func_values[:-550] * 0.1
+    chan_func_values[550:] = chan_func_values[550:] - chan_func_values[:-550] * 0.15
     #chan_func_values[400:] = chan_func_values[400:] + chan_func_values[96]*0.05
 
     def convert_to_pwl(values):
@@ -779,8 +780,8 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
                     treat_as_unsigned=True
                 ) for coeff in retval[k]
             ])
-        arr = np.array(retval_2[1])
-        retval_2[1] = list(np.where(arr > 65336, 0, arr))
+        #arr = np.array(retval_2[1])
+        #retval_2[1] = list(np.where(arr > 65336, 65336, arr))
         return retval_2
 
 
@@ -790,7 +791,8 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     for k in range(len(coeff_tuples)//chunk_size):
         print(f'Updating channel at chunk {k}...')
         update_chan(coeff_tuples[(k*chunk_size):((k+1)*chunk_size)], offset=k*chunk_size)
-
+    plt.plot([a for (a,b) in coeff_tuples])
+    plt.show()
     ffe_shift, align_pos, code_level, zf_taps = load_ffe_vals()
     chan_taps = load_chan_vals()
 

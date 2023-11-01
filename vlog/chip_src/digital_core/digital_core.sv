@@ -519,7 +519,7 @@ module digital_core import const_pack::*; (
         .clk(clk_adc),
         .rst_n(dcore_rstb),
         .error(flat_stage2_est_errors),
-        .current_bit(stage2_slcd_bits_buffer[0][2]),
+        .current_bit(stage2_slcd_bits_buffer[1][2]),
 
         .gain(ddbg_intf_i.ce_gain),
         .inst(ddbg_intf_i.ce_inst),
