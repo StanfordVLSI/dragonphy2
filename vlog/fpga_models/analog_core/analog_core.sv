@@ -2,7 +2,7 @@
 `include "iotype.sv"
 
 `ifndef FUNC_DATA_WIDTH
-    `define FUNC_DATA_WIDTH 18
+    `define FUNC_DATA_WIDTH 20
 `endif
 
 `ifndef CHUNK_WIDTH
@@ -10,7 +10,7 @@
 `endif
 
 `ifndef NUM_CHUNKS
-    `define NUM_CHUNKS 4
+    `define NUM_CHUNKS 6
 `endif
 
 `ifndef BITS_PER_SYMBOL
@@ -18,7 +18,7 @@
 `endif
 
 `ifndef NUMEL
-    `define NUMEL 2048
+    `define NUMEL 1024
 `endif
 
 module analog_core import const_pack::*; #(
@@ -170,14 +170,20 @@ module analog_core import const_pack::*; #(
 
     // save history of input bits
 
-    logic [((num_chunks*chunk_width*bits_per_symbol)-1):0] history;
+    logic [((num_chunks*chunk_width*bits_per_symbol)-1):0] history; 
+    logic [((num_chunks*chunk_width*bits_per_symbol)-1):0] next_history;
+
+    always_comb begin
+        next_history[(num_chunks*chunk_width*bits_per_symbol)-(16*bits_per_symbol)-1:0]  = history[(num_chunks*chunk_width*bits_per_symbol)-1:(16*bits_per_symbol)];
+        next_history[(num_chunks*chunk_width*bits_per_symbol)-1:(num_chunks*chunk_width*bits_per_symbol)-(16*bits_per_symbol)] = rx_inp;
+    end
 
     always @(posedge emu_clk) begin
         if (emu_rst) begin
             history <= 0;
         end else if (last_cycle) begin
-            history <= {rx_inp, history[((num_chunks*chunk_width*bits_per_symbol)-1):((num_chunks*chunk_width*bits_per_symbol)-(16*bits_per_symbol))]};
-        end else begin
+            history <= next_history;    
+    end else begin
             history <= history;
         end
     end

@@ -9,15 +9,15 @@
 `define GET_JTAG(name) top.tb_i.top_i.idcore.jtag_i.rjtag_intf_i.``name``
 
 `ifndef FUNC_DATA_WIDTH
-    `define FUNC_DATA_WIDTH 18
+    `define FUNC_DATA_WIDTH 20
 `endif
 
 `ifndef NUM_CHUNKS
-    `define NUM_CHUNKS 4
+    `define NUM_CHUNKS 6
 `endif
 
 `ifndef TC
-    `define TC 2e-9
+    `define TC 3e-9
 `endif
 
 `ifndef NUMEL
@@ -66,7 +66,7 @@ module sim_ctrl(
 
     // calculate FFE coefficients
     localparam real dt=1.0/(16.0e9);
-    localparam real tau=10.0e-12;
+    localparam real tau=40.0e-12;
     localparam integer coeff0 = 128.0/(1.0-$exp(-dt/tau));
     localparam integer coeff1 = -128.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
 
@@ -155,10 +155,16 @@ module sim_ctrl(
     endtask : toggle_acore_rstb
 
     function real chan_func(input real t);
+        
         if (t <= chan_delay) begin
             chan_func = 0.0;
+            //$display("%e", chan_func);
+        end else if( t <= chan_delay + 16*62.5e-12) begin
+            chan_func = 0.45-0.45*$exp(-(t-chan_delay)/tau);
+            //$display("%e", chan_func);
         end else begin
-            chan_func = 0.45-0.45*$exp(-(t-chan_delay)/tau);// + 0.025-0.025*$exp(-(t-chan_delay-18*62.5e-12)/tau);
+            chan_func = 0.45-0.45*$exp(-(t-chan_delay)/tau) - 0.045+0.045*$exp(-(t-chan_delay-16*62.5e-12)/tau);
+            //$display("%e", chan_func);
         end
     endfunction
 
@@ -172,7 +178,9 @@ module sim_ctrl(
 
     initial begin
         //Initialize Channel
-        chan_coeffs   = '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  302};
+        //chan_coeffs   = '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 54, 216,  800};
+        //chan_coeffs   = '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 25, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64, 256,  800};
+        chan_coeffs   = '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0};
         ffe_coeffs = '{0,0,0,0,0,0,0,0,0,0,0,0,0,0,coeff1,coeff0};
         random_delay = 0;
         //chan_coeffs = '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 127, 127};
@@ -200,8 +208,8 @@ module sim_ctrl(
         // update the step response function
         chan_we = 1'b1;
         for (int idx=0; idx<numel; idx=idx+1) begin
-             if ((idx % 16) == 0) begin
-                $display("Updating function coefficients %0d/64", idx/16);
+             if ((idx % 32) == 0) begin
+                $display("Updating function coefficients %0d/64", idx/32);
                 $display("NUMEL: %0d", numel);
              end
              `ifndef HARD_FLOAT
@@ -257,7 +265,7 @@ module sim_ctrl(
 
         for (loop_var=0; loop_var<Nti; loop_var=loop_var+1) begin
             tmp_ffe_shift[loop_var] = 6;
-            tmp_chan_shift[loop_var] = 3;
+            tmp_chan_shift[loop_var] = 6;
         end
 
 
@@ -376,12 +384,12 @@ module sim_ctrl(
         `FORCE_JTAG(en_v2t, 1);
         `CLK_ADC_DLY;
         //inp_sel = 1;
-        `FORCE_JTAG(fe_exec_inst, 1'b0);
+        `FORCE_JTAG(fe_exec_inst, 1'b1);
 
         // De-assert the CDR reset
         // TODO: do we really need to wait three cycles of clk_adc?
         toggle_cdr_rstb();
-        repeat (1000) `CLK_ADC_DLY;
+        repeat (10) `CLK_ADC_DLY;
 
         // Wait for PRBS checker to lock
 		$display("Waiting for PRBS checker to lock...");
@@ -393,22 +401,22 @@ module sim_ctrl(
         //repeat (50) `CLK_ADC_DLY;
         //#inp_sel = 1;
 
-        `FORCE_JTAG(ce_gain, 14);
+        `FORCE_JTAG(ce_gain, 0);
         `FORCE_JTAG(ce_exec_inst, 0);
 
 
-        repeat (5000) `CLK_ADC_DLY;
+        repeat (2500) `CLK_ADC_DLY;
         `FORCE_JTAG(fe_bit_target_level, 10'd34);
-        `FORCE_JTAG(ce_gain, 14);
+        `FORCE_JTAG(ce_gain, 0);
         repeat (5000) `CLK_ADC_DLY;
-        `FORCE_JTAG(ce_gain, 14);
+        `FORCE_JTAG(ce_gain, 0);
         repeat (5000) `CLK_ADC_DLY;
 
         for(int ii = 0; ii < 30; ii += 1) begin
             read_ffe_and_channel_taps(ii);
         end
 
-        `FORCE_JTAG(ce_gain, 6);
+        `FORCE_JTAG(ce_gain, 0);
         repeat (5000) `CLK_ADC_DLY;
 
         // Run the PRBS tester

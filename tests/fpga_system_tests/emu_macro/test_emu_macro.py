@@ -112,7 +112,8 @@ def test_1(board_name, emu_clk_freq, fpga_sim_ctrl):
         'CHUNK_WIDTH': CFG['chunk_width'],
         'NUM_CHUNKS': CFG['num_chunks'],
         'NUMEL': CFG['func_numel'],
-        'TC' : CFG['func_domain'][1]
+        'TC' : CFG['func_domain'][1],
+        'FUNC_DATA_WIDTH' : CFG['func_widths'][1]
     })
     src_cfg.add_defines({'GIT_HASH': str(get_git_hash_short())}, fileset='sim')
 

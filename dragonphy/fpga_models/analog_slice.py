@@ -149,7 +149,7 @@ class AnalogSlice:
         # Compute the delay due to the PI control code
         delay_amt_pre = m.bind_name(
             'delay_amt_pre',
-            m.pi_ctl_sample / ((2.0**system_values['pi_ctl_width'])*system_values['freq_rx'])
+            (1+m.pi_ctl_sample) / ((2.0**system_values['pi_ctl_width'])*system_values['freq_rx'])
         )
 
         # Add jitter to the sampling time
