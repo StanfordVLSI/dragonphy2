@@ -81,9 +81,9 @@ digital_probes:
   data_rx_i:
     abspath: 'tb_i.data_rx_i'
     width: 16
-  ctl_pi_0:
-    abspath: 'tb_i.top_i.iacore.ctl_pi[0]'
-    width: 9
+  #ctl_pi_0:
+  #  abspath: 'tb_i.top_i.iacore.ctl_pi[0]'
+  #  width: 9
   adcout_unfolded_0:
     abspath: 'tb_i.top_i.idcore.adcout_unfolded[0]'
     width: 8
@@ -91,10 +91,6 @@ digital_probes:
   estimated_bits_0:
     abspath: 'tb_i.top_i.idcore.estimated_bits[0]'
     width: 10
-    signed: 1
-  est_error_0:
-    abspath: 'tb_i.top_i.idcore.est_errors[0]'
-    width: 9
     signed: 1
   clk_adc:
     abspath: 'tb_i.top_i.idcore.clk_adc'
@@ -108,38 +104,38 @@ digital_probes:
     abspath: 'tb_i.top_i.idcore.datapath_i.res_err_stage_2_i.end_buffer_adc_codes[0]'
     width: 8
     signed: 1
-  int_est_codes_0:
-    abspath: 'tb_i.top_i.idcore.datapath_i.res_err_stage_2_i.chan_filt_i.int_est_code[0]'
-    width: 19
-    signed: 1
+  #int_est_codes_0:
+  #  abspath: 'tb_i.top_i.idcore.datapath_i.res_err_stage_2_i.chan_filt_i.int_est_code[0]'
+  #  width: 21
+  #  signed: 1
   delayed_trigger:
     abspath: 'tb_i.top_i.idcore.errt_i.delayed_trigger'
     width: 1
     signed: 0
-  tap_pos:
-    abspath: 'tb_i.top_i.idcore.chan_est_i.tap_pos'
-    width: 5
-    signed: 0 
-  chan_est_state:
-    abspath: 'tb_i.top_i.idcore.chan_est_i.chan_est_states'
-    width: 3
-    signed: 0
-  tap_decimal:
-    abspath: 'tb_i.top_i.idcore.chan_est_i.tap_decimal'
-    width: 32
-    signed: 1
-  slice_level_0:
-    abspath: 'tb_i.top_i.idcore.slice_est_i.int_slice_levels[0]'
-    width: 26
-    signed: 1
-  slice_level_1:
-    abspath: 'tb_i.top_i.idcore.slice_est_i.int_slice_levels[1]'
-    width: 26
-    signed: 1
-  slice_level_2:
-    abspath: 'tb_i.top_i.idcore.slice_est_i.int_slice_levels[2]'
-    width: 26
-    signed: 1
+  #tap_pos:
+  #  abspath: 'tb_i.top_i.idcore.chan_est_i.tap_pos'
+  #  width: 5
+  #  signed: 0 
+  #chan_est_state:
+  #  abspath: 'tb_i.top_i.idcore.chan_est_i.chan_est_states'
+  #  width: 3
+  #  signed: 0
+  #tap_decimal:
+  #  abspath: 'tb_i.top_i.idcore.chan_est_i.tap_decimal'
+  #  width: 32
+  #  signed: 1
+  #slice_level_0:
+  #  abspath: 'tb_i.top_i.idcore.slice_est_i.int_slice_levels[0]'
+  #  width: 26
+  #  signed: 1
+  #slice_level_1:
+  #  abspath: 'tb_i.top_i.idcore.slice_est_i.int_slice_levels[1]'
+  #  width: 26
+  #  signed: 1
+  #slice_level_2:
+  #  abspath: 'tb_i.top_i.idcore.slice_est_i.int_slice_levels[2]'
+  #  width: 26
+  #  signed: 1
 #  stage1_act_codes_out_0:
 #    abspath: 'tb_i.top_i.idcore.datapath_i.stage1_act_codes_out[0]'
 #    width: 8
@@ -905,15 +901,15 @@ digital_probes:
 #    width: 2
 
   # extra ctl_pi signals
-  ctl_pi_1:
-    abspath: 'tb_i.top_i.iacore.ctl_pi[1]'
-    width: 9
-  ctl_pi_2:
-    abspath: 'tb_i.top_i.iacore.ctl_pi[2]'
-    width: 9
-  ctl_pi_3:
-    abspath: 'tb_i.top_i.iacore.ctl_pi[3]'
-    width: 9
+  #ctl_pi_1:
+  #  abspath: 'tb_i.top_i.iacore.ctl_pi[1]'
+  #  width: 9
+  #ctl_pi_2:
+  #  abspath: 'tb_i.top_i.iacore.ctl_pi[2]'
+  #  width: 9
+  #ctl_pi_3:
+  #  abspath: 'tb_i.top_i.iacore.ctl_pi[3]'
+  #  width: 9
 
   # extra adcout_unfolded signals
   #adcout_unfolded_1:

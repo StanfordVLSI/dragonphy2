@@ -1,4 +1,4 @@
-dt: 0.1e-6
+dt: 0.8e-6
 func_order: 1
 func_numel: 1024
 func_domain: [0.0, 3.072e-9]
