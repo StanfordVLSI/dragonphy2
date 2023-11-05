@@ -148,7 +148,7 @@ module tb;
     generate
         for(i=0; i<Nti*2; i=i+1) begin
             assign puls_out[i] = puls_count[i];
-            assign data_rx_i[i] = puls_out[i];
+            assign data_rx_i[i] = prbs_out[i];
 
             prbs_generator_syn #(
                 .n_prbs(32)

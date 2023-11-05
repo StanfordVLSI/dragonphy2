@@ -38,7 +38,7 @@ module symbol_adjust_reflector_datapath #(
 
     generate
         for(gi =0; gi < constant_gpack::channel_width; gi += 1) begin
-            assign res_errors_out[gi]  = new_est_error_buffer[gi][residual_error_output_pipeline_depth];
+            assign res_errors_out[gi]  = 0;//new_est_error_buffer[gi][residual_error_output_pipeline_depth];
             assign symbols_out[gi] = corrected_symbols_buffer[gi][corrected_symbols_buffer_depth];
         end
     endgenerate
@@ -140,48 +140,48 @@ module symbol_adjust_reflector_datapath #(
     localparam total_bit_depth = constant_gpack::channel_width*3;
     localparam actual_bit_depth = constant_gpack::channel_width + channel_gpack::est_channel_depth - main_cursor_position; // This minus two is covertly performing a bit alignment!
 
-    //error channel filter
-    symbol_adjust_channel_filter #(
-        .width(constant_gpack::channel_width),
-        .depth(channel_gpack::est_channel_depth),
-        .sym_bitwidth(sym_bitwidth),
-        .shift_bitwidth(channel_gpack::shift_precision),
-        .est_channel_bitwidth(channel_gpack::est_channel_precision),
-        .est_code_bitwidth(error_gpack::est_error_precision)
-    ) err_chan_filt_i (
-        .flpstream(flat_symbol_adjust[total_bit_depth-1:total_bit_depth-1-actual_bit_depth]),
-        
-        .channel(channel_est),
-        .shift(channel_shift),
-        .error_out(inj_error)
-    );
+  //  //error channel filter
+  //  symbol_adjust_channel_filter #(
+  //      .width(constant_gpack::channel_width),
+  //      .depth(channel_gpack::est_channel_depth),
+  //      .sym_bitwidth(sym_bitwidth),
+  //      .shift_bitwidth(channel_gpack::shift_precision),
+  //      .est_channel_bitwidth(channel_gpack::est_channel_precision),
+  //      .est_code_bitwidth(error_gpack::est_error_precision)
+  //  ) err_chan_filt_i (
+  //      .flpstream(flat_symbol_adjust[total_bit_depth-1:total_bit_depth-1-actual_bit_depth]),
+  //      
+  //      .channel(channel_est),
+  //      .shift(channel_shift),
+  //      .error_out(inj_error)
+  //  );
 
-    // Pipeline Stage
-    signed_buffer #(
-        .numChannels(constant_gpack::channel_width),
-        .bitwidth   (error_gpack::est_error_precision),
-        .depth      (error_channel_pipeline_depth)
-    ) ase_reg_i (
-        .in (inj_error),
-        .clk(clk),
-        .rstb(rstb),
-        .buffer(inj_err_buffer)
-    );
-
+   // // Pipeline Stage
+   // signed_buffer #(
+   //     .numChannels(constant_gpack::channel_width),
+   //     .bitwidth   (error_gpack::est_error_precision),
+   //     .depth      (error_channel_pipeline_depth)
+   // ) ase_reg_i (
+   //     .in (inj_error),
+   //     .clk(clk),
+   //     .rstb(rstb),
+   //     .buffer(inj_err_buffer)
+   // );
+//
     logic signed [error_gpack::est_error_precision-1:0] rflt_est_error [constant_gpack::channel_width-1:0];
-    logic signed [error_gpack::est_error_precision-1:0] end_buffer_inj_error [constant_gpack::channel_width-1:0];
+    //logic signed [error_gpack::est_error_precision-1:0] end_buffer_inj_error [constant_gpack::channel_width-1:0];
     logic signed [error_gpack::est_error_precision-1:0] end_buffer_res_error [constant_gpack::channel_width-1:0];
 
     //Update residual error trace
     always_comb begin
         for(int ii=0; ii<constant_gpack::channel_width; ii=ii+1) begin
-            end_buffer_inj_error[ii] = inj_err_buffer[ii][error_channel_pipeline_depth];
+            //end_buffer_inj_error[ii] = inj_err_buffer[ii][error_channel_pipeline_depth];
             end_buffer_res_error[ii] = rse_buffer[ii][rse_buffer_depth];
-            rflt_est_error[ii]       = end_buffer_res_error[ii] + end_buffer_inj_error[ii];
+            rflt_est_error[ii]       = end_buffer_res_error[ii] + 0;// + end_buffer_inj_error[ii];
         end
     end
 
-    //Pipeline Stage
+    ////Pipeline Stage
     signed_buffer #(
         .numChannels(constant_gpack::channel_width),
         .bitwidth   (error_gpack::est_error_precision),

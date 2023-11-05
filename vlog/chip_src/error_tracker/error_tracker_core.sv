@@ -18,7 +18,7 @@ module error_tracker_core #(
 	error_tracker_debug_intf.tracker errt_dbg_intf_i
 );
 
-	localparam integer sw = (2**sym_bitwidth-1);
+	localparam integer sw = ((2**sym_bitwidth)-1);
 	localparam [addrwidth-1:0] max_addr = {addrwidth{1'b1}};
 	localparam halfwidth = 8;
 
@@ -60,13 +60,16 @@ module error_tracker_core #(
 			end
 		end
 
-		//Concatenate and store the PRBS flags, the bistream and the sliding detector outputs
+		//Concatenate and store the PRBS flags, the bistream and the sliding detector outputs - 48, 16*2*3 = 96
 		for(gi = 0; gi < width*sym_bitwidth*3; gi = gi + 1) begin
 			assign next_data_frames[3][gi] = prbs_flags[gi];
 		end
+
+		//Concatenate and store the symbol stream - 48, 3*16*3 = 144
 		for(gi = 0; gi < width*3; gi = gi +1) begin
 			assign next_data_frames[4][sw*(gi+1)-1:sw*gi] 	 = $unsigned(symstream[gi]);
 		end
+		//Concatenate and store the sliding detector flags - 32, 2*16*4 = 128
 		for(gi = 0; gi < 2*width; gi = gi + 1 ) begin
 			assign next_data_frames[5][4*(gi+1)-1: 4*gi] 	 = sd_flags[gi];
 		end
