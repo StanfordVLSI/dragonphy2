@@ -23,7 +23,7 @@ module error_tracker #(
     genvar gi, gj;
 
     logic signed [sw-1:0]             encoded_symbols_buffer [width-1:0][6:0];
-    logic [width*2-1:0]               prbs_flags_buffer [0:0][2:0];
+    logic [width*2-1:0]               prbs_flags_buffer [0:0][3:0];
     logic signed [error_bitwidth-1:0] est_error_buffer [width-1:0][6:0];
     logic [flag_width-1:0]            sd_flags_buffer [width-1:0][6:0];
 
@@ -84,7 +84,7 @@ module error_tracker #(
     buffer #(
         .numChannels (1),
         .bitwidth    (width*2),
-        .depth       (2)
+        .depth       (3)
     ) ps_buff_i (
         .in      (unpacked_prbs_flags),
         .clk     (clk),
@@ -114,19 +114,19 @@ module error_tracker #(
         .buffer  (sd_flags_buffer)
     );
 
-    logic signed [sw-1:0] flat_encoded_symbols [width*3-1:0];
-    logic [width*2-1:0] flat_prbs_flags [2:0];
+    logic signed [sw-1:0] flat_encoded_symbols [width*4-1:0];
+    logic [width*2-1:0] flat_prbs_flags [3:0];
 
-    logic signed [error_bitwidth-1:0] flat_est_error   [width*3-1:0];
-    logic [flag_width-1:0] flat_sd_flags [width*3-1:0];
-    logic pf_prbs_flags [width*3*sym_bitwidth-1:0];
+    logic signed [error_bitwidth-1:0] flat_est_error   [width*4-1:0];
+    logic [flag_width-1:0] flat_sd_flags [width*4-1:0];
+    logic pf_prbs_flags [width*4*sym_bitwidth-1:0];
 
 
     signed_flatten_buffer_slice #(
         .numChannels(width),
         .bitwidth   (sw),
         .buff_depth (6),
-        .slice_depth(2),
+        .slice_depth(3),
         .start      (2)
     ) sb_fb_i (
         .buffer    (encoded_symbols_buffer),
@@ -136,8 +136,8 @@ module error_tracker #(
     flatten_buffer_slice #(
         .numChannels(1),
         .bitwidth   (width*2),
-        .buff_depth (2),
-        .slice_depth(2),
+        .buff_depth (3),
+        .slice_depth(3),
         .start      (0)
     ) ps_fb_i (
         .buffer    (prbs_flags_buffer),
@@ -148,7 +148,7 @@ module error_tracker #(
         .numChannels(width),
         .bitwidth   (error_bitwidth),
         .buff_depth (6),
-        .slice_depth(2),
+        .slice_depth(3),
         .start      (2)
     ) ee_fb_i (
         .buffer    (est_error_buffer),
@@ -159,7 +159,7 @@ module error_tracker #(
         .numChannels(width),
         .bitwidth   (flag_width),
         .buff_depth (6),
-        .slice_depth(2),
+        .slice_depth(3),
         .start      (2)
     ) sf_fb_i (
         .buffer    (sd_flags_buffer),
@@ -167,7 +167,7 @@ module error_tracker #(
     );
 
     generate 
-        for(gi =0; gi < 3; gi = gi + 1) begin
+        for(gi =0; gi < 4; gi = gi + 1) begin
             for(gj = 0; gj < 2*width; gj = gj + 1) begin
                 assign pf_prbs_flags[width*2*gi + gj]  = flat_prbs_flags[gi][gj];
             end

@@ -142,12 +142,12 @@ def test_1(board_name, emu_clk_freq, fpga_sim_ctrl):
     if get_dragonphy_real_type() == RealType.HardFloat:
         simctrl['digital_ctrl_inputs']['chan_wdata_0']['width'] = DEF_HARD_FLOAT_WIDTH
         simctrl['digital_ctrl_inputs']['chan_wdata_1']['width'] = DEF_HARD_FLOAT_WIDTH
-    for ii in range(0,16,2):
-        simctrl['digital_probes'][f'est_error_{ii}'] = {
-            "abspath" : f"tb_i.top_i.idcore.est_errors[{ii}]",
-            "width" : 9,
-            "signed" : 1
-        }  
+    #for ii in range(0,16,2):
+    #    simctrl['digital_probes'][f'est_error_{ii}'] = {
+    #        "abspath" : f"tb_i.top_i.idcore.est_errors[{ii}]",
+    #        "width" : 9,
+    #        "signed" : 1
+    #    }  
     #for ii in range(4):
     #    for jj in range(4):
     #        simctrl['digital_probes'][f'injection_error_seqs_{ii}_{jj}'] = {
@@ -670,16 +670,16 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     def read_error_tracker(flag_width=2, num_of_errors=100):
         def signed_error(value):
             return value - 512 if ((value >> 8) & 1) == 1 else value
-        def convert_sym(value):
-            if value  & 0b11 == 0:
-                return -3
-            elif value & 0b11 == 1:
-                return 1
-            elif value & 0b11 == 2:
-                return -1
-            elif value & 0b11 == 3:
+        def encode_symbols(value):
+            if value == 0b10:
                 return 3
-            return 0
+            elif value == 0b11:
+                return 1
+            elif value == 0b01:
+                return -1
+            elif value == 0b00:
+                return -3
+
         num_ed_flags = 0
         num_pb_flags = 0
         num_bits     = 0
@@ -691,9 +691,9 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
             num_bits     = 48
             tag = 0b11
         elif flag_width == 4:
-            num_ed_flags = 32
-            num_pb_flags = 48
-            num_bits     = 48
+            num_ed_flags = 64 # 4*32 = 128
+            num_pb_flags = 64 # 3*48 = 144
+            num_bits     = 64 # 3*48 = 144
             tag = 0b1111
 
         depth = num_of_errors * 8
@@ -705,46 +705,38 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
         pb_flags = np.zeros((num_of_errors, num_pb_flags))
 
         data = {}
-        for ii in range(depth):#tqdm(range(depth)):
+        for ii in tqdm(range(depth)):
+            write_tc_reg('addr_errt', ii)
             write_tc_reg('addr_errt', ii)
 
             idx = ii % 8
             data_set = 0
 
-            if idx < 3:
+            if idx < 4:
                 for jj in range(5):
                     datum = int(read_sc_reg(f'output_data_frame_errt[{jj}]'))
-                    datum = int(read_sc_reg(f'output_data_frame_errt[{jj}]'))
+                    #datum = int(read_sc_reg(f'output_data_frame_errt[{jj}]'))
                     data_set = data_set + (datum << (32 * jj))
 
                 codes[int(ii/8), idx * 16:(idx+1) * 16] = [ signed_error(data_set >> (9 * jj) & 0b111111111) for jj in range(16)]
-            elif idx == 3:
-                for jj in range(5):
-                    datum = int(read_sc_reg(f'output_data_frame_errt[{jj}]'))
-                    datum = int(read_sc_reg(f'output_data_frame_errt[{jj}]'))
-                    data_set = data_set + (datum << (32 * jj))
-                pb_flags[int(ii/8), :] = [(data_set >> (jj*2)) & 0b11  for jj in range(num_pb_flags)]
-
             elif idx == 4:
                 for jj in range(5):
                     datum = int(read_sc_reg(f'output_data_frame_errt[{jj}]'))
-                    datum = int(read_sc_reg(f'output_data_frame_errt[{jj}]'))
+                    #datum = int(read_sc_reg(f'output_data_frame_errt[{jj}]'))
                     data_set = data_set + (datum << (32 * jj))
-                bits[int(ii/8), :]     = [convert_sym((data_set >> (jj*3)) & 0b111)  for jj in range(num_bits)]
-
-            elif idx == 5:
+                pb_flags[int(ii/8), :] = [(data_set >> (jj*2)) & 0b11  for jj in range(num_pb_flags)]
+            elif idx == 4:
                 for jj in range(5):
                     datum = int(read_sc_reg(f'output_data_frame_errt[{jj}]'))
+                    #datum = int(read_sc_reg(f'output_data_frame_errt[{jj}]'))
+                    data_set = data_set + (datum << (32 * jj))
+                bits[int(ii/8), :]     = [encode_symbols((data_set >> (jj*2)) & 0b11)  for jj in range(num_bits)]
+
+            elif idx == 6 or idx == 7:
+                for jj in range(5):
                     datum = int(read_sc_reg(f'output_data_frame_errt[{jj}]'))
                     data_set = data_set + (datum << (32 * jj))
-                ed_flags[int(ii/8), :] = [(data_set >> (jj*4)) & tag for jj in range(num_ed_flags)]
-
-            if idx == 6:
-                print('codes:', codes[int(ii/8),:])
-                print('pb_flags:', pb_flags[int(ii/8),:])
-                print('bits:', bits[int(ii/8),:])
-                print('ed_flags:', ed_flags[int(ii/8),:])
-                input()
+                ed_flags[int(ii/8), (idx-6) * 16:(idx+1-6) * 16] = [(data_set >> (jj*4)) & tag for jj in range(num_ed_flags)]
 
 
         write_tc_reg('read_errt', 0)
@@ -838,7 +830,7 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     write_tc_reg('fe_exec_inst', 0)
     write_tc_reg('en_inbuf', 1)
     write_tc_reg('en_gf', 1)
-    write_tc_reg('mode_errt', 0)
+    write_tc_reg('mode_errt', 1)
     write_tc_reg('en_v2t', 1)
 
     # read the ID
@@ -859,7 +851,7 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     # Configure PRBS checker
     print('Configure the PRBS checker')
     write_sc_reg('sel_prbs_mux', 1) # "0" is ADC, "1" is FFE, "2" Checker, "3" is BIST
-    write_sc_reg('sel_trig_prbs_mux', 2) # "0" is ADC, "1" is FFE, "2" Checker, "3" is BIST
+    write_sc_reg('sel_trig_prbs_mux', 1) # "0" is ADC, "1" is FFE, "2" Checker, "3" is BIST
     write_sc_reg('sel_prbs_bits', 0); # Chooses which PRBS BER is read out "1" is checker, "0" is FFE 
 
     # Release the PRBS checker from reset
@@ -886,7 +878,7 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
 
     for loop_var in range(16):
         write_tc_reg(f'ffe_shift[{loop_var}]', ffe_shift)
-        write_tc_reg(f'channel_shift[{loop_var}]', 3)
+        write_tc_reg(f'channel_shift[{loop_var}]', 7)
         #for loop_var2 in range(30):
         #    load_channel_estimate(loop_var2, loop_var, chan_taps[loop_var2])
     #write_tc_reg('align_pos', 8)
@@ -967,12 +959,12 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     write_tc_reg('force_slicers', 1)
     time.sleep(2)
 
-
-   # for ii in range():
-   #     code_level = code_level + 1
-   #     write_tc_reg('fe_adapt_gain', 1)
-   #     write_tc_reg('fe_bit_target_level', code_level)
-   #     time.sleep(2)
+    #for ii in range(14):
+    #    code_level = code_level + 1
+    #    write_tc_reg('fe_adapt_gain', 1)
+    #    write_tc_reg('fe_bit_target_level', code_level)
+    #    time.sleep(2)
+    #write_tc_reg('fe_adapt_gain', 0)
 
 #    for ii in range(8):
 #        write_tc_reg('fe_adapt_gain', 4)
@@ -1039,8 +1031,14 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     # (i.e., seems that it must be set to zero while configuring CDR parameters
     print('Wait for the CDR to lock')
     toggle_cdr_rstb()
+    write_sc_reg('hist_sram_ceb', 0)
+    write_sc_reg('hist_mode', 1)
+    time.sleep(1.0)
+    write_sc_reg('hist_source', 1)
+    write_sc_reg('hist_mode', 2)
 
-    time.sleep(4.0)
+
+
     #write_tc_reg('en_int_dump_start', 1)
     #write_tc_reg('int_dump_start', 0)
     #write_tc_reg('int_dump_start', 1)
@@ -1062,7 +1060,7 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     t_start = time.time()
     #write_sc_reg('prbs_checker_mode', 2)
     write_sc_reg('prbs_checker_mode', 2)
-
+    write_sc_reg('mode_errt', 0)
     enable_error_tracker()
     total_time_remaining = prbs_test_dur
     #pbar = tqdm(total=1000)
@@ -1100,6 +1098,7 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
             zero_counts = 0
             update_time = (time.time() - update_time)
             print(f'Error Tracker reached {num_of_logged_errors} - Reading Out')
+            disable_error_tracker()
             e_tracker = read_error_tracker(flag_width=4, num_of_errors=num_of_logged_errors)
             with open(f'error_tracker_data_{channel_number}_{stingify_noise(noise_rms)}_{meas_time}_{cycle}.txt', 'w') as f_wf:
                 with open(f'error_tracker_data_no_flags_{channel_number}_{stingify_noise(noise_rms)}_{meas_time}_{cycle}.txt', 'w') as f_nf:
@@ -1111,7 +1110,6 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
                         print(ed_flags, file=fil)
             enable_error_tracker()
             time.sleep(1)
-            disable_error_tracker()
             #print(num_of_logged_errors)
             cycle += 1
         else:
@@ -1162,7 +1160,25 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     write_sc_reg('prbs_checker_mode', 3)
 
     t_stop = time.time()
-#
+
+    write_sc_reg('hist_mode', 3)
+
+    hist_vals = np.zeros((256,1))
+    hist_bins = np.zeros((256,1))
+    for ii in range(256):
+        write_sc_reg('hist_addr', ii)
+        write_sc_reg('hist_addr', ii)
+        a = int(read_sc_reg('hist_count_upper'))
+        b = int(read_sc_reg('hist_count_lower'))
+        c = int(read_sc_reg('hist_total_upper'))
+        d = int(read_sc_reg('hist_total_lower'))
+
+        hist_vals[ii] = ((a << 32) + b)/float(((c << 32) + d))
+        hist_bins[ii] = signed(ii, n_bits=8)
+
+    plt.plot(hist_bins, hist_vals)
+    plt.show()
+
     ## Print out duration of PRBS test
     #print(f'PRBS test took {t_stop-t_start} seconds.')
 #

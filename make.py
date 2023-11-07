@@ -20,7 +20,7 @@ def create_fpga_graph():
     graph.add_input('cdr_intf', ext='md', folders=['md'])
     graph.add_input('dcore_intf', ext='md', folders=['md'])
     graph.add_input('hist_intf', ext='md', folders=['md'])
-    graph.add_input('mdll_r1_top_intf', ext='md', folders=['md'])
+    #graph.add_input('mdll_r1_top_intf', ext='md', folders=['md'])
     graph.add_input('prbs_intf', ext='md', folders=['md'])
     graph.add_input('error_intf', ext='md', folders=['md'])
     graph.add_input('sram_multi_intf', ext='md', folders=['md'])
@@ -34,7 +34,7 @@ def create_fpga_graph():
                      folders=['dragonphy'],
                      configs={'jtag_config'},
                      sources={'acore_intf', 'cdr_intf', 'dcore_intf',
-                              'hist_intf', 'mdll_r1_top_intf',
+                              'hist_intf',
                               'prbs_intf', 
                               'sram_multi_intf'})#, 'txdata_intf', 'tx_intf'})
     graph.add_python('chan_core', 'chan_core', 'ChannelCore', view='fpga_models',

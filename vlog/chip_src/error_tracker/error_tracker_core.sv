@@ -7,10 +7,10 @@ module error_tracker_core #(
 )(
 	input logic trigger,
 	
-	input logic signed [error_bitwidth-1:0]      errors [width*3-1:0],
-	input logic                                  prbs_flags [width*sym_bitwidth*3-1:0],
-	input logic signed [(2**sym_bitwidth-1)-1:0] symstream [width*3-1:0],
-	input logic [flag_width-1:0]                 sd_flags [width*3-1:0],
+	input logic signed [error_bitwidth-1:0]      errors [width*4-1:0],
+	input logic                                  prbs_flags [width*sym_bitwidth*4-1:0],
+	input logic signed [(2**sym_bitwidth-1)-1:0] symstream [width*4-1:0],
+	input logic [flag_width-1:0]                 sd_flags [width*4-1:0],
 
 	input logic clk,
 	input logic rstb,
@@ -21,6 +21,7 @@ module error_tracker_core #(
 	localparam integer sw = ((2**sym_bitwidth)-1);
 	localparam [addrwidth-1:0] max_addr = {addrwidth{1'b1}};
 	localparam halfwidth = 8;
+	logic [1:0] decoded_symbols [4*width-1:0];
 
 	typedef enum logic [1:0] {READY, STORE, DONE} state_t;
 	state_t state, next_state;
@@ -33,7 +34,7 @@ module error_tracker_core #(
 	logic WEB;
 
 	logic [143:0] next_data_frames [7:0];
-	logic [143:0] data_frames [3:0];
+	logic [143:0] data_frames [7:0];
 	logic [143:0] input_data_frame;
 	logic [143:0] output_data_frame;
 
@@ -54,24 +55,47 @@ module error_tracker_core #(
 		assign errt_dbg_intf_i.output_data_frame[4] = {{16{1'b1}}, output_data_frame[143:128]};
 
 		//Concatenate and store the error values
-		for(gi=0; gi < 3; gi = gi + 1) begin
+		for(gi=0; gi < 4; gi = gi + 1) begin
 			for(gj = 0; gj < width; gj = gj + 1) begin
 				assign next_data_frames[gi][(gj+1)*error_bitwidth-1:gj*error_bitwidth] = $unsigned(errors[gj + width*gi]);
 			end
 		end
 
-		//Concatenate and store the PRBS flags, the bistream and the sliding detector outputs - 48, 16*2*3 = 96
-		for(gi = 0; gi < width*sym_bitwidth*3; gi = gi + 1) begin
-			assign next_data_frames[3][gi] = prbs_flags[gi];
+		//Concatenate and store the PRBS flags, the bistream and the sliding detector outputs - 64, 16*2*4 = 128
+		for(gi = 0; gi < width*sym_bitwidth*4; gi = gi + 1) begin
+			assign next_data_frames[4][gi] = prbs_flags[gi];
 		end
 
-		//Concatenate and store the symbol stream - 48, 3*16*3 = 144
-		for(gi = 0; gi < width*3; gi = gi +1) begin
-			assign next_data_frames[4][sw*(gi+1)-1:sw*gi] 	 = $unsigned(symstream[gi]);
+		//Concatenate and store the symbol stream - 64, 4*16*2 = 128
+
+		for(gi = 0; gi < width*4; gi = gi +1) begin
+			always_comb begin
+                unique case (symstream[gi])
+                    3: begin 
+                        decoded_symbols[gi] = 2'b10;
+                    end
+                    1: begin 
+                        decoded_symbols[gi] = 2'b11;
+                    end
+                    -1: begin 
+                        decoded_symbols[gi] = 2'b01;
+                    end
+                    -3: begin 
+                        decoded_symbols[gi] = 2'b00;
+                    end
+                endcase
+			end
+			assign next_data_frames[5][sym_bitwidth*(gi+1)-1:sym_bitwidth*gi] = decoded_symbols[gi];
+		end
+
+
+		//Concatenate and store the sliding detector flags - 32, 2*16*4 = 128
+		for(gi = 0; gi < 2*width; gi = gi + 1 ) begin
+			assign next_data_frames[6][4*(gi+1)-1: 4*gi] 	 = sd_flags[gi];
 		end
 		//Concatenate and store the sliding detector flags - 32, 2*16*4 = 128
 		for(gi = 0; gi < 2*width; gi = gi + 1 ) begin
-			assign next_data_frames[5][4*(gi+1)-1: 4*gi] 	 = sd_flags[gi];
+			assign next_data_frames[7][4*(gi+1)-1: 4*gi] 	 = sd_flags[gi+2*width];
 		end
 	endgenerate
 

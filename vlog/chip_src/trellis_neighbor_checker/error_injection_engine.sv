@@ -22,8 +22,7 @@ module error_injection_engine #(
         // Initialize Injection Error Sequences to Zero
         for(int ii = 0; ii < num_of_trellis_patterns; ii += 1) begin
             for(int jj =0; jj < seq_length; jj += 1) begin
-                internal_injection_error_seqs[2*ii][jj] = 0;
-                internal_injection_error_seqs[2*ii+1][jj] = 0;
+                internal_injection_error_seqs[ii][jj] = 0;
             end
         end
 
