@@ -159,11 +159,11 @@ module sim_ctrl(
         if (t <= chan_delay) begin
             chan_func = 0.0;
             //$display("%e", chan_func);
-        end else if( t <= chan_delay + 16*62.5e-12) begin
+        end else if( t <= chan_delay + 18*62.5e-12) begin
             chan_func = 0.45-0.45*$exp(-(t-chan_delay)/tau);
             //$display("%e", chan_func);
         end else begin
-            chan_func = 0.45-0.45*$exp(-(t-chan_delay)/tau);// - 0.045+0.045*$exp(-(t-chan_delay-16*62.5e-12)/tau);
+            chan_func = 0.45-0.45*$exp(-(t-chan_delay)/tau);// - 0.135+0.135*$exp(-(t-chan_delay-18*62.5e-12)/tau);
             //$display("%e", chan_func);
         end
     endfunction
