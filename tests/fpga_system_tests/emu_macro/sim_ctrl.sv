@@ -391,6 +391,10 @@ module sim_ctrl(
         toggle_cdr_rstb();
         repeat (10) `CLK_ADC_DLY;
 
+        `CLK_ADC_DLY;
+        `FORCE_JTAG(hist_mode, 1);
+        repeat(300) `CLK_ADC_DLY;
+        `FORCE_JTAG(hist_mode, 2);
         // Wait for PRBS checker to lock
 		$display("Waiting for PRBS checker to lock...");
 		for (loop_var=0; loop_var<50; loop_var=loop_var+1) begin
