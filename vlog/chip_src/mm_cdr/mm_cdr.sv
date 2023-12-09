@@ -7,7 +7,7 @@ module mm_cdr import const_pack::*; #(
     parameter integer phase_est_shift = 20
 ) (
     input wire logic signed [Nadc-1:0] codes[Nti-1:0],    // adc outputs
-    input wire logic bits [Nti-1:0],    // adc outputs
+    input wire logic signed [2:0] syms [Nti-1:0],    // adc outputs
     input wire logic ramp_clock,
 
     input wire logic clk,
@@ -72,14 +72,14 @@ module mm_cdr import const_pack::*; #(
     
     mm_pd iMM_PD (
         .codes(codes),
-        .bits(bits),
+        .syms(syms),
         .pd_offset(cdbg_intf_i.pd_offset_ext),
         .pd_out(pd_phase_error)
     );
 
 
     always @* begin
-        phase_error_d         = -1*pd_phase_error; // This is the correct sign!
+        phase_error_d         = (cdbg_intf_i.invert) ? -pd_phase_error : pd_phase_error; // This is the correct sign!
 
         ramp_est_pls_update  = ramp_est_pls_q + (ramp_clock ? (phase_error_q << Kr) : 0 );
         ramp_est_neg_update  = ramp_est_neg_q + (ramp_clock ? 0 : (phase_error_q << Kr));

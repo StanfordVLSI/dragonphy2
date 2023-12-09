@@ -692,14 +692,14 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
             tag = 0b11
         elif flag_width == 4:
             num_ed_flags = 64 # 4*32 = 128
-            num_pb_flags = 64 # 3*48 = 144
+            num_pb_flags = 128 # 3*48 = 144
             num_bits     = 64 # 3*48 = 144
             tag = 0b1111
 
         depth = num_of_errors * 8
         write_tc_reg('read_errt', 1)
   
-        codes = np.zeros((num_of_errors, 48))
+        codes = np.zeros((num_of_errors, 64))
         bits  = np.zeros((num_of_errors, num_bits))
         ed_flags = np.zeros((num_of_errors, num_ed_flags))
         pb_flags = np.zeros((num_of_errors, num_pb_flags))
@@ -724,8 +724,8 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
                     datum = int(read_sc_reg(f'output_data_frame_errt[{jj}]'))
                     #datum = int(read_sc_reg(f'output_data_frame_errt[{jj}]'))
                     data_set = data_set + (datum << (32 * jj))
-                pb_flags[int(ii/8), :] = [(data_set >> (jj*2)) & 0b11  for jj in range(num_pb_flags)]
-            elif idx == 4:
+                pb_flags[int(ii/8), :] = [(data_set >> jj) & 0b1  for jj in range(num_pb_flags)]
+            elif idx == 5:
                 for jj in range(5):
                     datum = int(read_sc_reg(f'output_data_frame_errt[{jj}]'))
                     #datum = int(read_sc_reg(f'output_data_frame_errt[{jj}]'))
@@ -736,7 +736,7 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
                 for jj in range(5):
                     datum = int(read_sc_reg(f'output_data_frame_errt[{jj}]'))
                     data_set = data_set + (datum << (32 * jj))
-                ed_flags[int(ii/8), (idx-6) * 16:(idx+1-6) * 16] = [(data_set >> (jj*4)) & tag for jj in range(num_ed_flags)]
+                ed_flags[int(ii/8), (idx-6) * 32:(idx+1-6) * 32] = [(data_set >> (jj*4)) & tag for jj in range(32)]
 
 
         write_tc_reg('read_errt', 0)
@@ -899,10 +899,10 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     write_tc_reg('ext_pi_ctl_offset[2]', 256)
     write_tc_reg('ext_pi_ctl_offset[3]', 384)
     write_tc_reg('en_ext_max_sel_mux', 1)
-    write_tc_reg('ext_max_sel_mux[0]', 128)
-    write_tc_reg('ext_max_sel_mux[1]', 128)
-    write_tc_reg('ext_max_sel_mux[2]', 128)
-    write_tc_reg('ext_max_sel_mux[3]', 128)
+    write_tc_reg('ext_max_sel_mux[0]', 127)
+    write_tc_reg('ext_max_sel_mux[1]', 127)
+    write_tc_reg('ext_max_sel_mux[2]', 127)
+    write_tc_reg('ext_max_sel_mux[3]', 127)
 
     # Configure the retimer
     print('Configuring the retimer...')
@@ -914,15 +914,26 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     # Configure the CDR
     print('Configuring the CDR...')
     write_tc_reg('Kp', 0)
-    write_tc_reg('Ki', 1)
-    write_tc_reg('invert', 1)
+    write_tc_reg('Ki', 0)
+    write_tc_reg('invert', 0)
     write_tc_reg('en_freq_est', 0)
-    write_tc_reg('ext_pi_ctl', 0)
+    write_tc_reg('ext_pi_ctl', -9)
     write_tc_reg('en_ext_pi_ctl', 1)
     write_tc_reg('sel_inp_mux', 1) # "0": use ADC output, "1": use FFE output
 
     # Re-initialize ordering
     print('Re-initialize ADC ordering')
+
+
+    write_tc_reg('new_trellis_pattern_idx', 2)
+    write_tc_reg('new_trellis_pattern[0]', +1)
+    write_tc_reg('new_trellis_pattern[1]', 0)
+    write_tc_reg('new_trellis_pattern[2]', +1)
+    write_tc_reg('new_trellis_pattern[3]', 0)
+
+    write_tc_reg('update_trellis_pattern', 1)
+    write_tc_reg('update_trellis_pattern', 0)
+
 
     write_tc_reg('en_v2t', 0)
     write_tc_reg('en_v2t', 1)
@@ -934,8 +945,8 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     write_tc_reg('fe_adapt_gain', 9)
     write_tc_reg('fe_exec_inst', 0)
     write_tc_reg('fe_bit_target_level', code_level)
-    write_tc_reg('ext_pi_ctl', 0)
-    
+
+
     time.sleep(2)
 
     write_tc_reg('fe_adapt_gain', 5)
@@ -959,21 +970,29 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     write_tc_reg('force_slicers', 1)
     time.sleep(2)
 
-    #for ii in range(14):
+
+    #for ii in range(10):
     #    code_level = code_level + 1
-    #    write_tc_reg('fe_adapt_gain', 1)
+    #    write_tc_reg('fe_adapt_gain', 5)
     #    write_tc_reg('fe_bit_target_level', code_level)
-    #    time.sleep(2)
-    #write_tc_reg('fe_adapt_gain', 0)
+    #    time.sleep(4)
+    write_tc_reg('fe_adapt_gain', 0)
+    write_tc_reg('en_ext_pi_ctl', 0)
 
 #    for ii in range(8):
 #        write_tc_reg('fe_adapt_gain', 4)
-#        write_tc_reg('fe_inst', 0b010)
-#        write_tc_reg('fe_exec_inst', 1)
-#        write_tc_reg('fe_exec_inst', 0) 
-#        align_pos = align_pos+1
-#        write_tc_reg('align_pos', align_pos)
-#        time.sleep(3)
+   # write_tc_reg('fe_inst', 0b011)
+   # write_tc_reg('fe_exec_inst', 1)
+   # write_tc_reg('fe_exec_inst', 0) 
+   # align_pos = align_pos-1
+   # write_tc_reg('align_pos', align_pos)
+   # time.sleep(3)
+   # write_tc_reg('fe_inst', 0b011)
+   # write_tc_reg('fe_exec_inst', 1)
+   # write_tc_reg('fe_exec_inst', 0) 
+   # align_pos = align_pos-1
+   # write_tc_reg('align_pos', align_pos)
+   # time.sleep(3)
 #    write_tc_reg('fe_adapt_gain', 1)
 
 #    for ii in range(17, 25):
@@ -1032,7 +1051,7 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     print('Wait for the CDR to lock')
     toggle_cdr_rstb()
     write_sc_reg('hist_sram_ceb', 0)
-    write_sc_reg('hist_mode', 1)
+    write_sc_reg('hist_mode', 0)
     time.sleep(1.0)
     write_sc_reg('hist_source', 1)
     write_sc_reg('hist_mode', 2)
@@ -1067,7 +1086,7 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     now = datetime.now()
     meas_time = now.strftime("%d%m%Y_%H%M%S")
     cycle = 1
-    prev_num_of_logged_errors = 0
+    #prev_num_of_logged_errors = 0
 
     def stingify_noise(noise_rms):
         out_str = ""
@@ -1081,19 +1100,11 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
 
 
     while total_time_remaining > 0:
-        zero_counts = 0
         update_time = time.time()
         time.sleep(1)
         num_of_logged_errors = int(read_sc_reg('number_stored_frames_errt')/8)
-        #print(num_of_logged_errors)
-        #zero_counts += 1 if num_of_logged_errors == 0 else 0read
-        #if zero_counts > 24:
-        #    enable_error_tracker()
-        #    time.sleep(1)
-        #    disable_error_tracker()
-        #    zero_counts = 0
-        #    print('Restarting Error Tracker')
-        #print(num_of_logged_errors)
+        print(f'Number of logged errors: {num_of_logged_errors}')
+        print(f'Time remaining: {total_time_remaining:1.2f} s')
         if num_of_logged_errors >= 2:
             zero_counts = 0
             update_time = (time.time() - update_time)
@@ -1116,7 +1127,7 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
             update_time = (time.time() - update_time)
         total_time_remaining -= update_time
         #pbar.update(int(num_of_logged_errors-prev_num_of_logged_errors))
-        prev_num_of_logged_errors = num_of_logged_errors
+        #prev_num_of_logged_errors = num_of_logged_errors
     #for ii in range(int(prbs_test_dur/10.0)):
         #    time.sleep(10)
         #    write_sc_reg('prbs_checker_mode', 3)
@@ -1176,8 +1187,7 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
         hist_vals[ii] = ((a << 32) + b)/float(((c << 32) + d))
         hist_bins[ii] = signed(ii, n_bits=8)
 
-    plt.plot(hist_bins, hist_vals)
-    plt.show()
+
 
     ## Print out duration of PRBS test
     #print(f'PRBS test took {t_stop-t_start} seconds.')
@@ -1249,6 +1259,10 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
 
     with open('chan_est_vals.txt', 'w') as f:
         print("\n".join([str(int(round(tap))) for tap in list(learned_channel_vals)]), file=f)
+
+
+    with open('hist_vals.txt', 'w') as f:
+        print("\n".join([str(a[0]) + ', ' + str(b[0]) for (a,b) in zip(list(hist_bins), list(hist_vals))]), file=f)
 
     # check results
     print('Checking the results...')

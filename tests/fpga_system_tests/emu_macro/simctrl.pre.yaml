@@ -112,10 +112,10 @@ digital_probes:
     abspath: 'tb_i.top_i.idcore.errt_i.delayed_trigger'
     width: 1
     signed: 0
-  #tap_pos:
-  #  abspath: 'tb_i.top_i.idcore.chan_est_i.tap_pos'
-  #  width: 5
-  #  signed: 0 
+  phase_est_d:
+    abspath: 'tb_i.top_i.idcore.iMM_CDR.phase_est_d'
+    width: 29
+    signed: 1 
   #chan_est_state:
   #  abspath: 'tb_i.top_i.idcore.chan_est_i.chan_est_states'
   #  width: 3
@@ -1102,9 +1102,9 @@ digital_probes:
   # chunk_idx:
   #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.chunk_idx'
   #   width: 5
-  # pi_ctl:
-  #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.pi_ctl'
-  #   width: 9
+  pi_ctl:
+    abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.pi_ctl'
+    width: 9
   # slice_offset:
   #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.slice_offset'
   #   width: 2

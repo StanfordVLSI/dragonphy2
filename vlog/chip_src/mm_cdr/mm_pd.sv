@@ -2,17 +2,17 @@
 
 module mm_pd import const_pack::*; (
     input wire logic signed [Nadc-1:0] codes [Nti-1:0],   // range: [-128, +127]
-    input wire logic bits [Nti-1:0],
+    input wire logic signed [2:0] syms [Nti-1:0],
     input wire logic signed [Nadc-1:0] pd_offset,       // range: [-128, +127]
     output var logic signed [Nadc+1:0] pd_out           // range: [-384, +383]
 );
     // data sign
-    logic signed [1:0] ak [Nti:-1];                     // range: [-2, +2]
+    logic signed [2:0] ak [Nti:-1];                     // range: [-2, +2]
     
     // signals used in estimating phase
-    logic signed [Nadc+1:0] pd_net [Nti-1:0];           // range: [-256, +256]
-    logic signed [Nadc+1+$clog2(Nti):0] pd_net_sum;     // range: [-4096, +4096]
-    logic signed [Nadc+1:0] pd_net_sc;                  // range: [-256, +256]
+    logic signed [Nadc+3:0] pd_net [Nti-1:0];           // range: [-256, +256]
+    logic signed [Nadc+3+$clog2(Nti):0] pd_net_sum;     // range: [-4096, +4096]
+    logic signed [Nadc+3:0] pd_net_sc;                  // range: [-256, +256]
     // set boundary conditions
 
     assign ak[Nti] = 0;
@@ -22,8 +22,23 @@ module mm_pd import const_pack::*; (
 
     genvar k;
     generate
-        for (k=0; k<Nti; k=k+1) begin: uSGN
-            assign ak[k] = bits[k]  ? 1 : -1;
+        for (k=0; k<Nti; k=k+1) begin : uSLICE
+            always_comb begin
+                unique case (syms[k])
+                    -3: begin 
+                        ak[k] = -1;
+                    end
+                    -1: begin 
+                        ak[k] = -3;
+                    end
+                    1: begin 
+                        ak[k] = 3;
+                    end
+                    3: begin 
+                        ak[k] = 1;
+                    end
+                endcase   
+            end
         end
 
         for (k=0; k<Nti; k=k+1) begin: uPD

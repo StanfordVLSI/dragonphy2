@@ -32,7 +32,7 @@ files     = sys.argv[2:]
 chan_taps = []
 with open(f'{directory}/chan_est_vals.txt', 'r') as f:
     chan_taps = np.array([float(line.strip()) for line in f.readlines()])/8
-print(chan_taps)
+print(chan_taps / 128)
 
 data_sets = []
 for filename in files:
@@ -71,13 +71,20 @@ if plot_out:
 
 
 
-def stringify(arr):
+def stringify_err(arr):
     err_str = ""
     for ii, err in enumerate(arr):
         if err == 2:
             err_str += f'+{ii}'
         elif err == -2:
             err_str += f'-{ii}'
+    return err_str
+
+def stringify_pf(arr):
+    err_str = ""
+    for ii, err in enumerate(arr):
+        if err == 1:
+            err_str += f'f{ii}'
     return err_str
 
 
@@ -111,20 +118,18 @@ labeled_errors = {}
 false_positives = 0
 for data in data_sets:
     valuable_data += 1
-
-    processed_data = []
-    for ii in range(data[1].shape[0]):
-        processed_data += [(data[1][ii] & 0b10) >> 1,  data[1][ii] & 0b01]
-    processed_data = processed_data[1:]
     skewed_data = []
-    for ii in range(int(len(processed_data)/2)):
-        if sum(processed_data[2*ii:2*ii+1+1]) == 1:
-            skewed_data += [1]
-        elif sum(processed_data[2*ii:2*ii+1+1]) == 0:
+    for ii in range(int(len(data[1])/2)):
+        if sum(data[1][2*ii:2*ii+1+1]) == 1:
+                skewed_data += [1]
+        elif sum(data[1][2*ii:2*ii+1+1]) == 0:
             skewed_data += [0]
         else:
+            print(data[0])
+            print(data[1])
             print('WHAT?')
             
+
 
     try:
         error_loc    = np.nonzero(np.array(skewed_data)>0)[0][0]
@@ -133,35 +138,42 @@ for data in data_sets:
         false_positives += 1
         print('False Positive Detected')
         continue
-    polarity_loc = error_loc 
+    polarity_loc = error_loc + 4
     #error_pol    = data[2][polarity_loc] * 2 - 1 
 
-    plt.plot(data[0][error_loc-6:])
-    plt.plot(data[1][error_loc-4:])
+    x1 = np.arange(0, len(data[0]), 1) - error_loc - 2
+    x2 = np.arange(0, len(skewed_data), 1) - error_loc
+    x3 = np.arange(0, len(data[2]), 1) - error_loc - 4
 
+    polarity = 1 if data[3][polarity_loc] % 2 == 1 else -1
+
+    #plt.plot(x1, polarity*data[0])
     #print(data[0][error_loc-4+10:])
     #print(data[1][error_loc-4+1:])
     #print(data[2][error_loc-4+2:])
     #print(data[3][error_loc-4+2:])
 
-    #act_errors = np.zeros((36,), dtype=np.int32)
-    #for ii in range(len(act_errors)):
-    #    if data[1][ii] > 0:
-    #        act_errors[ii] = 2 if data[2][ii] > 0 else -2
-    
-    #act_errors *= error_pol
-    #error_seq = stringify(act_errors[error_loc-4+2:])
 
-    #if error_seq not in labeled_errors:
-    #    labeled_errors[error_seq] = []
-    #labeled_errors[error_seq] += [data[0][error_loc-3:]*error_pol]
+    flag_seq = stringify_pf(skewed_data[error_loc-2:])
+    lbl = str(data[3][polarity_loc])#//2 - 1 if data[3][polarity_loc] % 2 == 0 else (data[3][polarity_loc]-1)//2 - 1)
+    if lbl not in labeled_errors:
+        labeled_errors[lbl] = []
+    labeled_errors[lbl] += [data[0][error_loc+2-10:]]
     #print(act_errors)
-plt.show()
+#plt.show()
 
 #print(labeled_errors.keys())
-#print(false_positives, valuable_data)
+print(false_positives, valuable_data)
 for error_seq in labeled_errors:
     for data in labeled_errors[error_seq]:
         plt.plot(data)
     plt.title(error_seq)
+    plt.show()
+
+if '0' in labeled_errors:
+    total_list = []
+    for item in labeled_errors['0']:
+        total_list += list(item)
+
+    plt.hist(total_list, bins=40)
     plt.show()

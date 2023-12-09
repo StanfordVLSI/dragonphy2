@@ -50,10 +50,10 @@ module sym_prbs_checker #(
     logic [(sym_bitwidth*n_channels-1):0] rx_bits;
     genvar gi, gj, k;
 
-    generate 
+    generate
         for(gi = 0; gi < sym_bitwidth; gi += 1) begin
             for(gj = 0; gj < n_channels; gj += 1) begin
-                assign rx_bits[gi*n_channels + gj] = rx_syms[gj][gi];
+                assign rx_bits[gi + gj*sym_bitwidth] = rx_syms[gj][gi];
             end
         end 
     endgenerate

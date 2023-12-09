@@ -90,8 +90,7 @@ module digital_core import const_pack::*; (
     wire logic signed [7:0] trunc_est_bits_ext [Nti+Nti_rep-1:0];
 
     logic signed [constant_gpack::code_precision-1:0] act_codes [constant_gpack::channel_width-1:0];
-    logic signed [(2**constant_gpack::sym_bitwidth-1)-1:0] tmp_sliced_est_bits [constant_gpack::channel_width-1:0];
-    logic sliced_est_bits [constant_gpack::channel_width-1:0];
+    logic signed [(2**constant_gpack::sym_bitwidth-1)-1:0] sliced_est_bits [constant_gpack::channel_width-1:0];
 
 
     //Sample the FFE output
@@ -325,8 +324,8 @@ module digital_core import const_pack::*; (
     end
 
     mm_cdr iMM_CDR (
-        .codes(trunc_est_bits),
-        .bits(sliced_est_bits),
+        .codes(mm_cdr_input),
+        .syms(sliced_est_bits),
         .clk(clk_adc),
         .ext_rstb(ctl_valid),
         .ramp_clock(ramp_clock),
@@ -335,7 +334,7 @@ module digital_core import const_pack::*; (
         .cdbg_intf_i(cdbg_intf_i)
     );
 
-    ////////////////////////////
+    //////////////////////////// 
     // Calculate PI CTL codes //
     ////////////////////////////
 
@@ -395,7 +394,7 @@ module digital_core import const_pack::*; (
 
         //Stage 1
         .stage1_est_bits_out(estimated_bits),
-        .stage1_symbols_out(tmp_sliced_est_bits),
+        .stage1_symbols_out(sliced_est_bits),
         .stage1_act_codes_out(act_codes),
 
         //Stage 2
@@ -426,7 +425,7 @@ module digital_core import const_pack::*; (
         .clk(clk_adc),
         .rst_n(dcore_rstb),
 
-        .symbols(tmp_sliced_est_bits),
+        .symbols(sliced_est_bits),
         .est_symbols(estimated_bits),
         .gain(ddbg_intf_i.se_gain),
 
@@ -442,9 +441,6 @@ module digital_core import const_pack::*; (
     always_comb begin
         for(int ii=0; ii<ffe_gpack::length; ii=ii+1) begin
             sec_est_bits[ii] = estimated_bits[ii];
-        end
-        for(int ii=0; ii<constant_gpack::channel_width; ii=ii+1) begin
-            sliced_est_bits[ii] = tmp_sliced_est_bits[ii][1];
         end
     end
 
