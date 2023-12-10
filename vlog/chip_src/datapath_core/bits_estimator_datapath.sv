@@ -14,6 +14,8 @@ module bits_estimator_datapath #(
     output logic signed [ffe_gpack::output_precision-1:0]      est_syms_out   [constant_gpack::channel_width-1:0],
     output logic signed [(2**sym_bitwidth-1)-1:0]                      symbols_out [constant_gpack::channel_width-1:0],
     output logic signed [constant_gpack::code_precision-1:0]   act_codes_out [constant_gpack::channel_width-1:0],
+    output logic signed [ffe_gpack::output_precision-1:0]      aligned_est_syms_out   [constant_gpack::channel_width-1:0],
+
 
     input wire logic signed [ffe_gpack::weight_precision-1:0]          weights [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0],
     input wire logic        [ffe_gpack::shift_precision-1:0]           ffe_shift [constant_gpack::channel_width-1:0],
@@ -149,6 +151,29 @@ module bits_estimator_datapath #(
         .data_segment(flat_cmp_out_bits),
         .align_pos(align_pos),
         .aligned_data(symbols_out)
+    );
+
+
+    logic signed  [ffe_gpack::output_precision-1:0] flat_estimated_bits [constant_gpack::channel_width*2-1:0];
+    signed_flatten_buffer_slice #(
+        .numChannels(constant_gpack::channel_width),
+        .bitwidth   (ffe_gpack::output_precision),
+        .buff_depth(est_bits_pipeline_depth),
+        .slice_depth(1),
+        .start(ffe_code_pipeline_depth)
+    ) es_out_fb_i (
+        .buffer    (estimated_bits_buffer),
+        .flat_slice(flat_estimated_bits)
+    );
+
+    signed_data_aligner #(
+        .width (constant_gpack::channel_width),
+        .bitwidth(ffe_gpack::output_precision),
+        .depth(2)
+    ) es_algn_i (
+        .data_segment(flat_estimated_bits),
+        .align_pos(align_pos),
+        .aligned_data(aligned_est_syms_out)
     );
 
 

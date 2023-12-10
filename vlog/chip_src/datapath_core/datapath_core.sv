@@ -18,6 +18,7 @@ module datapath_core #(
     output logic signed [ffe_gpack::output_precision-1:0]      stage1_est_bits_out    [constant_gpack::channel_width-1:0],
     output logic signed [(2**sym_bitwidth-1)-1:0]              stage1_symbols_out [constant_gpack::channel_width-1:0],
     output logic signed [constant_gpack::code_precision-1:0]   stage1_act_codes_out [constant_gpack::channel_width-1:0],
+    output logic signed [ffe_gpack::output_precision-1:0]      stage1_aligned_est_bits_out    [constant_gpack::channel_width-1:0],
 
     //Stage 2
     output logic signed [error_gpack::est_error_precision-1:0] stage2_res_errors_out  [constant_gpack::channel_width-1:0],
@@ -121,6 +122,7 @@ module datapath_core #(
         .est_syms_out(stage1_est_bits_out),    
         .symbols_out(stage1_symbols_out),
         .act_codes_out(stage1_act_codes_out),
+        .aligned_est_syms_out(stage1_aligned_est_bits_out),
 
         // JTAG Registers
         .weights(weights),

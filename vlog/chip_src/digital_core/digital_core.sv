@@ -82,6 +82,7 @@ module digital_core import const_pack::*; (
     wire logic        [$clog2(2*detector_gpack::num_of_trellis_patterns+1)-1:0] sd_flags [Nti-1:0];
 
     wire logic signed [ffe_gpack::output_precision-1:0] estimated_bits [constant_gpack::channel_width-1:0];
+    wire logic signed [ffe_gpack::output_precision-1:0] aligned_estimated_bits [constant_gpack::channel_width-1:0];
 
     wire logic signed [ffe_gpack::weight_precision-1:0] single_weights   [ffe_gpack::length-1:0];
 
@@ -300,10 +301,11 @@ module digital_core import const_pack::*; (
     // CDR
 
     logic signed [Nadc-1:0] mm_cdr_input [Nti-1:0];
-
+    logic signed [Nadc-1:0] trunc_aligned_est_bits [Nti-1:0];
     generate
         for(k = 0; k < Nti; k = k + 1) begin
-            assign mm_cdr_input[k] = cdbg_intf_i.sel_inp_mux ? estimated_bits[k] : act_codes[k];
+            assign trunc_aligned_est_bits[k] = aligned_estimated_bits[k][9:2];
+            assign mm_cdr_input[k] = cdbg_intf_i.sel_inp_mux ? trunc_aligned_est_bits[k] : act_codes[k];
         end
     endgenerate
 
@@ -394,6 +396,7 @@ module digital_core import const_pack::*; (
 
         //Stage 1
         .stage1_est_bits_out(estimated_bits),
+        .stage1_aligned_est_bits_out(aligned_estimated_bits),
         .stage1_symbols_out(sliced_est_bits),
         .stage1_act_codes_out(act_codes),
 

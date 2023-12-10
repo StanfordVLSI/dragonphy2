@@ -67,8 +67,8 @@ module sim_ctrl(
     // calculate FFE coefficients
     localparam real dt=1.0/(16.0e9);
     localparam real tau=5.0e-12;
-    localparam integer coeff0 = 128.0/(1.0-$exp(-dt/tau));
-    localparam integer coeff1 = -128.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
+    localparam integer coeff0 = 48.0/(1.0-$exp(-dt/tau));
+    localparam integer coeff1 = -48.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
 
     logic [3:0] random_delay;
 
@@ -159,9 +159,6 @@ module sim_ctrl(
         if (t <= chan_delay) begin
             chan_func = 0.0;
             //$display("%e", chan_func);
-        end else if( t <= chan_delay + 18*62.5e-12) begin
-            chan_func = 0.45-0.45*$exp(-(t-chan_delay)/tau);
-            //$display("%e", chan_func);
         end else begin
             chan_func = 0.45-0.45*$exp(-(t-chan_delay)/tau);// - 0.135+0.135*$exp(-(t-chan_delay-18*62.5e-12)/tau);
             //$display("%e", chan_func);
@@ -178,10 +175,10 @@ module sim_ctrl(
 
     initial begin
         //Initialize Channel
-        chan_coeffs   = '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 54, 216,  800};
+        chan_coeffs   = '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  132};
         //chan_coeffs   = '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 25, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64, 256,  800};
         //chan_coeffs   = '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0};
-        ffe_coeffs = '{0,0,0,0,0,0,0,0,0,0,0,0,0,0,coeff1,coeff0};
+        ffe_coeffs = '{0,0,0,0,0,0,0,0,0,0,0,coeff1, coeff0,0,0,0};
         random_delay = 0;
         //chan_coeffs = '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 127, 127};
         //inp_sel = 1;
@@ -196,7 +193,7 @@ module sim_ctrl(
         chan_wdata_1 = 0;
         chan_waddr = 0;
         chan_we = 0;
-        align_pos = 0;
+        align_pos = 3;
 
 
         // wait for emulator reset to complete
@@ -265,7 +262,7 @@ module sim_ctrl(
 
         for (loop_var=0; loop_var<Nti; loop_var=loop_var+1) begin
             tmp_ffe_shift[loop_var] = 6;
-            tmp_chan_shift[loop_var] = 6;
+            tmp_chan_shift[loop_var] = 3;
         end
 
 
@@ -314,8 +311,8 @@ module sim_ctrl(
         `CLK_ADC_DLY;
 
         // Set up the FFE
-        `FORCE_JTAG(fe_adapt_gain, 0);
-        `FORCE_JTAG(fe_bit_target_level, 10'd34);
+        `FORCE_JTAG(fe_adapt_gain, 11);
+        `FORCE_JTAG(fe_bit_target_level, 10'd10);
         // Pushing init_ffe_taps into ffe_estimator / ffe
         `FORCE_JTAG(init_ffe_taps, ffe_coeffs);
         `CLK_ADC_DLY;
@@ -384,7 +381,8 @@ module sim_ctrl(
         `FORCE_JTAG(en_v2t, 1);
         `CLK_ADC_DLY;
         //inp_sel = 1;
-        `FORCE_JTAG(fe_exec_inst, 1'b1);
+        `FORCE_JTAG(fe_exec_inst, 1'b0);
+        `FORCE_JTAG(en_ext_pi_ctl, 0);
 
         // De-assert the CDR reset
         // TODO: do we really need to wait three cycles of clk_adc?
@@ -410,7 +408,7 @@ module sim_ctrl(
 
 
         repeat (2500) `CLK_ADC_DLY;
-        `FORCE_JTAG(fe_bit_target_level, 10'd34);
+        `FORCE_JTAG(fe_bit_target_level, 10'd10);
         `FORCE_JTAG(ce_gain, 0);
         repeat (5000) `CLK_ADC_DLY;
         `FORCE_JTAG(ce_gain, 0);
