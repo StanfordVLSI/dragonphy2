@@ -160,7 +160,7 @@ module bits_estimator_datapath #(
         .bitwidth   (ffe_gpack::output_precision),
         .buff_depth(est_bits_pipeline_depth),
         .slice_depth(1),
-        .start(ffe_code_pipeline_depth)
+        .start(ffe_pipeline_depth)
     ) es_out_fb_i (
         .buffer    (estimated_bits_buffer),
         .flat_slice(flat_estimated_bits)
