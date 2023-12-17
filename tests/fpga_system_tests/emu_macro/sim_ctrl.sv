@@ -66,9 +66,10 @@ module sim_ctrl(
 
     // calculate FFE coefficients
     localparam real dt=1.0/(16.0e9);
-    localparam real tau=25.0e-12;
+    localparam real tau=30.0e-12;
     localparam integer coeff0 = 48.0/(1.0-$exp(-dt/tau));
-    localparam integer coeff1 = -48.0*$exp(-dt/tau)/(1.0-$exp(-dt/tau));
+    localparam real tt = ($exp(-dt/tau)/(1.0-$exp(-dt/tau)));
+    localparam integer coeff1 = -48.0*tt; // This is broken?
 
     logic [3:0] random_delay;
 
@@ -171,14 +172,16 @@ module sim_ctrl(
 
 
 
-    int fd_0, fd_1, fd_2;
+    int fd_0, fd_1, fd_2, tmp_mm;
 
     initial begin
         //Initialize Channel
         chan_coeffs   = '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  132};
         //chan_coeffs   = '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 25, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64, 256,  800};
         //chan_coeffs   = '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0};
-        ffe_coeffs = '{0,0,0,0,0,0,0,0,0,0,0,coeff1, coeff0,0,0,0};
+        ffe_coeffs = '{0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0};
+        ffe_coeffs[3] = coeff0;
+        ffe_coeffs[4] = coeff1;
         random_delay = 0;
         //chan_coeffs = '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 127, 127};
         //inp_sel = 1;
@@ -188,7 +191,7 @@ module sim_ctrl(
         // initialize control signals
         jitter_rms_int = 0;
         noise_rms_int = 0;
-        prbs_eqn = 32'h4800_0000;  // matches equation used by prbs21 in DaVE
+        prbs_eqn = 32'h4000_0004;  // matches equation used by prbs21 in DaVE
         chan_wdata_0 = 0;
         chan_wdata_1 = 0;
         chan_waddr = 0;
@@ -350,7 +353,7 @@ module sim_ctrl(
         `FORCE_JTAG(ext_pi_ctl_offset, tmp_ext_pi_ctl_offset);
         `CLK_ADC_DLY;
         `FORCE_JTAG(en_ext_max_sel_mux, 1);
-        `FORCE_JTAG(ext_max_sel_mux, '{127, 127, 127, 127});
+        `FORCE_JTAG(ext_max_sel_mux, '{128, 128, 128, 128});
 
         `CLK_ADC_DLY;
 
@@ -383,13 +386,27 @@ module sim_ctrl(
         `CLK_ADC_DLY;
         //inp_sel = 1;
         `FORCE_JTAG(fe_exec_inst, 1'b0);
-        `FORCE_JTAG(en_ext_pi_ctl, 0);
+        `FORCE_JTAG(en_ext_pi_ctl, 1);
 
         // De-assert the CDR reset
         // TODO: do we really need to wait three cycles of clk_adc?
         toggle_cdr_rstb();
-        repeat (10) `CLK_ADC_DLY;
 
+        for(int mm = 1; mm < 5; mm += 1) begin
+            repeat (25) `CLK_ADC_DLY;
+            tmp_mm = mm;
+            `FORCE_JTAG(ext_pi_ctl, tmp_mm);
+        end
+        for(int mm = 5; mm >= -5; mm -= 1) begin
+            repeat (25) `CLK_ADC_DLY;
+            tmp_mm = mm;
+            `FORCE_JTAG(ext_pi_ctl, tmp_mm);
+        end
+        for(int mm = -5; mm < 5; mm += 1) begin
+            repeat (25) `CLK_ADC_DLY;
+            tmp_mm = mm;
+            `FORCE_JTAG(ext_pi_ctl, tmp_mm);
+        end
         `CLK_ADC_DLY;
         `FORCE_JTAG(hist_mode, 1);
         repeat(300) `CLK_ADC_DLY;
@@ -404,7 +421,7 @@ module sim_ctrl(
         //repeat (50) `CLK_ADC_DLY;
         //#inp_sel = 1;
 
-        `FORCE_JTAG(ce_gain, 0);
+        `FORCE_JTAG(ce_gain, 10);
         `FORCE_JTAG(ce_exec_inst, 0);
 
 

@@ -4,7 +4,7 @@
 
     `ifdef FPGA_MACRO_MODEL
         // 16 * bits_per_symbol
-        `define pwl_t wire logic [(16*2)-1:0]
+        `define pwl_t wire logic [(17*2)-1:-2]
     `else
         `include "svreal.sv"
 

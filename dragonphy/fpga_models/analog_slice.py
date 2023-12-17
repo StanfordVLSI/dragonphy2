@@ -179,7 +179,7 @@ class AnalogSlice:
         t_samp_new = m.bind_name('t_samp_new', t_slice_offset + delay_amt)
 
         # Determine if the new sampling time happens after the end of this period
-        t_one_period = m.bind_name('t_one_period', system_values['slices_per_bank']/system_values['freq_rx'])
+        t_one_period = m.bind_name('t_one_period', (system_values['slices_per_bank']/system_values['freq_rx'])+1/((2.0**system_values['pi_ctl_width'])*system_values['freq_rx']))
         exceeds_period = m.bind_name('exceeds_period', t_samp_new >= t_one_period)
 
         # Save the previous sample time

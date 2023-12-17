@@ -2,7 +2,7 @@
 
 # general imports
 from pathlib import Path
-
+from matplotlib import pyplot as plt
 # AHA imports
 import magma as m
 import fault
@@ -22,7 +22,7 @@ class dut(m.Circuit):
         out_a=m.BitOut,
         clk_b=m.BitIn,
         rst_b=m.BitIn,
-        out_b=m.Out(m.Bits[16])
+        out_b=m.Out(m.Bits[32])
     )
 
 # create the tester
@@ -59,7 +59,7 @@ step_both()
 
 # read out bits from "a"
 hist_a = []
-for _ in range(100*16):
+for _ in range(100*32):
     hist_a.append(t.get_value(dut.out_a))
     step_a()
 
@@ -74,7 +74,7 @@ ext_srcs = get_deps_cpu_sim(impl_file=THIS_DIR / 'test.sv')
 t.compile_and_run(
     target='system-verilog',
     directory=BUILD_DIR,
-    simulator='iverilog',
+    simulator='xcelium',
     ext_srcs=ext_srcs,
     ext_model_file=True,
     disp_type='realtime',
@@ -85,13 +85,18 @@ t.compile_and_run(
 hist_a = [elem.value for elem in hist_a]
 hist_b = [elem.value for elem in hist_b]
 
+
+
 # post-process hist_b so that it can be directly compared with hist_a
 hist_b_post = []
 for elem in hist_b:
-    bin_str = f'{elem:016b}'
+    bin_str = f'{elem:032b}'
     bin_str = bin_str[::-1]
     bin_vals = [int(bit) for bit in bin_str]
     hist_b_post += bin_vals
+
+print(hist_a)
+print(hist_b)
 
 assert hist_a == hist_b_post, 'Data mismatch.'
 print('OK')

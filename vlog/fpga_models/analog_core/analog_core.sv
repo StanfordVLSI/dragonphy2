@@ -55,6 +55,8 @@ module analog_core import const_pack::*; #(
     output wire logic [Nadc-1:0] adder_out_rep [1:0],    // adc_rep output (to DCORE)
     output wire logic [1:0] sign_out_rep,                // adc_rep_output (to DOORE)
     
+
+
 	acore_debug_intf.acore adbg_intf_i
 );
 
@@ -63,8 +65,12 @@ module analog_core import const_pack::*; #(
     localparam integer clock_fall = 2;
     localparam integer clock_rise = clock_fall + ((2+num_chunks)/2) - 1;
 
-    // emulator I/O
+    (* dont_touch = "true" *) logic pi_early;
+    (* dont_touch = "true" *) logic pi_late;
+    (* dont_touch = "true" *) logic pi_early_ext;
+    (* dont_touch = "true" *) logic pi_late_ext;
 
+    // emulator I/O
     (* dont_touch = "true" *) logic emu_clk;
     (* dont_touch = "true" *) logic emu_rst;
     (* dont_touch = "true" *) logic [6:0] jitter_rms_int;
@@ -130,7 +136,22 @@ module analog_core import const_pack::*; #(
     assign noise_seed[14] = 32'h8e8c2794;
     assign noise_seed[15] = 32'haa1dd342;
 
+    //detect early or late PI slip
+    logic [Npi-1:0] last_pi_code;
 
+
+    assign pi_early = (ctl_pi[0] == 0) && (last_pi_code == 127);
+    assign pi_late =  (ctl_pi[0] == 127) && (last_pi_code == 0);
+
+    always @(posedge emu_clk) begin
+        if (emu_rst) begin
+            last_pi_code <= 0;
+        end else if (last_cycle) begin
+            last_pi_code <= ctl_pi[0];
+        end else begin
+            last_pi_code <= last_pi_code;
+        end
+    end
 
     genvar i;
     generate
@@ -174,17 +195,31 @@ module analog_core import const_pack::*; #(
     logic [((num_chunks*chunk_width*bits_per_symbol)-1):0] next_history;
 
     always_comb begin
-        next_history[(num_chunks*chunk_width*bits_per_symbol)-(16*bits_per_symbol)-1:0]  = history[(num_chunks*chunk_width*bits_per_symbol)-1:(16*bits_per_symbol)];
-        next_history[(num_chunks*chunk_width*bits_per_symbol)-1:(num_chunks*chunk_width*bits_per_symbol)-(16*bits_per_symbol)] = rx_inp;
+        if (!pi_early && !pi_late) begin
+            next_history[(num_chunks*chunk_width*bits_per_symbol)-(16*bits_per_symbol)-1:0]  = history[(num_chunks*chunk_width*bits_per_symbol)-1:(16*bits_per_symbol)];
+            next_history[(num_chunks*chunk_width*bits_per_symbol)-1:(num_chunks*chunk_width*bits_per_symbol)-(16*bits_per_symbol)] = rx_inp[31:0];
+        end else if (pi_late) begin
+            next_history[(num_chunks*chunk_width*bits_per_symbol)-(16*bits_per_symbol)-1+2:0]  = history[(num_chunks*chunk_width*bits_per_symbol)-1:(16*bits_per_symbol)-2];
+            next_history[(num_chunks*chunk_width*bits_per_symbol)-1:(num_chunks*chunk_width*bits_per_symbol)-(16*bits_per_symbol)+2] = rx_inp[29:0];
+        end else if (pi_early) begin
+            next_history[(num_chunks*chunk_width*bits_per_symbol)-(16*bits_per_symbol)-1-2:0]  = history[(num_chunks*chunk_width*bits_per_symbol)-1:(16*bits_per_symbol)+2];
+            next_history[(num_chunks*chunk_width*bits_per_symbol)-1:(num_chunks*chunk_width*bits_per_symbol)-(16*bits_per_symbol)-2] = rx_inp[33:0];
+        end
     end
 
     always @(posedge emu_clk) begin
         if (emu_rst) begin
             history <= 0;
+            pi_late_ext <= 0;
+            pi_early_ext <= 0;
         end else if (last_cycle) begin
-            history <= next_history;    
+            history <= next_history;
+            pi_late_ext <= pi_late;
+            pi_early_ext <= pi_early;
     end else begin
             history <= history;
+            pi_late_ext <= pi_late_ext;
+            pi_early_ext <= pi_early_ext;
         end
     end
 

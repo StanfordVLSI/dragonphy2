@@ -1102,9 +1102,9 @@ digital_probes:
   # chunk_idx:
   #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.chunk_idx'
   #   width: 5
-  pi_ctl:
-    abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.pi_ctl'
-    width: 9
+  #pi_ctl:
+  #  abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.pi_ctl'
+  #  width: 9
   # slice_offset:
   #   abspath: 'tb_i.top_i.iacore.genblk1[0].analog_slice_i.slice_offset'
   #   width: 2

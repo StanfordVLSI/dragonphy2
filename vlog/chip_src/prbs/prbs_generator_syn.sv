@@ -23,7 +23,17 @@ module prbs_generator_syn #(
     input wire logic [1:0] inv_chicken,
 
     // output
-    output wire logic out
+    output wire logic out,
+    output wire logic [n_prbs-1:0] prbs_state_ext,
+
+
+    input wire logic late_load,
+    input wire logic [n_prbs-1:0] late_load_val,
+    input wire logic early_load,
+    input wire logic [n_prbs-1:0] early_load_val,
+    input wire logic run_twice,
+    input wire logic stall
+
 );
     // register inj_err signal
     logic [3:0] inj_err_mem;
@@ -43,20 +53,46 @@ module prbs_generator_syn #(
     assign inj_error_pulse = (~inj_err_mem[3]) & (inj_err_mem[2]);
 
     // select bits for the LFSR equation
-    logic [(n_prbs-1):0] prbs_state;
-    logic [(n_prbs-1):0] prbs_select;
-    assign prbs_select = prbs_state & eqn;
+    logic [(n_prbs-1):0] prbs_state, next_prbs_state, next_next_prbs_state;
+    logic [(n_prbs-1):0] prbs_input;
+    assign prbs_state_ext = prbs_state;
 
-    // xor selected bits
+    always_comb begin
+        if (late_load) begin
+            prbs_input = late_load_val;
+        end else if (early_load) begin
+            prbs_input = early_load_val;
+        end else begin
+            prbs_input = prbs_state;
+        end
+    end
+
+    logic [(n_prbs-1):0] prbs_select;
     logic prbs_xor;
+
+
+    assign prbs_select = prbs_input & eqn;
+    // XOR selected bits
     assign prbs_xor = ^prbs_select;
+
+    assign next_prbs_state = {prbs_input[(n_prbs-2):0], (prbs_xor^inv_chicken[0])};
+
+    logic [(n_prbs-1):0] next_prbs_select;
+    logic next_prbs_xor;
+    
+    assign next_prbs_select = next_prbs_state & eqn;
+    // XOR selected bits
+    assign next_prbs_xor = ^next_prbs_select;
+
+    assign next_next_prbs_state = {next_prbs_state[(n_prbs-2):0], (next_prbs_xor^inv_chicken[0])};
+
 
     // update the LFSR state
     always @(posedge clk) begin
         if (rst) begin
             prbs_state <= init_val;
         end else if (cke) begin
-            prbs_state <= {prbs_state[(n_prbs-2):0], (prbs_xor^inv_chicken[0])};
+            prbs_state <= stall ? prbs_input : (run_twice ? next_next_prbs_state : next_prbs_state);
         end else begin
             prbs_state <= prbs_state;
         end
@@ -68,7 +104,7 @@ module prbs_generator_syn #(
         if (rst) begin
             out_reg <= 0;
         end else if (cke) begin
-            out_reg <= prbs_state[n_prbs-1] ^ inj_error_pulse ^ inv_chicken[1];
+            out_reg <= stall ? prbs_input : (run_twice ? next_prbs_state[n_prbs-1] ^ inj_error_pulse ^ inv_chicken[1] : prbs_state[n_prbs-1] ^ inj_error_pulse ^ inv_chicken[1]);
         end else begin
             out_reg <= out_reg;
         end
