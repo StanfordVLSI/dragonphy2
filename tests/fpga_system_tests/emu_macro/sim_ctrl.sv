@@ -66,7 +66,7 @@ module sim_ctrl(
 
     // calculate FFE coefficients
     localparam real dt=1.0/(16.0e9);
-    localparam real tau=30.0e-12;
+    localparam real tau=5.0e-12;
     localparam integer coeff0 = 48.0/(1.0-$exp(-dt/tau));
     localparam real tt = ($exp(-dt/tau)/(1.0-$exp(-dt/tau)));
     localparam integer coeff1 = -48.0*tt; // This is broken?
@@ -385,7 +385,7 @@ module sim_ctrl(
         `FORCE_JTAG(en_v2t, 1);
         `CLK_ADC_DLY;
         //inp_sel = 1;
-        `FORCE_JTAG(fe_exec_inst, 1'b0);
+        `FORCE_JTAG(fe_exec_inst, 1'b1);
         `FORCE_JTAG(en_ext_pi_ctl, 1);
 
         // De-assert the CDR reset
@@ -393,17 +393,17 @@ module sim_ctrl(
         toggle_cdr_rstb();
 
         for(int mm = 1; mm < 5; mm += 1) begin
-            repeat (25) `CLK_ADC_DLY;
+            repeat (13) @(posedge top.tb_i.top_i.idcore.clk_adc);
             tmp_mm = mm;
             `FORCE_JTAG(ext_pi_ctl, tmp_mm);
         end
         for(int mm = 5; mm >= -5; mm -= 1) begin
-            repeat (25) `CLK_ADC_DLY;
+            repeat (13) @(posedge top.tb_i.top_i.idcore.clk_adc);
             tmp_mm = mm;
             `FORCE_JTAG(ext_pi_ctl, tmp_mm);
         end
         for(int mm = -5; mm < 5; mm += 1) begin
-            repeat (25) `CLK_ADC_DLY;
+            repeat (13) @(posedge top.tb_i.top_i.idcore.clk_adc);
             tmp_mm = mm;
             `FORCE_JTAG(ext_pi_ctl, tmp_mm);
         end

@@ -57,7 +57,7 @@ module tb;
     logic inp_sel;
 
     logic [(2+Nti*2-1):-2] data_rx_i;
-    logic [(Nti*2-1):0] puls_out;
+  //  logic [(Nti*2-1):0] puls_out;
     logic [(2+Nti*2-1):-2] prbs_out;
 
 	(* dont_touch = "true" *) dragonphy_top top_i (
@@ -147,36 +147,36 @@ module tb;
     assign prbs_init_vals[31] = 32'h3f489004;
     assign prbs_init_vals[32] = 32'hb7b496d3;
     assign prbs_init_vals[33] = 32'h4bfb6480;
+//
+    //ocalparam integer pulse_width_period = 34;
+    //ogic [4:0] counter_puls, next_counter_puls;
+//
+    //ogic [pulse_width_period-1:0] puls_count;
+    //ogic [pulse_width_period-1:0] next_puls_count;
+    //ogic [pulse_width_period-1:0] puls_count_shift_left;
+    //ogic [pulse_width_period-1:0] puls_count_shift_right;
+//
+    //ssign puls_count_shift_left  = {puls_count[31:0], puls_count[33:32]};
+    //ssign puls_count_shift_right = {puls_count[1:0], puls_count[33:2]};
 
-    localparam integer pulse_width_period = 34;
-    logic [4:0] counter_puls, next_counter_puls;
-
-    logic [pulse_width_period-1:0] puls_count;
-    logic [pulse_width_period-1:0] next_puls_count;
-    logic [pulse_width_period-1:0] puls_count_shift_left;
-    logic [pulse_width_period-1:0] puls_count_shift_right;
-
-    assign puls_count_shift_left  = {puls_count[31:0], puls_count[33:32]};
-    assign puls_count_shift_right = {puls_count[1:0], puls_count[33:2]};
-
-    always_comb begin
-        if (pi_late && ~pi_early) begin
-            next_puls_count = puls_count_shift_left;
-        end else if (~pi_late && pi_early) begin
-            next_puls_count = puls_count_shift_right;
-        end else begin
-            next_puls_count = puls_count;
-        end
-        next_puls_count = {next_puls_count[31:0], next_puls_count[33:32]};
-    end
-
-    always_ff @(posedge prbs_cke or negedge rstb) begin
-        if(~rstb) begin
-            puls_count <= 2;
-        end else begin
-            puls_count <= next_puls_count;
-        end
-    end
+   // always_comb begin
+   //     if (pi_late && ~pi_early) begin
+   //         next_puls_count = puls_count_shift_left;
+   //     end else if (~pi_late && pi_early) begin
+   //         next_puls_count = puls_count_shift_right;
+   //     end else begin
+   //         next_puls_count = puls_count;
+   //     end
+   //     next_puls_count = {next_puls_count[31:0], next_puls_count[33:32]};
+   // end
+//
+   // always_ff @(posedge prbs_cke or negedge rstb) begin
+   //     if(~rstb) begin
+   //         puls_count <= 2;
+   //     end else begin
+   //         puls_count <= next_puls_count;
+   //     end
+   // end
 
 
     genvar i;
@@ -222,7 +222,7 @@ module tb;
         );
 
         for(i=0; i<Nti*2; i=i+1) begin
-            assign puls_out[i] = puls_count[i];
+          //  assign puls_out[i] = puls_count[i];
 
             prbs_generator_syn #(
                 .n_prbs(32)
@@ -260,7 +260,7 @@ module tb;
             .late_load_val(prbs_state_vals[2*Nti-2]),
             .early_load(pi_early),
             .early_load_val(prbs_state_vals[2]),
-            .run_twice(pi_early),
+            .run_twice(0),
             .stall(0),
             .prbs_state_ext(prbs_state_vals[32])
         );
@@ -280,7 +280,7 @@ module tb;
             .late_load_val(prbs_state_vals[2*Nti-1]),
             .early_load(pi_early),
             .early_load_val(prbs_state_vals[3]),
-            .run_twice(pi_early),
+            .run_twice(0),
             .stall(0),
             .prbs_state_ext(prbs_state_vals[33])
         );

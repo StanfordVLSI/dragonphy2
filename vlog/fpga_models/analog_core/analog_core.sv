@@ -93,7 +93,7 @@ module analog_core import const_pack::*; #(
     logic [(chunk_width*bits_per_symbol-1):0] chunk;
     logic [($clog2(num_chunks)-1):0] chunk_idx;
     logic incr_sum;
-    logic last_cycle;
+    logic last_cycle, mid_cycle;
 
     // random number seeds
     // assigned as wires instead of params since
@@ -137,19 +137,23 @@ module analog_core import const_pack::*; #(
     assign noise_seed[15] = 32'haa1dd342;
 
     //detect early or late PI slip
-    logic [Npi-1:0] last_pi_code;
+    logic [Npi-1:0] last_pi_codes [Nout-1:0];
 
 
-    assign pi_early = (ctl_pi[0] == 0) && (last_pi_code == 127);
-    assign pi_late =  (ctl_pi[0] == 127) && (last_pi_code == 0);
+    assign pi_early_ext = (ctl_pi[0] == 0) && (last_pi_codes[0] == 127);
+    assign pi_late_ext =  (ctl_pi[0] == 127) && (last_pi_codes[0] == 0);
 
     always @(posedge emu_clk) begin
         if (emu_rst) begin
-            last_pi_code <= 0;
+            for(int i=0; i<Nout; i=i+1) begin
+                last_pi_codes[i] <= 0;
+            end
         end else if (last_cycle) begin
-            last_pi_code <= ctl_pi[0];
+            for(int i=0; i<Nout; i=i+1) begin
+                last_pi_codes[i] <=  ctl_pi[i];
+            end
         end else begin
-            last_pi_code <= last_pi_code;
+            last_pi_codes <= last_pi_codes;
         end
     end
 
@@ -167,7 +171,7 @@ module analog_core import const_pack::*; #(
             ) analog_slice_i (
                 .chunk(chunk),
                 .chunk_idx(chunk_idx),
-                .pi_ctl(ctl_pi[i/Nout]),
+                .pi_ctl(last_pi_codes[i/Nout]),
                 .slice_offset(slice_offset),
                 .sample_ctl(last_cycle),
                 .incr_sum(incr_sum),
@@ -210,18 +214,20 @@ module analog_core import const_pack::*; #(
     always @(posedge emu_clk) begin
         if (emu_rst) begin
             history <= 0;
-            pi_late_ext <= 0;
-            pi_early_ext <= 0;
+            pi_late <= 0;
+            pi_early <= 0;
         end else if (last_cycle) begin
             history <= next_history;
-            pi_late_ext <= pi_late;
-            pi_early_ext <= pi_early;
-    end else begin
+            pi_late <= pi_late_ext;
+            pi_early <= pi_early_ext;
+        end else begin
             history <= history;
-            pi_late_ext <= pi_late_ext;
-            pi_early_ext <= pi_early_ext;
+            pi_late <= pi_late;
+            pi_early <= pi_early;
         end
     end
+
+
 
     // select chunk of input bits
 
