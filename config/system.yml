@@ -65,7 +65,7 @@ generic:
     parameters:
       width: *channel_width
       est_error_precision: *est_error_precision
-      ener_bitwidth: 18
+      ener_bitwidth: 15
   detector:
     parameters:
       width: *channel_width

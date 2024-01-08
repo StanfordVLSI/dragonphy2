@@ -504,8 +504,6 @@ module digital_core import const_pack::*; (
         .flat_slice(flat_stage2_est_errors)
     );
 
-
-
     channel_estimator #( 
         .est_depth(channel_gpack::est_channel_depth),
         .est_bitwidth(channel_gpack::est_channel_precision), 
@@ -584,9 +582,6 @@ module digital_core import const_pack::*; (
     );
 
 
-
-
-
     logic bit_bist_r;
 
     assign mux_prbs_rx_syms[0] = decoded_raw_symbols;
@@ -605,29 +600,26 @@ module digital_core import const_pack::*; (
 
     assign prbs_trig_rx_syms  = mux_prbs_trig_rx_syms      [ddbg_intf_i.sel_trig_prbs_mux];
     // PRBS generator for BIST
-    initial begin
-        $dumpvars(0, prbs_checker_i);
-        $dumpvars(0, prbs_checker_trigger_i);
-    end
-    prbs_generator_syn #(
-        .n_prbs(Nprbs)
-    ) prbs_generator_syn_i (
-        // clock and reset
-        .clk(clk_adc),
-        .rst(~prbs_gen_rstb),
-        // clock gating
-        .cke(pdbg_intf_i.prbs_gen_cke),
-        // define the PRBS initialization
-        .init_val(pdbg_intf_i.prbs_gen_init),
-        // define the PRBS equation
-        .eqn(pdbg_intf_i.prbs_gen_eqn),
-        // signal for injecting errors
-        .inj_err(pdbg_intf_i.prbs_gen_inj_err),
-        // "chicken" bits for flipping the sign of various bits
-        .inv_chicken(pdbg_intf_i.prbs_gen_chicken),
-        // output bit
-        .out(bit_bist_r)
-    );
+
+    //prbs_generator_syn #(
+    //    .n_prbs(Nprbs)
+    //) prbs_generator_syn_i (
+    //    // clock and reset
+    //    .clk(clk_adc),
+    //    .rst(~prbs_gen_rstb),
+    //    // clock gating
+    //    .cke(pdbg_intf_i.prbs_gen_cke),
+    //    // define the PRBS initialization
+    //    .init_val(pdbg_intf_i.prbs_gen_init),
+    //    // define the PRBS equation
+    //    .eqn(pdbg_intf_i.prbs_gen_eqn),
+    //    // signal for injecting errors
+    //    .inj_err(pdbg_intf_i.prbs_gen_inj_err),
+    //    // "chicken" bits for flipping the sign of various bits
+    //    .inv_chicken(pdbg_intf_i.prbs_gen_chicken),
+    //    // output bit
+    //    .out(bit_bist_r)
+    //);
 
     // PRBS checker
 
@@ -710,15 +702,15 @@ module digital_core import const_pack::*; (
 
     logic [(Nadc-1):0] data_gen_out;
 
-    histogram_data_gen #(
-        .n(Nadc)
-    ) data_gen_inst (
-        .clk(clk_adc),
-        .mode(hdbg_intf_i.data_gen_mode),
-        .in0(hdbg_intf_i.data_gen_in_0),
-        .in1(hdbg_intf_i.data_gen_in_1),
-        .out(data_gen_out)
-    );
+    //histogram_data_gen #(
+    //    .n(Nadc)
+    //) data_gen_inst (
+    //    .clk(clk_adc),
+    //    .mode(hdbg_intf_i.data_gen_mode),
+    //    .in0(hdbg_intf_i.data_gen_in_0),
+    //    .in1(hdbg_intf_i.data_gen_in_1),
+    //    .out(data_gen_out)
+    //);
 
     // Histogram
     // TODO: is there an MLSD output that should be included?

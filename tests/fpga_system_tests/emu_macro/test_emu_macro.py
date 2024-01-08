@@ -899,10 +899,10 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     write_tc_reg('ext_pi_ctl_offset[2]', 256)
     write_tc_reg('ext_pi_ctl_offset[3]', 384)
     write_tc_reg('en_ext_max_sel_mux', 1)
-    write_tc_reg('ext_max_sel_mux[0]', 127)
-    write_tc_reg('ext_max_sel_mux[1]', 127)
-    write_tc_reg('ext_max_sel_mux[2]', 127)
-    write_tc_reg('ext_max_sel_mux[3]', 127)
+    write_tc_reg('ext_max_sel_mux[0]', 128)
+    write_tc_reg('ext_max_sel_mux[1]', 128)
+    write_tc_reg('ext_max_sel_mux[2]', 128)
+    write_tc_reg('ext_max_sel_mux[3]', 128)
 
     # Configure the retimer
     print('Configuring the retimer...')
@@ -915,9 +915,9 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     print('Configuring the CDR...')
     write_tc_reg('Kp', 0)
     write_tc_reg('Ki', 0)
-    write_tc_reg('invert', 0)
+    write_tc_reg('invert', 1)
     write_tc_reg('en_freq_est', 0)
-    write_tc_reg('ext_pi_ctl', -9)
+    write_tc_reg('ext_pi_ctl', 17)
     write_tc_reg('en_ext_pi_ctl', 1)
     write_tc_reg('sel_inp_mux', 1) # "0": use ADC output, "1": use FFE output
 
@@ -971,7 +971,7 @@ def test_4(prbs_test_dur, jitter_rms, noise_rms, chan_tau, chan_delay, channel_n
     time.sleep(2)
 
 
-    #for ii in range(10):
+    #for ii in range(15):
     #    code_level = code_level + 1
     #    write_tc_reg('fe_adapt_gain', 5)
     #    write_tc_reg('fe_bit_target_level', code_level)

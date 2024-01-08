@@ -159,6 +159,14 @@ for data in data_sets:
     if lbl not in labeled_errors:
         labeled_errors[lbl] = []
     labeled_errors[lbl] += [data[0][error_loc+2-10:]]
+
+    if lbl == '0' or lbl == '1':
+        #plt.plot(x1, polarity*data[0])
+        plt.plot(data[0][error_loc-4+10-5-9:])
+        #print(data[1][error_loc-4+1:])
+        #print(data[2][error_loc-4+2:])
+        plt.plot(data[3][error_loc-4+2-5:])
+        plt.show()
     #print(act_errors)
 #plt.show()
 
