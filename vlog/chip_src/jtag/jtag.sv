@@ -17,6 +17,7 @@ module jtag (
     mdll_r1_debug_intf.jtag mdbg_intf_i,
     hist_debug_intf.jtag hdbg_intf_i,
     error_tracker_debug_intf.jtag edbg_intf_i,
+    trig_debug_intf.jtag aet_dbg_intf_i,
     //tx_debug_intf.dcore tdbg_intf_i,
     //tx_data_intf.jtag odbg_intf_i,
 	jtag_intf.target jtag_intf_i
@@ -380,11 +381,16 @@ module jtag (
 	assign cdbg_intf_i.invert = rjtag_intf_i.invert;
     assign cdbg_intf_i.cdr_en_clamp = rjtag_intf_i.cdr_en_clamp;
     assign cdbg_intf_i.cdr_clamp_amt = rjtag_intf_i.cdr_clamp_amt;
-
 	//CDR Output
 	assign rjtag_intf_i.phase_est   = cdbg_intf_i.phase_est;
 	assign rjtag_intf_i.freq_est    = cdbg_intf_i.freq_est;
 	assign rjtag_intf_i.ramp_est    = cdbg_intf_i.ramp_est;
+
+    //AET Input
+    assign aet_dbg_intf_i.trigger = rjtag_intf_i.aet_trigger;
+    assign aet_dbg_intf_i.in_addr = rjtag_intf_i.aet_in_addr;
+    //AET Output
+    assign rjtag_intf_i.aet_mem_data_out = aet_dbg_intf_i.mem_data_out;
 
     // PRBS Checker Input
     assign pdbg_intf_i.prbs_cke = rjtag_intf_i.prbs_cke;

@@ -408,6 +408,9 @@ module sim_ctrl(
             `FORCE_JTAG(ext_pi_ctl, tmp_mm);
         end
         `CLK_ADC_DLY;
+        `FORCE_JTAG(aet_trigger, 1);
+        `CLK_ADC_DLY;
+        `FORCE_JTAG(en_ext_pi_ctl, 0);
         `FORCE_JTAG(hist_mode, 1);
         repeat(300) `CLK_ADC_DLY;
         `FORCE_JTAG(hist_mode, 2);

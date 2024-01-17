@@ -39,7 +39,7 @@ module digital_core import const_pack::*; (
     output wire logic clk_cgra
 );
     // interfaces
-
+    trig_debug_intf aet_dbg_intf_i ();
     cdr_debug_intf cdbg_intf_i ();
     sram_debug_intf #(.N_mem_tiles(2)) sm1_dbg_intf_i ();
 
@@ -305,10 +305,9 @@ module digital_core import const_pack::*; (
     generate
         for(k = 0; k < Nti; k = k + 1) begin
             assign trunc_aligned_est_bits[k] = aligned_estimated_bits[k][9:2];
-            assign mm_cdr_input[k] = cdbg_intf_i.sel_inp_mux ? trunc_aligned_est_bits[k] : act_codes[k];
+            assign mm_cdr_input[k]           = cdbg_intf_i.sel_inp_mux ? trunc_aligned_est_bits[k] : act_codes[k];
         end
     endgenerate
-
 
     //Move reset logic out of loop of CDR :)
     logic [4:0] wait_on_reset_ii;
@@ -317,14 +316,15 @@ module digital_core import const_pack::*; (
     //Wait 32 cycles on each reset
     always_ff @(posedge clk_adc or negedge cdr_rstb) begin
         if(~cdr_rstb) begin
-            ctl_valid_reg <= 0;
+            ctl_valid_reg    <= 0;
             wait_on_reset_ii <= 0;
         end else begin
             wait_on_reset_ii <=  (wait_on_reset_ii == 5'b11111) ? wait_on_reset_ii : wait_on_reset_ii + 1;
-            ctl_valid_reg        <=   (wait_on_reset_ii == 5'b11111) ? 1 : 0;
+            ctl_valid_reg    <=  (wait_on_reset_ii == 5'b11111) ? 1 : 0;
         end
     end
 
+    logic signed [Nadc+1:0] phase_est_sample, freq_est_sample;
     mm_cdr iMM_CDR (
         .codes(mm_cdr_input),
         .syms(sliced_est_bits),
@@ -333,7 +333,36 @@ module digital_core import const_pack::*; (
         .ramp_clock(ramp_clock),
         .freq_lvl_cross(freq_lvl_cross),
         .pi_ctl(pi_ctl_cdr),
+        .phase_est_sample(phase_est_sample),
+        .freq_est_sample(freq_est_sample),
         .cdbg_intf_i(cdbg_intf_i)
+    );
+
+    logic aligned_trigger;
+
+    trigger #(
+        .polarity(0)
+    ) trig_cdr_i (
+        .clk(clk_adc),
+        .rstb(dcore_rstb),
+
+        .global_trigger(aet_dbg_intf_i.trigger),
+        .local_trigger(cdbg_intf_i.en_ext_pi_ctl),
+
+        .aligned_trigger(aligned_trigger)
+    );
+
+    trig_tracker #(
+        .bitwidth(10),
+        .counter_bitwidth(30),
+        .memory_addr_width(10)
+    ) aet_i (
+        .clk(clk_adc),
+        .rstb(dcore_rstb),
+        .in(phase_est_sample),
+        .trigger(aligned_trigger),
+        .in_addr(aet_dbg_intf_i.in_addr),
+        .mem_data_out(aet_dbg_intf_i.mem_data_out)
     );
 
     //////////////////////////// 
@@ -680,7 +709,6 @@ module digital_core import const_pack::*; (
         .total_bits(prbs_total_bits_trigger),
         .prbs_flags(prbs_flags_trigger)
     );
-
     
     error_tracker #(
         .width(Nti),
@@ -815,6 +843,7 @@ module digital_core import const_pack::*; (
         .adbg_intf_i(adbg_intf_i),
         .cdbg_intf_i(cdbg_intf_i),
         .sdbg1_intf_i(sm1_dbg_intf_i),
+        .aet_dbg_intf_i(aet_dbg_intf_i),
         .pdbg_intf_i(pdbg_intf_i),
         .mdbg_intf_i(mdbg_intf_i),
         .hdbg_intf_i(hdbg_intf_i),

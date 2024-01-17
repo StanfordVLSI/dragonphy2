@@ -24,8 +24,7 @@ def create_fpga_graph():
     graph.add_input('prbs_intf', ext='md', folders=['md'])
     graph.add_input('error_intf', ext='md', folders=['md'])
     graph.add_input('sram_multi_intf', ext='md', folders=['md'])
-    #graph.add_input('txdata_intf', ext='md', folders=['md'])
-    #graph.add_input('tx_intf', ext='md', folders=['md'])
+    graph.add_input('trig_intf', ext='md', folders=['md'])
 
     # Scripts
     graph.add_python('adapt_fir', 'adapt_fir', 'AdaptFir', view='chip_src',
@@ -36,7 +35,7 @@ def create_fpga_graph():
                      sources={'acore_intf', 'cdr_intf', 'dcore_intf',
                               'hist_intf',
                               'prbs_intf', 
-                              'sram_multi_intf'})#, 'txdata_intf', 'tx_intf'})
+                              'sram_multi_intf', 'trig_intf'})#, 'txdata_intf', 'tx_intf'})
     graph.add_python('chan_core', 'chan_core', 'ChannelCore', view='fpga_models',
                      folders=['dragonphy', 'fpga_models'], sources={'adapt_fir'},
                      configs={'chan'})
@@ -73,6 +72,7 @@ def create_asic_graph():
     graph.add_input('sram_multi_intf', ext='md', folders=['md'])
     graph.add_input('txdata_intf', ext='md', folders=['md'])
     graph.add_input('tx_intf', ext='md', folders=['md'])
+    graph.add_input('trig_intf', ext='md', folders=['md'])
 
     # Scripts
     graph.add_python('adapt_fir', 'adapt_fir', 'AdaptFir', view='chip_src',
@@ -107,6 +107,7 @@ def create_cpu_graph():
     graph.add_input('sram_multi_intf', ext='md', folders=['md'])
     graph.add_input('txdata_intf', ext='md', folders=['md'])
     graph.add_input('tx_intf', ext='md', folders=['md'])
+    graph.add_input('trig_intf', ext='md', folders=['md'])
 
     # Scripts
     graph.add_python('adapt_fir', 'adapt_fir', 'AdaptFir', view='chip_src',
