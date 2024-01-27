@@ -371,20 +371,11 @@ module jtag (
 	assign cdbg_intf_i.pd_offset_ext = rjtag_intf_i.pd_offset_ext;
 	assign cdbg_intf_i.Ki    = rjtag_intf_i.Ki;
 	assign cdbg_intf_i.Kp 	 = rjtag_intf_i.Kp;
-	assign cdbg_intf_i.Kr 	 = rjtag_intf_i.Kr;
 	assign cdbg_intf_i.en_ext_pi_ctl = rjtag_intf_i.en_ext_pi_ctl;
 	assign cdbg_intf_i.ext_pi_ctl    = rjtag_intf_i.ext_pi_ctl;
 	assign cdbg_intf_i.en_freq_est   = rjtag_intf_i.en_freq_est;
-	assign cdbg_intf_i.en_ramp_est   = rjtag_intf_i.en_ramp_est;
 	assign cdbg_intf_i.sel_inp_mux  = rjtag_intf_i.sel_inp_mux;
-	assign cdbg_intf_i.sample_state = rjtag_intf_i.sample_state;
-	assign cdbg_intf_i.invert = rjtag_intf_i.invert;
-    assign cdbg_intf_i.cdr_en_clamp = rjtag_intf_i.cdr_en_clamp;
-    assign cdbg_intf_i.cdr_clamp_amt = rjtag_intf_i.cdr_clamp_amt;
-	//CDR Output
-	assign rjtag_intf_i.phase_est   = cdbg_intf_i.phase_est;
-	assign rjtag_intf_i.freq_est    = cdbg_intf_i.freq_est;
-	assign rjtag_intf_i.ramp_est    = cdbg_intf_i.ramp_est;
+
 
     //AET Input
     assign aet_dbg_intf_i.trigger = rjtag_intf_i.aet_trigger;

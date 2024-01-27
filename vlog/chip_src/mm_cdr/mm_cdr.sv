@@ -27,11 +27,9 @@ module mm_cdr import const_pack::*; #(
 
     logic signed [prop_width-1:0] Kp;
     logic signed [intg_width-1:0] Ki;
-    logic signed [ramp_width-1:0] Kr; 
 
     assign Ki = cdbg_intf_i.Ki;
     assign Kp = cdbg_intf_i.Kp;
-    assign Kr = cdbg_intf_i.Kr;
 
 
     

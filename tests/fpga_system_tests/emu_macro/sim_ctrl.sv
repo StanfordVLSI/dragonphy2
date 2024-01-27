@@ -374,7 +374,6 @@ module sim_ctrl(
         `FORCE_JTAG(en_freq_est, 0);
         `FORCE_JTAG(en_ext_pi_ctl, 1);
         `FORCE_JTAG(ext_pi_ctl, 0);
-        `FORCE_JTAG(invert, 1);
         `FORCE_JTAG(sel_inp_mux, 1); // "0": use ADC output, "1": use FFE output
         `CLK_ADC_DLY;
 
