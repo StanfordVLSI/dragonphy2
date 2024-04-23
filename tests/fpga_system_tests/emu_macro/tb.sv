@@ -108,9 +108,6 @@ module tb;
     logic [31:0] prbs_init_vals  [33:-2];
     logic [31:0] prbs_state_vals [33:-2];
 
-
-
-
     assign prbs_init_vals[-2] = 32'h39406d25;
     assign prbs_init_vals[-1] = 32'h1fa44802;
     assign prbs_init_vals[0]  = 32'h5bda4b69;
