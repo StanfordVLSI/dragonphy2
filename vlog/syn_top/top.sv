@@ -592,7 +592,7 @@ module energy_metric #(
         energy = energy;
     end
 
-endmodule 
+endmodule
 
 module error_injection_engine #(
         parameter integer seq_length = 3,
@@ -604,6 +604,10 @@ module error_injection_engine #(
         parameter integer shift_width = 3,
         parameter integer est_channel_bitwidth = 8
 ) (
+
+    input logic clk,
+    inout logic rstb,
+
     input logic signed [est_channel_bitwidth-1:0] channel  [(seq_length+trellis_pattern_depth-1)-1:0],
     input logic signed [branch_bitwidth-1:0] trellis_patterns [num_of_trellis_patterns-1:0][trellis_pattern_depth-1:0],
     input logic [shift_width-1:0] channel_shift,
@@ -613,6 +617,7 @@ module error_injection_engine #(
 ) ;
 
     logic signed [est_channel_bitwidth + $clog2(trellis_pattern_depth) + 1 -1:0] internal_injection_error_seqs [num_of_trellis_patterns-1:0][seq_length-1:0];
+    logic signed [est_err_bitwidth-1:0] injection_error_seqs_d [2*num_of_trellis_patterns-1:0][seq_length-1:0]
 
     always_comb begin
         // Initialize Injection Error Sequences to Zero
@@ -634,15 +639,31 @@ module error_injection_engine #(
         end
         for(int ii = 0; ii < num_of_trellis_patterns; ii += 1) begin
             for (int jj = 0; jj < seq_length; jj += 1) begin
-                injection_error_seqs[2*ii][jj]   = internal_injection_error_seqs[ii][jj] >>> channel_shift;
-                injection_error_seqs[2*ii+1][jj] = -internal_injection_error_seqs[ii][jj] >>> channel_shift;
+                injection_error_seqs_d[2*ii][jj]   = internal_injection_error_seqs[ii][jj] >>> channel_shift;
+                injection_error_seqs_d[2*ii+1][jj] = -internal_injection_error_seqs[ii][jj] >>> channel_shift;
             end
         end
 
     end
 
+    always_ff @(posedge clk or negedge rstb) begin
+        if(~rstb) begin
+            for(int ii = 0; ii < num_of_trellis_patterns; ii += 1) begin
+                for(int jj =0; jj < seq_length; jj += 1) begin
+                    injection_error_seqs[ii][jj] <= 0;
+                end
+            end
+        end else begin
+            for(int ii = 0; ii < 2*num_of_trellis_patterns; ii += 1) begin
+                for(int jj =0; jj < seq_length; jj += 1) begin
+                    injection_error_seqs[ii][jj] <= injection_error_seqs_d[ii][jj];
+                end
+            end
+        end
+    end
 
 endmodule 
+ 
 
 module rtrellis_neighbor_checker_slice #(
     parameter integer num_of_trellis_patterns = 4,
@@ -728,6 +749,8 @@ module rtrellis_neighbor_checker #(
         .cp(0),
         .est_channel_bitwidth(est_channel_bitwidth)
     ) eie_i (
+        .clk(clk),
+        .rstb(rstb),
         .channel(channel_slice),
         .channel_shift(channel_shift),
         .trellis_patterns(trellis_patterns),

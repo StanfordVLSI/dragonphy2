@@ -31,6 +31,8 @@ module trellis_neighbor_checker #(
     assign channel_slice = channel[seq_length+trellis_pattern_depth-1-1:0];
     assign flag_eners = best_energies;
     error_injection_engine #(
+        .clk(clk),
+        .rstb(rstb),
         .seq_length(seq_length),
         .est_err_bitwidth(est_err_bitwidth),
         .trellis_pattern_depth(trellis_pattern_depth),
