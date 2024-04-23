@@ -25,9 +25,6 @@ package constant_gpack;
     localparam integer stage2_chan_pipeline_depth = 2;
     localparam integer stage2_err_out_pipeline_depth = 1;
     localparam integer stage3_sld_dtct_out_pipeline_depth = 1;
-    localparam integer stage4_fp_bits_out_pipeline_depth = 1;
-    localparam integer stage4_err_chan_out_pipeline_depth = 0;
-    localparam integer stage4_res_err_out_pipeline_depth = 0;
 endpackage
 package detector_gpack;
     localparam integer width = 16;
@@ -546,28 +543,26 @@ module simplify_dsp_dbg_intf #(
     end
 endmodule : simplify_dsp_dbg_intf
 
-module argmin #(
+module hargmin #(
     parameter integer num_of_energies = 3,
     parameter integer ener_bitwidth = 18
 ) (
     input logic [ener_bitwidth-1:0] energies [num_of_energies-1:0],
 
-    output logic [$clog2(num_of_energies)-1:0] lowest_energy_idx,
-    output logic [ener_bitwidth-1:0] lowest_energy
+    output logic flag
 );
+    logic [num_of_energies-1:0] flags;
 
-
-    always_comb begin
-        lowest_energy_idx = 0;
-        lowest_energy = energies[0];
-        for(int ii = 1; ii < num_of_energies; ii += 1) begin
-            if (energies[ii] < lowest_energy) begin
-                lowest_energy_idx = ii;
-                lowest_energy = energies[ii];
-            end
+    genvar gi;
+    generate
+        for(gi = 1; gi < num_of_energies; gi = gi + 1) begin
+            assign flags[gi] = energies[gi] < energies[0];
         end
-    end
-endmodule 
+    endgenerate
+
+    assign flag = |flags;
+
+endmodule
 
 module energy_metric #(
     parameter integer est_err_bitwidth = 9,
@@ -649,7 +644,7 @@ module error_injection_engine #(
 
 endmodule 
 
-module trellis_neighbor_checker_slice #(
+module rtrellis_neighbor_checker_slice #(
     parameter integer num_of_trellis_patterns = 4,
     parameter integer seq_length = 3,
     parameter integer est_err_bitwidth = 9,
@@ -660,13 +655,10 @@ module trellis_neighbor_checker_slice #(
     input logic signed [est_err_bitwidth-1:0] est_error [seq_length-1:0],
     input logic signed [ener_bitwidth-1:0] null_energy,
 
-    output logic [$clog2(2*num_of_trellis_patterns+1)-1:0] best_ener_idx,
-    output logic [ener_bitwidth-1:0] best_energy
+    output logic flag
 );
 
     logic [ener_bitwidth-1:0] energies [2*num_of_trellis_patterns:0];
-
-
     assign energies[0] = null_energy;
 
     genvar gi;
@@ -685,18 +677,17 @@ module trellis_neighbor_checker_slice #(
         end
     endgenerate
 
-    argmin #(
+    hargmin #(
         .num_of_energies(2*num_of_trellis_patterns+1),
         .ener_bitwidth(ener_bitwidth)
     ) argmin_i (
         .energies(energies),
-        .lowest_energy_idx(best_ener_idx),
-        .lowest_energy(best_energy)
+        .flag(flag)
     );
 
 endmodule
 
-module trellis_neighbor_checker #(
+module rtrellis_neighbor_checker #(
     parameter integer est_channel_bitwidth = 10,
     parameter integer depth = 30,
     parameter integer width = 16,
@@ -715,8 +706,7 @@ module trellis_neighbor_checker #(
     input logic nrz_mode,
     input logic signed [est_err_bitwidth-1:0]              errstream [width*trellis_neighbor_checker_depth-1:0],
 
-    output logic [$clog2(2*num_of_trellis_patterns+1)-1:0] flags [width-1:0],
-    output logic [ener_bitwidth-1:0] flag_eners [width-1:0]
+    output logic flags [width-1:0]
 
 );
     logic signed [est_channel_bitwidth-1:0]  channel_slice [seq_length+trellis_pattern_depth-1-1:0];
@@ -727,7 +717,7 @@ module trellis_neighbor_checker #(
     logic [ener_bitwidth-1:0] best_energies [width-1:0];
 
     assign channel_slice = channel[seq_length+trellis_pattern_depth-1-1:0];
-    assign flag_eners = best_energies;
+
     error_injection_engine #(
         .seq_length(seq_length),
         .est_err_bitwidth(est_err_bitwidth),
@@ -747,7 +737,6 @@ module trellis_neighbor_checker #(
 
     genvar gi, gj;
     generate
-
         for(gi = 0; gi < width; gi += 1) begin
             for(gj = 0; gj < seq_length; gj += 1) begin
                 assign errstream_slice[gi][gj] = errstream[width-seq_length + gi+gj];
@@ -762,7 +751,7 @@ module trellis_neighbor_checker #(
                 null_energies[gi] = null_energies[gi];
             end
 
-            trellis_neighbor_checker_slice #(
+            rtrellis_neighbor_checker_slice #(
                 .num_of_trellis_patterns(num_of_trellis_patterns),
                 .seq_length(seq_length),
                 .est_err_bitwidth(est_err_bitwidth),
@@ -771,13 +760,10 @@ module trellis_neighbor_checker #(
                 .injection_error_seqs(injection_error_seqs),
                 .est_error(errstream_slice[gi]),
                 .null_energy(null_energies[gi]),
-                .best_ener_idx(flags[gi]),
-                .best_energy(best_energies[gi])
+                .flag(flags[gi])
             );
         end
     endgenerate
-
-
 
 endmodule 
 
@@ -1108,8 +1094,9 @@ module res_err_estimator_datapath #(
     );
 
 endmodule // res_err_estimator_datapath
+`define MAX(arg1, arg2) ((arg1 > arg2) ? arg1 : arg2)
 
-module error_checker_datapath #(
+module reduced_error_checker_datapath #(
     parameter integer seq_length = 3,
     parameter integer sym_bitwidth = 2,
     parameter integer branch_bitwidth = 2,
@@ -1125,18 +1112,15 @@ module error_checker_datapath #(
     input logic signed [error_gpack::est_error_precision-1:0]     res_errors_in          [constant_gpack::channel_width-1:0],
 
 
-    output logic        [error_gpack::ener_bitwidth-1:0]          sd_flags_ener          [constant_gpack::channel_width-1:0],
     output logic signed [error_gpack::est_error_precision-1:0]    res_errors_out         [constant_gpack::channel_width-1:0],
-    output logic        [$clog2(2*num_of_trellis_patterns+1)-1:0] sd_flags               [constant_gpack::channel_width-1:0],
+    output logic                                                  sd_flags               [constant_gpack::channel_width-1:0],
     output logic signed [(2**sym_bitwidth-1)-1:0]                 symbols_out            [constant_gpack::channel_width-1:0],
 
     input logic signed [channel_gpack::est_channel_precision-1:0] channel_est            [channel_gpack::est_channel_depth-1:0],
     input logic        [channel_gpack::shift_precision-1:0]       channel_shift          ,
-    input logic signed [branch_bitwidth-1:0]                                      trellis_patterns       [num_of_trellis_patterns-1:0][trellis_pattern_depth-1:0]
+    input logic signed [branch_bitwidth-1:0]                      trellis_patterns       [num_of_trellis_patterns-1:0][trellis_pattern_depth-1:0]
 );
     genvar gi;
-
-    localparam integer flag_width = $clog2(2*num_of_trellis_patterns+1);
 
     localparam integer total_depth         = sliding_detector_output_pipeline_depth;
 
@@ -1149,8 +1133,7 @@ module error_checker_datapath #(
     logic signed [error_gpack::est_error_precision-1:0]  res_error_buffer   [constant_gpack::channel_width-1:0][error_pipeline_depth:0]; 
     logic signed [(2**sym_bitwidth-1)-1:0]               symbol_buffer [constant_gpack::channel_width-1:0][bits_pipeline_depth:0]; 
 
-    logic [error_gpack::ener_bitwidth-1:0] mmse_vals_buffer          [constant_gpack::channel_width-1:0][sliding_detector_output_pipeline_depth:0];
-    logic [flag_width-1:0]                 argmin_mmse_buffer        [constant_gpack::channel_width-1:0][sliding_detector_output_pipeline_depth:0];
+    logic [0:0]                 argmin_mmse_buffer                  [constant_gpack::channel_width-1:0][sliding_detector_output_pipeline_depth:0];
 
     //Flatten and slice bitstreams and errstreams
     generate
@@ -1198,15 +1181,14 @@ module error_checker_datapath #(
     );
 
     //Trellis Neighbor Checker
-    logic [flag_width-1:0] argmin_mmse [constant_gpack::channel_width-1:0];
-    logic [error_gpack::ener_bitwidth-1:0] mmse_vals [constant_gpack::channel_width-1:0];
+    logic [0:0] argmin_mmse [constant_gpack::channel_width-1:0];
 
 
     //always @(posedge clk) begin
     //    test_pack::array_io#(logic signed [error_gpack::est_error_precision-1:0], 32)::write_array(sd_flat_errors);
     //end
 
-    trellis_neighbor_checker #(
+    rtrellis_neighbor_checker #(
         .est_channel_bitwidth(detector_gpack::est_channel_precision),
         .depth(channel_gpack::est_channel_depth),
         .width(constant_gpack::channel_width),
@@ -1223,27 +1205,12 @@ module error_checker_datapath #(
         .trellis_patterns(trellis_patterns),
         .nrz_mode(0),
         .errstream(sd_flat_errors),
-        .flag_eners(mmse_vals),
         .flags(argmin_mmse)
     );
 
-
-    //Detector Pipelines
     buffer #(
         .numChannels(constant_gpack::channel_width),
-        .bitwidth   (error_gpack::ener_bitwidth),
-        .depth      (sliding_detector_output_pipeline_depth)
-    ) mmse_reg_i (
-        .in (mmse_vals),
-        .clk(clk),
-        .rstb(rstb),
-        .buffer(mmse_vals_buffer)
-    );
-
-
-    buffer #(
-        .numChannels(constant_gpack::channel_width),
-        .bitwidth   (flag_width),
+        .bitwidth   (1),
         .depth      (sliding_detector_output_pipeline_depth)
     ) argmin_reg_i (
         .in (argmin_mmse),
@@ -1254,12 +1221,11 @@ module error_checker_datapath #(
 
     always_comb begin
         for(int ii=0; ii<constant_gpack::channel_width; ii=ii+1) begin
-            sd_flags[ii]      = argmin_mmse_buffer[ii][sliding_detector_output_pipeline_depth];
-            sd_flags_ener[ii] = mmse_vals_buffer[ii][sliding_detector_output_pipeline_depth];
+            sd_flags[ii] = argmin_mmse_buffer[ii][sliding_detector_output_pipeline_depth];
         end
     end
 
-endmodule // error_checker_datapath
+endmodule // reduced_error_checker_datapath
 
 module datapath_core #(
         parameter integer delay_width=4,
@@ -1284,8 +1250,7 @@ module datapath_core #(
     output logic signed [error_gpack::est_error_precision-1:0] stage2_res_errors_out  [constant_gpack::channel_width-1:0],
     output logic signed [(2**sym_bitwidth-1)-1:0]              stage2_symbols_out [constant_gpack::channel_width-1:0],
     // Stage 3
-    output logic        [error_gpack::ener_bitwidth-1:0]       stage3_sd_flags_ener   [constant_gpack::channel_width-1:0],
-    output logic        [$clog2(2*detector_gpack::num_of_trellis_patterns+1)-1:0] stage3_sd_flags        [constant_gpack::channel_width-1:0],
+    output logic        [0:0] stage3_sd_flags        [constant_gpack::channel_width-1:0],
 
     dsp_debug_intf.dsp dsp_dbg_intf_i //Stand in for Debug Interface
 );
@@ -1293,47 +1258,9 @@ module datapath_core #(
     parameter integer stage1_depth = `MAX(1, constant_gpack::stage1_ffe_pipeline_depth + 1);
     parameter integer stage2_depth = stage1_depth + constant_gpack::stage2_chan_pipeline_depth  + constant_gpack::stage2_err_out_pipeline_depth;
     parameter integer stage3_depth = stage2_depth + constant_gpack::stage3_sld_dtct_out_pipeline_depth;
-    parameter integer stage4_depth = stage3_depth + 1+constant_gpack::stage4_fp_bits_out_pipeline_depth+constant_gpack::stage4_err_chan_out_pipeline_depth + constant_gpack::stage4_res_err_out_pipeline_depth;
 
-    parameter integer total_depth  = stage4_depth; //stage6_depth;
 
-    logic signed [(2**sym_bitwidth-1)-1:0]                         stage2_symbols_buffer  [constant_gpack::channel_width-1:0][stage4_depth-stage2_depth+2:0];
-    logic signed [error_gpack::est_error_precision-1:0]     stage2_res_error_buffer    [constant_gpack::channel_width-1:0][stage4_depth-stage2_depth+2:0];
-    logic        [$clog2(2*detector_gpack::num_of_trellis_patterns+1)-1:0]                                      stage3_sd_flags_buffer     [constant_gpack::channel_width-1:0][stage4_depth-stage3_depth+2:0];
-
-    signed_buffer #(
-        .numChannels (constant_gpack::channel_width),
-        .bitwidth    ((2**sym_bitwidth-1)),
-        .depth       (stage4_depth-stage2_depth+2)
-    ) s2_sliced_bits_buff_i (
-        .in      (stage2_symbols_out),
-        .clk     (clk),
-        .rstb    (rstb),
-        .buffer  (stage2_symbols_buffer)
-    );
-
-    //ADC Codes Pipeline
-    signed_buffer #(
-        .numChannels (constant_gpack::channel_width),
-        .bitwidth    (error_gpack::est_error_precision),
-        .depth       (stage4_depth-stage2_depth+2)
-    ) s2_res_err_buff_i (
-        .in      (stage2_res_errors_out),
-        .clk     (clk),
-        .rstb    (rstb),
-        .buffer  (stage2_res_error_buffer)
-    );
-
-    buffer #(
-        .numChannels (constant_gpack::channel_width),
-        .bitwidth    ($clog2(2*detector_gpack::num_of_trellis_patterns+1)),
-        .depth       (stage4_depth-stage3_depth+2)
-    ) s3_flags_buff_i (
-        .in      (stage3_sd_flags),
-        .clk     (clk),
-        .rstb    (rstb),
-        .buffer  (stage3_sd_flags_buffer)
-    );
+    parameter integer total_depth  = stage3_depth; //stage6_depth;
 
 
     wire logic signed [ffe_gpack::weight_precision-1:0]           weights [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0];
@@ -1402,7 +1329,7 @@ module datapath_core #(
     logic signed [(2**sym_bitwidth-1)-1:0]              stage3_symbols_out [constant_gpack::channel_width-1:0];
     logic signed [error_gpack::est_error_precision-1:0] stage3_res_errors_out  [constant_gpack::channel_width-1:0];
 
-    error_checker_datapath  #(
+    reduced_error_checker_datapath  #(
         .seq_length(4),
         .sym_bitwidth(sym_bitwidth),
         .branch_bitwidth(2),
@@ -1418,7 +1345,6 @@ module datapath_core #(
 
         // Outputs
         .sd_flags(stage3_sd_flags),       
-        .sd_flags_ener(stage3_sd_flags_ener),
         .symbols_out(stage3_symbols_out),
         .res_errors_out(stage3_res_errors_out),
 
@@ -1448,8 +1374,7 @@ module EVDatapathUnit (
     output logic signed [(2**2-1)-1:0]              stage2_symbols_out [constant_gpack::channel_width-1:0],
 
     // Stage 3
-    output logic        [error_gpack::ener_bitwidth-1:0]       stage3_sd_flags_ener   [constant_gpack::channel_width-1:0],
-    output logic        [$clog2(2*detector_gpack::num_of_trellis_patterns+1)-1:0] stage3_sd_flags        [constant_gpack::channel_width-1:0],
+    output logic        [0:0] stage3_sd_flags        [constant_gpack::channel_width-1:0],
 
     input logic signed [ffe_gpack::weight_precision-1:0] weights [constant_gpack::channel_width-1:0][ffe_gpack::length-1:0],
     input logic [ffe_gpack::shift_precision-1:0] ffe_shift [constant_gpack::channel_width-1:0],
@@ -1481,7 +1406,6 @@ module EVDatapathUnit (
         .stage1_aligned_est_bits_out(stage1_aligned_est_bits_out),
         .stage2_res_errors_out(stage2_res_errors_out),
         .stage2_symbols_out(stage2_symbols_out),
-        .stage3_sd_flags_ener(stage3_sd_flags_ener),
         .stage3_sd_flags(stage3_sd_flags),
         .dsp_dbg_intf_i(dsp_dbg_intf_i)
     );
