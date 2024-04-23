@@ -290,7 +290,6 @@ module signed_data_aligner #(
 
 
 );
-    initial assert(depth>1);
 
     assign aligned_data_delay = data_segment_delay + (width*(depth-1)- align_pos);
 
@@ -778,38 +777,6 @@ module trellis_neighbor_checker #(
         end
     endgenerate
 
-    function automatic string format_channel_array(input  logic signed [est_channel_bitwidth-1:0] channel [seq_length+trellis_pattern_depth-1-1:0]);
-        string str;
-        str = {"{", $sformatf("%d", channel[seq_length + trellis_pattern_depth -1 -1])};
-        for(int ii = seq_length + trellis_pattern_depth -1 -2 ; ii >= 0; ii = ii - 1) begin
-            str = {str, $sformatf(", %d", channel[ii])};
-        end
-        str = {str, "}"};
-
-        return str;
-    endfunction
-
-    function automatic string format_errstream_array(input  logic signed [est_err_bitwidth-1:0] errstream [seq_length-1:0]);
-        string str;
-        str = {"{", $sformatf("%d", errstream[seq_length-1])};
-        for(int ii = seq_length -2 ; ii >= 0; ii = ii - 1) begin
-            str = {str, $sformatf(", %d", errstream[ii])};
-        end
-        str = {str, "}"};
-
-        return str;
-    endfunction
-
-    function automatic string format_ies_array(input  logic signed [est_err_bitwidth-1:0] injection_error_seq [seq_length-1:0]);
-        string str;
-        str = {"{", $sformatf("%d", injection_error_seq[seq_length-1])};
-        for(int ii = seq_length -2 ; ii >= 0; ii = ii - 1) begin
-            str = {str, $sformatf(", %d", injection_error_seq[ii])};
-        end
-        str = {str, "}"};
-
-        return str;
-    endfunction
 
 
 endmodule 
@@ -1492,9 +1459,7 @@ module EVDatapathUnit (
     input logic [$clog2(constant_gpack::channel_width)-1:0] align_pos,
     input logic signed [detector_gpack::branch_bitwidth-1:0] trellis_patterns [detector_gpack::num_of_trellis_patterns-1:0][detector_gpack::trellis_pattern_depth-1:0]
 
-
 );
-
     dsp_debug_intf dsp_dbg_intf_i();
 
     assign dsp_dbg_intf_i.weights = weights;
@@ -1504,7 +1469,7 @@ module EVDatapathUnit (
     assign dsp_dbg_intf_i.channel_shift = channel_shift;
     assign dsp_dbg_intf_i.align_pos = align_pos;
     assign dsp_dbg_intf_i.trellis_patterns = trellis_patterns;
-    
+
 
     datapath_core dp_core_i (
         .clk(clk),
