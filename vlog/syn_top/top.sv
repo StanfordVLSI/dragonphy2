@@ -721,6 +721,9 @@ module rtrellis_neighbor_checker #(
     parameter integer ener_bitwidth = 18,
     parameter integer est_err_bitwidth=9
 ) (
+    input logic clk,
+    input logic rstb,
+
     input logic signed [est_channel_bitwidth-1:0]          channel          [depth-1:0],
     input logic signed [shift_bitwidth-1:0]                channel_shift,
     input logic signed [branch_bitwidth-1:0]               trellis_patterns [num_of_trellis_patterns-1:0][trellis_pattern_depth-1:0],
@@ -1223,6 +1226,8 @@ module reduced_error_checker_datapath #(
         .ener_bitwidth(error_gpack::ener_bitwidth),
         .est_err_bitwidth(detector_gpack::est_error_precision)
     ) tnc_i (
+        .clk(clk),
+        .rstb(rstb),
         .channel(channel_est),
         .channel_shift(channel_shift),
         .trellis_patterns(trellis_patterns),
