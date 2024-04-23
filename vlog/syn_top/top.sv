@@ -617,7 +617,7 @@ module error_injection_engine #(
 ) ;
 
     logic signed [est_channel_bitwidth + $clog2(trellis_pattern_depth) + 1 -1:0] internal_injection_error_seqs [num_of_trellis_patterns-1:0][seq_length-1:0];
-    logic signed [est_err_bitwidth-1:0] injection_error_seqs_d [2*num_of_trellis_patterns-1:0][seq_length-1:0]
+    logic signed [est_err_bitwidth-1:0] injection_error_seqs_d [2*num_of_trellis_patterns-1:0][seq_length-1:0];
 
     always_comb begin
         // Initialize Injection Error Sequences to Zero
