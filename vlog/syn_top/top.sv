@@ -509,6 +509,9 @@ module simplify_dsp_dbg_intf #(
 ) (
     dsp_debug_intf.dsp dsp_dbg_intf_i,
 
+    input logic clk,
+    input logic rstb,
+
     output logic signed [ffe_gpack::weight_precision-1:0] weights [ffe_gpack::length-1:0][constant_gpack::channel_width-1:0],
     output logic [ffe_gpack::shift_precision-1:0] ffe_shift [constant_gpack::channel_width-1:0],
     output logic signed [ffe_gpack::output_precision-1:0] slice_levels [2:0],
@@ -518,26 +521,52 @@ module simplify_dsp_dbg_intf #(
     output logic signed [branch_bitwidth-1:0]  trellis_patterns       [num_of_trellis_patterns-1:0][trellis_pattern_depth-1:0]
 );
 
-    always_comb begin
-        slice_levels <= dsp_dbg_intf_i.slice_levels;
-        
-        for(int ii=0; ii<constant_gpack::channel_width; ii=ii+1) begin
-            ffe_shift[ii]  <= dsp_dbg_intf_i.ffe_shift[ii];
-            channel_shift[ii] <= dsp_dbg_intf_i.channel_shift[ii];
+    always_ff @(posedge clk or negedge rstb) begin
+        if (~rstb) begin
+            slice_levels[0] <= 0;
+            slice_levels[1] <= 0;
+            slice_levels[2] <= 0;
+            
+            for(int ii=0; ii<constant_gpack::channel_width; ii=ii+1) begin
+                ffe_shift[ii]  <= 0;
+                channel_shift[ii] <= 0;
 
-            for(int jj=0; jj<channel_gpack::est_channel_depth; jj=jj+1) begin
-                channel_est[ii][jj] <= dsp_dbg_intf_i.channel_est[ii][jj];
+                for(int jj=0; jj<channel_gpack::est_channel_depth; jj=jj+1) begin
+                    channel_est[ii][jj] <= 0;
+                end
+
+                for(int jj=0; jj<ffe_gpack::length; jj=jj+1) begin
+                    weights[jj][ii] <= 0;
+                end
             end
+            align_pos <= 0;
 
-            for(int jj=0; jj<ffe_gpack::length; jj=jj+1) begin
-                weights[jj][ii] <= dsp_dbg_intf_i.weights[ii][jj];
+            for(int ii = 0; ii < num_of_trellis_patterns; ii = ii + 1) begin
+                for(int jj = 0; jj < trellis_pattern_depth; jj = jj + 1) begin
+                    trellis_patterns[ii][jj] <= 0;
+                end
             end
-        end
-        align_pos = dsp_dbg_intf_i.align_pos;
+        end else begin 
+            slice_levels <= dsp_dbg_intf_i.slice_levels;
+            
+            for(int ii=0; ii<constant_gpack::channel_width; ii=ii+1) begin
+                ffe_shift[ii]  <= dsp_dbg_intf_i.ffe_shift[ii];
+                channel_shift[ii] <= dsp_dbg_intf_i.channel_shift[ii];
 
-        for(int ii = 0; ii < num_of_trellis_patterns; ii = ii + 1) begin
-            for(int jj = 0; jj < trellis_pattern_depth; jj = jj + 1) begin
-                trellis_patterns[ii][jj] = dsp_dbg_intf_i.trellis_patterns[ii][jj];
+                for(int jj=0; jj<channel_gpack::est_channel_depth; jj=jj+1) begin
+                    channel_est[ii][jj] <= dsp_dbg_intf_i.channel_est[ii][jj];
+                end
+
+                for(int jj=0; jj<ffe_gpack::length; jj=jj+1) begin
+                    weights[jj][ii] <= dsp_dbg_intf_i.weights[ii][jj];
+                end
+            end
+            align_pos <= dsp_dbg_intf_i.align_pos;
+
+            for(int ii = 0; ii < num_of_trellis_patterns; ii = ii + 1) begin
+                for(int jj = 0; jj < trellis_pattern_depth; jj = jj + 1) begin
+                    trellis_patterns[ii][jj] <= dsp_dbg_intf_i.trellis_patterns[ii][jj];
+                end
             end
         end
     end
@@ -606,7 +635,7 @@ module error_injection_engine #(
 ) (
 
     input logic clk,
-    inout logic rstb,
+    input logic rstb,
 
     input logic signed [est_channel_bitwidth-1:0] channel  [(seq_length+trellis_pattern_depth-1)-1:0],
     input logic signed [branch_bitwidth-1:0] trellis_patterns [num_of_trellis_patterns-1:0][trellis_pattern_depth-1:0],
@@ -1303,6 +1332,8 @@ module datapath_core #(
 
     simplify_dsp_dbg_intf simp_dsp_i (
         //Input 
+        .clk(clk),
+        .rstb(rstb),
         .dsp_dbg_intf_i(dsp_dbg_intf_i),
         //Output
         .align_pos(align_pos),
